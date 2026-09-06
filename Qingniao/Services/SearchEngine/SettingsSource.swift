@@ -79,13 +79,11 @@ final class SettingsSource: SearchSource {
     }
 
     static let defaultRoutes: [SettingsSearchRoute] = [
-        .make(.settings, title: "设置", english: "Settings", aliases: ["偏好设置", "preferences", "prefs", "配置", "configuration"], icon: "gearshape"),
-        .make(.permissions, title: "权限", english: "Permissions", aliases: ["授权", "privacy", "screen recording", "accessibility", "系统权限", "隐私"], icon: "lock.shield"),
-        .make(.clipboardHistory, title: "剪贴板历史", english: "Clipboard History", aliases: ["剪贴板", "clipboard", "history", "剪贴板记录", "clipboard records"], icon: "clipboard"),
-        .make(.searchSources, title: "搜索源设置", english: "Search Sources", aliases: ["搜索来源", "provider", "providers", "sources", "show in search", "搜索源开关"], icon: "magnifyingglass"),
-        .make(.hotkey, title: "快捷键设置", english: "Hotkey Settings", aliases: ["快捷键", "shortcut", "shortcuts", "keyboard", "hotkey"], icon: "keyboard"),
-        .make(.screenshot, title: "截图设置", english: "Screenshot Settings", aliases: ["截图", "screen capture", "capture", "保存目录", "save directory", "screenshots"], icon: "camera.viewfinder"),
-        .make(.about, title: "关于", english: "About", aliases: ["版本", "隐私政策", "about", "privacy", "license", "许可证"], icon: "info.circle")
+        .make(.general, title: "通用设置", english: "General Settings", aliases: ["设置", "偏好设置", "preferences", "prefs", "配置", "configuration", "权限", "隐私", "privacy", "开机启动", "外观", "数据", "language", "appearance", "permissions"], icon: "gearshape"),
+        .make(.quickLaunch, title: "快速启动设置", english: "Quick Launch Settings", aliases: ["搜索源", "搜索来源", "搜索源开关", "快捷键", "黑名单", "provider", "providers", "sources", "shortcut", "shortcuts", "hotkey", "blacklist"], icon: "bolt.circle"),
+        .make(.clipboard, title: "剪贴板设置", english: "Clipboard Settings", aliases: ["剪贴板", "剪贴板历史", "clipboard", "clipboard history", "保留时间", "retention"], icon: "doc.on.clipboard"),
+        .make(.screenshot, title: "截图设置", english: "Screenshot Settings", aliases: ["截图", "screen capture", "capture", "保存目录", "save directory", "贴图", "screenshots"], icon: "camera.viewfinder"),
+        .make(.about, title: "关于", english: "About", aliases: ["版本", "隐私政策", "about", "privacy", "license", "许可证", "反馈", "feedback", "更新", "updates"], icon: "info.circle")
     ]
 }
 

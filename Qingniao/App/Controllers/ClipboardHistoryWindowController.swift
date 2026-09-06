@@ -35,7 +35,7 @@ final class ClipboardHistoryWindowController: NSWindowController, NSWindowDelega
             let view = ClipboardHistoryView(
                 viewModel: viewModel,
                 onCopyAndClose: { [weak window] in window?.close() },
-                onOpenSettings: { [weak self] in self?.container.settingsWindowController.show(route: .settings) }
+                onOpenSettings: { [weak self] in self?.container.settingsWindowController.show(route: .general) }
             )
                 .tint(JadeColor.primary) // 全局主色注入（Design Token T-004）
             window.title = L10n.localized("management.page.clipboard")

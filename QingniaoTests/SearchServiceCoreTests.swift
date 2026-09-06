@@ -93,9 +93,9 @@ final class SearchServiceCoreTests: XCTestCase {
     func testResultCarriesIconTypeLabelAndPrimaryActionClosesSearchPanel() async throws {
         let executor = MockActionExecutor()
         let service = SearchService(sources: [], actionExecutor: executor)
-        let action = SearchAction.openSettings(.settings)
+        let action = SearchAction.openSettings(.general)
         let result = SearchResult.mock(
-            id: "setting:settings",
+            id: "setting:general",
             sourceID: .settings,
             title: "Settings",
             icon: .systemSymbol("gearshape"),

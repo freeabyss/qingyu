@@ -73,10 +73,10 @@ final class QuickLaunchPlugin: QingniaoPlugin {
             actions: actions,
             settingsPage: PluginSettingsPageDescriptor(
                 id: .quickLaunch,
-                titleKey: "plugin.quickLaunch.settings.title",
+                titleKey: "settings.page.quickLaunch",
                 systemImageName: "bolt.circle",
                 order: 20,
-                makeView: { AnyView(QuickLaunchSettingsPage(settingsService: settingsService)) }
+                makeView: { AnyView(QuickLaunchPluginSettingsPage()) }
             ),
             menuItems: [],
             shortcuts: [],

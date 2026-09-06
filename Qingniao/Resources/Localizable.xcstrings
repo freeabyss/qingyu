@@ -1,6 +1,168 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "settings.page.general" : {
+      "comment" : "Five-page settings: General page title",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "General"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "通用"
+          }
+        }
+      }
+    },
+    "settings.page.quickLaunch" : {
+      "comment" : "Five-page settings: Quick Launch plugin page title",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quick Launch"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "快速启动"
+          }
+        }
+      }
+    },
+    "settings.page.clipboard" : {
+      "comment" : "Five-page settings: Clipboard plugin page title",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clipboard"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "剪贴板"
+          }
+        }
+      }
+    },
+    "settings.page.screenshot" : {
+      "comment" : "Five-page settings: Screenshot plugin page title",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screenshot"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "截图"
+          }
+        }
+      }
+    },
+    "settings.page.about" : {
+      "comment" : "Five-page settings: About page title",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "About"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关于"
+          }
+        }
+      }
+    },
+    "settings.section.features" : {
+      "comment" : "Sidebar section header grouping the plugin pages",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Features"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "功能列表"
+          }
+        }
+      }
+    },
+    "settings.general.subtitle" : {
+      "comment" : "General page subtitle",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Startup, appearance, language, permissions & data"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开机启动、外观、语言、权限与数据"
+          }
+        }
+      }
+    },
+    "settings.general.startup" : {
+      "comment" : "General page section: launch at login + language",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Startup & Language"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开机与语言"
+          }
+        }
+      }
+    },
+    "settings.general.language" : {
+      "comment" : "General page: interface language picker label",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Language"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "语言"
+          }
+        }
+      }
+    },
     "" : {
 
     },
@@ -4708,24 +4870,6 @@
         }
       }
     },
-    "management.page.about" : {
-      "comment" : "Sidebar page title for About",
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "About"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "关于"
-          }
-        }
-      }
-    },
     "management.page.appearance" : {
       "comment" : "Page title: appearance",
       "extractionState" : "stale",
@@ -4744,24 +4888,6 @@
         }
       }
     },
-    "management.page.clipboard" : {
-      "comment" : "US-015 management center",
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Clipboard History"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "剪贴板历史"
-          }
-        }
-      }
-    },
     "management.page.data" : {
       "comment" : "Page title: data",
       "extractionState" : "stale",
@@ -4776,42 +4902,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "数据"
-          }
-        }
-      }
-    },
-    "management.page.feedback" : {
-      "comment" : "Page title: feedback",
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Feedback"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "反馈"
-          }
-        }
-      }
-    },
-    "management.page.overview" : {
-      "comment" : "US-015 management center",
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Overview"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "概览"
           }
         }
       }
@@ -4852,24 +4942,6 @@
         }
       }
     },
-    "management.page.searchSources" : {
-      "comment" : "Page title: search sources",
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Search Sources"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "搜索源"
-          }
-        }
-      }
-    },
     "management.page.settings" : {
       "comment" : "US-015 management center",
       "extractionState" : "stale",
@@ -4884,42 +4956,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "设置"
-          }
-        }
-      }
-    },
-    "management.page.shortcuts" : {
-      "comment" : "Page title: shortcuts",
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Shortcuts"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "快捷键"
-          }
-        }
-      }
-    },
-    "management.page.updates" : {
-      "comment" : "Page title: updates",
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Updates"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "更新"
           }
         }
       }
@@ -5442,42 +5478,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "选择命令栏展示的结果类型"
-          }
-        }
-      }
-    },
-    "management.section.core" : {
-      "comment" : "Sidebar section: core features",
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Core"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "核心功能"
-          }
-        }
-      }
-    },
-    "management.section.system" : {
-      "comment" : "Sidebar section: system",
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "System"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "系统"
           }
         }
       }

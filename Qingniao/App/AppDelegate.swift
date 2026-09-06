@@ -252,7 +252,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         case .openClipboard:
             container.clipboardHistoryWindowController.show()
         case .openSettings:
-            container.settingsWindowController.show(route: .settings)
+            container.settingsWindowController.show(route: .general)
         case .openAbout:
             container.settingsWindowController.show(route: .about)
         case .openOnboarding:

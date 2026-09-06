@@ -65,6 +65,10 @@ final class AppContainer: NSObject {
         }
     )
 
+    /// Task 004: screenshot plugin shell — registers the screenshot settings
+    /// page for the five-page sidebar; capture wiring moves in at Task 009.
+    private(set) lazy var screenshotPlugin = ScreenshotPlugin()
+
     private var builtInPluginsRegistered = false
 
     /// Registers compiled-in plugins. Idempotent; individual start failures are
@@ -77,6 +81,7 @@ final class AppContainer: NSObject {
         do {
             try pluginRegistry.register(quickLaunchPlugin)
             try pluginRegistry.register(clipboardPlugin)
+            try pluginRegistry.register(screenshotPlugin)
         } catch {
             logger.error("Failed to register built-in plugins: \(error, privacy: .public)")
         }
@@ -131,21 +136,8 @@ final class AppContainer: NSObject {
     @objc private func handleOpenManagementCenter(_ notification: Notification) {
         if let route = notification.object as? SettingsRoute {
             settingsWindowController.show(route: route)
-        } else if let page = notification.object as? ManagementCenterPage {
-            let route: SettingsRoute
-            switch page {
-            case .overview: route = .settings
-            case .clipboard: route = .clipboardHistory
-            case .shortcuts: route = .hotkey
-            case .screenshot: route = .screenshot
-            case .searchSources: route = .searchSources
-            case .permissions: route = .permissions
-            case .about, .updates: route = .about
-            case .appearance, .data, .feedback: route = .settings
-            }
-            settingsWindowController.show(route: route)
         } else {
-            settingsWindowController.show(route: .settings)
+            settingsWindowController.show(route: .general)
         }
     }
 
@@ -163,7 +155,7 @@ final class AppContainer: NSObject {
     }
 
     @objc private func handleCommandCheckPermissions() {
-        settingsWindowController.show(route: .permissions)
+        settingsWindowController.show(route: .general)
     }
 
     @objc private func handleCommandCaptureRegion() {
@@ -415,7 +407,7 @@ final class AppContainer: NSObject {
             searchService: service,
             homeProvider: homeProvider,
             onOpenSettings: { [weak self] in
-                self?.settingsWindowController.show(route: .settings)
+                self?.settingsWindowController.show(route: .general)
             },
             onClose: onClose
         )

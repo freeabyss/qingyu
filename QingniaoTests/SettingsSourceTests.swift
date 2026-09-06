@@ -21,7 +21,7 @@ final class SettingsSourceTests: XCTestCase {
 
         let results = await source.search(query: "jiantieban")
 
-        XCTAssertTrue(results.contains { $0.id.rawValue == "setting:\(SettingsRoute.clipboardHistory.rawValue)" })
+        XCTAssertTrue(results.contains { $0.id.rawValue == "setting:\(SettingsRoute.clipboard.rawValue)" })
     }
 
     func testInitialsMatchesSettingsRoute() async {
@@ -29,7 +29,7 @@ final class SettingsSourceTests: XCTestCase {
 
         let results = await source.search(query: "kjj")
 
-        XCTAssertTrue(results.contains { $0.id.rawValue == "setting:\(SettingsRoute.hotkey.rawValue)" })
+        XCTAssertTrue(results.contains { $0.id.rawValue == "setting:\(SettingsRoute.quickLaunch.rawValue)" })
     }
 
     func testEnglishAliasMatchesRegardlessOfInterfaceLanguage() async {
@@ -37,18 +37,16 @@ final class SettingsSourceTests: XCTestCase {
 
         let results = await source.search(query: "privacy")
 
-        XCTAssertTrue(results.contains { $0.id.rawValue == "setting:\(SettingsRoute.permissions.rawValue)" })
+        XCTAssertTrue(results.contains { $0.id.rawValue == "setting:\(SettingsRoute.general.rawValue)" })
     }
 
     func testDefaultRoutesCoverPageAndSettingSectionEntrypoints() {
         let routes = Set(SettingsSource.defaultRoutes.map(\.id))
 
         XCTAssertEqual(routes, Set([
-            .settings,
-            .permissions,
-            .clipboardHistory,
-            .searchSources,
-            .hotkey,
+            .general,
+            .quickLaunch,
+            .clipboard,
             .screenshot,
             .about
         ]))
@@ -59,7 +57,7 @@ final class SettingsSourceTests: XCTestCase {
 
         let results = await source.search(query: "搜索源开关")
 
-        XCTAssertTrue(results.contains { $0.id.rawValue == "setting:\(SettingsRoute.searchSources.rawValue)" })
+        XCTAssertTrue(results.contains { $0.id.rawValue == "setting:\(SettingsRoute.quickLaunch.rawValue)" })
         XCTAssertTrue(results.allSatisfy { result in
             if case .openSettings = result.primaryAction {
                 return result.secondaryActions.isEmpty

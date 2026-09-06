@@ -1,49 +1,62 @@
+import KeyboardShortcuts
 import SwiftUI
 
-/// Settings page contributed by the Clipboard plugin (Task 003).
+/// Settings page contributed by the Clipboard plugin (Task 004).
 ///
-/// The descriptor is exposed via `ClipboardPlugin.manifest.settingsPage`; the
-/// settings sidebar consumes plugin pages starting in Task 004. Reuses the
-/// existing `management.clipboard.*` localization keys and the persisted
-/// `clipboard.enabled` setting the app core already honours via
-/// `syncRuntimeSettings()`. Named `ClipboardPluginSettingsPage` to avoid the
-/// pre-existing `ClipboardSettingsPage` section view in SettingsView.
+/// Merged content per the five-page mapping: clipboard shortcut, recording
+/// switch and retention period. Bindings come from the shared
+/// `SettingsViewModel` injected by the settings window's environment.
 struct ClipboardPluginSettingsPage: View {
-    let settingsService: SettingsServiceProtocol
-
-    @State private var recordingEnabled = true
+    @EnvironmentObject private var viewModel: SettingsViewModel
 
     var body: some View {
-        Form {
-            Section {
-                Toggle(isOn: $recordingEnabled) {
-                    Label {
-                        Text(L10n.localized("management.clipboard.enabled"))
-                        Text(L10n.localized("management.clipboard.subtitle"))
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                    } icon: {
-                        Image(systemName: "record.circle")
-                            .foregroundStyle(.secondary)
+        ScrollView {
+            VStack(alignment: .leading, spacing: JadeSpace.x6.value) {
+                SettingsSection("management.settings.shortcuts") {
+                    HStack {
+                        Text(L10n.localized("management.shortcuts.clipboardHistory"))
+                            .font(JadeFont.body)
+                            .foregroundStyle(JadeColor.textPrimary)
+                        Spacer()
+                        HotkeyRecorder(
+                            for: .openClipboardHistory,
+                            isConflicting: .constant(viewModel.isShortcutConflict(.openClipboardHistory)),
+                            conflictMessage: .constant(viewModel.conflictMessage(for: .openClipboardHistory))
+                        )
+                        .onChange(of: KeyboardShortcuts.getShortcut(for: .openClipboardHistory)) { _ in
+                            viewModel.refreshShortcutConflicts()
+                        }
                     }
                 }
-                .onChange(of: recordingEnabled) { newValue in
-                    Task { await persist(newValue) }
+
+                SettingsSection("management.settings.clipboard") {
+                    JadeSwitchRow(L10n.localized("management.clipboard.enabled"), isOn: clipboardEnabledBinding)
+                    Divider().overlay(JadeColor.border)
+                    VStack(alignment: .leading, spacing: JadeSpace.x2.value) {
+                        Text(L10n.localized("management.clipboard.retention"))
+                            .font(JadeFont.body)
+                        Picker("", selection: retentionBinding) {
+                            ForEach(SettingsViewModel.retentionOptions, id: \.self) { retention in
+                                Text(viewModel.retentionTitle(retention)).tag(retention)
+                            }
+                        }
+                        .labelsHidden()
+                        .pickerStyle(.segmented)
+                    }
                 }
-            } header: {
-                Text(L10n.localized("management.clipboard.retention"))
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(JadeSpace.x6.value)
         }
-        .formStyle(.grouped)
-        .task { await load() }
     }
 
-    private func load() async {
-        recordingEnabled = (try? await settingsService.value(for: .clipboardEnabled, as: Bool.self)) ?? true
+    private var clipboardEnabledBinding: Binding<Bool> {
+        Binding(get: { viewModel.clipboardEnabled },
+                set: { viewModel.clipboardEnabled = $0; Task { await viewModel.saveSettings() } })
     }
 
-    private func persist(_ enabled: Bool) async {
-        try? await settingsService.set(enabled, for: .clipboardEnabled)
-        NotificationCenter.default.post(name: .settingsDidChange, object: nil)
+    private var retentionBinding: Binding<ClipboardRetention> {
+        Binding(get: { viewModel.clipboardRetention },
+                set: { viewModel.clipboardRetention = $0; Task { await viewModel.saveSettings() } })
     }
 }

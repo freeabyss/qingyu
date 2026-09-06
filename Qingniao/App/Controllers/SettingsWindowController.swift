@@ -26,16 +26,16 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
         fatalError("init(coder:) has not been implemented")
     }
 
-    func show(route: SettingsRoute = .settings) {
+    func show(route: SettingsRoute = .general) {
         container.commandBarController.hide(animate: false)
+        container.registerBuiltInPlugins()
 
         if window == nil {
-            let settingsViewModel = SettingsViewModel()
-            let clipboardViewModel = container.makeClipboardListViewModel()
+            let settingsViewModel = SettingsViewModel(pluginRegistry: container.pluginRegistry)
             settingsViewModel.select(route: route)
             self.settingsViewModel = settingsViewModel
 
-            let view = ManagementCenterView(viewModel: settingsViewModel, clipboardViewModel: clipboardViewModel)
+            let view = ManagementCenterView(viewModel: settingsViewModel)
                 .tint(JadeColor.primary) // 全局主色注入（Design Token T-004）
             let window = NSWindow(
                 contentRect: NSRect(x: 0, y: 0, width: 920, height: 640),

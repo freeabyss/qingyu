@@ -345,7 +345,7 @@ final class SystemCommandExecutor: CommandExecutorProtocol {
             }
             try openURL(settingsURL, commandID: commandID)
         case .openAppSettings:
-            await postOnMainActor(name: .openManagementCenter, object: SettingsRoute.settings)
+            await postOnMainActor(name: .openManagementCenter, object: SettingsRoute.general)
         case .openDownloads:
             workspace.open(FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first ?? FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Downloads"))
         case .openApplications:
@@ -366,7 +366,7 @@ final class SystemCommandExecutor: CommandExecutorProtocol {
         case .toggleClipboardRecording:
             await postOnMainActor(name: .commandToggleClipboardRecording)
         case .checkPermissions:
-            await postOnMainActor(name: .openManagementCenter, object: SettingsRoute.permissions)
+            await postOnMainActor(name: .openManagementCenter, object: SettingsRoute.general)
         case .restartFinder:
             restartRunningApplication(bundleIdentifier: "com.apple.finder")
             if let finderURL = workspace.urlForApplication(withBundleIdentifier: "com.apple.finder") {

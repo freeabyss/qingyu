@@ -78,10 +78,10 @@ final class ClipboardPlugin: QingniaoPlugin {
             actions: actions,
             settingsPage: PluginSettingsPageDescriptor(
                 id: .clipboard,
-                titleKey: "plugin.clipboard.settings.title",
-                systemImageName: "clipboard",
+                titleKey: "settings.page.clipboard",
+                systemImageName: "doc.on.clipboard",
                 order: 30,
-                makeView: { AnyView(ClipboardPluginSettingsPage(settingsService: settingsService)) }
+                makeView: { AnyView(ClipboardPluginSettingsPage()) }
             ),
             menuItems: [],
             shortcuts: [],

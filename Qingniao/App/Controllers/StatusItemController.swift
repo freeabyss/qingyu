@@ -124,7 +124,7 @@ final class StatusItemController: NSObject {
 
     @objc private func openSettingsFromMenu() {
         logger.info("Settings selected from status menu")
-        container.settingsWindowController.show(route: .settings)
+        container.settingsWindowController.show(route: .general)
     }
 
     @objc private func openAboutFromMenu() {

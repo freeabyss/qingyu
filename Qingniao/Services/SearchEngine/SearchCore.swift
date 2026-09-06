@@ -34,13 +34,22 @@ struct CommandID: RawRepresentable, Hashable, Codable {
     }
 }
 
+/// Task 004: five-page settings navigation. Old routes map as follows:
+/// settings/permissions → general; searchSources/hotkey → quickLaunch;
+/// clipboardHistory → clipboard; screenshot → screenshot; about → about.
 enum SettingsRoute: String, Codable, Hashable {
-    case settings
-    case permissions
-    case clipboardHistory
-    case searchSources
-    case hotkey
+    case general
+    case quickLaunch
+    case clipboard
     case screenshot
+    case about
+}
+
+/// Sidebar page identity: two fixed pages (general/about) bracket the plugin
+/// pages contributed via `PluginRegistry.settingsPages`.
+enum SettingsPageID: Hashable {
+    case general
+    case plugin(PluginID)
     case about
 }
 
