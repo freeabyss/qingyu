@@ -41,6 +41,36 @@ final class AppContainer: NSObject {
     /// this registry in Tasks 002/003; until then existing wiring stays intact.
     let pluginRegistry = PluginRegistry()
 
+    /// Task 002: quick launch plugin owns the app/file/calculator/command/
+    /// settings search sources and the whitelisted command actions. AppContainer
+    /// only injects dependencies; the plugin builds its own contributions.
+    private(set) lazy var quickLaunchPlugin = QuickLaunchPlugin(
+        appSource: appSearchSource,
+        fileSource: fileSearchSource,
+        calculatorSource: calculatorSearchSource,
+        commandSource: systemCommandSource,
+        settingsService: SettingsService(persistence: .shared),
+        commandExecutor: SystemCommandExecutor(
+            clipboardHistoryService: ClipboardHistoryService(repository: clipboardRepository)
+        ),
+        confirmationProvider: SearchPanelCommandConfirmationProvider()
+    )
+
+    private var builtInPluginsRegistered = false
+
+    /// Registers compiled-in plugins and starts them. Idempotent; individual
+    /// start failures are recorded and isolated by the registry.
+    func registerBuiltInPlugins() {
+        guard !builtInPluginsRegistered else { return }
+        builtInPluginsRegistered = true
+        do {
+            try pluginRegistry.register(quickLaunchPlugin)
+        } catch {
+            logger.error("Failed to register quick-launch plugin: \(error, privacy: .public)")
+        }
+        Task { await pluginRegistry.startAll() }
+    }
+
     private let appSearchSource = AppSearchSource()
     private let systemCommandSource = SystemCommandSource()
     private let calculatorSearchSource = CalculatorSource()
@@ -360,12 +390,11 @@ final class AppContainer: NSObject {
     func makeSearchPanelViewModel(onClose: @escaping () -> Void) -> SearchPanelViewModel {
         let clipboardQueryService = ClipboardIndexQueryService(index: clipboardSearchIndex, repository: clipboardRepository)
         let settingsService = SettingsService(persistence: .shared)
-        let appSource = SettingsBackedSearchSource(source: appSearchSource, settingsService: settingsService, settingKey: .appSourceEnabled)
-        let commandSource = SettingsBackedSearchSource(source: systemCommandSource, settingsService: settingsService, settingKey: .commandSourceEnabled)
-        let calculatorSource = SettingsBackedSearchSource(source: calculatorSearchSource, settingsService: settingsService, settingKey: .calculatorSourceEnabled)
-        let fileSource = SettingsBackedSearchSource(source: fileSearchSource, settingsService: settingsService, settingKey: .fileSourceEnabled)
+        registerBuiltInPlugins()
+        // Task 002: quick-launch sources (app/command/calculator/settings/file)
+        // come from the plugin registry; clipboard stays hardcoded until Task 003.
         let clipboardSource = AssistantClipboardSource(queryService: clipboardQueryService, settingsService: settingsService)
-        let settingsSource = SettingsSource(settingsService: settingsService)
+        let sources = pluginRegistry.searchSources + [clipboardSource]
         let usageStore = UsageStatRepository()
         let blacklistChecker = SearchBlacklistRepository(persistence: .shared)
         let commandExecutor = SystemCommandExecutor(
@@ -378,10 +407,11 @@ final class AppContainer: NSObject {
                 confirmationProvider: SearchPanelCommandConfirmationProvider()
             ),
             clipboardRepository: clipboardRepository,
-            resourceStore: resourceStore
+            resourceStore: resourceStore,
+            pluginRegistry: pluginRegistry
         )
         let service = SearchService(
-            sources: [appSource, commandSource, calculatorSource, settingsSource, fileSource, clipboardSource],
+            sources: sources,
             usageStore: usageStore,
             blacklistChecker: blacklistChecker,
             actionExecutor: actionExecutor

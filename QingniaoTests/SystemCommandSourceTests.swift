@@ -28,7 +28,7 @@ final class SystemCommandSourceTests: XCTestCase {
         for command in source.commands {
             let results = await source.search(query: command.englishName)
             XCTAssertTrue(results.contains { $0.id == SearchResultID(rawValue: "command:\(command.id.rawValue)") }, "Expected \(command.id.rawValue) to be searchable by English name")
-            XCTAssertEqual(results.first { $0.id == SearchResultID(rawValue: "command:\(command.id.rawValue)") }?.primaryAction, .runCommand(command.id))
+            XCTAssertEqual(results.first { $0.id == SearchResultID(rawValue: "command:\(command.id.rawValue)") }?.primaryAction, .runPluginAction(.quickLaunchCommand(command.id)))
         }
     }
 
@@ -117,8 +117,8 @@ final class SystemCommandSourceTests: XCTestCase {
 
         XCTAssertFalse(results.isEmpty)
         for result in results {
-            guard case .runCommand(let commandID) = result.primaryAction else {
-                XCTFail("Command result should use runCommand action")
+            guard let commandID = result.primaryAction.commandID else {
+                XCTFail("Command result should route to a quick-launch command action")
                 continue
             }
             XCTAssertTrue(AssistantCommandCatalog.allowedIDs.contains(commandID))
@@ -194,7 +194,7 @@ final class SystemCommandSourceTests: XCTestCase {
         let service = SearchService(sources: [source], usageStore: usage)
 
         let before = await service.search(query: "权限")
-        guard let result = before.results.first(where: { $0.primaryAction == .runCommand(.checkPermissions) }) else {
+        guard let result = before.results.first(where: { $0.primaryAction == .runPluginAction(.quickLaunchCommand(.checkPermissions)) }) else {
             XCTFail("Expected check permissions command")
             return
         }
@@ -209,7 +209,7 @@ final class SystemCommandSourceTests: XCTestCase {
 
 private extension Array where Element == SearchResult {
     func containsCommand(_ id: CommandID) -> Bool {
-        contains { $0.primaryAction == .runCommand(id) }
+        contains { $0.primaryAction == .runPluginAction(.quickLaunchCommand(id)) }
     }
 }
 

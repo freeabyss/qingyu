@@ -101,7 +101,7 @@ final class SearchPanelViewModel: ObservableObject {
                 baseScore: SourcePriority.command,
                 matchScore: 0,
                 usageScore: 0,
-                primaryAction: .runCommand(command.id),
+                primaryAction: .runPluginAction(.quickLaunchCommand(command.id)),
                 secondaryActions: []
             )
         }
@@ -154,8 +154,10 @@ final class SearchPanelViewModel: ObservableObject {
     ]
 
     /// Whether a result is a danger command (shows ⚠️ badge + confirmation dialog).
+    /// Command results carry either the legacy `.runCommand` or the plugin-routed
+    /// `.runPluginAction(.quickLaunchCommand(...))`; both resolve to a CommandID.
     func isDangerous(_ result: SearchResult) -> Bool {
-        guard case .runCommand(let commandID) = result.primaryAction else { return false }
+        guard let commandID = result.primaryAction.commandID else { return false }
         return dangerCommandIDs.contains(commandID.rawValue)
     }
 
@@ -253,7 +255,7 @@ final class SearchPanelViewModel: ObservableObject {
             return result.subtitle
         case .copyClipboardRecord:
             return result.title
-        case .runCommand, .openSettings, .startScreenshot:
+        case .runCommand, .runPluginAction, .openSettings, .startScreenshot:
             return result.title
         }
     }
@@ -342,17 +344,22 @@ final class SearchPanelActionExecutor: SearchActionExecutorProtocol {
     private let commandExecutor: SearchActionExecutorProtocol
     private let clipboardRepository: ClipboardRepositoryProtocol
     private let resourceStore: FileResourceStoreProtocol
+    /// Task 002: routes `.runPluginAction` through the plugin registry. `nil`
+    /// (e.g. clipboard-list wiring) makes plugin actions unreachable.
+    private let pluginRegistry: PluginRegistry?
 
     init(
         appExecutor: SearchActionExecutorProtocol,
         commandExecutor: SearchActionExecutorProtocol,
         clipboardRepository: ClipboardRepositoryProtocol,
-        resourceStore: FileResourceStoreProtocol
+        resourceStore: FileResourceStoreProtocol,
+        pluginRegistry: PluginRegistry? = nil
     ) {
         self.appExecutor = appExecutor
         self.commandExecutor = commandExecutor
         self.clipboardRepository = clipboardRepository
         self.resourceStore = resourceStore
+        self.pluginRegistry = pluginRegistry
     }
 
     func execute(_ action: SearchAction) async throws {
@@ -361,6 +368,15 @@ final class SearchPanelActionExecutor: SearchActionExecutorProtocol {
             try await appExecutor.execute(action)
         case .runCommand:
             try await commandExecutor.execute(action)
+        case .runPluginAction(let actionID):
+            guard let pluginRegistry else {
+                throw NSError(
+                    domain: "com.assistant.searchPanel",
+                    code: 409,
+                    userInfo: [NSLocalizedDescriptionKey: "Plugin registry is not wired into this executor"]
+                )
+            }
+            try await pluginRegistry.execute(actionID)
         case .copyClipboardRecord(let id):
             try await copyClipboardRecord(id)
         case .copyText(let text):

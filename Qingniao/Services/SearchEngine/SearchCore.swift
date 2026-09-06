@@ -59,6 +59,9 @@ enum SearchAction: Hashable {
     case startScreenshot(AssistantScreenshotMode)
     case openFile(URL)
     case revealInFinder(URL)
+    /// Task 002: cross-feature actions route through `PluginRegistry.execute(_:)`
+    /// by stable action ID instead of notification strings.
+    case runPluginAction(PluginActionID)
 }
 
 struct SearchResult: Identifiable, Hashable {
@@ -106,6 +109,21 @@ protocol SearchServiceProtocol {
     func search(query: String) async -> SearchResponse
     func execute(_ action: SearchAction) async throws -> SearchResponse
     func recordSelection(_ result: SearchResult) async
+}
+
+extension SearchAction {
+    /// The whitelisted system command this action targets, for actions that
+    /// map to one (`runCommand` legacy / `runPluginAction` plugin-routed).
+    var commandID: CommandID? {
+        switch self {
+        case .runCommand(let commandID):
+            return commandID
+        case .runPluginAction(let actionID):
+            return actionID.quickLaunchCommandID
+        case .openApplication, .copyClipboardRecord, .copyText, .openSettings, .startScreenshot, .openFile, .revealInFinder:
+            return nil
+        }
+    }
 }
 
 protocol SearchActionExecutorProtocol {
@@ -245,7 +263,7 @@ final class DefaultSearchActionExecutor: SearchActionExecutorProtocol {
             await MainActor.run {
                 NSWorkspace.shared.activateFileViewerSelecting([url])
             }
-        case .openApplication, .copyClipboardRecord, .runCommand, .openSettings, .startScreenshot:
+        case .openApplication, .copyClipboardRecord, .runCommand, .openSettings, .startScreenshot, .runPluginAction:
             // The UI/system integration layer supplies concrete handlers for non-copy actions in later tasks.
             break
         }

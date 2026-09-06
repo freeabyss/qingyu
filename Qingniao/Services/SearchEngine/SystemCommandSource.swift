@@ -275,7 +275,7 @@ final class SystemCommandSource: CommandSourceProtocol {
                 baseScore: SourcePriority.command,
                 matchScore: match.kind.score,
                 usageScore: 0,
-                primaryAction: .runCommand(match.command.id),
+                primaryAction: .runPluginAction(.quickLaunchCommand(match.command.id)),
                 secondaryActions: []
             )
         }

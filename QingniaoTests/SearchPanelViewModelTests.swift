@@ -210,8 +210,7 @@ final class SearchPanelViewModelTests: XCTestCase {
         let service = StubPanelSearchService(results: [])
         let viewModel = SearchPanelViewModel(searchService: service)
         let commandIDs = viewModel.homeQuickActions.compactMap { result -> CommandID? in
-            guard case .runCommand(let commandID) = result.primaryAction else { return nil }
-            return commandID
+            result.primaryAction.commandID
         }
 
         XCTAssertEqual(commandIDs, [
