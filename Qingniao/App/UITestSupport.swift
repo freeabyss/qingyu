@@ -16,6 +16,8 @@ enum UITestLaunchArg {
     static let dataDir = "--uitest-data-dir"
     static let largeText = "--uitest-large-text"
     static let skipScreenshotCapture = "--uitest-skip-screenshot-capture"
+    /// Task 006：合成 N 个显示器拓扑供多屏叠层 UI 测试断言（后跟数量值）。
+    static let screenshotDisplays = "--uitest-screenshot-displays"
 }
 
 /// Supported `--uitest-trigger` actions (design §5.5, cases.md §0.4).

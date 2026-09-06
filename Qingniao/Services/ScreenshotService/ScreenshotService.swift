@@ -17,6 +17,10 @@ protocol ScreenshotServiceProtocol {
     /// Capture the entire screen.
     func captureScreen() async throws -> ScreenshotResult
 
+    /// Task 005/006: unified entry — capture a `CaptureTarget` resolved by the
+    /// capture session state machine through the shared pixel backend.
+    func captureTarget(_ target: CaptureTarget) async throws -> ScreenshotResult
+
     /// Close the retained region selection overlay after its toolbar flow ends.
     /// The session guard prevents a delayed cleanup from closing a newer capture.
     @MainActor func finishRegionCapture(sessionID: UUID)
@@ -296,6 +300,11 @@ final class ScreenshotService: ScreenshotServiceProtocol, @unchecked Sendable {
     }
 
     // MARK: - Private
+
+    /// Task 005/006: unified capture entry used by the capture session.
+    func captureTarget(_ target: CaptureTarget) async throws -> ScreenshotResult {
+        try await captureBackend.capture(target)
+    }
 
     /// Capture a specific rectangular region of the screen.
     ///

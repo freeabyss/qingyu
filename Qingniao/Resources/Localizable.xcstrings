@@ -1,6 +1,186 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "screenshot.hint.clickWindow" : {
+      "comment" : "Screenshot overlay hint: click to capture window",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Click Capture window"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "单击 截取窗口"
+          }
+        }
+      }
+    },
+    "screenshot.hint.dragRegion" : {
+      "comment" : "Screenshot overlay hint: drag to select region",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drag Select region"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "拖拽 选择区域"
+          }
+        }
+      }
+    },
+    "screenshot.hint.fullDisplay" : {
+      "comment" : "Screenshot overlay hint: capture current display",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⌘A Full screen"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⌘A 全屏"
+          }
+        }
+      }
+    },
+    "screenshot.hint.cancel" : {
+      "comment" : "Screenshot overlay hint: cancel capture",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esc Cancel"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esc 取消"
+          }
+        }
+      }
+    },
+    "screenshot.hint.releaseRegion" : {
+      "comment" : "Screenshot overlay hint: release to finish selection",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Release Finish selection"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "松开 完成选区"
+          }
+        }
+      }
+    },
+    "screenshot.hint.enterCopy" : {
+      "comment" : "Screenshot overlay hint: copy to clipboard",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter Copy"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter 复制"
+          }
+        }
+      }
+    },
+    "screenshot.hint.save" : {
+      "comment" : "Screenshot overlay hint: save",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⌘S Save"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⌘S 保存"
+          }
+        }
+      }
+    },
+    "screenshot.hint.toolbar" : {
+      "comment" : "Screenshot overlay hint: open toolbar",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Space Toolbar"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "空格 工具栏"
+          }
+        }
+      }
+    },
+    "screenshot.hint.undo" : {
+      "comment" : "Annotation hint: undo",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⌘Z Undo"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⌘Z 撤销"
+          }
+        }
+      }
+    },
+    "screenshot.hint.clear" : {
+      "comment" : "Annotation hint: clear all",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⇧⌘Z Clear"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⇧⌘Z 清空"
+          }
+        }
+      }
+    },
     "settings.page.general" : {
       "comment" : "Five-page settings: General page title",
       "extractionState" : "manual",
@@ -163,9 +343,7 @@
         }
       }
     },
-    "" : {
-
-    },
+    "" : {},
     "%@ · %@ · %@" : {
       "localizations" : {
         "en" : {
@@ -2704,9 +2882,7 @@
         }
       }
     },
-    "copy" : {
-
-    },
+    "copy" : {},
     "data.migration.failed.dismiss" : {
       "comment" : "Dismiss button on the migration fallback alert",
       "extractionState" : "stale",
@@ -2865,15 +3041,9 @@
         }
       }
     },
-    "delete" : {
-
-    },
-    "Disabled" : {
-
-    },
-    "Enabled" : {
-
-    },
+    "delete" : {},
+    "Disabled" : {},
+    "Enabled" : {},
     "error.captureScreenFailed" : {
       "comment" : "Error reason: failed to capture screen image",
       "extractionState" : "stale",
@@ -3378,12 +3548,8 @@
         }
       }
     },
-    "jadeConfirmationDialog" : {
-
-    },
-    "JPG" : {
-
-    },
+    "jadeConfirmationDialog" : {},
+    "JPG" : {},
     "management.about.acknowledgements" : {
       "comment" : "Acknowledgements",
       "extractionState" : "stale",
@@ -7590,9 +7756,7 @@
         }
       }
     },
-    "PNG" : {
-
-    },
+    "PNG" : {},
     "preview.copy" : {
       "comment" : "Copy button in preview panel",
       "extractionState" : "stale",
@@ -8143,9 +8307,7 @@
         }
       }
     },
-    "regular" : {
-
-    },
+    "regular" : {},
     "screenshot.ocr.close" : {
       "comment" : "Close button in OCR result window",
       "extractionState" : "stale",
@@ -11069,9 +11231,7 @@
         }
       }
     },
-    "toolbar" : {
-
-    },
+    "toolbar" : {},
     "unit.currency.cny" : {
       "comment" : "Currency name: CNY",
       "extractionState" : "stale",
@@ -11342,57 +11502,23 @@
         }
       }
     },
-    "冲突" : {
-
-    },
-    "删除" : {
-
-    },
-    "删除全部历史" : {
-
-    },
-    "剪贴板条目" : {
-
-    },
-    "取消" : {
-
-    },
-    "截图" : {
-
-    },
-    "打开系统设置" : {
-
-    },
-    "搜索…" : {
-
-    },
-    "搜索次数" : {
-
-    },
-    "正常" : {
-
-    },
-    "此操作不可撤销。" : {
-
-    },
-    "确认删除全部历史记录？" : {
-
-    },
-    "紧凑 · 44" : {
-
-    },
-    "计数 / 快捷键" : {
-
-    },
-    "需要屏幕录制权限" : {
-
-    },
-    "青鸟 Qingniao" : {
-
-    },
-    "青鸟需要屏幕录制权限才能截取屏幕内容。请在系统设置中开启后重试。" : {
-
-    }
+    "冲突" : {},
+    "删除" : {},
+    "删除全部历史" : {},
+    "剪贴板条目" : {},
+    "取消" : {},
+    "截图" : {},
+    "打开系统设置" : {},
+    "搜索…" : {},
+    "搜索次数" : {},
+    "正常" : {},
+    "此操作不可撤销。" : {},
+    "确认删除全部历史记录？" : {},
+    "紧凑 · 44" : {},
+    "计数 / 快捷键" : {},
+    "需要屏幕录制权限" : {},
+    "青鸟 Qingniao" : {},
+    "青鸟需要屏幕录制权限才能截取屏幕内容。请在系统设置中开启后重试。" : {}
   },
   "version" : "1.0"
 }
