@@ -106,7 +106,7 @@ final class GlobalShortcutManager {
         KeyboardShortcuts.onKeyUp(for: .openSettings) { [weak self] in
             Task { @MainActor in
                 guard let self else { return }
-                self.container.settingsWindowController.show(route: .settings)
+                self.container.settingsWindowController.show(route: .general)
             }
         }
     }
