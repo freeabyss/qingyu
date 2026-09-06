@@ -28,10 +28,6 @@ final class AppContainer: NSObject {
     // MARK: - Services
 
     let clipboardMonitor = ClipboardMonitor()
-    private(set) lazy var clipboardService = ClipboardService(
-        repository: clipboardRepository,
-        resourceStore: resourceStore
-    )
     let cleanupService = DataCleanupService()
     let updateService = UpdateService()
     private(set) var permissionService: PermissionServiceProtocol = PermissionService()
@@ -56,19 +52,34 @@ final class AppContainer: NSObject {
         confirmationProvider: SearchPanelCommandConfirmationProvider()
     )
 
+    /// Task 003: clipboard plugin owns monitoring, the search contribution and
+    /// the history-window entry. AppContainer only injects dependencies.
+    private(set) lazy var clipboardPlugin = ClipboardPlugin(
+        monitor: clipboardMonitor,
+        index: clipboardSearchIndex,
+        repository: clipboardRepository,
+        resourceStore: resourceStore,
+        settingsService: SettingsService(persistence: .shared),
+        openHistoryWindow: { [weak self] in
+            self?.clipboardHistoryWindowController.show()
+        }
+    )
+
     private var builtInPluginsRegistered = false
 
-    /// Registers compiled-in plugins and starts them. Idempotent; individual
-    /// start failures are recorded and isolated by the registry.
+    /// Registers compiled-in plugins. Idempotent; individual start failures are
+    /// recorded and isolated by the registry. Plugins are started separately:
+    /// quick launch contributes passively, clipboard starts with the full
+    /// experience (after onboarding) via `pluginRegistry.start(.clipboard)`.
     func registerBuiltInPlugins() {
         guard !builtInPluginsRegistered else { return }
         builtInPluginsRegistered = true
         do {
             try pluginRegistry.register(quickLaunchPlugin)
+            try pluginRegistry.register(clipboardPlugin)
         } catch {
-            logger.error("Failed to register quick-launch plugin: \(error, privacy: .public)")
+            logger.error("Failed to register built-in plugins: \(error, privacy: .public)")
         }
-        Task { await pluginRegistry.startAll() }
     }
 
     private let appSearchSource = AppSearchSource()
@@ -87,9 +98,6 @@ final class AppContainer: NSObject {
     /// v1.2 (T-008): unified global-shortcut registrar. Owns the six rebindable
     /// hotkeys and the basic conflict detector surfaced to the settings page.
     private(set) lazy var globalShortcutManager = GlobalShortcutManager(container: self)
-
-    /// Task that consumes clipboard events from the monitor stream.
-    private var monitorTask: Task<Void, Never>?
 
     nonisolated override init() {
         super.init()
@@ -242,35 +250,20 @@ final class AppContainer: NSObject {
 
     // MARK: - Runtime services lifecycle
 
-    /// Starts clipboard capture and periodic cleanup. Called after onboarding.
+    /// Starts the clipboard plugin (capture + periodic cleanup). Called after
+    /// onboarding completes or is skipped.
     func startFullExperienceServices() {
-        startClipboardMonitoring()
-        Task { await syncRuntimeSettings() }
+        registerBuiltInPlugins()
+        Task {
+            await pluginRegistry.start(.clipboard)
+            await syncRuntimeSettings()
+        }
         cleanupService.start()
     }
 
     func stopRuntimeServices() {
         cleanupService.stop()
-        clipboardMonitor.stop()
-        monitorTask?.cancel()
-        monitorTask = nil
-    }
-
-    private func startClipboardMonitoring() {
-        clipboardMonitor.start()
-        monitorTask = Task { [weak self] in
-            guard let self else { return }
-            for await event in self.clipboardMonitor.events {
-                do {
-                    if let snapshot = try await self.clipboardService.handle(event: event) {
-                        self.logger.debug("Processed clipboard event -> record id=\(snapshot.id.uuidString, privacy: .public)")
-                    }
-                } catch {
-                    self.logger.error("Failed to process clipboard event: \(error.localizedDescription, privacy: .public)")
-                }
-            }
-        }
-        logger.info("Clipboard monitoring started")
+        Task { await pluginRegistry.stopAll() }
     }
 
     /// Aligns the clipboard recording state and launch-at-login registration with
@@ -279,9 +272,9 @@ final class AppContainer: NSObject {
         let settingsService = SettingsService(persistence: .shared)
         let enabled = (try? await settingsService.value(for: .clipboardEnabled, as: Bool.self)) ?? true
         if enabled {
-            clipboardService.resumeRecording()
+            clipboardPlugin.clipboardService.resumeRecording()
         } else {
-            clipboardService.pauseRecording()
+            clipboardPlugin.clipboardService.pauseRecording()
         }
         logger.info("Runtime settings synced: clipboardEnabled=\(enabled)")
     }
@@ -388,13 +381,10 @@ final class AppContainer: NSObject {
     /// `onClose` is invoked when the view model wants the hosting panel dismissed
     /// (e.g. after confirming a result).
     func makeSearchPanelViewModel(onClose: @escaping () -> Void) -> SearchPanelViewModel {
-        let clipboardQueryService = ClipboardIndexQueryService(index: clipboardSearchIndex, repository: clipboardRepository)
-        let settingsService = SettingsService(persistence: .shared)
         registerBuiltInPlugins()
-        // Task 002: quick-launch sources (app/command/calculator/settings/file)
-        // come from the plugin registry; clipboard stays hardcoded until Task 003.
-        let clipboardSource = AssistantClipboardSource(queryService: clipboardQueryService, settingsService: settingsService)
-        let sources = pluginRegistry.searchSources + [clipboardSource]
+        // Task 003: all six search sources now come from the plugin registry
+        // (quick launch + clipboard plugins).
+        let sources = pluginRegistry.searchSources
         let usageStore = UsageStatRepository()
         let blacklistChecker = SearchBlacklistRepository(persistence: .shared)
         let commandExecutor = SystemCommandExecutor(

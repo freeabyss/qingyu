@@ -96,6 +96,17 @@ final class PluginRegistry {
         }
     }
 
+    /// 启动单个插件（欢迎向导完成/跳过后的接线入口）。插件被停用时忽略。
+    func start(_ id: PluginID) async {
+        guard isEnabled(id) else { return }
+        await startPlugin(id)
+    }
+
+    /// 停止单个插件（不改变持久化启停选择）。
+    func stop(_ id: PluginID) async {
+        await stopPlugin(id)
+    }
+
     func isEnabled(_ id: PluginID) -> Bool {
         guard let entry = entries[id] else { return false }
         return enablementStore.isEnabled(id, default: entry.plugin.manifest.descriptor.defaultEnabled)
