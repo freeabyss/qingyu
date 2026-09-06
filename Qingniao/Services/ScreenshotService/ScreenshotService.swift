@@ -26,6 +26,9 @@ protocol ScreenshotServiceProtocol {
 
 /// Result of a screenshot capture.
 struct ScreenshotResult {
+    /// Task 005: stable per-capture id issued by the capture backend on success;
+    /// Task 007 records navigate by this id.
+    var id: UUID = UUID()
     let imageData: Data
     let width: Int
     let height: Int
@@ -34,6 +37,20 @@ struct ScreenshotResult {
     let regionSelection: RegionCaptureSelection?
 
     var selectionRect: NSRect? { regionSelection?.globalRect }
+
+    /// Re-attaches the caller's region selection while keeping the
+    /// backend-issued capture id.
+    func overridingRegionSelection(_ selection: RegionCaptureSelection) -> ScreenshotResult {
+        ScreenshotResult(
+            id: id,
+            imageData: imageData,
+            width: width,
+            height: height,
+            captureDate: captureDate,
+            sourceType: sourceType,
+            regionSelection: selection
+        )
+    }
 }
 
 /// The source type of a screenshot capture.
@@ -77,9 +94,15 @@ extension CGImage {
 /// 因此以 `@unchecked Sendable` 显式声明这一既有的线程安全约定。
 final class ScreenshotService: ScreenshotServiceProtocol, @unchecked Sendable {
     private let logger = Logger.screenshot
+    /// Task 005: unified pixel-capture backend shared by all entry points.
+    private let captureBackend: ScreenCaptureBackendProtocol
     private var activeRegionCaptureOverlay: ScreenshotOverlayController?
     private var activeRegionCaptureID: UUID?
     private var activeWindowCaptureOverlay: WindowCaptureOverlayController?
+
+    init(captureBackend: ScreenCaptureBackendProtocol = ScreenCaptureBackend()) {
+        self.captureBackend = captureBackend
+    }
 
     /// Capture a region selected by the user.
     ///
@@ -247,30 +270,13 @@ final class ScreenshotService: ScreenshotServiceProtocol, @unchecked Sendable {
             throw SnapVaultError.screenshotFailed(reason: SnapVaultError.userCancelledReason)
         }
 
-        // Capture the window using CGWindowListCreateImage
-        guard let cgImage = CGWindowListCreateImage(
-            .null,
-            .optionIncludingWindow,
-            CGWindowID(windowID),
-            .bestResolution
-        ) else {
-            throw SnapVaultError.screenshotFailed(reason: L10n.localized("error.captureWindowFailed"))
-        }
+        // Task 005: pixel capture moved to the unified backend.
+        let displayID = CaptureDisplayInfo.displayID(containing: appKitFrame) ?? CGMainDisplayID()
+        let candidate = CaptureWindowCandidate(windowID: windowID, frame: appKitFrame, displayID: displayID)
+        let result = try await captureBackend.capture(.window(candidate))
 
-        guard let data = cgImage.pngData() else {
-            throw SnapVaultError.screenshotFailed(reason: L10n.localized("error.pngConversionFailed"))
-        }
-
-        logger.info("Window capture complete: \(cgImage.width)x\(cgImage.height), \(data.count) bytes")
-
-        return ScreenshotResult(
-            imageData: data,
-            width: cgImage.width,
-            height: cgImage.height,
-            captureDate: Date(),
-            sourceType: .window,
-            regionSelection: nil
-        )
+        logger.info("Window capture complete: \(result.width)x\(result.height)")
+        return result
     }
 
     /// Capture the entire screen.
@@ -280,69 +286,34 @@ final class ScreenshotService: ScreenshotServiceProtocol, @unchecked Sendable {
     func captureScreen() async throws -> ScreenshotResult {
         logger.info("Starting full screen capture")
 
-        guard let cgImage = CGDisplayCreateImage(CGMainDisplayID()) else {
-            throw SnapVaultError.screenshotFailed(reason: L10n.localized("error.captureScreenFailed"))
-        }
-
-        guard let data = cgImage.pngData() else {
-            throw SnapVaultError.screenshotFailed(reason: L10n.localized("error.pngConversionFailed"))
-        }
-
-        logger.info("Full screen capture complete: \(cgImage.width)x\(cgImage.height), \(data.count) bytes")
-
-        return ScreenshotResult(
-            imageData: data,
-            width: cgImage.width,
-            height: cgImage.height,
-            captureDate: Date(),
-            sourceType: .screen,
-            regionSelection: nil
+        let mainDisplayID = CGMainDisplayID()
+        let display = CaptureDisplay(
+            id: mainDisplayID,
+            frame: NSScreen.main?.frame ?? CGDisplayBounds(mainDisplayID),
+            pixelSize: CaptureDisplayInfo.pixelSize(displayID: mainDisplayID)
         )
+        return try await captureBackend.capture(.display(display))
     }
 
     // MARK: - Private
 
     /// Capture a specific rectangular region of the screen.
     ///
-    /// Captures the full screen and crops to the specified region.
+    /// Delegates to the unified backend: captures the display and crops to the
+    /// region. The overlay's `RegionCaptureSelection` is re-attached so the
+    /// delayed `finishRegionCapture(sessionID:)` guard keeps matching.
     ///
-    /// - Parameter rect: The region to capture in AppKit coordinates (bottom-left origin)
+    /// - Parameter selection: The region to capture in AppKit coordinates (bottom-left origin)
     /// - Returns: The captured screenshot as PNG data
     private func captureRect(_ selection: RegionCaptureSelection) async throws -> ScreenshotResult {
         logger.info("Capturing rect: \(selection.globalRect.debugDescription) on display \(selection.displayID)")
 
-        guard let fullImage = CGDisplayCreateImage(selection.displayID) else {
-            throw SnapVaultError.screenshotFailed(reason: L10n.localized("error.captureScreenFailed"))
-        }
-
-        guard let cgRect = ScreenshotGeometry.cropRect(
-            globalSelection: selection.globalRect,
-            screenFrame: selection.screenFrame,
-            imageSize: CGSize(width: fullImage.width, height: fullImage.height)
-        ) else {
-            throw SnapVaultError.screenshotFailed(reason: L10n.localized("error.cropFailed"))
-        }
-
-        logger.debug("CG rect for cropping: \(cgRect.debugDescription)")
-
-        // Crop to the selected region
-        guard let croppedImage = fullImage.cropping(to: cgRect) else {
-            throw SnapVaultError.screenshotFailed(reason: L10n.localized("error.cropFailed"))
-        }
-
-        guard let data = croppedImage.pngData() else {
-            throw SnapVaultError.screenshotFailed(reason: L10n.localized("error.pngConversionFailed"))
-        }
-
-        logger.info("Region capture complete: \(croppedImage.width)x\(croppedImage.height), \(data.count) bytes")
-
-        return ScreenshotResult(
-            imageData: data,
-            width: croppedImage.width,
-            height: croppedImage.height,
-            captureDate: Date(),
-            sourceType: .region,
-            regionSelection: selection
+        let display = CaptureDisplay(
+            id: selection.displayID,
+            frame: selection.screenFrame,
+            pixelSize: CaptureDisplayInfo.pixelSize(displayID: selection.displayID)
         )
+        let result = try await captureBackend.capture(.region(display: display, globalRect: selection.globalRect))
+        return result.overridingRegionSelection(selection)
     }
 }
