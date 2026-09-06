@@ -79,10 +79,45 @@ final class SearchPanelViewModel: ObservableObject {
         !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
-    /// Home content is shown when there is no query. It is non-empty only when at
-    /// least one section has data.
+    /// Stable, executable shortcuts shown on the empty-query home screen. These
+    /// keep the two most common tool flows discoverable without requiring users
+    /// to remember a keyword or global shortcut.
+    var homeQuickActions: [SearchResult] {
+        let commandIDs: [CommandID] = [
+            .openClipboardHistory,
+            .captureRegion,
+            .captureWindow,
+            .captureFullScreen
+        ]
+        return commandIDs.compactMap { commandID in
+            guard let command = AssistantCommandCatalog.byID[commandID] else { return nil }
+            return SearchResult(
+                id: SearchResultID(rawValue: "command:\(command.id.rawValue)"),
+                sourceID: .command,
+                title: command.chineseName,
+                subtitle: command.englishName,
+                icon: .systemSymbol(command.iconSystemName),
+                typeLabel: L10n.localized("searchPanel.type.command"),
+                baseScore: SourcePriority.command,
+                matchScore: 0,
+                usageScore: 0,
+                primaryAction: .runCommand(command.id),
+                secondaryActions: []
+            )
+        }
+    }
+
+    /// Home content is shown when there is no query. Quick actions are always
+    /// present; recent/favorite records enrich the screen when available.
     var hasHomeContent: Bool {
-        !recentResults.isEmpty || !favoriteResults.isEmpty
+        !homeQuickActions.isEmpty || !recentResults.isEmpty || !favoriteResults.isEmpty
+    }
+
+    /// The floating panel needs room for either search results or its empty-query
+    /// home sections. Keeping this state in the view model prevents the AppKit
+    /// controller from collapsing visible recents/favorites to the input height.
+    var shouldExpandPanel: Bool {
+        hasQuery || hasHomeContent
     }
 
     /// Results filtered by the active ⌘1-6 source (search mode).

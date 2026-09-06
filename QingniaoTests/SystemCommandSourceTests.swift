@@ -2,7 +2,7 @@ import XCTest
 @testable import Qingniao
 
 final class SystemCommandSourceTests: XCTestCase {
-    func testAllFourteenMVPCommandsAreDefinedAndSearchable() async {
+    func testAllFifteenMVPCommandsAreDefinedAndSearchable() async {
         let source = SystemCommandSource()
         let expectedIDs: [CommandID] = [
             .openSystemSettings,
@@ -13,6 +13,7 @@ final class SystemCommandSourceTests: XCTestCase {
             .captureRegion,
             .captureFullScreen,
             .captureWindow,
+            .openClipboardHistory,
             .clearClipboardHistory,
             .toggleClipboardRecording,
             .checkPermissions,
@@ -21,7 +22,7 @@ final class SystemCommandSourceTests: XCTestCase {
             .toggleAppearance
         ]
 
-        XCTAssertEqual(source.commands.count, 14)
+        XCTAssertEqual(source.commands.count, 15)
         XCTAssertEqual(Set(source.commands.map(\.id)), Set(expectedIDs))
 
         for command in source.commands {
@@ -145,6 +146,23 @@ final class SystemCommandSourceTests: XCTestCase {
 
         try await executor.execute(.clearClipboardHistory, confirmed: true)
         XCTAssertTrue(spy.didClear)
+    }
+
+    func testOpenClipboardHistoryPostsDedicatedNotification() async throws {
+        let center = NotificationCenter()
+        let executor = SystemCommandExecutor(notificationCenter: center)
+        let expectation = expectation(
+            forNotification: .commandOpenClipboardHistory,
+            object: nil,
+            notificationCenter: center
+        ) { _ in
+            XCTAssertTrue(Thread.isMainThread)
+            return true
+        }
+
+        try await executor.execute(.openClipboardHistory)
+
+        await fulfillment(of: [expectation], timeout: 0.1)
     }
 
     func testCommandSearchActionExecutorCancelsWhenConfirmationDenied() async throws {

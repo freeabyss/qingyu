@@ -51,6 +51,7 @@ enum HotkeyRegistrationOutcome: Hashable {
 ///
 /// It intentionally does not attempt to auto-resolve conflicts (per task spec:
 /// ⌥ Space overlap with Spotlight is only *reported*, never rewritten).
+@MainActor
 protocol HotkeyConflictDetectorProtocol {
     /// Evaluate a candidate shortcut for a slot without mutating persisted state.
     func evaluate(_ shortcut: KeyboardShortcuts.Shortcut?, for name: KeyboardShortcuts.Name) -> HotkeyRegistrationOutcome
@@ -68,7 +69,7 @@ final class HotkeyConflictDetector: ObservableObject, HotkeyConflictDetectorProt
     private let currentShortcutProvider: (KeyboardShortcuts.Name) -> KeyboardShortcuts.Shortcut?
     private let systemShortcutProvider: () -> [KeyboardShortcuts.Shortcut]
 
-    nonisolated init(
+    init(
         managedNames: [KeyboardShortcuts.Name] = KeyboardShortcuts.Name.managedGlobalShortcuts,
         currentShortcutProvider: @escaping (KeyboardShortcuts.Name) -> KeyboardShortcuts.Shortcut? = { KeyboardShortcuts.getShortcut(for: $0) },
         systemShortcutProvider: @escaping () -> [KeyboardShortcuts.Shortcut] = HotkeyValidationService.enabledSystemShortcuts

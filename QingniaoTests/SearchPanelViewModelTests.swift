@@ -34,9 +34,9 @@ final class SearchPanelViewModelTests: XCTestCase {
     func testConfirmSelectionExecutesAndClosesPanel() async {
         let service = StubPanelSearchService(results: [Self.makeResult(index: 0)])
         var didClose = false
-        let viewModel = SearchPanelViewModel(searchService: service) {
+        let viewModel = SearchPanelViewModel(searchService: service, onClose: {
             didClose = true
-        }
+        })
 
         viewModel.query = "a"
         await viewModel.searchNow()
@@ -188,6 +188,38 @@ final class SearchPanelViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.recentResults.map { $0.title }, ["Safari"])
         XCTAssertEqual(viewModel.favoriteResults.map { $0.title }, ["pinned"])
         XCTAssertTrue(viewModel.hasHomeContent)
+    }
+
+    func testPanelExpandsForQuickActionsQueryOrHomeContent() async {
+        let service = StubPanelSearchService(results: [])
+        let viewModel = SearchPanelViewModel(searchService: service)
+        XCTAssertTrue(viewModel.shouldExpandPanel)
+
+        viewModel.query = "Safari"
+        XCTAssertTrue(viewModel.shouldExpandPanel)
+
+        viewModel.query = ""
+        let homeResult = Self.makeResult(source: .app, id: "app:1", title: "Safari", action: .copyText("s"))
+        let homeProvider = StubHomeProvider(recents: [homeResult], favorites: [])
+        let homeViewModel = SearchPanelViewModel(searchService: service, homeProvider: homeProvider)
+        await homeViewModel.loadHomeContent()
+        XCTAssertTrue(homeViewModel.shouldExpandPanel)
+    }
+
+    func testHomeQuickActionsIncludeClipboardHistoryAndAllScreenshotModes() {
+        let service = StubPanelSearchService(results: [])
+        let viewModel = SearchPanelViewModel(searchService: service)
+        let commandIDs = viewModel.homeQuickActions.compactMap { result -> CommandID? in
+            guard case .runCommand(let commandID) = result.primaryAction else { return nil }
+            return commandID
+        }
+
+        XCTAssertEqual(commandIDs, [
+            .openClipboardHistory,
+            .captureRegion,
+            .captureWindow,
+            .captureFullScreen
+        ])
     }
 }
 

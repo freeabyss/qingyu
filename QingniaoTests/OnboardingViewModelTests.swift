@@ -185,10 +185,10 @@ final class OnboardingViewModelTests: XCTestCase {
             permissionService: permissions,
             hotkeyService: hotkeys,
             settingsService: settings,
-            launchAtLoginService: launchAtLogin
-        ) { [weak self] in
+            launchAtLoginService: launchAtLogin,
+            onComplete: { [weak self] in
             self?.didComplete = true
-        }
+        })
     }
 }
 

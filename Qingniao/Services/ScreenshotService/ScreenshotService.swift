@@ -16,6 +16,10 @@ protocol ScreenshotServiceProtocol {
 
     /// Capture the entire screen.
     func captureScreen() async throws -> ScreenshotResult
+
+    /// Close the retained region selection overlay after its toolbar flow ends.
+    /// The session guard prevents a delayed cleanup from closing a newer capture.
+    @MainActor func finishRegionCapture(sessionID: UUID)
 }
 
 // MARK: - Types
@@ -27,14 +31,24 @@ struct ScreenshotResult {
     let height: Int
     let captureDate: Date
     let sourceType: CaptureSource
-    let selectionRect: NSRect?
+    let regionSelection: RegionCaptureSelection?
+
+    var selectionRect: NSRect? { regionSelection?.globalRect }
 }
 
 /// The source type of a screenshot capture.
-enum CaptureSource {
+enum CaptureSource: Equatable {
     case region
     case window
     case screen
+}
+
+/// Pure session matching used to keep delayed toolbar cleanup scoped to the
+/// region capture that created it.
+enum RegionCaptureSessionGuard {
+    static func shouldFinish(activeSessionID: UUID?, requestedSessionID: UUID) -> Bool {
+        activeSessionID == requestedSessionID
+    }
 }
 
 // MARK: - CGImage Extension
@@ -64,6 +78,7 @@ extension CGImage {
 final class ScreenshotService: ScreenshotServiceProtocol, @unchecked Sendable {
     private let logger = Logger.screenshot
     private var activeRegionCaptureOverlay: ScreenshotOverlayController?
+    private var activeRegionCaptureID: UUID?
     private var activeWindowCaptureOverlay: WindowCaptureOverlayController?
 
     /// Capture a region selected by the user.
@@ -77,38 +92,67 @@ final class ScreenshotService: ScreenshotServiceProtocol, @unchecked Sendable {
     func captureRegion() async throws -> ScreenshotResult {
         logger.info("Starting region capture")
 
-        return try await withCheckedThrowingContinuation { continuation in
+        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<ScreenshotResult, Error>) in
             DispatchQueue.main.async { [weak self] in
                 guard let self else {
                     continuation.resume(throwing: SnapVaultError.screenshotFailed(reason: L10n.localized("error.serviceDeallocated")))
                     return
                 }
 
-                let overlay = ScreenshotOverlayController { [weak self] rect in
+                // A new region capture supersedes any unfinished selection session.
+                self.activeRegionCaptureOverlay?.cancel()
+                self.activeRegionCaptureOverlay = nil
+                let captureID = UUID()
+                self.activeRegionCaptureID = captureID
+
+                let overlay = ScreenshotOverlayController(sessionID: captureID) { [weak self] selection in
                     guard let self else { return }
 
-                    if let rect = rect {
+                    if let selection {
                         Task {
                             do {
-                                await MainActor.run {
+                                let remainsActive = await MainActor.run {
+                                    guard self.activeRegionCaptureID == captureID else { return false }
                                     self.activeRegionCaptureOverlay?.hideForCapture()
+                                    return true
+                                }
+                                guard remainsActive else {
+                                    throw SnapVaultError.screenshotFailed(reason: SnapVaultError.userCancelledReason)
                                 }
                                 // Give WindowServer one tick to remove the overlay from the capture stack.
                                 try? await Task.sleep(nanoseconds: 50_000_000)
-                                let result = try await self.captureRect(rect)
-                                await MainActor.run {
-                                    self.activeRegionCaptureOverlay?.showAfterCapture()
+                                let activeAfterDelay = await MainActor.run {
+                                    self.activeRegionCaptureID == captureID
+                                }
+                                guard activeAfterDelay else {
+                                    throw SnapVaultError.screenshotFailed(reason: SnapVaultError.userCancelledReason)
+                                }
+                                let result = try await self.captureRect(selection)
+                                let shouldReturnResult = await MainActor.run {
+                                    guard self.activeRegionCaptureID == captureID else { return false }
+                                    self.activeRegionCaptureOverlay?.restoreAfterCapture()
+                                    return true
+                                }
+                                guard shouldReturnResult else {
+                                    throw SnapVaultError.screenshotFailed(reason: SnapVaultError.userCancelledReason)
                                 }
                                 continuation.resume(returning: result)
                             } catch {
                                 await MainActor.run {
-                                    self.activeRegionCaptureOverlay?.showAfterCapture()
+                                    if self.activeRegionCaptureID == captureID {
+                                        self.activeRegionCaptureOverlay?.finishCapture()
+                                        self.activeRegionCaptureOverlay = nil
+                                        self.activeRegionCaptureID = nil
+                                    }
                                 }
                                 continuation.resume(throwing: error)
                             }
                         }
                     } else {
-                        self.activeRegionCaptureOverlay = nil
+                        if self.activeRegionCaptureID == captureID {
+                            self.activeRegionCaptureOverlay = nil
+                            self.activeRegionCaptureID = nil
+                        }
                         self.logger.info("Region capture cancelled by user")
                         continuation.resume(throwing: SnapVaultError.screenshotFailed(reason: SnapVaultError.userCancelledReason))
                     }
@@ -119,6 +163,17 @@ final class ScreenshotService: ScreenshotServiceProtocol, @unchecked Sendable {
                 self.logger.debug("Screenshot overlay shown")
             }
         }
+    }
+
+    @MainActor
+    func finishRegionCapture(sessionID: UUID) {
+        guard RegionCaptureSessionGuard.shouldFinish(
+            activeSessionID: activeRegionCaptureID,
+            requestedSessionID: sessionID
+        ) else { return }
+        activeRegionCaptureOverlay?.finishCapture()
+        activeRegionCaptureOverlay = nil
+        activeRegionCaptureID = nil
     }
 
     /// Capture the window under the mouse cursor.
@@ -214,7 +269,7 @@ final class ScreenshotService: ScreenshotServiceProtocol, @unchecked Sendable {
             height: cgImage.height,
             captureDate: Date(),
             sourceType: .window,
-            selectionRect: nil
+            regionSelection: nil
         )
     }
 
@@ -241,7 +296,7 @@ final class ScreenshotService: ScreenshotServiceProtocol, @unchecked Sendable {
             height: cgImage.height,
             captureDate: Date(),
             sourceType: .screen,
-            selectionRect: nil
+            regionSelection: nil
         )
     }
 
@@ -253,28 +308,20 @@ final class ScreenshotService: ScreenshotServiceProtocol, @unchecked Sendable {
     ///
     /// - Parameter rect: The region to capture in AppKit coordinates (bottom-left origin)
     /// - Returns: The captured screenshot as PNG data
-    private func captureRect(_ rect: NSRect) async throws -> ScreenshotResult {
-        logger.info("Capturing rect: \(rect.debugDescription)")
+    private func captureRect(_ selection: RegionCaptureSelection) async throws -> ScreenshotResult {
+        logger.info("Capturing rect: \(selection.globalRect.debugDescription) on display \(selection.displayID)")
 
-        // Capture the full screen first
-        guard let fullImage = CGDisplayCreateImage(CGMainDisplayID()) else {
+        guard let fullImage = CGDisplayCreateImage(selection.displayID) else {
             throw SnapVaultError.screenshotFailed(reason: L10n.localized("error.captureScreenFailed"))
         }
 
-        // Convert AppKit coordinates (bottom-left origin) to CG coordinates (top-left origin).
-        // CGDisplayCreateImage returns the image in the display's native coordinate system.
-        guard let screen = NSScreen.main else {
-            throw SnapVaultError.screenshotFailed(reason: L10n.localized("error.noMainScreen"))
+        guard let cgRect = ScreenshotGeometry.cropRect(
+            globalSelection: selection.globalRect,
+            screenFrame: selection.screenFrame,
+            imageSize: CGSize(width: fullImage.width, height: fullImage.height)
+        ) else {
+            throw SnapVaultError.screenshotFailed(reason: L10n.localized("error.cropFailed"))
         }
-        let displayHeight = CGFloat(fullImage.height)
-        let scaleFactor = CGFloat(fullImage.width) / screen.frame.width
-
-        let cgRect = CGRect(
-            x: rect.origin.x * scaleFactor,
-            y: (displayHeight - rect.origin.y * scaleFactor - rect.height * scaleFactor),
-            width: rect.width * scaleFactor,
-            height: rect.height * scaleFactor
-        )
 
         logger.debug("CG rect for cropping: \(cgRect.debugDescription)")
 
@@ -295,7 +342,7 @@ final class ScreenshotService: ScreenshotServiceProtocol, @unchecked Sendable {
             height: croppedImage.height,
             captureDate: Date(),
             sourceType: .region,
-            selectionRect: rect
+            regionSelection: selection
         )
     }
 }

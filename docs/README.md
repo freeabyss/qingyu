@@ -5,13 +5,18 @@ Mac Super Assistant 项目的最新累积文档。所有内容随每次迭代 �
 ## 目录
 
 - [onboarding.md](onboarding.md) — 新工程师上手指南（先读这个）
-- [prd.md](prd.md) — 产品需求
+- [prd.md](prd.md) — 历史累积产品需求与发布追溯
+- [prd/01-product-prd.md](prd/01-product-prd.md) — 当前产品定位、用户场景、功能范围与功能规则
+- [prd/02-ui-spec.md](prd/02-ui-spec.md) — 页面、窗口、控件、状态、键盘与交互规范
+- [prd/03-macos-spec.md](prd/03-macos-spec.md) — macOS 系统集成规范
 - [architecture/design.md](architecture/design.md) — 架构总设计
 - [architecture/api.md](architecture/api.md) — 内部接口设计
 - [architecture/db.md](architecture/db.md) — 数据模型设计
 - [architecture/review.md](architecture/review.md) — 架构评审记录
 - [test/cases.md](test/cases.md) — 测试用例
 - [test/report.md](test/report.md) — 测试执行摘要
+- [test/implementation-audit.md](test/implementation-audit.md) — 当前产品实现与验收证据
+- [tasks/README.md](tasks/README.md) — 下一阶段执行顺序与独立任务索引
 - [iterations/](iterations/) — 各迭代历史（含 v1.0.0 追溯归档）
 
 ## 版本记录

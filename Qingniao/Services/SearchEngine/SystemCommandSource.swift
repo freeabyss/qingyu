@@ -13,6 +13,7 @@ extension CommandID {
     static let captureRegion = CommandID(rawValue: "captureRegion")
     static let captureFullScreen = CommandID(rawValue: "captureFullScreen")
     static let captureWindow = CommandID(rawValue: "captureWindow")
+    static let openClipboardHistory = CommandID(rawValue: "openClipboardHistory")
     static let clearClipboardHistory = CommandID(rawValue: "clearClipboardHistory")
     static let toggleClipboardRecording = CommandID(rawValue: "toggleClipboardRecording")
     static let checkPermissions = CommandID(rawValue: "checkPermissions")
@@ -147,6 +148,14 @@ enum AssistantCommandCatalog {
             icon: "macwindow"
         ),
         command(
+            .openClipboardHistory,
+            zh: "打开剪贴板历史",
+            en: "Open Clipboard History",
+            zhAliases: ["剪贴板历史", "剪切板历史", "打开剪贴板", "打开剪切板", "剪贴板", "剪切板"],
+            enAliases: ["clipboard history", "open clipboard", "clipboard"],
+            icon: "clipboard"
+        ),
+        command(
             .clearClipboardHistory,
             zh: "清空剪贴板历史",
             en: "Clear Clipboard History",
@@ -229,7 +238,7 @@ enum AssistantCommandCatalog {
 
 /// Search source for the Assistant MVP built-in command whitelist.
 ///
-/// The catalog is intentionally closed: it exposes exactly the 14 commands in
+/// The catalog is intentionally closed: it exposes exactly the 15 commands in
 /// `docs/architecture/api.md` section 10.1. It does not parse arbitrary user text
 /// as shell, and it does not include shutdown, system restart, logout, sudo,
 /// file deletion, process killing, or custom command execution.
@@ -336,7 +345,7 @@ final class SystemCommandExecutor: CommandExecutorProtocol {
             }
             try openURL(settingsURL, commandID: commandID)
         case .openAppSettings:
-            notificationCenter.post(name: .openManagementCenter, object: SettingsRoute.settings)
+            await postOnMainActor(name: .openManagementCenter, object: SettingsRoute.settings)
         case .openDownloads:
             workspace.open(FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first ?? FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Downloads"))
         case .openApplications:
@@ -344,18 +353,20 @@ final class SystemCommandExecutor: CommandExecutorProtocol {
         case .openDesktop:
             workspace.open(FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask).first ?? FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Desktop"))
         case .captureRegion:
-            notificationCenter.post(name: .commandCaptureRegion, object: nil)
+            await postOnMainActor(name: .commandCaptureRegion)
         case .captureFullScreen:
-            notificationCenter.post(name: .commandCaptureFullScreen, object: nil)
+            await postOnMainActor(name: .commandCaptureFullScreen)
         case .captureWindow:
-            notificationCenter.post(name: .commandCaptureWindow, object: nil)
+            await postOnMainActor(name: .commandCaptureWindow)
+        case .openClipboardHistory:
+            await postOnMainActor(name: .commandOpenClipboardHistory)
         case .clearClipboardHistory:
             guard let clipboardHistoryService else { return }
             try await clipboardHistoryService.clearAll(confirmed: true)
         case .toggleClipboardRecording:
-            notificationCenter.post(name: .commandToggleClipboardRecording, object: nil)
+            await postOnMainActor(name: .commandToggleClipboardRecording)
         case .checkPermissions:
-            notificationCenter.post(name: .openManagementCenter, object: SettingsRoute.permissions)
+            await postOnMainActor(name: .openManagementCenter, object: SettingsRoute.permissions)
         case .restartFinder:
             restartRunningApplication(bundleIdentifier: "com.apple.finder")
             if let finderURL = workspace.urlForApplication(withBundleIdentifier: "com.apple.finder") {
@@ -373,6 +384,16 @@ final class SystemCommandExecutor: CommandExecutorProtocol {
     private func openURL(_ url: URL, commandID: CommandID) throws {
         if !workspace.open(url) {
             throw AssistantCommandExecutionError.executionFailed(commandID, "NSWorkspace refused to open URL")
+        }
+    }
+
+    /// NotificationCenter delivers synchronously on the posting thread. These
+    /// notifications are consumed by AppKit window controllers, so posting from
+    /// a search task's cooperative executor would make them touch NSWindow off
+    /// the main thread and trip AppKit's queue precondition.
+    private func postOnMainActor(name: Notification.Name, object: Any? = nil) async {
+        await MainActor.run {
+            notificationCenter.post(name: name, object: object)
         }
     }
 
@@ -424,6 +445,7 @@ extension Notification.Name {
     static let commandCaptureRegion = Notification.Name("com.assistant.command.captureRegion")
     static let commandCaptureFullScreen = Notification.Name("com.assistant.command.captureFullScreen")
     static let commandCaptureWindow = Notification.Name("com.assistant.command.captureWindow")
+    static let commandOpenClipboardHistory = Notification.Name("com.assistant.command.openClipboardHistory")
     static let commandToggleClipboardRecording = Notification.Name("com.assistant.command.toggleClipboardRecording")
     static let commandCheckPermissions = Notification.Name("com.assistant.command.checkPermissions")
 }

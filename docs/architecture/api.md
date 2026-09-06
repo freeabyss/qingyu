@@ -288,7 +288,7 @@ v1.2 变更：
 
 ## 10. Command 模块接口
 
-`CommandSourceProtocol` / `CommandExecutorProtocol` / `SystemCommand` / 14 条内置命令权威清单沿用 v2（含 `captureFullScreen`）。执行走 NSWorkspace/AppleScript，Sandbox 关闭后 AppleEvents 畅通。不引入 shell。
+`CommandSourceProtocol` / `CommandExecutorProtocol` / `SystemCommand` / 15 条内置命令权威清单（含 `captureFullScreen` 与 `openClipboardHistory`）。执行走 NSWorkspace/AppleScript，Sandbox 关闭后 AppleEvents 畅通。不引入 shell。
 
 ---
 

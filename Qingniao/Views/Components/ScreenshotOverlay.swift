@@ -29,6 +29,7 @@ final class ScreenshotOverlayView: NSView {
 
     private var startPoint: NSPoint?
     private var currentPoint: NSPoint?
+    private var isSelectionLocked = false
 
     override var acceptsFirstResponder: Bool { true }
 
@@ -46,17 +47,20 @@ final class ScreenshotOverlayView: NSView {
     // MARK: - Mouse Events
 
     override func mouseDown(with event: NSEvent) {
+        guard !isSelectionLocked else { return }
         startPoint = convert(event.locationInWindow, from: nil)
         currentPoint = startPoint
         needsDisplay = true
     }
 
     override func mouseDragged(with event: NSEvent) {
+        guard !isSelectionLocked else { return }
         currentPoint = convert(event.locationInWindow, from: nil)
         needsDisplay = true
     }
 
     override func mouseUp(with event: NSEvent) {
+        guard !isSelectionLocked else { return }
         guard let start = startPoint, let end = currentPoint else {
             delegate?.overlayViewDidCancel(self)
             return
@@ -70,6 +74,8 @@ final class ScreenshotOverlayView: NSView {
             return
         }
 
+        isSelectionLocked = true
+        needsDisplay = true
         delegate?.overlayView(self, didSelectRect: rect)
     }
 
@@ -111,8 +117,10 @@ final class ScreenshotOverlayView: NSView {
         centerVPath.line(to: NSPoint(x: rect.midX, y: rect.maxY))
         centerVPath.stroke()
 
-        // Draw dimension text below the selection
-        drawDimensions(for: rect)
+        // The locked state reserves this space for the action toolbar.
+        if !isSelectionLocked {
+            drawDimensions(for: rect)
+        }
     }
 
     // MARK: - Private Helpers
@@ -174,25 +182,90 @@ final class ScreenshotOverlayView: NSView {
     }
 }
 
+// MARK: - Region Capture Geometry
+
+/// Identifies the display and AppKit-space rectangle chosen for a region capture.
+struct RegionCaptureSelection {
+    let sessionID: UUID
+    let displayID: CGDirectDisplayID
+    let screenFrame: NSRect
+    let globalRect: NSRect
+}
+
+/// Pure coordinate helpers shared by capture and presentation code.
+enum ScreenshotGeometry {
+    /// Converts a global AppKit rectangle into top-left-origin native display pixels.
+    static func cropRect(
+        globalSelection: NSRect,
+        screenFrame: NSRect,
+        imageSize: CGSize
+    ) -> CGRect? {
+        guard screenFrame.width > 0, screenFrame.height > 0,
+              imageSize.width > 0, imageSize.height > 0 else { return nil }
+
+        let clipped = globalSelection.standardized.intersection(screenFrame)
+        guard !clipped.isNull, clipped.width > 0, clipped.height > 0 else { return nil }
+
+        let scaleX = imageSize.width / screenFrame.width
+        let scaleY = imageSize.height / screenFrame.height
+        let pixelRect = CGRect(
+            x: (clipped.minX - screenFrame.minX) * scaleX,
+            y: (screenFrame.maxY - clipped.maxY) * scaleY,
+            width: clipped.width * scaleX,
+            height: clipped.height * scaleY
+        )
+        let integralRect = CGRect(
+            x: floor(pixelRect.minX),
+            y: floor(pixelRect.minY),
+            width: ceil(pixelRect.maxX) - floor(pixelRect.minX),
+            height: ceil(pixelRect.maxY) - floor(pixelRect.minY)
+        )
+        let imageBounds = CGRect(origin: .zero, size: imageSize)
+        let bounded = integralRect.intersection(imageBounds)
+        return bounded.isNull || bounded.isEmpty ? nil : bounded
+    }
+
+    /// Positions the compact region toolbar below the selection, falling back above it.
+    static func toolbarFrame(
+        selection: NSRect,
+        toolbarSize: NSSize,
+        screenFrame: NSRect,
+        gap: CGFloat = 12
+    ) -> NSRect {
+        let minimumX = screenFrame.minX
+        let maximumX = max(minimumX, screenFrame.maxX - toolbarSize.width)
+        let centeredX = selection.midX - toolbarSize.width / 2
+        let x = min(max(centeredX, minimumX), maximumX)
+        let belowY = selection.minY - gap - toolbarSize.height
+        let y = belowY >= screenFrame.minY
+            ? belowY
+            : min(selection.maxY + gap, screenFrame.maxY - toolbarSize.height)
+        return NSRect(origin: NSPoint(x: x, y: max(screenFrame.minY, y)), size: toolbarSize)
+    }
+}
+
 // MARK: - ScreenshotOverlayController
 
 /// Manages the full-screen transparent overlay window for region selection.
 ///
-/// Creates a borderless, full-screen window at screen saver level that covers all content.
+/// Creates a borderless window at screen saver level on the display under the pointer.
 /// The overlay view handles mouse drag selection and ESC cancellation.
-/// The completion handler receives the selected rect in AppKit coordinates, or nil if cancelled.
+/// The completion handler receives the display identity and global AppKit rect, or nil if cancelled.
 final class ScreenshotOverlayController {
     private let logger = Logger.screenshot
     private var window: NSWindow?
     private var escMonitor: Any?
     private var didCallCompletion = false
-    private let completion: (NSRect?) -> Void
+    private let completion: (RegionCaptureSelection?) -> Void
+    private let sessionID: UUID
+    private var screen: NSScreen?
 
     /// Create a new overlay controller.
     ///
     /// - Parameter completion: Called when the user completes selection or cancels.
     ///   The rect is in AppKit coordinates (bottom-left origin). nil means cancelled.
-    init(completion: @escaping (NSRect?) -> Void) {
+    init(sessionID: UUID, completion: @escaping (RegionCaptureSelection?) -> Void) {
+        self.sessionID = sessionID
         self.completion = completion
     }
 
@@ -200,10 +273,11 @@ final class ScreenshotOverlayController {
         removeESCMonitor()
     }
 
-    /// Show the overlay window covering the entire screen.
+    /// Show the overlay window on the display currently containing the pointer.
     func show() {
-        guard let screen = NSScreen.main else {
-            logger.error("No main screen available for overlay")
+        let mouseLocation = NSEvent.mouseLocation
+        guard let screen = NSScreen.screens.first(where: { $0.frame.contains(mouseLocation) }) ?? NSScreen.main else {
+            logger.error("No screen available for overlay")
             cancelScreenshotMode()
             return
         }
@@ -222,7 +296,7 @@ final class ScreenshotOverlayController {
         window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         window.isReleasedWhenClosed = false
 
-        let overlayView = ScreenshotOverlayView(frame: screen.frame)
+        let overlayView = ScreenshotOverlayView(frame: NSRect(origin: .zero, size: screen.frame.size))
         overlayView.delegate = self
         window.contentView = overlayView
 
@@ -230,6 +304,7 @@ final class ScreenshotOverlayController {
         window.makeFirstResponder(overlayView)
 
         self.window = window
+        self.screen = screen
 
         // NSEvent local monitor ensures ESC works even if the view loses first responder.
         setupESCMonitor()
@@ -244,11 +319,23 @@ final class ScreenshotOverlayController {
         window = nil
     }
 
-    /// Deliver the selected rect once, but keep the overlay visible so the user remains in screenshot mode.
+    /// Deliver the selected rect once. The service keeps the overlay alive only
+    /// until WindowServer has captured a frame without it.
     private func completeSelection(_ rect: NSRect) {
         guard !didCallCompletion else { return }
+        guard let screen,
+              let screenNumber = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber else {
+            cancelScreenshotMode()
+            return
+        }
         didCallCompletion = true
-        completion(rect)
+        let globalRect = rect.offsetBy(dx: screen.frame.minX, dy: screen.frame.minY)
+        completion(RegionCaptureSelection(
+            sessionID: sessionID,
+            displayID: CGDirectDisplayID(screenNumber.uint32Value),
+            screenFrame: screen.frame,
+            globalRect: globalRect
+        ))
     }
 
     /// Cancel screenshot mode. Before a selection this resumes the capture continuation with nil;
@@ -268,9 +355,22 @@ final class ScreenshotOverlayController {
         window?.orderOut(nil)
     }
 
-    /// Show the overlay again after the capture is complete, preserving the selection frame.
-    func showAfterCapture() {
-        window?.orderFrontRegardless()
+    /// Restore the locked selection after the overlay was excluded from capture.
+    func restoreAfterCapture() {
+        window?.makeKeyAndOrderFront(nil)
+    }
+
+    /// Cancel this capture, including a selection that has not completed yet.
+    func cancel() {
+        cancelScreenshotMode()
+    }
+
+    /// Finish a successful or failed capture without broadcasting a user cancel.
+    /// The preview window can only become visible after this screen-saver-level
+    /// overlay has been removed.
+    func finishCapture() {
+        dismiss()
+        screen = nil
     }
 
     private func setupESCMonitor() {

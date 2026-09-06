@@ -23,6 +23,20 @@
 
 ---
 
+## 2026-08-22：当前产品基线完善
+
+- 修复 Xcode 测试 Target 未设置 `DEVELOPMENT_TEAM` 导致宿主 App 与测试 bundle Team ID 不一致、无法加载测试的问题；应用、单元测试和 UI 测试 Target 现统一使用 `454XB348PX`。
+- `xcodebuild test -only-testing:QingniaoTests/SystemCommandSourceTests`：通过。覆盖新增“打开剪贴板历史”白名单命令、中文/英文别名搜索及专用通知路由。
+- `xcodebuild test -only-testing:QingniaoTests/SearchPanelViewModelTests -only-testing:QingniaoTests/HotkeyConflictDetectorTests`：通过。覆盖命令栏有首页内容时自动展开，以及快捷键冲突检测。
+- `xcodebuild test -only-testing:QingniaoTests/SearchPanelViewModelTests`：通过。新增覆盖空输入首页的“打开剪贴板历史”、区域/窗口/全屏截图快捷操作。
+- `xcodebuild test -only-testing:QingniaoUITests/CommandBarUITests/testTCUI023SearchOpensClipboardHistory`：通过。覆盖命令栏英文别名搜索、回车路由到独立剪贴板历史窗口，以及命令栏关闭。
+- `xcodebuild test -only-testing:QingniaoUITests/CommandBarUITests`：通过。命令栏完整 UI 回归通过，确认新增首页快捷操作未破坏输入、回车、ESC 与空输入行为。
+- `xcodebuild test -project Qingniao.xcodeproj -scheme Qingniao -destination 'platform=macOS'`：完整 Xcode 测试套件通过。
+- `xcodebuild build-for-testing`：通过。清理快捷键冲突检测和测试辅助代码中的 Swift 6 并发/弃用警告；仍有 Xcode 26 SDK 与项目 macOS 13 部署目标的 XCTest 链接警告，不影响编译和测试通过。
+- `xcodebuild test -only-testing:QingniaoTests/HotkeyConflictDetectorTests -only-testing:QingniaoTests/SystemCommandSourceTests`：通过。确认六个可重绑定快捷键的默认值、冲突检测与包含“打开剪贴板历史”的 15 条白名单命令目录；首次启动即注册全局入口，欢迎向导不会阻断搜索、剪贴板历史或截图快捷键。
+
+---
+
 ## 执行记录（时间线）
 
 ### 2026-06-12 - US-001 App Shell 验证

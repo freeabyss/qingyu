@@ -34,6 +34,7 @@ final class AppContainer: NSObject {
     )
     let cleanupService = DataCleanupService()
     let updateService = UpdateService()
+    private(set) var permissionService: PermissionServiceProtocol = PermissionService()
     let screenshotService: ScreenshotServiceProtocol = ScreenshotService()
 
     private let appSearchSource = AppSearchSource()
@@ -60,6 +61,14 @@ final class AppContainer: NSObject {
         super.init()
     }
 
+    #if DEBUG
+    /// Keeps screenshot permission checks on the same injectable boundary used
+    /// by onboarding and UI tests instead of constructing a second live service.
+    func setPermissionServiceForUITest(_ service: PermissionServiceProtocol) {
+        permissionService = service
+    }
+    #endif
+
     // MARK: - Command routing (notifications)
 
     /// Registers observers for command-bar / system-command notifications and
@@ -74,6 +83,7 @@ final class AppContainer: NSObject {
         center.addObserver(self, selector: #selector(handleCommandCaptureRegion), name: .commandCaptureRegion, object: nil)
         center.addObserver(self, selector: #selector(handleCommandCaptureWindow), name: .commandCaptureWindow, object: nil)
         center.addObserver(self, selector: #selector(handleCommandCaptureFullScreen), name: .commandCaptureFullScreen, object: nil)
+        center.addObserver(self, selector: #selector(handleCommandOpenClipboardHistory), name: .commandOpenClipboardHistory, object: nil)
     }
 
     @objc private func handleOpenManagementCenter(_ notification: Notification) {
@@ -124,6 +134,10 @@ final class AppContainer: NSObject {
 
     @objc private func handleCommandCaptureFullScreen() {
         screenshotWindowController.captureFullScreen()
+    }
+
+    @objc private func handleCommandOpenClipboardHistory() {
+        clipboardHistoryWindowController.show()
     }
 
     @objc private func handleCheckForUpdates() {

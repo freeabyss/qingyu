@@ -10,10 +10,14 @@ final class AnnotationEditorWindow: NSWindowController, NSWindowDelegate {
     private let onCopy: (Data) throws -> Void
     private let onSave: (Data, Date) throws -> URL
     private let onComplete: (AnnotationEditorCompletion) -> Void
+    private let presentationFrame: NSRect?
+    private let initialTool: AnnotationTool
 
     init(
         image: NSImage,
         captureDate: Date,
+        presentationFrame: NSRect? = nil,
+        initialTool: AnnotationTool = .rectangle,
         onCopy: @escaping (Data) throws -> Void,
         onSave: @escaping (Data, Date) throws -> URL,
         onComplete: @escaping (AnnotationEditorCompletion) -> Void
@@ -23,12 +27,15 @@ final class AnnotationEditorWindow: NSWindowController, NSWindowDelegate {
         self.onCopy = onCopy
         self.onSave = onSave
         self.onComplete = onComplete
+        self.presentationFrame = presentationFrame
+        self.initialTool = initialTool
         super.init(window: nil)
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
     func present() {
+        state.tool = initialTool
         let root = AnnotationEditorRootView(
             state: state,
             onUndo: { [weak self] in self?.undo() },
@@ -41,18 +48,25 @@ final class AnnotationEditorWindow: NSWindowController, NSWindowDelegate {
             }
         )
 
+        let isRegionEditor = presentationFrame != nil
         let window = AnnotationEditorPanel(
-            contentRect: computeWindowRect(),
-            styleMask: [.titled, .closable, .resizable, .miniaturizable, .fullSizeContentView],
+            contentRect: presentationFrame ?? computeWindowRect(),
+            styleMask: isRegionEditor ? [.borderless, .fullSizeContentView] : [.titled, .closable, .resizable, .miniaturizable, .fullSizeContentView],
             backing: .buffered,
             defer: false
         )
         window.title = L10n.localized("annotation.window.title")
+        window.level = isRegionEditor
+            ? NSWindow.Level(rawValue: NSWindow.Level.screenSaver.rawValue + 2)
+            : .floating
+        window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         window.contentViewController = NSHostingController(rootView: root)
         window.delegate = self
         window.isReleasedWhenClosed = false
         window.onEscape = { [weak self] in self?.cancel() }
-        window.center()
+        if !isRegionEditor {
+            window.center()
+        }
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
         self.window = window

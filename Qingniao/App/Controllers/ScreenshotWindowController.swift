@@ -58,7 +58,14 @@ final class ScreenshotWindowController {
             do {
                 let result = try await capture()
                 await MainActor.run { [weak self] in
-                    self?.toolbar.show(result: result)
+                    guard let self else { return }
+                    if result.sourceType == .region, let selection = result.regionSelection {
+                        self.toolbar.showRegion(result: result, selection: selection) { [weak self] in
+                            self?.container.screenshotService.finishRegionCapture(sessionID: selection.sessionID)
+                        }
+                    } else {
+                        self.toolbar.show(result: result)
+                    }
                 }
                 // Keep the command bar hidden while the preview is active.
                 shouldRestoreCommandBar = false
@@ -68,6 +75,9 @@ final class ScreenshotWindowController {
                     logger.debug("\(kind, privacy: .public) capture cancelled")
                 } else {
                     logger.error("\(kind, privacy: .public) capture failed: \(error.localizedDescription, privacy: .public)")
+                    _ = await MainActor.run {
+                        NSAlert(error: error).runModal()
+                    }
                 }
             }
 
@@ -80,7 +90,7 @@ final class ScreenshotWindowController {
     }
 
     private func ensureScreenRecordingPermission() -> Bool {
-        let permissionService = PermissionService()
+        let permissionService = container.permissionService
         guard permissionService.status(for: .screenRecording).isAuthorized else {
             let alert = NSAlert()
             alert.alertStyle = .warning

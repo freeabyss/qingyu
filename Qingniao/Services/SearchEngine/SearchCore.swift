@@ -385,6 +385,11 @@ final class SearchService: SearchServiceProtocol {
         }
 
         return adjusted.sorted { lhs, rhs in
+            // Application-name matches are the command bar's primary intent.
+            // Keep them ahead of other sources even when a command/file has a
+            // larger accumulated match or usage score.
+            if lhs.sourceID == .app, rhs.sourceID != .app { return true }
+            if lhs.sourceID != .app, rhs.sourceID == .app { return false }
             if lhs.finalScore != rhs.finalScore { return lhs.finalScore > rhs.finalScore }
             if lhs.baseScore != rhs.baseScore { return lhs.baseScore > rhs.baseScore }
             return lhs.title.localizedCaseInsensitiveCompare(rhs.title) == .orderedAscending

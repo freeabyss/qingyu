@@ -7,7 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0992D26FCA5F07EF17D275E0 /* MenuDispatchUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8013829E2DF283371786A6C /* MenuDispatchUITests.swift */; };
+		48960A05A2DF71B339FEDE8A /* ClipboardWindowUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A66E86C8A0860C49F8909E51 /* ClipboardWindowUITests.swift */; };
+		68463D96302B2DE20044EC9B /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = A10007000000000000000001 /* GRDB */; };
+		68463D97302B2DE20044EC9B /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = A10007000000000000000002 /* KeyboardShortcuts */; };
 		83FEB8F66657416FBC33566D /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 0CE8DD2E740FFABBB9BFE5BD /* Localizable.xcstrings */; };
+		901ADC285239AC71CE273B90 /* SettingsWindowUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BB3DE90C89D68FC58333C60 /* SettingsWindowUITests.swift */; };
 		93566319C8B49A482D84E301 /* L10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A83119274E3E3D3FA6D9AB0 /* L10n.swift */; };
 		A10001000000000000000001 /* QingniaoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000001 /* QingniaoApp.swift */; };
 		A10001000000000000000002 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000002 /* AppDelegate.swift */; };
@@ -73,30 +78,30 @@
 		B01100000000000000000009 /* SearchPanelViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B01100000000000000000008 /* SearchPanelViewModelTests.swift */; };
 		B01300000000000000000001 /* ClipboardListViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B01300000000000000000002 /* ClipboardListViewModelTests.swift */; };
 		C011000000000000000000E1 /* CommandBarHomeProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C011000000000000000000E2 /* CommandBarHomeProvider.swift */; };
-		C01400000000000000000001 /* PermissionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C01400000000000000000002 /* PermissionService.swift */; };
-		C01400000000000000000003 /* HotkeyValidationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C01400000000000000000004 /* HotkeyValidationService.swift */; };
-		C01400000000000000000005 /* LaunchAtLoginService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C01400000000000000000006 /* LaunchAtLoginService.swift */; };
-		C01400000000000000000007 /* OnboardingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C01400000000000000000008 /* OnboardingViewModel.swift */; };
-		C01400000000000000000009 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0140000000000000000000A /* OnboardingView.swift */; };
-		C0140000000000000000000B /* OnboardingViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0140000000000000000000C /* OnboardingViewModelTests.swift */; };
-		C01400000000000000000021 /* GlobalShortcutManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C01400000000000000000020 /* GlobalShortcutManager.swift */; };
-		C01400000000000000000023 /* HotkeyConflictDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = C01400000000000000000022 /* HotkeyConflictDetector.swift */; };
-		C01400000000000000000025 /* HotkeyConflictDetectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C01400000000000000000024 /* HotkeyConflictDetectorTests.swift */; };
+		C01400000000000000000001 /* Qingniao/Services/Permissions/PermissionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C01400000000000000000002 /* Qingniao/Services/Permissions/PermissionService.swift */; };
+		C01400000000000000000003 /* Qingniao/Services/Hotkey/HotkeyValidationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C01400000000000000000004 /* Qingniao/Services/Hotkey/HotkeyValidationService.swift */; };
+		C01400000000000000000005 /* Qingniao/Services/LaunchAtLogin/LaunchAtLoginService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C01400000000000000000006 /* Qingniao/Services/LaunchAtLogin/LaunchAtLoginService.swift */; };
+		C01400000000000000000007 /* Qingniao/ViewModels/OnboardingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C01400000000000000000008 /* Qingniao/ViewModels/OnboardingViewModel.swift */; };
+		C01400000000000000000009 /* Qingniao/Views/Onboarding/OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0140000000000000000000A /* Qingniao/Views/Onboarding/OnboardingView.swift */; };
+		C0140000000000000000000B /* QingniaoTests/OnboardingViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0140000000000000000000C /* QingniaoTests/OnboardingViewModelTests.swift */; };
+		C01400000000000000000021 /* Qingniao/Services/Hotkey/GlobalShortcutManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C01400000000000000000020 /* Qingniao/Services/Hotkey/GlobalShortcutManager.swift */; };
+		C01400000000000000000023 /* Qingniao/Services/Hotkey/HotkeyConflictDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = C01400000000000000000022 /* Qingniao/Services/Hotkey/HotkeyConflictDetector.swift */; };
+		C01400000000000000000025 /* QingniaoTests/HotkeyConflictDetectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C01400000000000000000024 /* QingniaoTests/HotkeyConflictDetectorTests.swift */; };
 		CF970CC4575FF8B6A203E310 /* UITestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 196C77B49D5FF71402A7D06A /* UITestSupport.swift */; };
 		D01700000000000000000001 /* AnnotationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D01700000000000000000002 /* AnnotationTests.swift */; };
 		D7A3BA8A2388B77F1D1D0728 /* OnboardingUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7B303A41D4CF442EA7C1FC2 /* OnboardingUITests.swift */; };
 		E01801000000000000000001 /* ReleaseInfoService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E01800000000000000000001 /* ReleaseInfoService.swift */; };
 		E01801000000000000000002 /* ReleaseInfoServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E01800000000000000000002 /* ReleaseInfoServiceTests.swift */; };
-		F00400000000000000000101 /* JadeColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00400000000000000000001 /* JadeColor.swift */; };
-		F00400000000000000000102 /* JadeRadius.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00400000000000000000002 /* JadeRadius.swift */; };
-		F00400000000000000000103 /* JadeSpace.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00400000000000000000003 /* JadeSpace.swift */; };
-		F00400000000000000000104 /* JadeFont.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00400000000000000000004 /* JadeFont.swift */; };
-		F00400000000000000000105 /* JadeShadow.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00400000000000000000005 /* JadeShadow.swift */; };
-		F00400000000000000000106 /* JadeMaterial.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00400000000000000000006 /* JadeMaterial.swift */; };
-		F00400000000000000000107 /* JadeAccessibility.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00400000000000000000007 /* JadeAccessibility.swift */; };
-		F00500000000000000000101 /* DataDirectoryMigrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00500000000000000000001 /* DataDirectoryMigrator.swift */; };
-		F00500000000000000000102 /* DataManagementService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00500000000000000000002 /* DataManagementService.swift */; };
-		F00500000000000000000201 /* DataDirectoryMigratorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00500000000000000000202 /* DataDirectoryMigratorTests.swift */; };
+		F00400000000000000000101 /* Qingniao/Views/Design/JadeColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00400000000000000000001 /* Qingniao/Views/Design/JadeColor.swift */; };
+		F00400000000000000000102 /* Qingniao/Views/Design/JadeRadius.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00400000000000000000002 /* Qingniao/Views/Design/JadeRadius.swift */; };
+		F00400000000000000000103 /* Qingniao/Views/Design/JadeSpace.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00400000000000000000003 /* Qingniao/Views/Design/JadeSpace.swift */; };
+		F00400000000000000000104 /* Qingniao/Views/Design/JadeFont.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00400000000000000000004 /* Qingniao/Views/Design/JadeFont.swift */; };
+		F00400000000000000000105 /* Qingniao/Views/Design/JadeShadow.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00400000000000000000005 /* Qingniao/Views/Design/JadeShadow.swift */; };
+		F00400000000000000000106 /* Qingniao/Views/Design/JadeMaterial.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00400000000000000000006 /* Qingniao/Views/Design/JadeMaterial.swift */; };
+		F00400000000000000000107 /* Qingniao/Views/Design/JadeAccessibility.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00400000000000000000007 /* Qingniao/Views/Design/JadeAccessibility.swift */; };
+		F00500000000000000000101 /* Qingniao/Database/DataDirectoryMigrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00500000000000000000001 /* Qingniao/Database/DataDirectoryMigrator.swift */; };
+		F00500000000000000000102 /* Qingniao/Services/DataManagement/DataManagementService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00500000000000000000002 /* Qingniao/Services/DataManagement/DataManagementService.swift */; };
+		F00500000000000000000201 /* QingniaoTests/DataDirectoryMigratorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00500000000000000000202 /* QingniaoTests/DataDirectoryMigratorTests.swift */; };
 		F00700000000000000000101 /* JadeButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00700000000000000000001 /* JadeButton.swift */; };
 		F00700000000000000000102 /* JadeTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00700000000000000000002 /* JadeTextField.swift */; };
 		F00700000000000000000103 /* HotkeyRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00700000000000000000003 /* HotkeyRecorder.swift */; };
@@ -106,16 +111,13 @@
 		F00700000000000000000107 /* PermissionGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00700000000000000000007 /* PermissionGate.swift */; };
 		F00700000000000000000108 /* JadeConfirmationDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00700000000000000000008 /* JadeConfirmationDialog.swift */; };
 		F00900000000000000000001 /* FileSearchSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00900000000000000000002 /* FileSearchSourceTests.swift */; };
+		FFCF38D76FE02A6D4C0B1C70 /* CommandBarUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10E5A3CFEBC76440DAC25583 /* CommandBarUITests.swift */; };
 		G00100000000000000000002 /* AppContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = G00100000000000000000001 /* AppContainer.swift */; };
 		G00100000000000000000012 /* StatusItemController.swift in Sources */ = {isa = PBXBuildFile; fileRef = G00100000000000000000011 /* StatusItemController.swift */; };
 		G00100000000000000000022 /* CommandBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = G00100000000000000000021 /* CommandBarController.swift */; };
 		G00100000000000000000032 /* ClipboardHistoryWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = G00100000000000000000031 /* ClipboardHistoryWindowController.swift */; };
 		G00100000000000000000042 /* SettingsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = G00100000000000000000041 /* SettingsWindowController.swift */; };
 		G00100000000000000000052 /* ScreenshotWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = G00100000000000000000051 /* ScreenshotWindowController.swift */; };
-		48960A05A2DF71B339FEDE8A /* ClipboardWindowUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A66E86C8A0860C49F8909E51 /* ClipboardWindowUITests.swift */; };
-		FFCF38D76FE02A6D4C0B1C70 /* CommandBarUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10E5A3CFEBC76440DAC25583 /* CommandBarUITests.swift */; };
-		0992D26FCA5F07EF17D275E0 /* MenuDispatchUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8013829E2DF283371786A6C /* MenuDispatchUITests.swift */; };
-		901ADC285239AC71CE273B90 /* SettingsWindowUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BB3DE90C89D68FC58333C60 /* SettingsWindowUITests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -137,8 +139,10 @@
 
 /* Begin PBXFileReference section */
 		0CE8DD2E740FFABBB9BFE5BD /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		10E5A3CFEBC76440DAC25583 /* CommandBarUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CommandBarUITests.swift; sourceTree = "<group>"; };
 		196C77B49D5FF71402A7D06A /* UITestSupport.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = UITestSupport.swift; sourceTree = "<group>"; };
 		2853372E85C6B0FE9E194765 /* QingniaoUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = QingniaoUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		2BB3DE90C89D68FC58333C60 /* SettingsWindowUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SettingsWindowUITests.swift; sourceTree = "<group>"; };
 		342931FCF5D4AB36B533F4B7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		41884CD75E2103FD7C2B56EA /* QingniaoUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = QingniaoUITests.swift; sourceTree = "<group>"; };
 		8A83119274E3E3D3FA6D9AB0 /* L10n.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = L10n.swift; sourceTree = "<group>"; };
@@ -194,6 +198,7 @@
 		A10000000000000000000044 /* InMemorySearchIndex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InMemorySearchIndex.swift; sourceTree = "<group>"; };
 		A10000000000000000000045 /* InMemorySearchIndexTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InMemorySearchIndexTests.swift; sourceTree = "<group>"; };
 		A100000000000000000000A1 /* AutoFocusTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoFocusTextField.swift; sourceTree = "<group>"; };
+		A66E86C8A0860C49F8909E51 /* ClipboardWindowUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ClipboardWindowUITests.swift; sourceTree = "<group>"; };
 		B00500000000000000000002 /* SearchCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchCore.swift; sourceTree = "<group>"; };
 		B00500000000000000000004 /* SearchServiceCoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchServiceCoreTests.swift; sourceTree = "<group>"; };
 		B00600000000000000000002 /* SearchBlacklistRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchBlacklistRepository.swift; sourceTree = "<group>"; };
@@ -208,30 +213,31 @@
 		B01100000000000000000006 /* AssistantClipboardSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistantClipboardSource.swift; sourceTree = "<group>"; };
 		B01100000000000000000008 /* SearchPanelViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchPanelViewModelTests.swift; sourceTree = "<group>"; };
 		B01300000000000000000002 /* ClipboardListViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardListViewModelTests.swift; sourceTree = "<group>"; };
+		B8013829E2DF283371786A6C /* MenuDispatchUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MenuDispatchUITests.swift; sourceTree = "<group>"; };
 		C011000000000000000000E2 /* CommandBarHomeProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandBarHomeProvider.swift; sourceTree = "<group>"; };
-		C01400000000000000000002 /* PermissionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingniao/Services/Permissions/PermissionService.swift; sourceTree = SOURCE_ROOT; };
-		C01400000000000000000004 /* HotkeyValidationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingniao/Services/Hotkey/HotkeyValidationService.swift; sourceTree = SOURCE_ROOT; };
-		C01400000000000000000006 /* LaunchAtLoginService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingniao/Services/LaunchAtLogin/LaunchAtLoginService.swift; sourceTree = SOURCE_ROOT; };
-		C01400000000000000000008 /* OnboardingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingniao/ViewModels/OnboardingViewModel.swift; sourceTree = SOURCE_ROOT; };
-		C0140000000000000000000A /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingniao/Views/Onboarding/OnboardingView.swift; sourceTree = SOURCE_ROOT; };
-		C0140000000000000000000C /* OnboardingViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QingniaoTests/OnboardingViewModelTests.swift; sourceTree = SOURCE_ROOT; };
-		C01400000000000000000020 /* GlobalShortcutManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingniao/Services/Hotkey/GlobalShortcutManager.swift; sourceTree = SOURCE_ROOT; };
-		C01400000000000000000022 /* HotkeyConflictDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingniao/Services/Hotkey/HotkeyConflictDetector.swift; sourceTree = SOURCE_ROOT; };
-		C01400000000000000000024 /* HotkeyConflictDetectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QingniaoTests/HotkeyConflictDetectorTests.swift; sourceTree = SOURCE_ROOT; };
+		C01400000000000000000002 /* Qingniao/Services/Permissions/PermissionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingniao/Services/Permissions/PermissionService.swift; sourceTree = SOURCE_ROOT; };
+		C01400000000000000000004 /* Qingniao/Services/Hotkey/HotkeyValidationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingniao/Services/Hotkey/HotkeyValidationService.swift; sourceTree = SOURCE_ROOT; };
+		C01400000000000000000006 /* Qingniao/Services/LaunchAtLogin/LaunchAtLoginService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingniao/Services/LaunchAtLogin/LaunchAtLoginService.swift; sourceTree = SOURCE_ROOT; };
+		C01400000000000000000008 /* Qingniao/ViewModels/OnboardingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingniao/ViewModels/OnboardingViewModel.swift; sourceTree = SOURCE_ROOT; };
+		C0140000000000000000000A /* Qingniao/Views/Onboarding/OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingniao/Views/Onboarding/OnboardingView.swift; sourceTree = SOURCE_ROOT; };
+		C0140000000000000000000C /* QingniaoTests/OnboardingViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QingniaoTests/OnboardingViewModelTests.swift; sourceTree = SOURCE_ROOT; };
+		C01400000000000000000020 /* Qingniao/Services/Hotkey/GlobalShortcutManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingniao/Services/Hotkey/GlobalShortcutManager.swift; sourceTree = SOURCE_ROOT; };
+		C01400000000000000000022 /* Qingniao/Services/Hotkey/HotkeyConflictDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingniao/Services/Hotkey/HotkeyConflictDetector.swift; sourceTree = SOURCE_ROOT; };
+		C01400000000000000000024 /* QingniaoTests/HotkeyConflictDetectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QingniaoTests/HotkeyConflictDetectorTests.swift; sourceTree = SOURCE_ROOT; };
 		D01700000000000000000002 /* AnnotationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnnotationTests.swift; sourceTree = "<group>"; };
 		D7B303A41D4CF442EA7C1FC2 /* OnboardingUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OnboardingUITests.swift; sourceTree = "<group>"; };
 		E01800000000000000000001 /* ReleaseInfoService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseInfoService.swift; sourceTree = "<group>"; };
 		E01800000000000000000002 /* ReleaseInfoServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseInfoServiceTests.swift; sourceTree = "<group>"; };
-		F00400000000000000000001 /* JadeColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingniao/Views/Design/JadeColor.swift; sourceTree = SOURCE_ROOT; };
-		F00400000000000000000002 /* JadeRadius.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingniao/Views/Design/JadeRadius.swift; sourceTree = SOURCE_ROOT; };
-		F00400000000000000000003 /* JadeSpace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingniao/Views/Design/JadeSpace.swift; sourceTree = SOURCE_ROOT; };
-		F00400000000000000000004 /* JadeFont.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingniao/Views/Design/JadeFont.swift; sourceTree = SOURCE_ROOT; };
-		F00400000000000000000005 /* JadeShadow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingniao/Views/Design/JadeShadow.swift; sourceTree = SOURCE_ROOT; };
-		F00400000000000000000006 /* JadeMaterial.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingniao/Views/Design/JadeMaterial.swift; sourceTree = SOURCE_ROOT; };
-		F00400000000000000000007 /* JadeAccessibility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingniao/Views/Design/JadeAccessibility.swift; sourceTree = SOURCE_ROOT; };
-		F00500000000000000000001 /* DataDirectoryMigrator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingniao/Database/DataDirectoryMigrator.swift; sourceTree = SOURCE_ROOT; };
-		F00500000000000000000002 /* DataManagementService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingniao/Services/DataManagement/DataManagementService.swift; sourceTree = SOURCE_ROOT; };
-		F00500000000000000000202 /* DataDirectoryMigratorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QingniaoTests/DataDirectoryMigratorTests.swift; sourceTree = SOURCE_ROOT; };
+		F00400000000000000000001 /* Qingniao/Views/Design/JadeColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingniao/Views/Design/JadeColor.swift; sourceTree = SOURCE_ROOT; };
+		F00400000000000000000002 /* Qingniao/Views/Design/JadeRadius.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingniao/Views/Design/JadeRadius.swift; sourceTree = SOURCE_ROOT; };
+		F00400000000000000000003 /* Qingniao/Views/Design/JadeSpace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingniao/Views/Design/JadeSpace.swift; sourceTree = SOURCE_ROOT; };
+		F00400000000000000000004 /* Qingniao/Views/Design/JadeFont.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingniao/Views/Design/JadeFont.swift; sourceTree = SOURCE_ROOT; };
+		F00400000000000000000005 /* Qingniao/Views/Design/JadeShadow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingniao/Views/Design/JadeShadow.swift; sourceTree = SOURCE_ROOT; };
+		F00400000000000000000006 /* Qingniao/Views/Design/JadeMaterial.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingniao/Views/Design/JadeMaterial.swift; sourceTree = SOURCE_ROOT; };
+		F00400000000000000000007 /* Qingniao/Views/Design/JadeAccessibility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingniao/Views/Design/JadeAccessibility.swift; sourceTree = SOURCE_ROOT; };
+		F00500000000000000000001 /* Qingniao/Database/DataDirectoryMigrator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingniao/Database/DataDirectoryMigrator.swift; sourceTree = SOURCE_ROOT; };
+		F00500000000000000000002 /* Qingniao/Services/DataManagement/DataManagementService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingniao/Services/DataManagement/DataManagementService.swift; sourceTree = SOURCE_ROOT; };
+		F00500000000000000000202 /* QingniaoTests/DataDirectoryMigratorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QingniaoTests/DataDirectoryMigratorTests.swift; sourceTree = SOURCE_ROOT; };
 		F00700000000000000000001 /* JadeButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JadeButton.swift; sourceTree = "<group>"; };
 		F00700000000000000000002 /* JadeTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JadeTextField.swift; sourceTree = "<group>"; };
 		F00700000000000000000003 /* HotkeyRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotkeyRecorder.swift; sourceTree = "<group>"; };
@@ -247,10 +253,6 @@
 		G00100000000000000000031 /* ClipboardHistoryWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardHistoryWindowController.swift; sourceTree = "<group>"; };
 		G00100000000000000000041 /* SettingsWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsWindowController.swift; sourceTree = "<group>"; };
 		G00100000000000000000051 /* ScreenshotWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotWindowController.swift; sourceTree = "<group>"; };
-		A66E86C8A0860C49F8909E51 /* ClipboardWindowUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ClipboardWindowUITests.swift; sourceTree = "<group>"; };
-		10E5A3CFEBC76440DAC25583 /* CommandBarUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CommandBarUITests.swift; sourceTree = "<group>"; };
-		B8013829E2DF283371786A6C /* MenuDispatchUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MenuDispatchUITests.swift; sourceTree = "<group>"; };
-		2BB3DE90C89D68FC58333C60 /* SettingsWindowUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SettingsWindowUITests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -258,6 +260,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				68463D97302B2DE20044EC9B /* KeyboardShortcuts in Frameworks */,
+				68463D96302B2DE20044EC9B /* GRDB in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -289,8 +293,20 @@
 				2BB3DE90C89D68FC58333C60 /* SettingsWindowUITests.swift */,
 				342931FCF5D4AB36B533F4B7 /* Info.plist */,
 			);
-			name = QingniaoUITests;
 			path = QingniaoUITests;
+			sourceTree = "<group>";
+		};
+		68463D98302B2DE20044EC9B /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				C01400000000000000000002 /* Qingniao/Services/Permissions/PermissionService.swift */,
+				C01400000000000000000004 /* Qingniao/Services/Hotkey/HotkeyValidationService.swift */,
+				C01400000000000000000020 /* Qingniao/Services/Hotkey/GlobalShortcutManager.swift */,
+				C01400000000000000000022 /* Qingniao/Services/Hotkey/HotkeyConflictDetector.swift */,
+				C01400000000000000000006 /* Qingniao/Services/LaunchAtLogin/LaunchAtLoginService.swift */,
+				C0140000000000000000000A /* Qingniao/Views/Onboarding/OnboardingView.swift */,
+			);
+			name = "Recovered References";
 			sourceTree = "<group>";
 		};
 		A10003000000000000000001 = {
@@ -300,6 +316,7 @@
 				A1000300000000000000000B /* QingniaoTests */,
 				487FE5F5D87D1B9BFD792E7F /* QingniaoUITests */,
 				A1000300000000000000000C /* Products */,
+				68463D98302B2DE20044EC9B /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
@@ -352,7 +369,7 @@
 		A10003000000000000000005 /* ViewModels */ = {
 			isa = PBXGroup;
 			children = (
-				C01400000000000000000008 /* OnboardingViewModel.swift */,
+				C01400000000000000000008 /* Qingniao/ViewModels/OnboardingViewModel.swift */,
 				A10000000000000000000016 /* ClipboardListViewModel.swift */,
 				A10000000000000000000017 /* SettingsViewModel.swift */,
 				B01100000000000000000002 /* SearchPanelViewModel.swift */,
@@ -393,7 +410,7 @@
 				A10000000000000000000004 /* DatabaseManager.swift */,
 				A1000000000000000000003F /* PersistenceController.swift */,
 				A10000000000000000000040 /* AssistantFileSystem.swift */,
-				F00500000000000000000001 /* DataDirectoryMigrator.swift */,
+				F00500000000000000000001 /* Qingniao/Database/DataDirectoryMigrator.swift */,
 				A10003000000000000000016 /* Migrations */,
 				A10003000000000000000017 /* Repositories */,
 			);
@@ -425,15 +442,15 @@
 			isa = PBXGroup;
 			children = (
 				D01700000000000000000002 /* AnnotationTests.swift */,
-				C0140000000000000000000C /* OnboardingViewModelTests.swift */,
-				C01400000000000000000024 /* HotkeyConflictDetectorTests.swift */,
+				C0140000000000000000000C /* QingniaoTests/OnboardingViewModelTests.swift */,
+				C01400000000000000000024 /* QingniaoTests/HotkeyConflictDetectorTests.swift */,
 				A10000000000000000000038 /* CalculatorSourceTests.swift */,
 				A10000000000000000000039 /* SystemCommandSourceTests.swift */,
 				A1000000000000000000003B /* CryptoHelperTests.swift */,
 				A1000000000000000000003C /* DatabaseManagerTests.swift */,
 				A1000000000000000000003D /* PinyinHelperTests.swift */,
 				A10000000000000000000041 /* PersistenceControllerTests.swift */,
-				F00500000000000000000202 /* DataDirectoryMigratorTests.swift */,
+				F00500000000000000000202 /* QingniaoTests/DataDirectoryMigratorTests.swift */,
 				A10000000000000000000043 /* AssistantClipboardRepositoryTests.swift */,
 				A10000000000000000000045 /* InMemorySearchIndexTests.swift */,
 				B00500000000000000000004 /* SearchServiceCoreTests.swift */,
@@ -634,13 +651,13 @@
 		F00400000000000000000010 /* Design */ = {
 			isa = PBXGroup;
 			children = (
-				F00400000000000000000001 /* JadeColor.swift */,
-				F00400000000000000000002 /* JadeRadius.swift */,
-				F00400000000000000000003 /* JadeSpace.swift */,
-				F00400000000000000000004 /* JadeFont.swift */,
-				F00400000000000000000005 /* JadeShadow.swift */,
-				F00400000000000000000006 /* JadeMaterial.swift */,
-				F00400000000000000000007 /* JadeAccessibility.swift */,
+				F00400000000000000000001 /* Qingniao/Views/Design/JadeColor.swift */,
+				F00400000000000000000002 /* Qingniao/Views/Design/JadeRadius.swift */,
+				F00400000000000000000003 /* Qingniao/Views/Design/JadeSpace.swift */,
+				F00400000000000000000004 /* Qingniao/Views/Design/JadeFont.swift */,
+				F00400000000000000000005 /* Qingniao/Views/Design/JadeShadow.swift */,
+				F00400000000000000000006 /* Qingniao/Views/Design/JadeMaterial.swift */,
+				F00400000000000000000007 /* Qingniao/Views/Design/JadeAccessibility.swift */,
 			);
 			path = Design;
 			sourceTree = "<group>";
@@ -648,7 +665,7 @@
 		F00500000000000000000010 /* DataManagement */ = {
 			isa = PBXGroup;
 			children = (
-				F00500000000000000000002 /* DataManagementService.swift */,
+				F00500000000000000000002 /* Qingniao/Services/DataManagement/DataManagementService.swift */,
 			);
 			path = DataManagement;
 			sourceTree = "<group>";
@@ -801,20 +818,20 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C01400000000000000000001 /* PermissionService.swift in Sources */,
-				C01400000000000000000003 /* HotkeyValidationService.swift in Sources */,
-				C01400000000000000000021 /* GlobalShortcutManager.swift in Sources */,
-				C01400000000000000000023 /* HotkeyConflictDetector.swift in Sources */,
-				C01400000000000000000005 /* LaunchAtLoginService.swift in Sources */,
-				C01400000000000000000007 /* OnboardingViewModel.swift in Sources */,
-				C01400000000000000000009 /* OnboardingView.swift in Sources */,
-				F00400000000000000000101 /* JadeColor.swift in Sources */,
-				F00400000000000000000102 /* JadeRadius.swift in Sources */,
-				F00400000000000000000103 /* JadeSpace.swift in Sources */,
-				F00400000000000000000104 /* JadeFont.swift in Sources */,
-				F00400000000000000000105 /* JadeShadow.swift in Sources */,
-				F00400000000000000000106 /* JadeMaterial.swift in Sources */,
-				F00400000000000000000107 /* JadeAccessibility.swift in Sources */,
+				C01400000000000000000001 /* Qingniao/Services/Permissions/PermissionService.swift in Sources */,
+				C01400000000000000000003 /* Qingniao/Services/Hotkey/HotkeyValidationService.swift in Sources */,
+				C01400000000000000000021 /* Qingniao/Services/Hotkey/GlobalShortcutManager.swift in Sources */,
+				C01400000000000000000023 /* Qingniao/Services/Hotkey/HotkeyConflictDetector.swift in Sources */,
+				C01400000000000000000005 /* Qingniao/Services/LaunchAtLogin/LaunchAtLoginService.swift in Sources */,
+				C01400000000000000000007 /* Qingniao/ViewModels/OnboardingViewModel.swift in Sources */,
+				C01400000000000000000009 /* Qingniao/Views/Onboarding/OnboardingView.swift in Sources */,
+				F00400000000000000000101 /* Qingniao/Views/Design/JadeColor.swift in Sources */,
+				F00400000000000000000102 /* Qingniao/Views/Design/JadeRadius.swift in Sources */,
+				F00400000000000000000103 /* Qingniao/Views/Design/JadeSpace.swift in Sources */,
+				F00400000000000000000104 /* Qingniao/Views/Design/JadeFont.swift in Sources */,
+				F00400000000000000000105 /* Qingniao/Views/Design/JadeShadow.swift in Sources */,
+				F00400000000000000000106 /* Qingniao/Views/Design/JadeMaterial.swift in Sources */,
+				F00400000000000000000107 /* Qingniao/Views/Design/JadeAccessibility.swift in Sources */,
 				A10001000000000000000001 /* QingniaoApp.swift in Sources */,
 				A10001000000000000000002 /* AppDelegate.swift in Sources */,
 				A10001000000000000000003 /* AppState.swift in Sources */,
@@ -827,8 +844,8 @@
 				A10001000000000000000004 /* DatabaseManager.swift in Sources */,
 				A1000100000000000000003F /* PersistenceController.swift in Sources */,
 				A10001000000000000000040 /* AssistantFileSystem.swift in Sources */,
-				F00500000000000000000101 /* DataDirectoryMigrator.swift in Sources */,
-				F00500000000000000000102 /* DataManagementService.swift in Sources */,
+				F00500000000000000000101 /* Qingniao/Database/DataDirectoryMigrator.swift in Sources */,
+				F00500000000000000000102 /* Qingniao/Services/DataManagement/DataManagementService.swift in Sources */,
 				A10001000000000000000042 /* AssistantClipboardRepository.swift in Sources */,
 				B00600000000000000000001 /* SearchBlacklistRepository.swift in Sources */,
 				A10001000000000000000006 /* ClipboardItem.swift in Sources */,
@@ -879,7 +896,6 @@
 				B01100000000000000000001 /* SearchPanelViewModel.swift in Sources */,
 				B01100000000000000000003 /* CommandBarView.swift in Sources */,
 				B01100000000000000000005 /* AssistantClipboardSource.swift in Sources */,
-				A7B2F3F247113109A8BC2C6A /* UITestSupport.swift in Sources */,
 				CF970CC4575FF8B6A203E310 /* UITestSupport.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -889,15 +905,15 @@
 			buildActionMask = 2147483647;
 			files = (
 				D01700000000000000000001 /* AnnotationTests.swift in Sources */,
-				C0140000000000000000000B /* OnboardingViewModelTests.swift in Sources */,
-				C01400000000000000000025 /* HotkeyConflictDetectorTests.swift in Sources */,
+				C0140000000000000000000B /* QingniaoTests/OnboardingViewModelTests.swift in Sources */,
+				C01400000000000000000025 /* QingniaoTests/HotkeyConflictDetectorTests.swift in Sources */,
 				A10001000000000000000038 /* CalculatorSourceTests.swift in Sources */,
 				A10001000000000000000039 /* SystemCommandSourceTests.swift in Sources */,
 				A1000100000000000000003B /* CryptoHelperTests.swift in Sources */,
 				A1000100000000000000003C /* DatabaseManagerTests.swift in Sources */,
 				A1000100000000000000003D /* PinyinHelperTests.swift in Sources */,
 				A10001000000000000000041 /* PersistenceControllerTests.swift in Sources */,
-				F00500000000000000000201 /* DataDirectoryMigratorTests.swift in Sources */,
+				F00500000000000000000201 /* QingniaoTests/DataDirectoryMigratorTests.swift in Sources */,
 				A10001000000000000000043 /* AssistantClipboardRepositoryTests.swift in Sources */,
 				A10001000000000000000045 /* InMemorySearchIndexTests.swift in Sources */,
 				B00500000000000000000003 /* SearchServiceCoreTests.swift in Sources */,
@@ -933,6 +949,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 454XB348PX;
 				COMBINE_HIDPI_IMAGES = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = QingniaoUITests/Info.plist;
@@ -1071,7 +1088,8 @@
 				CODE_SIGN_ENTITLEMENTS = Qingniao/Qingniao.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 121;
+				CURRENT_PROJECT_VERSION = 201;
+				DEVELOPMENT_TEAM = 454XB348PX;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Qingniao/Info.plist;
@@ -1079,7 +1097,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.2.1;
+				MARKETING_VERSION = 0.2.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.assistant.app;
 				PRODUCT_MODULE_NAME = Qingniao;
 				PRODUCT_NAME = Qingniao;
@@ -1095,7 +1113,8 @@
 				CODE_SIGN_ENTITLEMENTS = Qingniao/Qingniao.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 121;
+				CURRENT_PROJECT_VERSION = 201;
+				DEVELOPMENT_TEAM = 454XB348PX;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Qingniao/Info.plist;
@@ -1103,7 +1122,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.2.1;
+				MARKETING_VERSION = 0.2.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.assistant.app;
 				PRODUCT_MODULE_NAME = Qingniao;
 				PRODUCT_NAME = Qingniao;
@@ -1117,6 +1136,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 454XB348PX;
 				COMBINE_HIDPI_IMAGES = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1137,6 +1157,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 454XB348PX;
 				COMBINE_HIDPI_IMAGES = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1156,6 +1177,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 454XB348PX;
 				COMBINE_HIDPI_IMAGES = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = QingniaoUITests/Info.plist;

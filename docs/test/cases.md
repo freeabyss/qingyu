@@ -66,7 +66,7 @@ Mac Super Assistant（工程内部代号：Assistant）是 macOS 原生效率工
 | :--- | :--- | :--- |
 | SearchSource Provider、触发规则、排序、总上限、执行后关闭 | `SnapVaultTests/SearchServiceCoreTests.swift` | mock sources 聚合测试；验证空输入、分来源 canSearch、`baseScore + matchScore + usageScore` 排序、12 条截断、主动作执行返回关闭搜索框 |
 | AppSource 应用索引、拼音、黑名单、使用统计 | `SnapVaultTests/AppSearchSourceTests.swift` | 临时 `.app` bundle 目录；验证 MVP 三目录范围、中文应用拼音/首字母、黑名单隐藏/恢复、启动统计加权 |
-| CommandSource 白名单、双语别名、拼音、确认、使用统计 | `SnapVaultTests/SystemCommandSourceTests.swift` | 验证 14 个内置命令、危险命令不可搜、确认门禁、中文/英文/拼音/首字母搜索和命令选择加权 |
+| CommandSource 白名单、双语别名、拼音、确认、使用统计 | `QingniaoTests/SystemCommandSourceTests.swift` | 验证 15 个内置命令（含打开剪贴板历史）、危险命令不可搜、确认门禁、中文/英文/拼音/首字母搜索和命令选择加权 |
 | SettingsSource 页面入口、拼音和设置源开关 | `SnapVaultTests/SettingsSourceTests.swift` | 验证设置/权限/剪贴板历史/搜索源/快捷键/截图/关于入口，且搜索结果只打开页面不直接切换设置 |
 | 拼音工具与文本匹配 | `SnapVaultTests/PinyinHelperTests.swift`、`SnapVaultTests/SearchTextMatcherTests.swift` | 验证中文转拼音、首字母、混合中英文、英文别名和中文别名拼音匹配 |
 | CalculatorSource 与单位换算 | `SnapVaultTests/CalculatorSourceTests.swift`、`SnapVaultTests/UnitConverterSourceTests.swift` | 验证四则、括号、小数、非法/除零/范围外输入拒绝；长度、重量、数据大小、温度换算；回车复制动作 |
@@ -307,6 +307,9 @@ P0/P1 手动用例执行时，应记录：执行日期、macOS 版本、构建�
 | SHOT-007 | 保存截图 | 点击保存 | 保存为 PNG 到 `~/Pictures/Screenshots`，文件名为 `Screenshot yyyy-MM-dd HH.mm.ss.png`，显示轻提示 | P0 |
 | SHOT-008 | 保存不进剪贴板 | 点击保存但不复制 | 不额外写入剪贴板历史 | P1 |
 | SHOT-009 | ESC 取消 | 区域/窗口选择、预览、标注中按 ESC | 始终取消当前截图流程；预览阶段丢弃并关闭 | P0 |
+| SHOT-010 | 副屏区域截图 | 将鼠标移到右侧、左侧或下方副屏并触发区域截图，框选可辨识内容 | 叠层只覆盖鼠标所在显示器，结果来自该显示器对应选区，不混入主屏内容；Retina 缩放下尺寸正确 | P0 |
+| SHOT-011 | 区域选区原位锁定 | 完成有效框选后尝试再次拖动，并观察操作区 | 选区边框与遮罩保持原位且不可再次修改；选区下方显示复制、保存、标注、取消四按钮工具栏，不出现居中大图预览 | P0 |
+| SHOT-012 | 区域工具栏边缘避让与关闭 | 分别在屏幕底边、左右边缘框选，并执行复制、保存、取消、ESC、标注 | 底边空间不足时工具栏移到选区上方，左右不越屏；前四种完成后选区和工具栏关闭，标注前也先关闭选区 | P0 |
 
 > **v1.2 修订（全屏热键 + 悬浮 pill 标注 UI，见 §9.4 P-04/P-05、FR-SHOT-FULLSCREEN）**：
 > - **SHOT-002「全屏截图」→ 修订**：v1.2 全屏截图新增独立全局热键 `⌃⌥⌘3`，不再只能走命令面板。新预期见 **SHOT-FS** 系列。
@@ -315,7 +318,7 @@ P0/P1 手动用例执行时，应记录：执行日期、macOS 版本、构建�
 
 ### 5.6 内置命令
 
-MVP 内置命令权威清单以 `doc/architecture_api.md` 的“10.1 MVP 内置命令权威清单”为准，共 14 个命令。
+当前内置命令权威清单以 [architecture/api.md](../architecture/api.md) 为准，共 15 个命令（含“打开剪贴板历史”）。
 
 | Case ID | 场景 | 覆盖 CommandID | 步骤 | 预期结果 | 优先级 |
 | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -330,7 +333,7 @@ MVP 内置命令权威清单以 `doc/architecture_api.md` 的“10.1 MVP 内置�
 | CMD-009 | 切换深浅色模式 | `toggleAppearance` | 搜索并执行 | 不弹确认，系统外观切换 | P1 |
 | CMD-010 | 禁止高风险命令和任意 shell | 禁止项 | 输入疑似 shell、sudo、关机、重启系统、注销、删除文件、杀进程命令 | 不执行，不返回可直接执行的危险结果 | P0 |
 
-> **v1.2 修订（关闭 Sandbox 后 AppleEvents 命令可靠执行，见 §7.9 / D-103）**：CMD-008（重启 Finder/Dock）、CMD-009（切换外观）等 AppleEvents 类命令在 v1.2 关闭 App Sandbox 后应**真实可执行、不再静默失败**；首次控制其他 App 可能触发 Automation 授权。新增真实执行验收见 **DIST** / **REG** 系列（AC-CMD-SANDBOX）。命令白名单 14 条数量与确认门禁不变，CMD-001~010 全部保留有效。
+> **v1.2 修订（关闭 Sandbox 后 AppleEvents 命令可靠执行，见 §7.9 / D-103）**：CMD-008（重启 Finder/Dock）、CMD-009（切换外观）等 AppleEvents 类命令在 v1.2 关闭 App Sandbox 后应**真实可执行、不再静默失败**；首次控制其他 App 可能触发 Automation 授权。新增真实执行验收见 **DIST** / **REG** 系列（AC-CMD-SANDBOX）。当前命令白名单为 15 条（含“打开剪贴板历史”），确认门禁不变，CMD-001~010 全部保留有效。
 
 ### 5.7 设置、关于与发布信息
 
@@ -382,8 +385,8 @@ MVP 内置命令权威清单以 `doc/architecture_api.md` 的“10.1 MVP 内置�
 | 菜单栏 App | MENU-001 ~ MENU-004 | Xcode build 验证 App target、`LSUIElement`、菜单代码可编译 | 必须手动验证菜单栏图标、无 Dock 图标、菜单项和退出后后台服务停止 | 菜单栏与 Dock 状态属于系统 UI 行为 |
 | 统一搜索入口 | SEARCH-001 ~ SEARCH-010 | `SearchServiceCoreTests`、`SearchPanelViewModelTests`、`AppSearchSourceTests`、`SystemCommandSourceTests`、`CalculatorSourceTests`、`UnitConverterSourceTests` | 必须手动验证全局快捷键唤起、失焦/切 App 关闭、真实 App 启动 | 核心排序/触发/上限自动化，系统快捷键和窗口行为人工验收 |
 | 剪贴板历史 | CLIP-001 ~ CLIP-012 | `AssistantClipboardRepositoryTests`、`ClipboardMonitorTests`、`InMemorySearchIndexTests`、`ClipboardListViewModelTests` | 必须手动验证真实 NSPasteboard 文本/富文本/图片/Finder 文件复制恢复 | 数据层和 ViewModel 自动化，真实 pasteboard 格式兼容人工验收 |
-| 截图与标注 | SHOT-001 ~ SHOT-009 | `AnnotationTests` 覆盖标注模型/样式/撤销重做；Xcode build 覆盖截图 target 集成 | 必须手动验证区域/全屏/窗口截图、屏幕录制权限缺失提示、复制/保存 PNG、ESC | 真实截图依赖屏幕录制权限和屏幕环境 |
-| 内置命令 | CMD-001 ~ CMD-010 | `SystemCommandSourceTests` 覆盖 14 个白名单、确认门禁、危险命令拒绝、双语/拼音和使用统计 | 必须手动验证打开目录/系统设置/截图命令；重启 Finder/Dock 仅安全环境确认 | 自动化不得真实执行中风险系统操作 |
+| 截图与标注 | SHOT-001 ~ SHOT-012 | `AnnotationTests` 覆盖标注模型/样式/撤销重做，以及多屏裁剪和区域工具栏定位几何；Xcode build 覆盖截图 target 集成 | 必须手动验证区域/全屏/窗口截图、副屏真实内容、选区锁定、复制/保存 PNG、ESC | 真实截图依赖屏幕录制权限和多显示器环境 |
+| 内置命令 | CMD-001 ~ CMD-010 | `SystemCommandSourceTests` 覆盖 15 个白名单（含打开剪贴板历史）、确认门禁、危险命令拒绝、双语/拼音和使用统计 | 必须手动验证打开目录/系统设置/截图命令；重启 Finder/Dock 仅安全环境确认 | 自动化不得真实执行中风险系统操作 |
 | 设置、黑名单、关于与发布信息 | SET-001 ~ SET-005、ABOUT-001 ~ ABOUT-003、PRIV-001 | `SettingsServiceTests`、`SettingsSourceTests`、`SearchBlacklistRepositoryTests`、`ReleaseInfoServiceTests` | 必须手动验证真实关于页、隐私政策链接、邮件客户端、检查更新 URL | US-020 官网素材与链接最终准备不属于 US-021 |
 | 本地化 | L10N-001 ~ L10N-004 | `SettingsSourceTests`、`SettingsServiceTests`、`SystemCommandSourceTests` 覆盖语言设置 raw value 和双语搜索 | 必须手动验证中文/英文 UI 文案完整 | 自动化覆盖设置/搜索，完整文案需人工走查 |
 | 性能 | 冷启动、搜索响应、CPU、内存、剪贴板响应 | SearchService elapsed 和索引单测可作为回归信号 | 必须用 Activity Monitor/Instruments 和人工计时验收 | US-021 建立验收方式；US-022 执行完整性能记录 |
@@ -985,9 +988,9 @@ MVP 暂不覆盖：
 - **步骤**：搜索并启动三目录下的 .app。
 - **预期结果**：应用索引与启动正常。
 
-#### REG-003：命令白名单 14 条 + 确认门禁
+#### REG-003：命令白名单 15 条 + 确认门禁
 - **关联**：FR-CMD-1~10、CMD-001~010、§8 ｜ **优先级**：P0 ｜ **类型**：swift ｜ **文件**：`QingniaoTests/SystemCommandSourceTests.swift`
-- **步骤**：断言 14 条命令、确认门禁、危险命令拒绝、双语/拼音搜索、使用统计。
+- **步骤**：断言 15 条命令（含“打开剪贴板历史”）、确认门禁、危险命令拒绝、双语/拼音搜索、使用统计。
 - **预期结果**：命令白名单回归通过。
 
 #### REG-004：计算器/换算

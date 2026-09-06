@@ -202,7 +202,7 @@ MVP 以统一搜索入口（Command Bar，默认 `⌥ Space`）为主，集成�
 
 - 活动路径为 `AssistantClipboardRepository`（Core Data，739 行）。
 - **废弃死路径**：`ClipboardRepository`（GRDB，386 行）、`ContentRepository`（GRDB，541 行）及其 UI 依赖（`RecentContentView` 中依赖 `ContentRepository` 的方法拔除）。相关 GRDB 表在 v1.2 保持存在但不再写入（兼容旧数据），V1.x 彻底移除。
-- 剪贴板历史窗口为独立 `ClipboardHistoryWindowController`（`NSWindow`，两栏 NavigationSplitView，见 PRD P-02、本文 §16）。
+- 剪贴板历史窗口为独立 `ClipboardHistoryWindowController`（`NSWindow`，复用命令栏的单列搜索与结果列表，见 PRD P-02、本文 §16）。
 - 监听/去重/置顶/保留时间/资源缺失容错等沿用 v1.0 已交付实现，本次不变更。
 
 ### 3.4 Screenshot 模块
@@ -215,7 +215,7 @@ MVP 以统一搜索入口（Command Bar，默认 `⌥ Space`）为主，集成�
 
 ### 3.5 Command 模块
 
-- 内置白名单 14 条不变（见 §13）。执行走 `NSWorkspace` / `NSAppleScript`（AppleEvents），**不引入任何 shell 执行**（现状即如此，保持）。
+- 内置白名单 15 条（新增“打开剪贴板历史”，见 §13）。执行走 `NSWorkspace` / `NSAppleScript`（AppleEvents），**不引入任何 shell 执行**（现状即如此，保持）。
 - **Sandbox 关闭后**（§18 分发），重启 Finder/Dock、切换深浅色等 AppleEvents 命令畅通、不再静默失败；首次控制其他 App 触发 Automation 授权，产品有说明文案。
 
 ### 3.6 Settings 模块
@@ -390,7 +390,7 @@ finalScore = sourceBasePriority + textMatchScore + usageBoost
 
 ## 13. CommandSource 架构
 
-内置白名单 14 条（打开系统设置/本应用设置/下载/应用程序/桌面目录、区域/全屏/窗口截图、清空剪贴板历史*、暂停恢复记录、检查权限、重启 Finder*、重启 Dock*、切换深浅色；* 需确认）。禁止关机/重启系统/注销/删除文件/杀进程/sudo/任意 shell。执行走 NSWorkspace/AppleScript（AppleEvents），Sandbox 关闭后畅通（见 §3.5、§18）。别名/拼音沿用现状。
+内置白名单 15 条（打开系统设置/本应用设置/下载/应用程序/桌面目录、区域/全屏/窗口截图、打开剪贴板历史、清空剪贴板历史*、暂停恢复记录、检查权限、重启 Finder*、重启 Dock*、切换深浅色；* 需确认）。禁止关机/重启系统/注销/删除文件/杀进程/sudo/任意 shell。执行走 NSWorkspace/AppleScript（AppleEvents），Sandbox 关闭后畅通（见 §3.5、§18）。别名/拼音沿用现状。
 
 ---
 
@@ -415,7 +415,7 @@ v1.2 明确 4 类窗口 + 1 类叠层的形态、层级与生命周期，全部�
 | 窗口/叠层 | 类型 | 控制器 | 层级/形态 | 生命周期 |
 | :--- | :--- | :--- | :--- | :--- |
 | Command Bar | `NSPanel`（nonactivating、floating） | `CommandBarController` | 屏幕居中浮层，`.ultraThinMaterial`，失焦/ESC 关闭 | 常驻控制器，按需 show/hide；不销毁重建 |
-| 剪贴板历史 | `NSWindow`（标准可缩放） | `ClipboardHistoryWindowController` | 独立窗口，两栏 NavigationSplitView，最小 880×600 | 首次打开创建，关闭隐藏/释放二选一（建议隐藏复用） |
+| 剪贴板历史 | `NSWindow`（标准可缩放） | `ClipboardHistoryWindowController` | 独立窗口，命令栏同款搜索—结果—状态栏，最小 680×460 | 首次打开创建，关闭隐藏/释放二选一（建议隐藏复用） |
 | 设置 | `NSWindow`（标准） | `SettingsWindowController` | 独立窗口，200px 侧栏，最小 920×640 | 同上，`⌘,` 或命令栏打开 |
 | 截图预览+标注 | `NSPanel`（无边框浮层） | `AnnotationWindowController` | 屏幕中央，20px 圆角，`.ultraThinMaterial`，最大 1100×820 | 截图完成时创建，复制/保存/取消后释放 |
 | 截图区域/窗口选择 | 全屏 overlay window（覆盖各屏） | `ScreenshotOverlayController` | 全屏遮罩 0.4，十字准星/窗口高亮，ESC 取消 | 触发时创建覆盖所有屏，选完/取消后释放 |

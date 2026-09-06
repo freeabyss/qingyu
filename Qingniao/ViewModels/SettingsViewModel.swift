@@ -212,7 +212,7 @@ final class SettingsViewModel: ObservableObject {
         notificationCenter: NotificationCenter = .default,
         userDefaults: UserDefaults = .standard,
         dataManagementService: DataManagementService = DataManagementService(),
-        conflictDetector: HotkeyConflictDetector = HotkeyConflictDetector(),
+        conflictDetector: HotkeyConflictDetector? = nil,
         clipboardRepository: ClipboardRepositoryProtocol = ClipboardRepository()
     ) {
         self.settingsService = settingsService
@@ -222,7 +222,7 @@ final class SettingsViewModel: ObservableObject {
         self.notificationCenter = notificationCenter
         self.userDefaults = userDefaults
         self.dataManagementService = dataManagementService
-        self.conflictDetector = conflictDetector
+        self.conflictDetector = conflictDetector ?? HotkeyConflictDetector()
         self.clipboardRepository = clipboardRepository
     }
 

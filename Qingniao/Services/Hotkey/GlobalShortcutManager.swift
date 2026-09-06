@@ -27,9 +27,9 @@ final class GlobalShortcutManager {
     /// Basic conflict detection surfaced to the settings page.
     let conflictDetector: HotkeyConflictDetector
 
-    init(container: AppContainer, conflictDetector: HotkeyConflictDetector = HotkeyConflictDetector()) {
+    init(container: AppContainer, conflictDetector: HotkeyConflictDetector? = nil) {
         self.container = container
-        self.conflictDetector = conflictDetector
+        self.conflictDetector = conflictDetector ?? HotkeyConflictDetector()
     }
 
     // MARK: - Bulk lifecycle

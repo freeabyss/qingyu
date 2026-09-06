@@ -2,45 +2,36 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <!-- Menu bar app: hide from Dock -->
-    <key>LSUIElement</key>
-    <true/>
-
-    <!-- App metadata -->
-    <key>CFBundleName</key>
-    <string>青鸟</string>
-    <key>CFBundleDisplayName</key>
-    <string>Qingniao</string>
-    <key>CFBundleIdentifier</key>
-    <string>com.assistant.app</string>
-    <key>CFBundleVersion</key>
-    <string>121</string>
-    <key>CFBundleShortVersionString</key>
-    <string>1.2.1</string>
-    <key>CFBundlePackageType</key>
-    <string>APPL</string>
-    <key>CFBundleExecutable</key>
-    <string>$(EXECUTABLE_NAME)</string>
-    <key>CFBundleIconFile</key>
-    <string>AppIcon</string>
-    <key>LSMinimumSystemVersion</key>
-    <string>$(MACOSX_DEPLOYMENT_TARGET)</string>
-    <key>NSHumanReadableCopyright</key>
-    <string>© 2026 青鸟 Qingniao. All rights reserved.</string>
-
-    <!-- Screen recording permission description (ScreenCaptureKit) -->
-    <key>NSScreenCaptureUsageInfo</key>
-    <string>青鸟 Qingniao needs screen recording permission to capture screenshots.</string>
-
-    <!-- AppleScript automation: required for allowed built-in system commands -->
-    <key>NSAppleEventsUsageDescription</key>
-    <string>青鸟 Qingniao uses AppleScript only for allowed built-in commands that you explicitly trigger.</string>
-
-    <!-- Localization -->
-    <key>CFBundleLocalizations</key>
-    <array>
-        <string>en</string>
-        <string>zh-Hans</string>
-    </array>
+	<key>CFBundleDisplayName</key>
+	<string>Qingniao</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIconFile</key>
+	<string>AppIcon</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.assistant.app</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+		<string>zh-Hans</string>
+	</array>
+	<key>CFBundleName</key>
+	<string>青鸟</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>0.2.1</string>
+	<key>CFBundleVersion</key>
+	<string>201</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
+	<key>LSUIElement</key>
+	<true/>
+	<key>NSAppleEventsUsageDescription</key>
+	<string>青鸟 Qingniao uses AppleScript only for allowed built-in commands that you explicitly trigger.</string>
+	<key>NSHumanReadableCopyright</key>
+	<string>© 2026 青鸟 Qingniao. All rights reserved.</string>
+	<key>NSScreenCaptureUsageDescription</key>
+	<string>青鸟 Qingniao needs screen recording permission to capture screenshots.</string>
 </dict>
 </plist>

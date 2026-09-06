@@ -19,7 +19,7 @@ struct OnboardingView: View {
         // 布局（v1.2.1 Bug 2 修复，PRD §4.2 方案① / AC-06/07/10）：
         // header 与 footer 固定吸顶/吸底，中部可变内容用 ScrollView 包裹，
         // 保证任意字号 / 明暗模式下 footer（开始使用 / 跳过设置）恒定可见可点，
-        // 不再被固定 520pt 高度裁剪。窗口尺寸仍保持 P-06 的 720×520。
+        // 不再被固定高度裁剪；窗口最小为 720×520，用户可按需要放大。
         VStack(spacing: JadeSpace.x6.value) {
             header
             ScrollView {
@@ -33,11 +33,16 @@ struct OnboardingView: View {
             footer
         }
         .jadePadding(.x8)
-        .frame(width: 720, height: 520)
+        .frame(minWidth: 720, idealWidth: 720, maxWidth: .infinity,
+               minHeight: 520, idealHeight: 620, maxHeight: .infinity)
         .background(JadeColor.surface1)
         .jadeRadius(.xl)
         .jadeShadow(.xl, radius: .xl)
         .onAppear { viewModel.onAppear() }
+        // 授权通常在系统设置完成；回到应用后立即更新状态，而不是要求用户重启或再次点按钮。
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            Task { await viewModel.refreshScreenRecordingStatus() }
+        }
         .jadeConfirmationDialog(
             LocalizedStringKey("onboarding.skip.confirm.title"),
             isPresented: $showSkipConfirmation,
@@ -123,7 +128,7 @@ struct OnboardingView: View {
     // MARK: - 屏幕录制段（必选）
 
     private var screenRecordingSection: some View {
-        VStack(alignment: .leading, spacing: JadeSpace.x2.value) {
+        onboardingSection {
             Text(L10n.localized("onboarding.screenRecording.title"))
                 .font(JadeFont.title3)
                 .foregroundStyle(JadeColor.textPrimary)
@@ -157,13 +162,12 @@ struct OnboardingView: View {
                 }
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     // MARK: - 辅助功能段（按需，不触发 TCC）
 
     private var accessibilitySection: some View {
-        VStack(alignment: .leading, spacing: JadeSpace.x2.value) {
+        onboardingSection {
             Text(L10n.localized("onboarding.accessibility.title"))
                 .font(JadeFont.title3)
                 .foregroundStyle(JadeColor.textPrimary)
@@ -176,7 +180,6 @@ struct OnboardingView: View {
             }
             .buttonStyle(.jadeGhost)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     // MARK: - Footer
@@ -225,6 +228,19 @@ struct OnboardingView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(JadeColor.surface2)
             .jadeRadius(.md)
+            .jadeRadiusBorder(.md)
+    }
+
+    /// 权限说明、当前状态和下一步操作统一放在一个连续的可扫描区块中。
+    private func onboardingSection<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: JadeSpace.x2.value) {
+            content()
+        }
+        .jadePadding(.x4)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(JadeColor.surface2)
+        .jadeRadius(.lg)
+        .jadeRadiusBorder(.lg)
     }
 
     private func cardLabel(icon: String, title: String, subtitle: String) -> some View {

@@ -3,9 +3,9 @@ import SwiftUI
 
 /// Qingniao clipboard history window (PRD P-02).
 ///
-/// Two-column `NavigationSplitView`: a 180pt sidebar (type / special / time
-/// segments + clear-all & settings footer) and a searchable detail list of
-/// `JadeClipboardRow`s. Keyboard-driven: ⌘F focus search, ⌘A select all,
+/// A command-bar-consistent single-column search and result list. Filters and
+/// management actions live beside the shared search affordance so users do not
+/// have to learn a second navigation model. Keyboard-driven: ⌘F focus search, ⌘A select all,
 /// ↑↓ / jk move cursor, ⏎ / ⌘C copy & close, space / ⌘Y preview, ⌫ delete.
 struct ClipboardHistoryView: View {
     @ObservedObject var viewModel: ClipboardListViewModel
@@ -17,13 +17,23 @@ struct ClipboardHistoryView: View {
     @FocusState private var searchFocused: Bool
 
     var body: some View {
-        NavigationSplitView {
-            sidebar
-                .navigationSplitViewColumnWidth(180)
-        } detail: {
-            detail
+        VStack(spacing: 0) {
+            searchBar
+                .frame(height: 56)
+                .padding(.horizontal, JadeSpace.x4.value)
+
+            Divider().overlay(JadeColor.border)
+
+            content
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+            Divider().overlay(JadeColor.border)
+
+            statusBar
+                .frame(height: 44)
+                .padding(.horizontal, JadeSpace.x4.value)
         }
-        .frame(minWidth: 880, minHeight: 600)
+        .frame(minWidth: 680, minHeight: 460)
         .background(JadeColor.surface1)
         .tint(JadeColor.primary)
         .task { await viewModel.load() }
@@ -49,94 +59,107 @@ struct ClipboardHistoryView: View {
         .jadeToast(viewModel.toastMessage, isShowing: $viewModel.showToast, variant: .info)
     }
 
-    // MARK: - Sidebar
+    // MARK: - Shared command-bar search affordance
 
-    private var sidebar: some View {
-        List(selection: $viewModel.selection) {
-            Section(L10n.localized("clipboard.sidebar.types")) {
-                ForEach(ClipboardListViewModel.SidebarSelection.typeCases) { row in
-                    sidebarRow(row)
-                }
-            }
-            Section(L10n.localized("clipboard.sidebar.special")) {
-                ForEach(ClipboardListViewModel.SidebarSelection.specialCases) { row in
-                    sidebarRow(row)
-                }
-            }
-            Section(L10n.localized("clipboard.sidebar.time")) {
-                ForEach(ClipboardListViewModel.SidebarSelection.timeCases) { row in
-                    sidebarRow(row)
-                }
-            }
-        }
-        .listStyle(.sidebar)
-        .safeAreaInset(edge: .bottom) {
-            sidebarFooter
-        }
-        .accessibilityIdentifier("clipboard.sidebar")
-    }
+    private var searchBar: some View {
+        HStack(spacing: JadeSpace.x3.value) {
+            searchInput
 
-    private func sidebarRow(_ row: ClipboardListViewModel.SidebarSelection) -> some View {
-        Label(row.title, systemImage: row.iconName)
-            .tag(row)
-    }
-
-    private var sidebarFooter: some View {
-        VStack(spacing: JadeSpace.x2.value) {
-            Divider()
-            Button {
-                viewModel.showClearAllConfirmation = true
-            } label: {
-                Label(L10n.localized("clipboard.clearAll.button"), systemImage: "trash")
-            }
-            .buttonStyle(.jadeDestructive)
-            .disabled(viewModel.isClearing || viewModel.items.isEmpty)
+            filterMenu
 
             Button {
                 onOpenSettings()
             } label: {
-                Label(L10n.localized("management.page.settings"), systemImage: "gearshape")
+                Image(systemName: "gearshape")
+                    .font(JadeFont.body)
+                    .foregroundStyle(JadeColor.textSecondary)
+                    .frame(width: 32, height: 32)
+                    .background(JadeColor.surface3, in: JadeRadius.sm.shape)
             }
-            .buttonStyle(.jadeGhost)
+            .buttonStyle(.plain)
+            .accessibilityLabel(Text("management.page.settings"))
         }
-        .padding(JadeSpace.x3.value)
-        .frame(maxWidth: .infinity)
     }
 
-    // MARK: - Detail
+    private var searchInput: some View {
+        HStack(spacing: JadeSpace.x2.value) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundStyle(searchFocused ? JadeColor.primary : JadeColor.textSecondary)
+                .accessibilityHidden(true)
 
-    private var detail: some View {
-        VStack(spacing: 0) {
-            toolbar
-                .padding(.horizontal, JadeSpace.x4.value)
-                .padding(.vertical, JadeSpace.x3.value)
+            TextField("clipboard.search.placeholder", text: $viewModel.query)
+                .textFieldStyle(.plain)
+                .font(JadeFont.commandBarInput)
+                .foregroundStyle(JadeColor.textPrimary)
+                .focused($searchFocused)
+                .accessibilityIdentifier("clipboard.searchField")
 
-            Divider()
-
-            content
-
-            Divider()
-
-            statusBar
-                .padding(.horizontal, JadeSpace.x4.value)
-                .padding(.vertical, JadeSpace.x2.value)
+            if !viewModel.query.isEmpty {
+                Button {
+                    viewModel.query = ""
+                    searchFocused = true
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 18))
+                        .foregroundStyle(JadeColor.textTertiary)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(Text("a11y.commandBar.clear"))
+            }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(JadeColor.surface1)
+        .padding(.horizontal, JadeSpace.x3.value)
+        .frame(maxWidth: .infinity, minHeight: 40)
+        .background(JadeColor.surface2, in: JadeRadius.lg.shape)
+        .overlay(
+            JadeRadius.lg.shape
+                .strokeBorder(
+                    searchFocused ? JadeColor.primary.opacity(0.65) : JadeColor.border,
+                    lineWidth: searchFocused ? 1.5 : 1
+                )
+        )
+        .contentShape(JadeRadius.lg.shape)
+        .onTapGesture { searchFocused = true }
+        .animation(JadeAccessibility.animation(.easeInOut(duration: 0.12)), value: searchFocused)
     }
 
-    private var toolbar: some View {
-        HStack(spacing: JadeSpace.x3.value) {
-            JadeTextField(
-                "clipboard.search.placeholder",
-                text: $viewModel.query,
-                icon: Image(systemName: "magnifyingglass")
-            )
-            .focused($searchFocused)
-            .accessibilityIdentifier("clipboard.searchField")
+    private var filterMenu: some View {
+        Menu {
+            ForEach(ClipboardListViewModel.SidebarSelection.typeCases) { selection in
+                filterButton(selection)
+            }
+            Divider()
+            ForEach(ClipboardListViewModel.SidebarSelection.specialCases) { selection in
+                filterButton(selection)
+            }
+            Divider()
+            ForEach(ClipboardListViewModel.SidebarSelection.timeCases) { selection in
+                filterButton(selection)
+            }
+            Divider()
+            Button(role: .destructive) {
+                viewModel.showClearAllConfirmation = true
+            } label: {
+                Label(L10n.localized("clipboard.clearAll.button"), systemImage: "trash")
+            }
+            .disabled(viewModel.isClearing || viewModel.items.isEmpty)
+        } label: {
+            Image(systemName: "line.3.horizontal.decrease.circle")
+                .font(JadeFont.title3)
+                .foregroundStyle(viewModel.selection == .all ? JadeColor.textSecondary : JadeColor.primary)
+                .frame(width: 32, height: 32)
+                .background(JadeColor.surface3, in: JadeRadius.sm.shape)
+        }
+        .menuStyle(.borderlessButton)
+        .accessibilityIdentifier("clipboard.filterMenu")
+        .accessibilityLabel(Text("clipboard.filter.all"))
+    }
 
-            JadePill("\(viewModel.items.count)", style: .primary)
-                .accessibilityLabel(Text(L10n.localized("a11y.clipboard.itemCount", viewModel.items.count)))
+    private func filterButton(_ selection: ClipboardListViewModel.SidebarSelection) -> some View {
+        Button {
+            viewModel.selection = selection
+        } label: {
+            Label(selection.title, systemImage: selection.iconName)
         }
     }
 
@@ -160,9 +183,10 @@ struct ClipboardHistoryView: View {
                             .id(item.id)
                     }
                 }
-                .padding(.horizontal, JadeSpace.x3.value)
-                .padding(.vertical, JadeSpace.x2.value)
-            }
+            .padding(.horizontal, JadeSpace.x3.value)
+            .padding(.vertical, JadeSpace.x2.value)
+            .background(JadeColor.surface2.opacity(0.45))
+        }
             .onChange(of: viewModel.selectedIndex) { _ in
                 guard let selected = viewModel.selectedItem else { return }
                 withAnimation(JadeAccessibility.animation(.easeInOut(duration: 0.12))) {

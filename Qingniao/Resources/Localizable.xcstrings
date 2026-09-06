@@ -2313,6 +2313,23 @@
         }
       }
     },
+    "commandBar.section.quickActions" : {
+      "comment" : "Empty-query command bar shortcuts",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quick Actions"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "常用操作"
+          }
+        }
+      }
+    },
     "commandBar.section.recent" : {
       "comment" : "T-011 command bar",
       "extractionState" : "stale",
@@ -8316,13 +8333,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Assistant needs Screen Recording permission to capture screenshots. Grant it in System Settings, then try again."
+            "value" : "Qingniao needs Screen Recording permission to capture screenshots. Grant it in System Settings, then quit and reopen Qingniao before trying again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Assistant 需要屏幕录制权限才能截图。请在系统设置中授权后重试。"
+            "value" : "青鸟需要屏幕录制权限才能截图。请在系统设置中授权，然后退出并重新打开青鸟后再试。"
           }
         }
       }

@@ -13,7 +13,7 @@ final class FloatingCommandPanel: NSPanel {
 ///
 /// Behaviour: ⌥Space toggles, ⎋ / click-outside / app-switch dismisses (via
 /// resign-key + local event monitor). The hosted SwiftUI content is the Jade
-/// `CommandBarView` (P-01, T-011): 680 wide, dynamic height, centred with a
+/// `CommandBarView` (P-01, T-011): 760 wide, dynamic height, centred with a
 /// +120 y-offset.
 @MainActor
 final class CommandBarController: NSObject {
@@ -26,8 +26,8 @@ final class CommandBarController: NSObject {
     private var localEventMonitor: Any?
     private var isClosingPanel = false
 
-    private static let panelWidth: CGFloat = 680
-    private static let collapsedHeight: CGFloat = 120
+    private static let panelWidth: CGFloat = 760
+    private static let collapsedHeight: CGFloat = 128
     private static let expandedHeight: CGFloat = 560
 
     init(container: AppContainer) {
@@ -131,11 +131,17 @@ final class CommandBarController: NSObject {
         }
         self.viewModel = viewModel
 
-        searchStateCancellable = viewModel.$query
-            .map { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+        searchStateCancellable = Publishers.CombineLatest3(
+            viewModel.$query.map { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty },
+            viewModel.$recentResults.map { !$0.isEmpty },
+            viewModel.$favoriteResults.map { !$0.isEmpty }
+        )
+            .map { hasQuery, hasRecents, hasFavorites in
+                hasQuery || hasRecents || hasFavorites
+            }
             .removeDuplicates()
-            .sink { [weak self] isActive in
-                self?.resizePanel(isActive: isActive)
+            .sink { [weak self] shouldExpand in
+                self?.resizePanel(isActive: shouldExpand)
             }
 
         let commandBarView = CommandBarView(viewModel: viewModel)

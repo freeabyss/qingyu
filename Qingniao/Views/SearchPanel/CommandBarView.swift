@@ -6,8 +6,8 @@ import SwiftUI
 /// 契约来源：PRD §9.4 P-01、FR-UI-COMMAND-BAR、§9.6 快捷键、§9.7 空态；
 /// architecture/design.md §3.2（Search 模块）。
 ///
-/// - 680 宽、动态高（外层 `CommandBarController` 控制窗口高度）。
-/// - 顶部 48px 输入框（jade 放大镜 + 20pt 输入 + 清空）。
+/// - 760 宽、动态高（外层 `CommandBarController` 控制窗口高度）。
+/// - 顶部 56px 输入框（jade 放大镜 + 20pt 输入 + 清空）。
 /// - 空查询：最近使用 + 收藏两个 section（各最多 5 条）。
 /// - 有查询：结果列表（最多 12 条，⌘1-6 过滤），计算器/换算结果固定首行高亮。
 /// - 底部 44px hint bar。
@@ -21,8 +21,9 @@ struct CommandBarView: View {
     var body: some View {
         VStack(spacing: 0) {
             inputBar
-                .frame(height: 48)
+                .frame(height: 56)
                 .padding(.horizontal, JadeSpace.x4.value)
+                .padding(.vertical, JadeSpace.x2.value)
 
             Divider().overlay(JadeColor.border)
 
@@ -34,7 +35,7 @@ struct CommandBarView: View {
             hintBar
                 .frame(height: 44)
         }
-        .frame(width: 680)
+        .frame(width: 760)
         .background(shortcutButtons)
         .background(
             KeyEventHandler(
@@ -102,6 +103,15 @@ struct CommandBarView: View {
                 .accessibilityLabel(Text("a11y.commandBar.clear"))
             }
         }
+        .padding(.horizontal, JadeSpace.x3.value)
+        .frame(maxWidth: .infinity, minHeight: 40)
+        .background(JadeColor.surface2, in: JadeRadius.lg.shape)
+        .overlay(
+            JadeRadius.lg.shape
+                .strokeBorder(isInputFocused ? JadeColor.primary.opacity(0.65) : JadeColor.border,
+                              lineWidth: isInputFocused ? 1.5 : 1)
+        )
+        .animation(JadeAccessibility.animation(.easeInOut(duration: 0.12)), value: isInputFocused)
     }
 
     // MARK: - Content
@@ -156,31 +166,34 @@ struct CommandBarView: View {
 
     @ViewBuilder
     private var homeState: some View {
-        if viewModel.hasHomeContent {
-            ScrollView {
-                VStack(alignment: .leading, spacing: JadeSpace.x3.value) {
-                    if !viewModel.recentResults.isEmpty {
-                        homeSection(titleKey: "commandBar.section.recent", results: viewModel.recentResults)
-                    }
-                    if !viewModel.favoriteResults.isEmpty {
-                        homeSection(titleKey: "commandBar.section.favorites", results: viewModel.favoriteResults)
-                    }
+        ScrollView {
+            VStack(alignment: .leading, spacing: JadeSpace.x3.value) {
+                homeSection(titleKey: "commandBar.section.quickActions", results: viewModel.homeQuickActions)
+                if !viewModel.recentResults.isEmpty {
+                    homeSection(titleKey: "commandBar.section.recent", results: viewModel.recentResults)
                 }
-                .padding(.horizontal, JadeSpace.x2.value)
-                .padding(.vertical, JadeSpace.x3.value)
+                if !viewModel.favoriteResults.isEmpty {
+                    homeSection(titleKey: "commandBar.section.favorites", results: viewModel.favoriteResults)
+                }
             }
-        } else {
-            homeEmptyState
+            .padding(.horizontal, JadeSpace.x2.value)
+            .padding(.vertical, JadeSpace.x3.value)
         }
     }
 
     private func homeSection(titleKey: String, results: [SearchResult]) -> some View {
         VStack(alignment: .leading, spacing: JadeSpace.x1.value) {
-            Text(L10n.localized(titleKey))
-                .font(JadeFont.subhead)
-                .foregroundStyle(JadeColor.textSecondary)
-                .padding(.horizontal, JadeSpace.x3.value)
-                .padding(.top, JadeSpace.x1.value)
+            HStack(spacing: JadeSpace.x2.value) {
+                Capsule()
+                    .fill(JadeColor.primary)
+                    .frame(width: 3, height: 14)
+                Text(L10n.localized(titleKey))
+                    .font(JadeFont.subhead)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(JadeColor.textSecondary)
+            }
+            .padding(.horizontal, JadeSpace.x3.value)
+            .padding(.top, JadeSpace.x1.value)
 
             ForEach(results) { result in
                 CommandBarResultRow(
@@ -278,6 +291,7 @@ struct CommandBarResultRow: View {
     let result: SearchResult
     let isSelected: Bool
     let isDangerous: Bool
+    @State private var isHovering = false
 
     var body: some View {
         HStack(spacing: JadeSpace.x3.value) {
@@ -317,10 +331,16 @@ struct CommandBarResultRow: View {
         .padding(.horizontal, JadeSpace.x3.value)
         .frame(height: 44)
         .background(
-            isSelected ? JadeColor.primaryFill : Color.clear,
+            isSelected ? JadeColor.primaryFill : (isHovering ? JadeColor.surface2 : Color.clear),
             in: JadeRadius.lg.shape
         )
+        .overlay(
+            JadeRadius.lg.shape
+                .strokeBorder(isSelected ? JadeColor.primary.opacity(0.25) : Color.clear, lineWidth: 1)
+        )
         .contentShape(Rectangle())
+        .onHover { isHovering = $0 }
+        .animation(JadeAccessibility.animation(.easeInOut(duration: 0.12)), value: isHovering)
         // VoiceOver：把整行合并成单个可读元素——标题 + 副标题 + 类型，
         // 选中/危险状态通过 value/hint 补充（PRD §9.8）。
         .accessibilityElement(children: .ignore)

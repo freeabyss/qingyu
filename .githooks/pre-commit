@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# A source or Xcode project change gets a new patch version in the same commit.
+if ! git diff --cached --name-only --diff-filter=ACMR | \
+    grep -Eq '^(Qingniao|QingniaoTests|QingniaoUITests)/.*\.(swift|xcstrings)$|^Qingniao\.xcodeproj/project\.pbxproj$|^Package\.swift$'; then
+    exit 0
+fi
+
+"$(git rev-parse --show-toplevel)/scripts/bump-version.sh" --bump
+git add Qingniao/Info.plist Qingniao.xcodeproj/project.pbxproj

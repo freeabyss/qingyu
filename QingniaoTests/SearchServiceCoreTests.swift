@@ -56,7 +56,21 @@ final class SearchServiceCoreTests: XCTestCase {
         XCTAssertGreaterThan(response.results[0].usageScore, 0)
     }
 
-    func testTotalResultLimitIsTwelveAndNotGroupedBySource() async {
+    func testApplicationNameMatchAlwaysRanksAheadOfOtherSources() async {
+        let app = MockSearchSource(sourceID: .app, minimumLength: 1, results: [
+            .mock(id: "app:weak", sourceID: .app, title: "Weak App Match", baseScore: 1, matchScore: 1)
+        ])
+        let command = MockSearchSource(sourceID: .command, minimumLength: 1, results: [
+            .mock(id: "command:strong", sourceID: .command, title: "Exact Match", baseScore: 1_000, matchScore: 1_000)
+        ])
+        let service = SearchService(sources: [command, app])
+
+        let response = await service.search(query: "match")
+
+        XCTAssertEqual(response.results.first?.sourceID, .app)
+    }
+
+    func testTotalResultLimitIsTwelveWithApplicationsPrioritized() async {
         let appResults = (0..<10).map { SearchResult.mock(id: "app:\($0)", sourceID: .app, title: "App \($0)", baseScore: 100, matchScore: Double($0)) }
         let commandResults = (0..<10).map { SearchResult.mock(id: "command:\($0)", sourceID: .command, title: "Command \($0)", baseScore: 90, matchScore: Double(20 - $0)) }
         let service = SearchService(sources: [
@@ -69,7 +83,11 @@ final class SearchServiceCoreTests: XCTestCase {
         XCTAssertEqual(response.results.count, 12)
         XCTAssertTrue(response.results.contains { $0.sourceID == .app })
         XCTAssertTrue(response.results.contains { $0.sourceID == .command })
-        XCTAssertEqual(response.results.map(\.id), response.results.sorted { $0.finalScore > $1.finalScore }.map(\.id))
+        XCTAssertTrue(response.results.prefix(10).allSatisfy { $0.sourceID == .app })
+        XCTAssertEqual(
+            response.results.filter { $0.sourceID == .app }.map(\.id),
+            response.results.filter { $0.sourceID == .app }.sorted { $0.finalScore > $1.finalScore }.map(\.id)
+        )
     }
 
     func testResultCarriesIconTypeLabelAndPrimaryActionClosesSearchPanel() async throws {
@@ -168,9 +186,9 @@ private final class MockSearchSource: SearchSource {
     }
 
     func search(query: String) async -> [SearchResult] {
-        lock.lock()
-        _searchCallCount += 1
-        lock.unlock()
+        lock.withLock {
+            _searchCallCount += 1
+        }
         return results
     }
 }
@@ -184,9 +202,7 @@ private final class MockPatternSource: SearchSource {
     private var _searchCallCount = 0
 
     var searchCallCount: Int {
-        lock.lock()
-        defer { lock.unlock() }
-        return _searchCallCount
+        lock.withLock { _searchCallCount }
     }
 
     init(sourceID: SearchSourceID, matches: @escaping (String) -> Bool) {
@@ -199,9 +215,9 @@ private final class MockPatternSource: SearchSource {
     }
 
     func search(query: String) async -> [SearchResult] {
-        lock.lock()
-        _searchCallCount += 1
-        lock.unlock()
+        lock.withLock {
+            _searchCallCount += 1
+        }
         return []
     }
 }

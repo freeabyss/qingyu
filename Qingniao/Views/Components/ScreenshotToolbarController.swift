@@ -10,7 +10,7 @@ enum ScreenshotToolbarAction {
     case save
     /// ⌥-click on Save (or explicit "save as") — opens an NSSavePanel.
     case saveAs
-    case annotate
+    case annotate(AnnotationTool)
     case cancel
     case dismiss
 }
@@ -34,6 +34,7 @@ final class ScreenshotToolbarController {
     private var annotationWindow: AnnotationEditorWindow?
     private var overlayCancelObserver: NSObjectProtocol?
     private var toastWorkItem: DispatchWorkItem?
+    private var regionCleanup: (() -> Void)?
 
     init() {
         overlayCancelObserver = NotificationCenter.default.addObserver(
@@ -88,6 +89,53 @@ final class ScreenshotToolbarController {
         logger.info("Screenshot preview shown for \(result.width)x\(result.height) capture")
     }
 
+    /// Shows the region actions while the locked selection remains in place.
+    func showRegion(
+        result: ScreenshotResult,
+        selection: RegionCaptureSelection,
+        onDismiss: @escaping () -> Void
+    ) {
+        dismiss(reason: .superseded)
+        regionCleanup = onDismiss
+
+        let viewModel = ScreenshotPreviewViewModel(result: result)
+        let view = RegionScreenshotToolbarView(
+            viewModel: viewModel,
+            onAction: { [weak self] action in
+                self?.handle(action: action, result: result, viewModel: viewModel)
+            }
+        )
+        let toolbarSize = NSSize(width: 560, height: 64)
+        let window = ScreenshotPreviewWindow(
+            contentRect: NSRect(origin: .zero, size: toolbarSize),
+            styleMask: [.borderless, .fullSizeContentView],
+            backing: .buffered,
+            defer: false
+        )
+        window.isOpaque = false
+        window.backgroundColor = .clear
+        window.hasShadow = true
+        window.level = NSWindow.Level(rawValue: NSWindow.Level.screenSaver.rawValue + 1)
+        window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+        window.isReleasedWhenClosed = false
+        window.onEscape = { [weak self] in
+            self?.dismiss(reason: .userEscape)
+        }
+        window.contentView = NSHostingView(rootView: view)
+        window.setFrame(
+            ScreenshotGeometry.toolbarFrame(
+                selection: selection.globalRect,
+                toolbarSize: toolbarSize,
+                screenFrame: selection.screenFrame
+            ),
+            display: true
+        )
+        window.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+        self.window = window
+        logger.info("Region screenshot toolbar shown below locked selection")
+    }
+
     private enum DismissReason {
         case userEscape, action, cancel, superseded
     }
@@ -102,6 +150,9 @@ final class ScreenshotToolbarController {
             logger.debug("Screenshot preview dismissed (reason: \(String(describing: reason)))")
         }
         window = nil
+        let cleanup = regionCleanup
+        regionCleanup = nil
+        cleanup?()
     }
 
     private func position(window: NSWindow, for result: ScreenshotResult) {
@@ -131,6 +182,10 @@ final class ScreenshotToolbarController {
         case .copy:
             do {
                 try copyToPasteboard(result.imageData)
+                if regionCleanup != nil {
+                    dismiss(reason: .action)
+                    return
+                }
                 viewModel.showToast(L10n.localized("screenshot.toast.copied"))
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { [weak self] in
                     self?.dismiss(reason: .action)
@@ -142,6 +197,10 @@ final class ScreenshotToolbarController {
         case .save:
             do {
                 let url = try savePNG(result.imageData, date: result.captureDate)
+                if regionCleanup != nil {
+                    dismiss(reason: .action)
+                    return
+                }
                 viewModel.showToast(L10n.localized("screenshot.toast.saved", url.deletingLastPathComponent().path))
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in
                     self?.dismiss(reason: .action)
@@ -157,6 +216,10 @@ final class ScreenshotToolbarController {
             do {
                 try result.imageData.write(to: url, options: .atomic)
                 logger.info("Screenshot saved via panel to \(url.path, privacy: .public)")
+                if regionCleanup != nil {
+                    dismiss(reason: .action)
+                    return
+                }
                 viewModel.showToast(L10n.localized("screenshot.toast.saved", url.deletingLastPathComponent().path))
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in
                     self?.dismiss(reason: .action)
@@ -165,22 +228,40 @@ final class ScreenshotToolbarController {
                 logger.error("Screenshot save-as failed: \(error.localizedDescription, privacy: .public)")
                 viewModel.showToast(L10n.localized("screenshot.toast.saveFailed", error.localizedDescription))
             }
-        case .annotate:
-            presentAnnotationEditor(result: result, viewModel: viewModel)
-        case .cancel, .dismiss:
-            dismiss(reason: action == .cancel ? .cancel : .userEscape)
+        case .annotate(let tool):
+            presentAnnotationEditor(
+                result: result,
+                viewModel: viewModel,
+                selection: result.regionSelection,
+                initialTool: tool
+            )
+        case .cancel:
+            dismiss(reason: .cancel)
+        case .dismiss:
+            dismiss(reason: .userEscape)
         }
     }
 
-    private func presentAnnotationEditor(result: ScreenshotResult, viewModel: ScreenshotPreviewViewModel) {
+    private func presentAnnotationEditor(
+        result: ScreenshotResult,
+        viewModel: ScreenshotPreviewViewModel,
+        selection: RegionCaptureSelection?,
+        initialTool: AnnotationTool
+    ) {
         guard let image = NSImage(data: result.imageData) else {
             viewModel.showToast(L10n.localized("screenshot.preview.unavailable"))
             return
         }
+        let startedFromRegion = regionCleanup != nil
+        // Keep the overlay and its locked selection alive during annotation.
+        // A region editor is placed directly over the selected rectangle, so the
+        // user never experiences a jump to a detached, pinned-looking image.
         window?.orderOut(nil)
         let editor = AnnotationEditorWindow(
             image: image,
             captureDate: result.captureDate,
+            presentationFrame: startedFromRegion ? selection?.globalRect : nil,
+            initialTool: initialTool,
             onCopy: { [weak self] pngData in
                 try self?.copyToPasteboard(pngData)
             },
@@ -204,6 +285,7 @@ final class ScreenshotToolbarController {
                         NSApp.activate(ignoringOtherApps: true)
                     case .failed(let message):
                         self.window?.makeKeyAndOrderFront(nil)
+                        NSApp.activate(ignoringOtherApps: true)
                         viewModel?.showToast(message)
                     }
                 }
@@ -338,6 +420,46 @@ final class ScreenshotPreviewViewModel: ObservableObject {
 
 // MARK: - SwiftUI Preview
 
+private struct RegionScreenshotToolbarView: View {
+    @ObservedObject var viewModel: ScreenshotPreviewViewModel
+    let onAction: (ScreenshotToolbarAction) -> Void
+
+    var body: some View {
+        ZStack(alignment: .top) {
+            HStack(spacing: JadeSpace.x1.value) {
+                ToolbarButton(systemName: "doc.on.doc", label: L10n.localized("screenshot.toolbar.copy")) {
+                    onAction(.copy)
+                }
+                ToolbarButton(systemName: "square.and.arrow.down", label: L10n.localized("screenshot.toolbar.save")) {
+                    onAction(.save)
+                }
+                ForEach(AnnotationTool.allCases) { tool in
+                    ToolbarButton(systemName: tool.systemImage, label: tool.displayName) {
+                        onAction(.annotate(tool))
+                    }
+                }
+                ToolbarButton(
+                    systemName: "xmark",
+                    label: L10n.localized("screenshot.toolbar.cancel"),
+                    tint: JadeColor.danger
+                ) {
+                    onAction(.cancel)
+                }
+            }
+            .padding(JadeSpace.x2.value)
+            .background(JadeMaterial.pill.material, in: Capsule(style: .continuous))
+            .overlay(Capsule(style: .continuous).strokeBorder(JadeColor.border, lineWidth: 1))
+            .jadeShadow(.md, radius: .xl)
+
+            if let toast = viewModel.toastMessage {
+                JadeToast(toast, variant: .info)
+                    .offset(y: -48)
+            }
+        }
+        .frame(width: 560, height: 64)
+    }
+}
+
 private struct ScreenshotPreviewView: View {
     @ObservedObject var viewModel: ScreenshotPreviewViewModel
     let onAction: (ScreenshotToolbarAction) -> Void
@@ -419,7 +541,7 @@ private struct ScreenshotPreviewView: View {
                 }
             }
             ToolbarButton(systemName: "pencil.tip", label: L10n.localized("screenshot.toolbar.annotate")) {
-                onAction(.annotate)
+                onAction(.annotate(.rectangle))
             }
             ToolbarButton(systemName: "xmark", label: L10n.localized("screenshot.toolbar.cancel"), tint: JadeColor.danger) {
                 onAction(.cancel)

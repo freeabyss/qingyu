@@ -114,6 +114,24 @@ xcodebuild -project Qingniao.xcodeproj -scheme Qingniao clean
 
 ## 开发模式
 
+### 自动版本号
+
+提交包含 Swift 源码、字符串资源或 Xcode 工程配置的改动时，Git 钩子会自动递增修订号，
+并将版本文件加入同一次提交。版本从 `0.2.0` 起，主版本固定为 `0`，自动递增序列为
+`0.2.1`、`0.2.2`……；构建号也会同步递增。
+
+首次克隆仓库后执行一次：
+
+```bash
+git config core.hooksPath .githooks
+```
+
+如需重新初始化版本，可运行：
+
+```bash
+./scripts/bump-version.sh --set 0.2.0 200
+```
+
 ### 启用调试日志
 
 在 Xcode 中运行时，调试日志会自动显示在控制台。命令行运行时：

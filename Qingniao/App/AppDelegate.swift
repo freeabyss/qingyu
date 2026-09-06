@@ -12,7 +12,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     /// Dependency injection root — owns services and window controllers.
     private let container = AppContainer()
 
-    /// First-run onboarding window. While visible, full product entry points remain gated.
+    /// First-run onboarding window. It guides setup but never blocks product entry points.
     private var onboardingWindow: NSWindow?
 
     /// Whether the user completed the required first-run onboarding flow.
@@ -21,6 +21,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     /// Guards `startFullExperienceServices()` against double-start when the user
     /// re-opens onboarding from the menu and completes it again (v1.2.1 §3.5).
     private var hasStartedFullExperience = false
+
+    /// Global shortcuts are product entry points, independent from whether the
+    /// optional clipboard-monitoring lifecycle has started after onboarding.
+    private var hasRegisteredGlobalShortcuts = false
 
     #if DEBUG
     /// Parsed UITest launch arguments. Non-nil only when at least one
@@ -36,6 +40,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         if parsed.isUITest {
             uitestSupport = parsed
             configureUITestDataDir(parsed)
+            if parsed.mockScreenRecordingAuthorized || parsed.mockScreenRecordingDenied {
+                container.setPermissionServiceForUITest(
+                    UITestMockPermissionService(
+                        screenRecordingAuthorized: parsed.mockScreenRecordingAuthorized
+                    )
+                )
+            }
         }
         #endif
 
@@ -68,6 +79,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             self?.showOnboardingWindow()
         }
         container.statusItemController.install()
+        setupGlobalShortcuts()
 
         if isOnboardingCompleted {
             startFullExperienceServices()
@@ -103,10 +115,18 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     @MainActor
     private func startFullExperienceServices() {
-        // 幂等：菜单再次完成 onboarding 时不重复启动剪贴板监听 / 清理 / 快捷键注册。
+        // 幂等：菜单再次完成 onboarding 时不重复启动剪贴板监听 / 清理。
         guard !hasStartedFullExperience else { return }
         hasStartedFullExperience = true
         container.startFullExperienceServices()
+    }
+
+    /// Register global entry points as soon as the app launches. The onboarding
+    /// flow may be dismissed or revisited at any time, so it must not suppress
+    /// search, clipboard-history, or screenshot shortcuts.
+    @MainActor
+    private func setupGlobalShortcuts() {
+        guard !hasRegisteredGlobalShortcuts else { return }
 
         #if DEBUG
         if uitestSupport?.skipShortcuts == true {
@@ -115,6 +135,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
         #endif
 
+        hasRegisteredGlobalShortcuts = true
         container.globalShortcutManager.setupShortcuts()
     }
 
@@ -173,11 +194,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         let view = OnboardingView(viewModel: viewModel)
             .tint(JadeColor.primary) // 全局主色注入（Design Token T-004）
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 720, height: 520),
-            styleMask: [.titled, .closable],
+            contentRect: NSRect(x: 0, y: 0, width: 720, height: 620),
+            styleMask: [.titled, .closable, .resizable],
             backing: .buffered,
             defer: false
         )
+        // 欢迎页包含权限说明和可缩放的系统字体；保留紧凑起始尺寸的同时，
+        // 允许用户在较大字号或较窄屏幕下扩大窗口，不让 footer 被内容挤压。
+        window.contentMinSize = NSSize(width: 720, height: 520)
         window.title = L10n.localized("onboarding.welcome.title")
         window.center()
         window.contentView = NSHostingView(rootView: view)

@@ -30,3 +30,6 @@ snapvault.db-wal
 # Claude Code working files
 .claude/
 CLAUDE.md
+
+# Local agent tool state
+.omo/

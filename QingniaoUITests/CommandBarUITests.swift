@@ -171,4 +171,34 @@ final class CommandBarUITests: XCTestCase {
             "TC-UI-018: 空输入时 Command Bar panel 应保持可见（FR-SEARCH-14）"
         )
     }
+
+    // MARK: - TC-UI-023　搜索栏打开剪贴板历史
+
+    /// 覆盖 F01/F03：命令栏的“打开剪贴板历史”必须是独立主动作，不能退化为
+    /// 单条剪贴板记录的复制动作。使用英文别名保证界面语言不影响测试。
+    func testTCUI023SearchOpensClipboardHistory() throws {
+        launchWithCommandBar(for: "TC-UI-023")
+
+        XCTAssertTrue(
+            searchField.waitForExistence(timeout: 10),
+            "TC-UI-023: Command Bar 搜索框应呈现"
+        )
+        searchField.click()
+        searchField.typeText("clipboard history")
+
+        XCTAssertTrue(
+            resultList.waitForExistence(timeout: 5),
+            "TC-UI-023: 应显示剪贴板历史命令结果"
+        )
+
+        searchField.typeText("\r")
+
+        let clipboardSearchField = app.textFields["clipboard.searchField"]
+        XCTAssertTrue(
+            clipboardSearchField.waitForExistence(timeout: 5),
+            "TC-UI-023: 回车后应打开剪贴板历史窗口"
+        )
+        XCTAssertFalse(searchField.exists, "TC-UI-023: 打开历史窗口后 Command Bar 应关闭")
+    }
+
 }

@@ -167,7 +167,7 @@ Qingniao/
 ## 7. 你必须知道的技术债 & 约束
 
 1. **双数据栈**：活动栈是 **Core Data**（`PersistenceController`）；**GRDB**（`DatabaseManager`）是历史遗留，v1.2 **不再写入、不重构**，仅保留兼容旧数据。写剪贴板时若命中 GRDB 遗留路径要 try/catch 容错、不崩溃。**新功能一律走 Core Data**，别往 GRDB 加东西。V1.x 计划统一单栈。
-2. **关闭 Sandbox**：v1.2 移除 App Sandbox，保留 Hardened Runtime + `apple-events` entitlement，让重启 Finder/Dock 等 AppleEvents 命令可靠执行。命令严格白名单（14 条），**永不支持任意 shell**。
+2. **关闭 Sandbox**：v1.2 移除 App Sandbox，保留 Hardened Runtime + `apple-events` entitlement，让重启 Finder/Dock 等 AppleEvents 命令可靠执行。命令严格白名单（15 条，含“打开剪贴板历史”），**永不支持任意 shell**。
 3. **辅助功能按需申请**：Onboarding 只强制屏幕录制（截图依赖）；辅助功能改为首次真正用到时才经 `PermissionService.onDemandAccessibilityCheck()` 申请。全局热键用 KeyboardShortcuts 库，不依赖辅助功能。
 4. **Design Token 硬约束靠 review**：View 里**禁止硬编码颜色/圆角/字号**，必须走 `Views/Design/Jade*`。无静态 lint，靠 code review 把关。
 5. **Bundle ID 保留 `com.assistant.app`**：改名青鸟只改显示名/target/目录/module，Bundle ID 不动（它绑定 TCC 权限、Keychain、数据目录、登录项）。
@@ -221,7 +221,7 @@ Qingniao/
 | 改 UI 样式/颜色 | `Views/Design/Jade*`（不要硬编码） |
 | 加设置项 | `SettingKey`/`SettingsRoute`（`api.md` §12）+ `SettingsService` + `SettingsView` |
 | 改全局热键 | `Services/Hotkey/GlobalShortcutManager.swift` |
-| 加白名单命令 | `SystemCommandSource.swift`（14 条清单见 `design.md` §13，禁 shell） |
+| 加白名单命令 | `SystemCommandSource.swift`（15 条清单见 `design.md` §13，禁 shell） |
 | 改数据模型 | Core Data（`PersistenceController`）+ 迁移，先读 `db.md` |
 | 理解对象如何组装 | `AppContainer.swift`（从这开始） |
 | 需求/验收标准 | `doc/prd.md` |

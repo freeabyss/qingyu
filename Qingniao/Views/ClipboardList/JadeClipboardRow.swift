@@ -5,7 +5,7 @@ import SwiftUI
 /// and `ClipboardHistoryRow` into a single Jade-styled component backed by
 /// `ClipboardRecordSnapshot` (Core Data chain).
 ///
-/// Layout: 40×40 radius-md thumbnail (image → thumbnail, rtf/text → glyph or
+/// Layout: command-search-list-consistent 32×32 radius-md thumbnail (image → thumbnail, rtf/text → glyph or
 /// first char, file → system icon), single-line title, caption subtitle
 /// (type · size · time). Hover reveals pin / copy / preview / delete actions
 /// via `JadeListRow`.
@@ -32,14 +32,14 @@ struct JadeClipboardRow: View {
     }
 
     var body: some View {
-        JadeListRow(selected: selected, rowSize: .comfortable, actions: actions) {
+        JadeListRow(selected: selected, rowSize: .compact, actions: actions) {
             HStack(spacing: JadeSpace.x3.value) {
                 thumbnailView
 
                 VStack(alignment: .leading, spacing: JadeSpace.x1.value) {
                     HStack(spacing: JadeSpace.x1.value) {
                         Text(primaryText)
-                            .font(JadeFont.body)
+                            .font(JadeFont.title3)
                             .fontWeight(.medium)
                             .foregroundStyle(JadeColor.textPrimary)
                             .lineLimit(1)
@@ -104,20 +104,20 @@ struct JadeClipboardRow: View {
             Image(nsImage: thumbnail)
                 .resizable()
                 .aspectRatio(contentMode: .fill)
-                .frame(width: 40, height: 40)
+                .frame(width: 32, height: 32)
                 .jadeRadius(.md)
         } else {
             ZStack {
                 JadeRadius.md.shape
                     .fill(typeColor.opacity(0.15))
-                    .frame(width: 40, height: 40)
+                    .frame(width: 32, height: 32)
                 if item.contentType == .text, let ch = firstCharacter {
                     Text(ch)
-                        .font(JadeFont.title3)
+                        .font(JadeFont.body)
                         .foregroundStyle(typeColor)
                 } else {
                     Image(systemName: iconName)
-                        .font(JadeFont.title3)
+                        .font(JadeFont.body)
                         .foregroundStyle(typeColor)
                 }
             }

@@ -39,6 +39,11 @@ struct ManagementCenterView: View {
         .preferredColorScheme(viewModel.preferredColorScheme)
         .background(keyboardShortcuts)
         .task { await viewModel.load() }
+        // 用户从“隐私与安全性”返回应用后，TCC 不会主动推送状态变化；
+        // 重新激活时主动读取系统的实时授权状态，避免页面停留在授权前的旧值。
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            Task { await viewModel.refreshPermissions() }
+        }
         .onReceive(NotificationCenter.default.publisher(for: .openManagementCenter)) { notification in
             if let route = notification.object as? SettingsRoute {
                 viewModel.select(route: route)

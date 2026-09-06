@@ -3,6 +3,95 @@ import XCTest
 import AppKit
 
 final class AnnotationTests: XCTestCase {
+    func testRegionCaptureSessionGuardOnlyAllowsMatchingSessionToFinish() {
+        let activeID = UUID()
+
+        XCTAssertTrue(RegionCaptureSessionGuard.shouldFinish(activeSessionID: activeID, requestedSessionID: activeID))
+        XCTAssertFalse(RegionCaptureSessionGuard.shouldFinish(activeSessionID: activeID, requestedSessionID: UUID()))
+        XCTAssertFalse(RegionCaptureSessionGuard.shouldFinish(activeSessionID: nil, requestedSessionID: activeID))
+    }
+
+    func testRegionCropRectUsesMainDisplayOrigin() throws {
+        let crop = try XCTUnwrap(ScreenshotGeometry.cropRect(
+            globalSelection: NSRect(x: 100, y: 200, width: 300, height: 150),
+            screenFrame: NSRect(x: 0, y: 0, width: 1440, height: 900),
+            imageSize: CGSize(width: 1440, height: 900)
+        ))
+
+        XCTAssertEqual(crop, CGRect(x: 100, y: 550, width: 300, height: 150))
+    }
+
+    func testRegionCropRectUsesRightHandRetinaDisplayOriginAndScale() throws {
+        let crop = try XCTUnwrap(ScreenshotGeometry.cropRect(
+            globalSelection: NSRect(x: 1540, y: 100, width: 200, height: 100),
+            screenFrame: NSRect(x: 1440, y: 0, width: 1920, height: 1080),
+            imageSize: CGSize(width: 3840, height: 2160)
+        ))
+
+        XCTAssertEqual(crop, CGRect(x: 200, y: 1760, width: 400, height: 200))
+    }
+
+    func testRegionCropRectSupportsLeftAndLowerDisplayNegativeCoordinates() throws {
+        let crop = try XCTUnwrap(ScreenshotGeometry.cropRect(
+            globalSelection: NSRect(x: -1200, y: -900, width: 100, height: 50),
+            screenFrame: NSRect(x: -1280, y: -1024, width: 1280, height: 1024),
+            imageSize: CGSize(width: 1280, height: 1024)
+        ))
+
+        XCTAssertEqual(crop, CGRect(x: 80, y: 850, width: 100, height: 50))
+    }
+
+    func testRegionCropRectClampsSelectionToDisplayPixelBounds() throws {
+        let crop = try XCTUnwrap(ScreenshotGeometry.cropRect(
+            globalSelection: NSRect(x: 1910, y: 1070, width: 40, height: 30),
+            screenFrame: NSRect(x: 0, y: 0, width: 1920, height: 1080),
+            imageSize: CGSize(width: 3840, height: 2160)
+        ))
+
+        XCTAssertEqual(crop, CGRect(x: 3820, y: 0, width: 20, height: 20))
+    }
+
+    func testRegionToolbarAppearsCenteredBelowSelection() {
+        let frame = ScreenshotGeometry.toolbarFrame(
+            selection: NSRect(x: 400, y: 400, width: 300, height: 200),
+            toolbarSize: NSSize(width: 320, height: 56),
+            screenFrame: NSRect(x: 0, y: 0, width: 1440, height: 900)
+        )
+
+        XCTAssertEqual(frame, NSRect(x: 390, y: 332, width: 320, height: 56))
+    }
+
+    func testRegionToolbarMovesAboveSelectionNearBottomEdge() {
+        let frame = ScreenshotGeometry.toolbarFrame(
+            selection: NSRect(x: 400, y: 20, width: 300, height: 100),
+            toolbarSize: NSSize(width: 320, height: 56),
+            screenFrame: NSRect(x: 0, y: 0, width: 1440, height: 900)
+        )
+
+        XCTAssertEqual(frame, NSRect(x: 390, y: 132, width: 320, height: 56))
+    }
+
+    func testRegionToolbarClampsToBothHorizontalScreenEdges() {
+        let screen = NSRect(x: -1280, y: 0, width: 1280, height: 900)
+
+        XCTAssertEqual(
+            ScreenshotGeometry.toolbarFrame(
+                selection: NSRect(x: -1275, y: 400, width: 100, height: 100),
+                toolbarSize: NSSize(width: 320, height: 56),
+                screenFrame: screen
+            ).minX,
+            screen.minX
+        )
+        XCTAssertEqual(
+            ScreenshotGeometry.toolbarFrame(
+                selection: NSRect(x: -100, y: 400, width: 100, height: 100),
+                toolbarSize: NSSize(width: 320, height: 56),
+                screenFrame: screen
+            ).maxX,
+            screen.maxX
+        )
+    }
+
     func testStylePresetsMatchUS017Requirements() {
         XCTAssertEqual(AnnotationColor.allCases.map(\.rawValue), ["red", "yellow", "blue", "green", "white", "black"])
         XCTAssertEqual(AnnotationLineWidth.allCases.map(\.points), [2, 4, 8])

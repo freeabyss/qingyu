@@ -10,6 +10,7 @@ PROJECT_NAME="Qingniao"
 SCHEME_NAME="Qingniao"
 DERIVED_DATA_PATH="${PROJECT_DIR}/DerivedData"
 APP_PATH="${DERIVED_DATA_PATH}/Build/Products/Debug/Qingniao.app"
+BUNDLE_IDENTIFIER="com.assistant.app"
 
 # 颜色输出
 RED='\033[0;31m'
@@ -37,13 +38,43 @@ log_error() {
 
 # 清理构建目录
 clean_build() {
-    log_info "清理构建目录..."
-    if [ -d "${DERIVED_DATA_PATH}" ]; then
-        rm -rf "${DERIVED_DATA_PATH}"
-        log_success "已清理 DerivedData 目录"
+    log_info "清理构建产物（保留 SPM 缓存）..."
+    local build_dir="${DERIVED_DATA_PATH}/Build"
+    if [ -d "${build_dir}" ]; then
+        rm -rf "${build_dir}"
+        log_success "已清理构建产物（SPM 缓存保留）"
     else
-        log_info "DerivedData 目录不存在，跳过清理"
+        log_info "无需清理"
     fi
+}
+
+# 退出已运行的应用，避免新构建与旧实例并存。
+quit_running_app() {
+    if ! pgrep -x "${PROJECT_NAME}" > /dev/null; then
+        return 0
+    fi
+
+    log_info "正在退出已启动的 ${PROJECT_NAME}..."
+    osascript -e "tell application id \"${BUNDLE_IDENTIFIER}\" to quit" > /dev/null 2>&1 || true
+
+    local attempts=0
+    while pgrep -x "${PROJECT_NAME}" > /dev/null && [ "${attempts}" -lt 20 ]; do
+        sleep 0.25
+        attempts=$((attempts + 1))
+    done
+
+    if pgrep -x "${PROJECT_NAME}" > /dev/null; then
+        log_warn "${PROJECT_NAME} 未在 5 秒内正常退出，正在终止进程..."
+        pkill -TERM -x "${PROJECT_NAME}" > /dev/null 2>&1 || true
+        sleep 0.5
+    fi
+
+    if pgrep -x "${PROJECT_NAME}" > /dev/null; then
+        log_error "无法退出已启动的 ${PROJECT_NAME}"
+        return 1
+    fi
+
+    log_success "已退出已启动的 ${PROJECT_NAME}"
 }
 
 # 编译项目
@@ -95,14 +126,18 @@ build_project() {
 
 # 启动应用
 run_app() {
-    log_info "启动 ${PROJECT_NAME}..."
-
     # 检查 .app 文件是否存在
     if [ ! -d "${APP_PATH}" ]; then
         log_error "未找到编译后的应用: ${APP_PATH}"
         log_info "请先运行编译: $0 build"
         exit 1
     fi
+
+    if ! quit_running_app; then
+        exit 1
+    fi
+
+    log_info "启动 ${PROJECT_NAME}..."
 
     # 使用 open 命令启动应用
     open "${APP_PATH}"

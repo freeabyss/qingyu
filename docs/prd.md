@@ -562,7 +562,7 @@ PRD 记录完整愿景，但开发按版本分期。长期功能包括：
 **v1.2 设计语言相关新增条目（细则见第 9 章）：**
 
 - **FR-UI-DESIGN-TOKENS 🔧（v1.2 新增）**：必须建立统一 Design Token 层（`JadeColor` / `JadeRadius` / `JadeSpace` / `JadeFont` / `JadeShadow` / `JadeMaterial` 等枚举或扩展），Light/Dark 双模式取值按 §9.2；界面禁止散落硬编码颜色/圆角/间距/字号。
-- **FR-UI-COMMAND-BAR 🔧（v1.2 新增）**：命令栏必须按 §9.4 P-01 规范实现（居中浮层、20px 圆角、ultraThinMaterial、48px 输入框、44px hint bar、`⎋` 关闭、空态显示最近使用+收藏）。
+- **FR-UI-COMMAND-BAR 🔧（v1.2 新增）**：命令栏必须按 §9.4 P-01 规范实现（居中浮层、20px 圆角、ultraThinMaterial、56px 输入框、44px hint bar、`⎋` 关闭、空态显示最近使用+收藏）。
 - **FR-UI-CLIPBOARD-WINDOW 🔧（v1.2 新增）**：剪贴板历史管理窗口必须按 §9.4 P-02 实现（独立 NSWindow、两栏 NavigationSplitView、64px 行、hover 操作、预览 Sheet、swipe action、底部状态栏）。
 - **FR-UI-SETTINGS-WINDOW 🔧（v1.2 新增）**：设置窗口必须按 §9.4 P-03 实现（独立窗口、200px 侧栏、含概览/剪贴板/快捷键/截图/搜索源/外观/权限/数据/更新/关于/反馈分组；数据页含清空/导出/打开目录）。
 - **FR-UI-SCREENSHOT-OVERLAY 🔧（v1.2 新增）**：截图区域选择叠层必须按 §9.4 P-04 实现（0.4 遮罩、十字准星、选区描边+尺寸 pill、窗口高亮模式、`⎋` 取消）。
@@ -842,7 +842,7 @@ MVP 明确不支持：关机、重启系统、注销、删除文件、杀进程�
 ### 9.3 核心交互范式
 
 - **全局唤起**：`⌥ Space` 唤起 Command Bar（可在设置重绑）。
-- **Command Bar 定位**：屏幕居中，y-offset 120px；宽 680px；高度随结果动态 120–560px。
+- **Command Bar 定位**：屏幕居中，y-offset 120px；宽 760px；高度随结果动态 128–560px。
 - **结果列表**：行高 44px；左侧 32×32 类型图标（圆角 radius-md 8px）；右侧显示类型 badge + `⏎` 提示。
 - **选中态**：Jade 50 底色 + Jade 500 图标；行圆角 radius-lg（12px）；内边距 4px 8px。
 - **键盘操作**：`↑` `↓` 选择、`⏎` 执行、`⌘1`–`⌘6` 切换搜索源、`⌘C` 复制、`⌘,` 打开设置、`⎋` 关闭、`⌘K` 清空输入。
@@ -858,7 +858,7 @@ MVP 明确不支持：关机、重启系统、注销、删除文件、杀进程�
 #### P-01 Command Bar（命令栏，核心）
 
 - 20px 圆角（radius-2xl）、shadow-xl、`.ultraThinMaterial`。
-- 顶部输入框 48px 高、水平 padding 20px，左侧放大镜图标，placeholder："搜索应用、命令、文件、剪贴板…"。
+- 顶部输入框 56px 高、水平 padding 20px，左侧放大镜图标，placeholder："搜索应用、命令、文件、剪贴板…"。
 - 结果组之间以 1px 分隔线（Border 色）分隔。
 - 计算器 / 单位换算命中时，答案固定显示在结果列表第一行。
 - 文件搜索结果显示：文件名 + 路径 + 大小 + 修改时间。

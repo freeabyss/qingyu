@@ -4,14 +4,13 @@ import XCTest
 ///
 /// 依据：`docs/iterations/v1.2.1/test/cases.md` TC-UI-021~022
 /// 前置：`--uitest-mark-onboarding-completed` + `--uitest-trigger openClipboard`
-/// 硬依赖（cases.md §0.5）：`clipboard.searchField`、`clipboard.sidebar`
+/// 硬依赖（cases.md §0.5）：`clipboard.searchField`、`clipboard.filterMenu`
 /// 边界：首期无 mock 剪贴板数据（`--uitest-mock-clipboard-data` 后续迭代补），
 ///   验证空态与搜索框基本可用性。
 ///
 /// 文案偏差说明：cases.md §TC-UI-021 引用空态文案"剪贴板历史为空"，实际 L10n key
 /// `clipboard.empty.title` 的 zh-Hans 值为"暂无剪贴板记录"。本用例用实际 L10n 文案。
-/// 类型筛选 tabs（cases.md 期望"全部/文本/图片/文件"）实际为侧栏 NavigationSplitView 的
-/// typeCases 段（"全部/文本/图片/富文本/文件"），本用例验证 cases.md 列出的 4 项。
+/// 筛选项收拢在与命令栏一致的搜索栏筛选菜单中，避免剪贴板窗口维护独立侧栏导航。
 final class ClipboardWindowUITests: XCTestCase {
 
     private var app: XCUIApplication!
@@ -56,10 +55,10 @@ final class ClipboardWindowUITests: XCTestCase {
         app.activate()
     }
 
-    // MARK: - TC-UI-021　空态 + 类型筛选 + 搜索框可见可聚焦
+    // MARK: - TC-UI-021　空态 + 筛选菜单 + 搜索框可见可聚焦
 
     /// 覆盖：FR-CLIP-18/19；US-008；全局 PRD §9.4 P-02、§9.7
-    /// 验证：空态文案、类型筛选 tabs（全部/文本/图片/文件）、搜索框可见可聚焦。
+    /// 验证：空态文案、筛选菜单、搜索框可见可聚焦。
     func testTCUI021EmptyStateTypeFiltersAndSearchField() throws {
         launchWithClipboard(for: "TC-UI-021")
 
@@ -85,16 +84,14 @@ final class ClipboardWindowUITests: XCTestCase {
             )
         }
 
-        // 类型筛选 tabs：FR-CLIP-18 要求"全部/文本/图片/文件"
-        // 实际为侧栏 typeCases 段（clipboard.filter.all/text/image/file，zh-Hans 一致）
-        let allTab = app.staticTexts["全部"]
-        let textTab = app.staticTexts["文本"]
-        let imageTab = app.staticTexts["图片"]
-        let fileTab = app.staticTexts["文件"]
-        XCTAssertTrue(allTab.waitForExistence(timeout: 3), "TC-UI-021: 类型筛选应含\"全部\"")
-        XCTAssertTrue(textTab.waitForExistence(timeout: 1), "TC-UI-021: 类型筛选应含\"文本\"")
-        XCTAssertTrue(imageTab.waitForExistence(timeout: 1), "TC-UI-021: 类型筛选应含\"图片\"")
-        XCTAssertTrue(fileTab.waitForExistence(timeout: 1), "TC-UI-021: 类型筛选应含\"文件\"")
+        // 类型筛选：收拢在命令栏样式的筛选菜单；展开后应可选择文本类型。
+        let filterMenu = app.buttons["clipboard.filterMenu"]
+        XCTAssertTrue(filterMenu.waitForExistence(timeout: 5), "TC-UI-021: 搜索栏应包含筛选菜单")
+        XCTAssertTrue(filterMenu.isHittable, "TC-UI-021: 筛选菜单应可点击")
+        filterMenu.click()
+        XCTAssertTrue(app.menuItems["文本"].waitForExistence(timeout: 3),
+                      "TC-UI-021: 筛选菜单应包含\"文本\"")
+        app.typeKey(.escape, modifierFlags: [])
 
         // 搜索框可见可聚焦（硬依赖 §0.5：clipboard.searchField）
         XCTAssertTrue(searchField.waitForExistence(timeout: 5),

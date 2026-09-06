@@ -15,9 +15,5 @@
     <!-- Read-write access to user-selected files (截图保存目录 / 数据目录选择) -->
     <key>com.apple.security.files.user-selected.read-write</key>
     <true/>
-
-    <!-- Screen capture permission (非 sandbox 下由 TCC 管控) -->
-    <key>com.apple.security.screencapture</key>
-    <true/>
 </dict>
 </plist>
