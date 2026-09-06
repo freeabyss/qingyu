@@ -37,6 +37,10 @@ final class AppContainer: NSObject {
     private(set) var permissionService: PermissionServiceProtocol = PermissionService()
     let screenshotService: ScreenshotServiceProtocol = ScreenshotService()
 
+    /// Task 001: first-party plugin kernel. Built-in features are migrated onto
+    /// this registry in Tasks 002/003; until then existing wiring stays intact.
+    let pluginRegistry = PluginRegistry()
+
     private let appSearchSource = AppSearchSource()
     private let systemCommandSource = SystemCommandSource()
     private let calculatorSearchSource = CalculatorSource()

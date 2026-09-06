@@ -8,6 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		0992D26FCA5F07EF17D275E0 /* MenuDispatchUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8013829E2DF283371786A6C /* MenuDispatchUITests.swift */; };
+		AB0100000000000000000006 /* PluginRegistryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0100000000000000000005 /* PluginRegistryTests.swift */; };
+		AB0100000000000000000002 /* Qingniao/Plugins/Core/PluginTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0100000000000000000001 /* Qingniao/Plugins/Core/PluginTypes.swift */; };
+		AB0100000000000000000004 /* Qingniao/Plugins/Core/PluginRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0100000000000000000003 /* Qingniao/Plugins/Core/PluginRegistry.swift */; };
 		48960A05A2DF71B339FEDE8A /* ClipboardWindowUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A66E86C8A0860C49F8909E51 /* ClipboardWindowUITests.swift */; };
 		68463D96302B2DE20044EC9B /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = A10007000000000000000001 /* GRDB */; };
 		68463D97302B2DE20044EC9B /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = A10007000000000000000002 /* KeyboardShortcuts */; };
@@ -143,6 +146,9 @@
 		196C77B49D5FF71402A7D06A /* UITestSupport.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = UITestSupport.swift; sourceTree = "<group>"; };
 		2853372E85C6B0FE9E194765 /* QingniaoUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = QingniaoUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		2BB3DE90C89D68FC58333C60 /* SettingsWindowUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SettingsWindowUITests.swift; sourceTree = "<group>"; };
+		AB0100000000000000000005 /* PluginRegistryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QingniaoTests/PluginRegistryTests.swift; sourceTree = SOURCE_ROOT; };
+		AB0100000000000000000001 /* Qingniao/Plugins/Core/PluginTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingniao/Plugins/Core/PluginTypes.swift; sourceTree = SOURCE_ROOT; };
+		AB0100000000000000000003 /* Qingniao/Plugins/Core/PluginRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingniao/Plugins/Core/PluginRegistry.swift; sourceTree = SOURCE_ROOT; };
 		342931FCF5D4AB36B533F4B7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		41884CD75E2103FD7C2B56EA /* QingniaoUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = QingniaoUITests.swift; sourceTree = "<group>"; };
 		8A83119274E3E3D3FA6D9AB0 /* L10n.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = L10n.swift; sourceTree = "<group>"; };
@@ -331,6 +337,7 @@
 				A10003000000000000000008 /* Database */,
 				A10003000000000000000009 /* Utilities */,
 				A1000300000000000000000A /* Resources */,
+				AB0100000000000000000011 /* Plugins */,
 				A10000000000000000000019 /* Info.plist */,
 				A1000000000000000000001A /* Qingniao.entitlements */,
 			);
@@ -463,6 +470,7 @@
 				E01800000000000000000002 /* ReleaseInfoServiceTests.swift */,
 				B01100000000000000000008 /* SearchPanelViewModelTests.swift */,
 				B01300000000000000000002 /* ClipboardListViewModelTests.swift */,
+				AB0100000000000000000005 /* PluginRegistryTests.swift */,
 			);
 			path = QingniaoTests;
 			sourceTree = "<group>";
@@ -683,6 +691,23 @@
 			path = Controllers;
 			sourceTree = "<group>";
 		};
+		AB0100000000000000000011 /* Plugins */ = {
+			isa = PBXGroup;
+			children = (
+				AB0100000000000000000012 /* Core */,
+			);
+			path = Plugins;
+			sourceTree = "<group>";
+		};
+		AB0100000000000000000012 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				AB0100000000000000000001 /* Qingniao/Plugins/Core/PluginTypes.swift */,
+				AB0100000000000000000003 /* Qingniao/Plugins/Core/PluginRegistry.swift */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -897,6 +922,8 @@
 				B01100000000000000000003 /* CommandBarView.swift in Sources */,
 				B01100000000000000000005 /* AssistantClipboardSource.swift in Sources */,
 				CF970CC4575FF8B6A203E310 /* UITestSupport.swift in Sources */,
+				AB0100000000000000000002 /* Qingniao/Plugins/Core/PluginTypes.swift in Sources */,
+				AB0100000000000000000004 /* Qingniao/Plugins/Core/PluginRegistry.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -926,6 +953,7 @@
 				E01801000000000000000002 /* ReleaseInfoServiceTests.swift in Sources */,
 				B01100000000000000000009 /* SearchPanelViewModelTests.swift in Sources */,
 				B01300000000000000000001 /* ClipboardListViewModelTests.swift in Sources */,
+				AB0100000000000000000006 /* PluginRegistryTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1088,7 +1116,7 @@
 				CODE_SIGN_ENTITLEMENTS = Qingniao/Qingniao.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 201;
+				CURRENT_PROJECT_VERSION = 202;
 				DEVELOPMENT_TEAM = 454XB348PX;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -1097,7 +1125,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.2.1;
+				MARKETING_VERSION = 0.2.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.assistant.app;
 				PRODUCT_MODULE_NAME = Qingniao;
 				PRODUCT_NAME = Qingniao;
@@ -1113,7 +1141,7 @@
 				CODE_SIGN_ENTITLEMENTS = Qingniao/Qingniao.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 201;
+				CURRENT_PROJECT_VERSION = 202;
 				DEVELOPMENT_TEAM = 454XB348PX;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -1122,7 +1150,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.2.1;
+				MARKETING_VERSION = 0.2.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.assistant.app;
 				PRODUCT_MODULE_NAME = Qingniao;
 				PRODUCT_NAME = Qingniao;

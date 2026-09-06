@@ -18,6 +18,7 @@
 | 2026-06-05 → 2026-06-11 | Claude | v1–v15：SnapVault 剪贴板工具 → Spotlight 类启动器 → Mac Super Assistant MVP（SwiftUI+AppKit、Core Data+文件系统、SearchSource Provider、轻量内存索引） |
 | 2026-07-03 | Claude | v16：v1.1.0 Onboarding 修复设计 |
 | 2026-07-03 | arch subagent | **v17：按 v1.2 PRD 全面修订。品牌改名青鸟 Qingniao；明确 6 层职责边界；AppDelegate 拆分为 AppContainer(DI 根)+窗口控制器+StatusItemController；Onboarding 单屏 + 辅助功能按需申请；FileSearchSource 接入 SearchService；删除 UnifiedSearch*/UnitConverterSource/OCR 整套死代码；剪贴板收敛到 AssistantClipboardRepository 单仓；截图补全屏热键 + 悬浮 pill 工具栏；新增 UI/Design System 模块（JadeToken + 统一组件）；移除 Sparkle 仅保留跳 GitHub Releases；新增窗口管理/改名迁移/分发签名/无障碍章节；双数据栈标注为技术债；风险表与变更记录更新。** |
+| 2026-09-06 | Claude | Task 001：新增 §23 插件内核架构（第一方插件模型，ADR-001），`PluginRegistry`/`QingniaoPlugin` 落地，AppContainer 建空注册表。 |
 
 > 说明：本文件以 `doc/prd.md`（青鸟 Qingniao v1.2）当前决策为准。架构层只定义模块契约、边界、数据流与风险，不落具体 `.swift` 实现行。旧 SnapVault / GRDB 主存储 / FTS5 / OCR 等内容作为历史背景保留在修订记录中，不再作为实现依据。
 
@@ -531,7 +532,20 @@ v1.2 明确 4 类窗口 + 1 类叠层的形态、层级与生命周期，全部�
 
 ---
 
-## 23. 变更记录
+## 23. 插件内核架构（v0.2 阶段，Task 001）
+
+> 决策依据：`docs/decisions/ADR-001-first-party-plugin-model.md`。接口细节见 `api.md` §Plugin 接口。
+
+青鸟的三大功能（快速启动、剪贴板、截图）以**编译期第一方插件模块**组织，由 `PluginRegistry`（`Qingniao/Plugins/Core/`）统一聚合：
+
+- **模型**：插件实现 `QingniaoPlugin`（`@MainActor`），经 `manifest` 声明搜索源、动作（稳定 `PluginActionID`）、设置页、菜单项、全局快捷键与 `requiredPermissions`。不扫描磁盘、不加载外部 Bundle、无 SDK/市场（YAGNI 基线，见计划"执行前决策"）。
+- **生命周期**：`startAll()` 逐个启动已启用插件，单个失败记录并隔离（状态 `failed`，贡献隐藏，不阻断其他插件）；`setEnabled(_:for:)` 持久化到 UserDefaults（`plugin.<plugin-id>.enabled`）并同步启停；停用调用 `stop()` 后贡献不可见。
+- **可见性**：贡献可见 ⇔ 已注册 && 已启用 && 非 `failed` && 非 `stopped`；跨模块调用一律走 `PluginRegistry.execute(_:)` 按动作 ID 路由，不用通知字符串作插件 API。
+- **消费方**：SearchService（搜索源聚合）、设置侧栏（设置页聚合）、状态栏菜单、GlobalShortcutManager（快捷键聚合）在 Task 002–009 逐步迁移到注册表；Task 001 仅在 `AppContainer` 创建空注册表，既有接线保持不变。
+
+---
+
+## 24. 变更记录
 
 | 日期 | 变更内容 |
 | :--- | :--- |
@@ -539,3 +553,4 @@ v1.2 明确 4 类窗口 + 1 类叠层的形态、层级与生命周期，全部�
 | 2026-07-02 · v1.0.1 | UpdateService 关闭启动期 Sparkle updater 自动启动。 |
 | 2026-07-03 · v1.1.0 | Onboarding 死锁修复（方案 A）：PermissionService 新增 `requestScreenRecordingPrompt()`；OnboardingViewModel 触发 request + `skipOnboarding()`；footer Skip 按钮 + 确认 Alert；xcstrings 5 键。 |
 | 2026-07-03 · **v1.2.0（v17）** | 按 v1.2 PRD 全面修订：① 品牌改名青鸟 Qingniao（Bundle ID 保留 `com.assistant.app`）；② 明确 6 层职责边界；③ **AppDelegate(955 行 god object) 拆分为 AppDelegate(仅生命周期) + AppContainer(DI 根) + StatusItemController + 5 类窗口控制器 + GlobalShortcutManager**；④ Onboarding 改单屏、辅助功能按需申请（`onDemandAccessibilityCheck()`）、首次启动以 `onboardingCompletedAt` 判定；⑤ **删除 UnifiedSearch* 系列 + MenuBarView**，SearchService 为唯一入口；⑥ **FileSearchSource 接入**（AppContainer 实例化注册，默认三目录，Spotlight/FileManager，权重 75，`FileSearchResult`）；⑦ **删除 UnitConverterSource**，单位换算并入 CalculatorSource；⑧ 剪贴板收敛到 `AssistantClipboardRepository` 单仓，废弃 GRDB `ClipboardRepository`/`ContentRepository` 及其 UI 依赖；⑨ 截图补全屏全局热键 `⌃⌥⌘3`、悬浮 pill 工具栏、blur 延后 v1.3；⑩ 新增 UI/Design System 模块（JadeToken + 统一组件 + 三套 Toast 收敛为 JadeToast）；⑪ 移除 Sparkle，仅保留 ReleaseInfoService 跳 GitHub Releases；⑫ 新增窗口管理/改名迁移/分发签名/无障碍章节；⑬ 双数据栈标注为技术债（不重构，加一致性容错）；⑭ 风险表更新（新增双栈/文件搜索性能/DesignToken/改名拆分回归/关闭 Sandbox/强制解包；移除已解决项）；⑮ 版本号三源统一 1.2.0。 |
+| 2026-09-06 · Task 001 | 新增 §23 插件内核架构：编译期第一方插件模型（ADR-001），`PluginRegistry` 聚合搜索源/动作/设置页/菜单/快捷键/权限声明，启停持久化与失败隔离；AppContainer 创建空注册表，既有硬编码接线暂不变。 |

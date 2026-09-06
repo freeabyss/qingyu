@@ -16,6 +16,7 @@
 | :--- | :--- | :--- |
 | 2026-06-05 → 2026-06-11 | Claude | v1–v2：SnapVault → Assistant MVP 内部接口设计 |
 | 2026-07-03 | arch subagent | **v3：品牌前缀由 Assistant 改为 Qingniao（module 名 Qingniao、测试模块 QingniaoTests）；`AssistantError`→`QingniaoError` 并新增 case；新增 DesignTokens/JadeButton/JadeTextField/JadeToast、FileSearchSource/FileSearchResult、AppContainer、CommandBarController/ClipboardHistoryWindowController/SettingsWindowController/AnnotationWindowController/ScreenshotOverlayController/StatusItemController、GlobalShortcutManager.registerFullscreenCapture()、HotkeyConflictDetector、PermissionService.onDemandAccessibilityCheck()、OnboardingViewModel 单屏化；列出 Deprecated/Removed in v1.2；依赖图更新。** |
+| 2026-09-06 | Claude | Task 001：新增 §22 Plugin 接口（`QingniaoPlugin`/`PluginRegistry`/`PluginManifest` 等，ADR-001），`AppContainer` 增加空 `pluginRegistry`。 |
 
 > 本文件定义青鸟 Qingniao 各模块间的 Swift Protocol / Model 契约（讲契约，不讲具体实现行），以 `doc/prd.md` 与 `doc/architecture/design.md` 当前决策为准。
 
@@ -700,9 +701,115 @@ graph TD
 
 ---
 
-## 22. 变更记录
+## 22. Plugin 接口（v0.2 阶段，Task 001）
+
+> 决策依据：`docs/decisions/ADR-001-first-party-plugin-model.md`；架构位置见 `design.md` §23。实现位于 `Qingniao/Plugins/Core/`。
+
+### 22.1 标识与描述类型
+
+```swift
+struct PluginID: RawRepresentable, Hashable, Codable { let rawValue: String }
+struct PluginActionID: RawRepresentable, Hashable, Codable { let rawValue: String }
+
+struct PluginDescriptor {
+    let id: PluginID
+    let displayNameKey: String          // Localizable.xcstrings key
+    let version: String
+    let defaultEnabled: Bool            // 无用户持久化选择时的默认启停
+}
+
+struct PluginSettingsPageDescriptor {
+    let id: PluginID
+    let titleKey: String
+    let systemImageName: String
+    let order: Int                      // 设置侧栏排序
+    let makeView: @MainActor () -> AnyView
+}
+
+struct PluginAction {
+    let id: PluginActionID
+    let perform: @MainActor () async throws -> Void
+}
+
+struct PluginMenuItemDescriptor {
+    let id: String
+    let titleKey: String
+    let systemImageName: String
+    let order: Int
+    let actionID: PluginActionID        // 必须指向本插件清单中的动作
+}
+
+struct PluginShortcutDescriptor {
+    let name: KeyboardShortcuts.Name
+    let actionID: PluginActionID
+}
+
+struct PluginManifest {
+    let descriptor: PluginDescriptor
+    let searchSources: [any SearchSource]
+    let actions: [PluginAction]
+    let settingsPage: PluginSettingsPageDescriptor?
+    let menuItems: [PluginMenuItemDescriptor]
+    let shortcuts: [PluginShortcutDescriptor]
+    let requiredPermissions: Set<PermissionKind>
+}
+```
+
+### 22.2 插件协议与启停存储
+
+```swift
+@MainActor protocol QingniaoPlugin: AnyObject {
+    var manifest: PluginManifest { get }
+    func start() async throws   // 抛错 → 注册表记录失败并隔离
+    func stop() async
+}
+
+protocol PluginEnablementStore {
+    func isEnabled(_ id: PluginID, default defaultValue: Bool) -> Bool
+    func setEnabled(_ enabled: Bool, for id: PluginID)
+}
+
+// UserDefaults 实现，键：plugin.<plugin-id>.enabled
+struct UserDefaultsPluginEnablementStore: PluginEnablementStore
+```
+
+### 22.3 PluginRegistry
+
+```swift
+@MainActor final class PluginRegistry {
+    init(enablementStore: PluginEnablementStore = UserDefaultsPluginEnablementStore())
+
+    enum RegistryError: Error { case duplicatePluginID(PluginID), duplicateActionID(PluginActionID), actionNotAvailable(PluginActionID) }
+    enum PluginState: Equatable { case registered, started, failed, stopped }
+    struct PluginContributions { let searchSources: [any SearchSource]; let settingsPage: PluginSettingsPageDescriptor?; let menuItems: [PluginMenuItemDescriptor]; let shortcuts: [PluginShortcutDescriptor] }
+
+    func register(_ plugin: QingniaoPlugin) throws          // 重复插件 ID / 跨插件重复动作 ID 抛错
+    func startAll() async                                   // 失败隔离：单插件 start() 抛错不阻断其他插件
+    func stopAll() async
+    func setEnabled(_ enabled: Bool, for id: PluginID) async // 持久化 + 启动/停止
+    func execute(_ actionID: PluginActionID) async throws   // 由所属插件的闭包执行；不可见则抛错
+    func isEnabled(_ id: PluginID) -> Bool
+    func state(of id: PluginID) -> PluginState?
+    func pluginIDs() -> [PluginID]
+    func contributions(of id: PluginID) -> PluginContributions?
+    func searchSources(of id: PluginID) -> [any SearchSource]
+
+    // 聚合贡献（仅可见插件；设置页/菜单按 order 升序）
+    var searchSources: [any SearchSource]
+    var settingsPages: [PluginSettingsPageDescriptor]
+    var menuItems: [PluginMenuItemDescriptor]
+    var shortcuts: [PluginShortcutDescriptor]
+}
+```
+
+**约定**：贡献可见 ⇔ 已注册 && 已启用 && 非 `failed` && 非 `stopped`。动作跨模块调用一律经 `execute(_:)` 按稳定 `PluginActionID` 路由；通知字符串不作为插件 API。
+
+---
+
+## 23. 变更记录
 
 | 日期 | 变更内容 |
 | :--- | :--- |
 | 2026-06-11 | v2：重写 Assistant MVP 内部接口设计。 |
 | 2026-07-03 · **v3** | 品牌改名 Qingniao（module/测试模块/类型前缀，含改名清单）；`QingniaoError` 新增 `fileSearchIndexFailed`/`hotkeyConflictDetected`/`sandboxIncompatible`/`dataResetFailed`；新增 `FileSearchSource`/`FileSearchResult` + `SearchAction.openFile/revealInFinder` + 文件权重 75；新增 `AppContainer` + `StatusItemController` + 5 类窗口控制器 + `GlobalShortcutManagerProtocol`(含 `registerFullscreenCapture()`) + `HotkeyConflictDetectorProtocol`；`PermissionService.onDemandAccessibilityCheck()`；`OnboardingViewModel` 单屏化（删 `OnboardingStep`）；`SettingKey`/`SettingsRoute` 新增（appearance/data/feedback/fileSource/各截图热键/onboardingCompletedAt）；新增 DesignTokens（Jade*）与统一组件（JadeButton/JadeTextField/HotkeyRecorder/ListRow/JadeToast/…）；`ReleaseInfoService` 取代 Sparkle；依赖图更新；列出 Deprecated/Removed（UnifiedSearch*/MenuBarView/UnitConverterSource/OCRService/ContentStore/ContentRepository/GRDB ClipboardRepository/OCR 字段/三套 Toast/Sparkle）。 |
+| 2026-09-06 · Task 001 | 新增 §22 Plugin 接口：第一方插件内核（ADR-001）——`PluginID`/`PluginActionID` 稳定标识、`PluginManifest` 贡献清单、`QingniaoPlugin` 生命周期、`PluginEnablementStore`（UserDefaults `plugin.<id>.enabled`）、`PluginRegistry`（重复 ID 拒绝、失败隔离、动作所有权路由、贡献聚合与可见性规则）；`AppContainer.pluginRegistry` 空表接入，行为不变。 |
