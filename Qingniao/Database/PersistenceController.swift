@@ -350,6 +350,8 @@ struct AssistantSettingDefaults {
         // v1.2: FileSearchSource display toggle.
         "search.source.file.enabled": "true",
         "screenshot.saveDirectory": "~/Desktop",
+        // Task 007: quick-save target directory for the completion coordinator.
+        "screenshot.quickSaveDirectory": "~/Desktop",
         // v1.2: appearance mode (system/light/dark).
         "appearance.mode": "system",
         // v1.2: security-scoped bookmark for a user-chosen data/screenshot directory (nil by default).

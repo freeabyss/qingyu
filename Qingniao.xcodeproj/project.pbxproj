@@ -29,6 +29,10 @@
 		AB0100000000000000000066 /* Qingniao/Views/Components/ScreenshotShortcutHintsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0100000000000000000065 /* Qingniao/Views/Components/ScreenshotShortcutHintsView.swift */; };
 		AB0100000000000000000068 /* CaptureSessionControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0100000000000000000067 /* CaptureSessionControllerTests.swift */; };
 		AB0100000000000000000070 /* ScreenshotOverlayUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0100000000000000000069 /* ScreenshotOverlayUITests.swift */; };
+		AB0100000000000000000072 /* Qingniao/Services/ScreenshotService/CaptureCompletionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0100000000000000000071 /* Qingniao/Services/ScreenshotService/CaptureCompletionCoordinator.swift */; };
+		AB0100000000000000000074 /* Qingniao/Services/ScreenshotService/ColorSampler.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0100000000000000000073 /* Qingniao/Services/ScreenshotService/ColorSampler.swift */; };
+		AB0100000000000000000076 /* CaptureCompletionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0100000000000000000075 /* CaptureCompletionTests.swift */; };
+		AB0100000000000000000078 /* ColorSamplerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0100000000000000000077 /* ColorSamplerTests.swift */; };
 		48960A05A2DF71B339FEDE8A /* ClipboardWindowUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A66E86C8A0860C49F8909E51 /* ClipboardWindowUITests.swift */; };
 		68463D96302B2DE20044EC9B /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = A10007000000000000000001 /* GRDB */; };
 		68463D97302B2DE20044EC9B /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = A10007000000000000000002 /* KeyboardShortcuts */; };
@@ -183,6 +187,10 @@
 		AB0100000000000000000065 /* Qingniao/Views/Components/ScreenshotShortcutHintsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingniao/Views/Components/ScreenshotShortcutHintsView.swift; sourceTree = SOURCE_ROOT; };
 		AB0100000000000000000067 /* CaptureSessionControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QingniaoTests/CaptureSessionControllerTests.swift; sourceTree = SOURCE_ROOT; };
 		AB0100000000000000000069 /* ScreenshotOverlayUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotOverlayUITests.swift; sourceTree = "<group>"; };
+		AB0100000000000000000071 /* Qingniao/Services/ScreenshotService/CaptureCompletionCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingniao/Services/ScreenshotService/CaptureCompletionCoordinator.swift; sourceTree = SOURCE_ROOT; };
+		AB0100000000000000000073 /* Qingniao/Services/ScreenshotService/ColorSampler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingniao/Services/ScreenshotService/ColorSampler.swift; sourceTree = SOURCE_ROOT; };
+		AB0100000000000000000075 /* CaptureCompletionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QingniaoTests/CaptureCompletionTests.swift; sourceTree = SOURCE_ROOT; };
+		AB0100000000000000000077 /* ColorSamplerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QingniaoTests/ColorSamplerTests.swift; sourceTree = SOURCE_ROOT; };
 		AB0100000000000000000001 /* Qingniao/Plugins/Core/PluginTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingniao/Plugins/Core/PluginTypes.swift; sourceTree = SOURCE_ROOT; };
 		AB0100000000000000000003 /* Qingniao/Plugins/Core/PluginRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingniao/Plugins/Core/PluginRegistry.swift; sourceTree = SOURCE_ROOT; };
 		342931FCF5D4AB36B533F4B7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -510,6 +518,8 @@
 				AB0100000000000000000005 /* PluginRegistryTests.swift */,
 				AB0100000000000000000057 /* CaptureSessionStateTests.swift */,
 				AB0100000000000000000067 /* CaptureSessionControllerTests.swift */,
+				AB0100000000000000000075 /* CaptureCompletionTests.swift */,
+				AB0100000000000000000077 /* ColorSamplerTests.swift */,
 			);
 			path = QingniaoTests;
 			sourceTree = "<group>";
@@ -663,6 +673,8 @@
 				AB0100000000000000000053 /* Qingniao/Services/ScreenshotService/CaptureSessionState.swift */,
 				AB0100000000000000000055 /* Qingniao/Services/ScreenshotService/ScreenCaptureBackend.swift */,
 				AB0100000000000000000061 /* Qingniao/Services/ScreenshotService/WindowCandidateProvider.swift */,
+				AB0100000000000000000071 /* Qingniao/Services/ScreenshotService/CaptureCompletionCoordinator.swift */,
+				AB0100000000000000000073 /* Qingniao/Services/ScreenshotService/ColorSampler.swift */,
 			);
 			path = ScreenshotService;
 			sourceTree = "<group>";
@@ -990,6 +1002,8 @@
 				AB0100000000000000000062 /* Qingniao/Services/ScreenshotService/WindowCandidateProvider.swift in Sources */,
 				AB0100000000000000000064 /* Qingniao/App/Controllers/CaptureSessionController.swift in Sources */,
 				AB0100000000000000000066 /* Qingniao/Views/Components/ScreenshotShortcutHintsView.swift in Sources */,
+				AB0100000000000000000072 /* Qingniao/Services/ScreenshotService/CaptureCompletionCoordinator.swift in Sources */,
+				AB0100000000000000000074 /* Qingniao/Services/ScreenshotService/ColorSampler.swift in Sources */,
 				A10001000000000000000027 /* ScreenshotOverlay.swift in Sources */,
 				A1000100000000000000002C /* KeyEventHandler.swift in Sources */,
 				A100010000000000000000A1 /* AutoFocusTextField.swift in Sources */,
@@ -1047,6 +1061,8 @@
 				AB0100000000000000000046 /* SettingsNavigationTests.swift in Sources */,
 				AB0100000000000000000058 /* CaptureSessionStateTests.swift in Sources */,
 				AB0100000000000000000068 /* CaptureSessionControllerTests.swift in Sources */,
+				AB0100000000000000000076 /* CaptureCompletionTests.swift in Sources */,
+				AB0100000000000000000078 /* ColorSamplerTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1209,7 +1225,7 @@
 				CODE_SIGN_ENTITLEMENTS = Qingniao/Qingniao.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 208;
+				CURRENT_PROJECT_VERSION = 209;
 				DEVELOPMENT_TEAM = 454XB348PX;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -1218,7 +1234,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.2.8;
+				MARKETING_VERSION = 0.2.9;
 				PRODUCT_BUNDLE_IDENTIFIER = com.assistant.app;
 				PRODUCT_MODULE_NAME = Qingniao;
 				PRODUCT_NAME = Qingniao;
@@ -1234,7 +1250,7 @@
 				CODE_SIGN_ENTITLEMENTS = Qingniao/Qingniao.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 208;
+				CURRENT_PROJECT_VERSION = 209;
 				DEVELOPMENT_TEAM = 454XB348PX;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -1243,7 +1259,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.2.8;
+				MARKETING_VERSION = 0.2.9;
 				PRODUCT_BUNDLE_IDENTIFIER = com.assistant.app;
 				PRODUCT_MODULE_NAME = Qingniao;
 				PRODUCT_NAME = Qingniao;

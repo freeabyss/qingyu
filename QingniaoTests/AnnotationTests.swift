@@ -2,6 +2,7 @@ import XCTest
 @testable import Qingniao
 import AppKit
 
+@MainActor
 final class AnnotationTests: XCTestCase {
     func testRegionCaptureSessionGuardOnlyAllowsMatchingSessionToFinish() {
         let activeID = UUID()
@@ -133,5 +134,106 @@ final class AnnotationTests: XCTestCase {
 
         XCTAssertGreaterThan(png.count, 8)
         XCTAssertEqual(Array(png.prefix(8)), [137, 80, 78, 71, 13, 10, 26, 10])
+    }
+
+    // MARK: - Task 007: line / polyline / rotation / clear rules
+
+    private func makeCanvasState() -> AnnotationCanvasState {
+        AnnotationCanvasState(image: NSImage(size: NSSize(width: 400, height: 300)))
+    }
+
+    func testPolylineShapeCompletedWithTwoOrMorePoints() {
+        let state = makeCanvasState()
+        let polyline = AnnotationShape(
+            tool: .polyline,
+            startPoint: CGPoint(x: 10, y: 10),
+            endPoint: nil,
+            points: [CGPoint(x: 10, y: 10), CGPoint(x: 60, y: 40), CGPoint(x: 120, y: 20)],
+            style: AnnotationStyle()
+        )
+
+        state.append(polyline)
+
+        XCTAssertEqual(state.shapes.last?.points.count, 3, "折线至少两个顶点才能完成")
+        XCTAssertEqual(state.shapes.last?.rect.width, 110)
+    }
+
+    func testLineAndPolylineRenderIntoFlattenedOutput() throws {
+        let image = NSImage(size: NSSize(width: 100, height: 100))
+        image.lockFocus()
+        NSColor.white.setFill()
+        NSRect(origin: .zero, size: image.size).fill()
+        image.unlockFocus()
+
+        let line = AnnotationShape(
+            tool: .line,
+            startPoint: CGPoint(x: 5, y: 5),
+            endPoint: CGPoint(x: 90, y: 90),
+            style: AnnotationStyle()
+        )
+        let polyline = AnnotationShape(
+            tool: .polyline,
+            startPoint: CGPoint(x: 5, y: 5),
+            endPoint: nil,
+            points: [CGPoint(x: 5, y: 5), CGPoint(x: 50, y: 95), CGPoint(x: 95, y: 5)],
+            style: AnnotationStyle()
+        )
+
+        let flattened = AnnotationFlattener.flatten(image: image, shapes: [line, polyline])
+        let png = try XCTUnwrap(AnnotationFlattener.pngData(from: flattened))
+        XCTAssertGreaterThan(png.count, 0)
+    }
+
+    func testClearAllEmptiesShapesAndDisablesRedo() {
+        let state = makeCanvasState()
+        state.append(AnnotationShape(
+            tool: .rectangle,
+            startPoint: .zero,
+            endPoint: CGPoint(x: 10, y: 10),
+            style: AnnotationStyle()
+        ))
+        state.undo()
+        XCTAssertTrue(state.canRedo)
+
+        state.clearAll()
+
+        XCTAssertTrue(state.shapes.isEmpty)
+        XCTAssertFalse(state.canRedo, "清空后不可重做")
+    }
+
+    func testTextRotationAppliesAndShiftResets() throws {
+        let image = NSImage(size: NSSize(width: 100, height: 100))
+        image.lockFocus()
+        NSColor.white.setFill()
+        NSRect(origin: .zero, size: image.size).fill()
+        image.unlockFocus()
+
+        var shape = AnnotationShape(
+            tool: .text,
+            startPoint: CGPoint(x: 20, y: 20),
+            endPoint: nil,
+            text: "旋转文字",
+            style: AnnotationStyle()
+        )
+        shape.rotationRadians = .pi / 6
+
+        let flattened = AnnotationFlattener.flatten(image: image, shapes: [shape])
+        XCTAssertGreaterThan(try XCTUnwrap(AnnotationFlattener.pngData(from: flattened)).count, 0)
+
+        // ⇧ 复位：角度归零。
+        shape.resetRotation()
+        XCTAssertEqual(shape.rotationRadians, 0)
+    }
+
+    func testWidthShortcutCyclesLineWidth() {
+        // 宽度快捷键：细 → 中 → 粗 → 细。
+        var style = AnnotationStyle()
+        style.lineWidth = .thin
+        style.lineWidth = AnnotationLineWidth.allCases[(AnnotationLineWidth.allCases.firstIndex(of: style.lineWidth)! + 1) % 3]
+        XCTAssertEqual(style.lineWidth, .medium)
+        style.lineWidth = AnnotationLineWidth.allCases[(AnnotationLineWidth.allCases.firstIndex(of: style.lineWidth)! + 1) % 3]
+        XCTAssertEqual(style.lineWidth, .thick)
+        style.lineWidth = AnnotationLineWidth.allCases[(AnnotationLineWidth.allCases.firstIndex(of: style.lineWidth)! + 1) % 3]
+        XCTAssertEqual(style.lineWidth, .thin)
     }
 }

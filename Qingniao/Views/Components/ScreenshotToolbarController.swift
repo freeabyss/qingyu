@@ -29,6 +29,10 @@ enum ScreenshotToolbarAction {
 @MainActor
 final class ScreenshotToolbarController {
     private let logger = Logger.screenshot
+    /// Task 007: all terminal actions flow through the completion coordinator;
+    /// successful outcomes are recorded into the in-memory capture history.
+    private let completionCoordinator = CaptureCompletionCoordinator()
+    private let captureHistory = CaptureHistory.shared
 
     private var window: ScreenshotPreviewWindow?
     private var annotationWindow: AnnotationEditorWindow?
@@ -182,6 +186,7 @@ final class ScreenshotToolbarController {
         case .copy:
             do {
                 try copyToPasteboard(result.imageData)
+                captureHistory.record(result, completion: .copied)
                 if regionCleanup != nil {
                     dismiss(reason: .action)
                     return
@@ -197,6 +202,7 @@ final class ScreenshotToolbarController {
         case .save:
             do {
                 let url = try savePNG(result.imageData, date: result.captureDate)
+                captureHistory.record(result, completion: .saved(url))
                 if regionCleanup != nil {
                     dismiss(reason: .action)
                     return
@@ -215,6 +221,7 @@ final class ScreenshotToolbarController {
             }
             do {
                 try result.imageData.write(to: url, options: .atomic)
+                captureHistory.record(result, completion: .saved(url))
                 logger.info("Screenshot saved via panel to \(url.path, privacy: .public)")
                 if regionCleanup != nil {
                     dismiss(reason: .action)
@@ -275,9 +282,11 @@ final class ScreenshotToolbarController {
                     self.annotationWindow = nil
                     switch completion {
                     case .copied:
+                        self.recordAnnotatedExport(of: result, completion: .copied)
                         viewModel?.showToast(L10n.localized("screenshot.toast.copied"))
                         self.dismiss(reason: .action)
                     case .saved(let url):
+                        self.recordAnnotatedExport(of: result, completion: .saved(url))
                         viewModel?.showToast(L10n.localized("screenshot.toast.saved", url.deletingLastPathComponent().path))
                         self.dismiss(reason: .action)
                     case .cancelled:
@@ -294,6 +303,20 @@ final class ScreenshotToolbarController {
         annotationWindow = editor
         editor.present()
         logger.info("Screenshot annotation editor opened")
+    }
+
+    /// 标注导出只含已完成标注：把扁平化后的图像登记为一条记录。
+    private func recordAnnotatedExport(of result: ScreenshotResult, completion: CaptureCompletion) {
+        let annotated = ScreenshotResult(
+            id: result.id,
+            imageData: result.imageData,
+            width: result.width,
+            height: result.height,
+            captureDate: result.captureDate,
+            sourceType: result.sourceType,
+            regionSelection: result.regionSelection
+        )
+        captureHistory.record(annotated, completion: completion)
     }
 
     private func copyToPasteboard(_ pngData: Data) throws {

@@ -7,6 +7,8 @@ import CoreImage
 enum AnnotationTool: String, Codable, CaseIterable, Identifiable {
     case rectangle
     case arrow
+    case line
+    case polyline
     case text
     case mosaic
 
@@ -16,6 +18,8 @@ enum AnnotationTool: String, Codable, CaseIterable, Identifiable {
         switch self {
         case .rectangle: return L10n.localized("annotation.tool.rectangle")
         case .arrow: return L10n.localized("annotation.tool.arrow")
+        case .line: return L10n.localized("annotation.tool.line")
+        case .polyline: return L10n.localized("annotation.tool.polyline")
         case .text: return L10n.localized("annotation.tool.text")
         case .mosaic: return L10n.localized("annotation.tool.mosaic")
         }
@@ -25,6 +29,8 @@ enum AnnotationTool: String, Codable, CaseIterable, Identifiable {
         switch self {
         case .rectangle: return "rectangle"
         case .arrow: return "arrow.up.right"
+        case .line: return "line.diagonal"
+        case .polyline: return "point.topleft.down.curvedto.point.bottomright.up"
         case .text: return "textformat"
         case .mosaic: return "square.grid.3x3.square"
         }
@@ -114,10 +120,24 @@ struct AnnotationShape: Identifiable, Hashable, Codable {
     var tool: AnnotationTool
     var startPoint: CGPoint
     var endPoint: CGPoint?
+    /// Task 007: polyline vertex list（≥2 个点构成折线）。
+    var points: [CGPoint] = []
+    /// Task 007: 文字等形状的旋转角（弧度，绕 startPoint）。
+    var rotationRadians: CGFloat = 0
     var text: String?
     var style: AnnotationStyle
 
     var rect: CGRect {
+        if !points.isEmpty {
+            let xs = points.map(\.x)
+            let ys = points.map(\.y)
+            return CGRect(
+                x: xs.min() ?? 0,
+                y: ys.min() ?? 0,
+                width: (xs.max() ?? 0) - (xs.min() ?? 0),
+                height: (ys.max() ?? 0) - (ys.min() ?? 0)
+            ).standardized
+        }
         let end = endPoint ?? startPoint
         return CGRect(
             x: min(startPoint.x, end.x),
@@ -125,6 +145,11 @@ struct AnnotationShape: Identifiable, Hashable, Codable {
             width: abs(startPoint.x - end.x),
             height: abs(startPoint.y - end.y)
         ).standardized
+    }
+
+    /// `⇧` 复位：撤销已应用的旋转（角度归零，不改变位置）。
+    mutating func resetRotation() {
+        rotationRadians = 0
     }
 }
 
@@ -142,6 +167,10 @@ enum AnnotationRenderer {
                 drawRectangle(shape)
             case .arrow:
                 drawArrow(shape)
+            case .line:
+                drawLine(shape)
+            case .polyline:
+                drawPolyline(shape)
             case .text:
                 drawText(shape)
             case .mosaic:
@@ -191,6 +220,31 @@ enum AnnotationRenderer {
         headPath.fill()
     }
 
+    private static func drawLine(_ shape: AnnotationShape) {
+        guard let end = shape.endPoint else { return }
+        let path = NSBezierPath()
+        path.lineWidth = shape.style.lineWidth.points
+        path.lineCapStyle = .round
+        shape.style.color.nsColor.setStroke()
+        path.move(to: shape.startPoint)
+        path.line(to: end)
+        path.stroke()
+    }
+
+    private static func drawPolyline(_ shape: AnnotationShape) {
+        guard shape.points.count >= 2 else { return }
+        let path = NSBezierPath()
+        path.lineWidth = shape.style.lineWidth.points
+        path.lineCapStyle = .round
+        path.lineJoinStyle = .round
+        shape.style.color.nsColor.setStroke()
+        path.move(to: shape.points[0])
+        for point in shape.points.dropFirst() {
+            path.line(to: point)
+        }
+        path.stroke()
+    }
+
     private static func drawText(_ shape: AnnotationShape) {
         guard let text = shape.text, !text.isEmpty else { return }
         let attributes: [NSAttributedString.Key: Any] = [
@@ -199,7 +253,16 @@ enum AnnotationRenderer {
             .strokeColor: NSColor.black.withAlphaComponent(shape.style.color == .black ? 0 : 0.35),
             .strokeWidth: -2.0
         ]
-        NSAttributedString(string: text, attributes: attributes).draw(at: shape.startPoint)
+        guard shape.rotationRadians != 0 else {
+            NSAttributedString(string: text, attributes: attributes).draw(at: shape.startPoint)
+            return
+        }
+        guard let context = NSGraphicsContext.current?.cgContext else { return }
+        context.saveGState()
+        context.translateBy(x: shape.startPoint.x, y: shape.startPoint.y)
+        context.rotate(by: shape.rotationRadians)
+        NSAttributedString(string: text, attributes: attributes).draw(at: .zero)
+        context.restoreGState()
     }
 
     private static func drawMosaic(_ shape: AnnotationShape, sourceImage: NSImage?) {

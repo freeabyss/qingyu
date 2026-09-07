@@ -39,6 +39,15 @@ final class AnnotationCanvasState: ObservableObject {
         objectWillChange.send()
     }
 
+    /// 清空全部标注；清空同时清掉重做栈（清空后不可重做）。
+    func clearAll() {
+        guard !shapes.isEmpty || !redoStack.isEmpty else { return }
+        shapes.removeAll()
+        redoStack.removeAll()
+        draftShape = nil
+        objectWillChange.send()
+    }
+
     func renderedPNGData() throws -> Data {
         let flattened = AnnotationFlattener.flatten(image: sourceImage, shapes: shapes)
         guard let png = AnnotationFlattener.pngData(from: flattened) else {

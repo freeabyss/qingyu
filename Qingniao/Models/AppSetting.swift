@@ -53,6 +53,7 @@ enum SettingKey: String, CaseIterable, Codable {
     case settingsSourceEnabled = "search.source.settings.enabled"
     case fileSourceEnabled = "search.source.file.enabled"
     case screenshotSaveDirectory = "screenshot.saveDirectory"
+    case screenshotQuickSaveDirectory = "screenshot.quickSaveDirectory"
     case appearanceMode = "appearance.mode"
     case dataFolderBookmark = "data.folderBookmark"
     case languageMode = "language.mode"
