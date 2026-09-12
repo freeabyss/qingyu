@@ -33,6 +33,10 @@ extension KeyboardShortcuts.Name {
     /// Default shortcut: ⌥⌘, (v1.2 新增, per PRD §9.6).
     static let openSettings = Self("openSettings", default: .init(.comma, modifiers: [.option, .command]))
 
+    /// Task 008: toggle mouse-events passthrough for all runtime pins.
+    /// Not part of `managedGlobalShortcuts` (bulk reset covers the six core slots).
+    static let pinToggleMouseEvents = Self("pinToggleMouseEvents")
+
     /// All global shortcuts managed by `GlobalShortcutManager`. Used for bulk
     /// registration, conflict scanning, and "reset to defaults".
     static let managedGlobalShortcuts: [KeyboardShortcuts.Name] = [

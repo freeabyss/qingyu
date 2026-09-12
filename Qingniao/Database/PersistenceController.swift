@@ -352,6 +352,9 @@ struct AssistantSettingDefaults {
         "screenshot.saveDirectory": "~/Desktop",
         // Task 007: quick-save target directory for the completion coordinator.
         "screenshot.quickSaveDirectory": "~/Desktop",
+        // Task 008: pin (贴图) defaults — file-path→image on first pin, restore queue of 1.
+        "pin.filePathToImage": "true",
+        "pin.restoreCapacity": "1",
         // v1.2: appearance mode (system/light/dark).
         "appearance.mode": "system",
         // v1.2: security-scoped bookmark for a user-chosen data/screenshot directory (nil by default).

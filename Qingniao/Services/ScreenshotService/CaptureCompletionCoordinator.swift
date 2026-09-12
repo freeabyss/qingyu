@@ -3,7 +3,7 @@ import AppKit
 
 // MARK: - Capture completion model (Task 007)
 
-/// 一次成功截图的终局类型。`pinned` 由 Task 008 的贴图转换签发记录 ID。
+/// 一次成功截图的终局类型。`pinned` 由 Task 008 的贴图转换签发贴图条目 ID。
 enum CaptureCompletion: Equatable {
     case copied
     case saved(URL)
@@ -11,7 +11,7 @@ enum CaptureCompletion: Equatable {
     case pinned(UUID)
 }
 
-/// 用户可触发的终局动作；打印不进入历史记录。
+/// 用户可触发的终局动作；成功终局仅结束当前截图会话，不保留历史记录。
 enum CaptureCompletionAction {
     case copy
     case save
@@ -35,7 +35,7 @@ struct CaptureCompletionHandlers {
     var savePanel: (String) async -> URL?
     /// 贴图转换（Task 008 注入）；未注入时贴图不可用。
     var pin: ((ScreenshotResult) async throws -> UUID)?
-    /// 打印（不写入历史）。
+    /// 打印（仅结束会话，不产生记录）。
     var print: ((ScreenshotResult) -> Void)?
 
     static func live() -> CaptureCompletionHandlers {
@@ -97,25 +97,18 @@ enum CaptureCompletionError: LocalizedError, Equatable {
 // MARK: - CaptureCompletionCoordinator
 
 /// 所有截图终局的唯一出口：复制、保存、快捷保存、贴图、打印。
-/// 失败与用户取消向上抛错，由调用方保留会话且不写记录；
-/// 只有 `.completed` 终局应写入 `CaptureHistory`。
+/// 失败与用户取消向上抛错，由调用方保留会话；
+/// 成功终局仅结束当前会话，不保留任何历史记录。
 @MainActor
 final class CaptureCompletionCoordinator {
     private let handlers: CaptureCompletionHandlers
-    /// 注入后：每个 `.completed` 终局自动写入一条运行期记录（单点保证不重不漏）。
-    private let history: CaptureHistory?
 
-    init(handlers: CaptureCompletionHandlers = .live(), history: CaptureHistory? = nil) {
+    init(handlers: CaptureCompletionHandlers = .live()) {
         self.handlers = handlers
-        self.history = history
     }
 
     func perform(_ action: CaptureCompletionAction, result: ScreenshotResult) async throws -> CaptureCompletionOutcome {
-        let outcome = try await resolve(action, result: result)
-        if case .completed(let completion) = outcome {
-            history?.record(result, completion: completion)
-        }
-        return outcome
+        try await resolve(action, result: result)
     }
 
     private func resolve(_ action: CaptureCompletionAction, result: ScreenshotResult) async throws -> CaptureCompletionOutcome {
@@ -173,70 +166,4 @@ final class CaptureCompletionCoordinator {
             throw CaptureCompletionError.fileWriteFailed
         }
     }
-}
-
-// MARK: - CaptureHistory
-
-/// 运行期截图记录：内存队列，默认 20 条、范围 `1…200`，超出丢弃最旧记录。
-/// `,` 跳到上一条（更旧）、`.` 跳到下一条（更新），边界不循环。
-/// 截图会话状态不写 Core Data。
-@MainActor
-final class CaptureHistory {
-    struct Entry {
-        let result: ScreenshotResult
-        let completion: CaptureCompletion
-    }
-
-    static let defaultMaximumCount = 20
-    static let minimumAllowedCount = 1
-    static let maximumAllowedCount = 200
-
-    private(set) var maximumCount: Int
-    private var entries: [Entry] = []
-
-    var count: Int { entries.count }
-
-    init(maximumCount: Int = CaptureHistory.defaultMaximumCount) {
-        self.maximumCount = min(max(maximumCount, Self.minimumAllowedCount), Self.maximumAllowedCount)
-    }
-
-    /// 只在成功终局时调用：每个终局恰好一条记录。
-    func record(_ result: ScreenshotResult, completion: CaptureCompletion) {
-        entries.append(Entry(result: result, completion: completion))
-        if entries.count > maximumCount {
-            entries.removeFirst(entries.count - maximumCount)
-        }
-    }
-
-    /// `⌘,`：`from` 为 nil 时返回最新记录；已是最旧时返回 nil（不循环）。
-    func previous(from id: UUID?) -> ScreenshotResult? {
-        guard !entries.isEmpty else { return nil }
-        guard let id,
-              let index = entries.lastIndex(where: { $0.result.id == id }) else {
-            return entries.last?.result
-        }
-        guard index > 0 else { return nil }
-        return entries[index - 1].result
-    }
-
-    /// `⌘.`：跳到下一条（更新）；已是最新或 `from` 未知时返回 nil（不循环）。
-    func next(from id: UUID?) -> ScreenshotResult? {
-        guard let id,
-              let index = entries.lastIndex(where: { $0.result.id == id }) else {
-            return nil
-        }
-        guard index < entries.count - 1 else { return nil }
-        return entries[index + 1].result
-    }
-
-    func contains(id: UUID) -> Bool {
-        entries.contains { $0.result.id == id }
-    }
-
-    func clear() {
-        entries.removeAll()
-    }
-
-    /// UI 层共享的运行期记录（会话状态不写 Core Data）。
-    static let shared = CaptureHistory()
 }

@@ -86,9 +86,10 @@ final class OnboardingUITests: XCTestCase {
         launchApp(arguments: ["--uitest-reset-onboarding"] + commonArgs(dataDir: dir))
 
         XCTAssertTrue(waitForOnboarding(timeout: 10), "onboarding 窗口应出现")
-        // 标题文案"欢迎使用 青鸟 Qingniao"（cases.md 步骤4，用 CONTAINS 兜底）
+        // 标题文案"欢迎使用 青鸟 Qingniao"（cases.md 步骤4，用 CONTAINS 兜底；
+        // AX StaticText 在当前 macOS 运行时只带 value 不带 label，label/value 双匹配）
         let title = app!.staticTexts.containing(
-            NSPredicate(format: "label CONTAINS %@", "青鸟")
+            NSPredicate(format: "label CONTAINS %@ OR value CONTAINS %@", "青鸟", "青鸟")
         ).firstMatch
         XCTAssertTrue(title.waitForExistence(timeout: 5), "标题文案应含「青鸟」")
     }

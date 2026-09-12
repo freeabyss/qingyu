@@ -54,6 +54,9 @@ enum SettingKey: String, CaseIterable, Codable {
     case fileSourceEnabled = "search.source.file.enabled"
     case screenshotSaveDirectory = "screenshot.saveDirectory"
     case screenshotQuickSaveDirectory = "screenshot.quickSaveDirectory"
+    // Task 008: pin (贴图) settings.
+    case pinFilePathToImage = "pin.filePathToImage"
+    case pinRestoreCapacity = "pin.restoreCapacity"
     case appearanceMode = "appearance.mode"
     case dataFolderBookmark = "data.folderBookmark"
     case languageMode = "language.mode"

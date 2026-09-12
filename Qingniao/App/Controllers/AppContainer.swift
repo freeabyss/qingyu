@@ -69,6 +69,27 @@ final class AppContainer: NSObject {
     /// page for the five-page sidebar; capture wiring moves in at Task 009.
     private(set) lazy var screenshotPlugin = ScreenshotPlugin()
 
+    /// Task 008: runtime pin (贴图) state and windows. Settings values are read
+    /// asynchronously and applied to the store/factory after load.
+    private(set) lazy var pinWindowController: PinWindowController = {
+        let controller = PinWindowController(
+            store: PinStore(),
+            payloadFactory: PinPayloadFactory(),
+            onOpenSettings: { [weak self] in
+                // ⇧⌘P / 贴图右键菜单：复用统一设置窗口路由打开「截图与贴图」页。
+                self?.settingsWindowController.show(route: .screenshot)
+            }
+        )
+        Task { [weak self] in
+            guard let self else { return }
+            let settings = SettingsService(persistence: .shared)
+            let filePathToImage = (try? await settings.value(for: .pinFilePathToImage, as: Bool.self)) ?? true
+            let capacity = (try? await settings.value(for: .pinRestoreCapacity, as: Int.self)) ?? PinStore.defaultRestoreCapacity
+            self.pinWindowController.applySettings(filePathToImage: filePathToImage, restoreCapacity: capacity)
+        }
+        return controller
+    }()
+
     private var builtInPluginsRegistered = false
 
     /// Registers compiled-in plugins. Idempotent; individual start failures are
@@ -87,7 +108,10 @@ final class AppContainer: NSObject {
         }
     }
 
-    private let appSearchSource = AppSearchSource()
+    /// Lazy：`UsageStatRepository` 默认捕获 `PersistenceController.shared`，
+    /// 必须在 AppDelegate `configureUITestDataDir`（--uitest-data-dir 隔离）之后才构造，
+    /// 否则会落在外部从未 load 的默认栈上（UI 测试执行应用启动结果即崩溃）。
+    private(set) lazy var appSearchSource = AppSearchSource()
     private let systemCommandSource = SystemCommandSource()
     private let calculatorSearchSource = CalculatorSource()
     private let fileSearchSource = FileSearchSource()
@@ -255,6 +279,7 @@ final class AppContainer: NSObject {
 
     func stopRuntimeServices() {
         cleanupService.stop()
+        pinWindowController.destroyAll()
         Task { await pluginRegistry.stopAll() }
     }
 

@@ -13,7 +13,15 @@ final class ScreenshotWindowController {
     private unowned let container: AppContainer
 
     /// Created lazily so the toolbar controller is only built on first capture.
-    private lazy var toolbar = ScreenshotToolbarController()
+    /// Task 008: the pin terminal action converts the capture into a pin window.
+    private lazy var toolbar = ScreenshotToolbarController(pinHandler: { [weak self] result in
+        guard let self else {
+            throw SnapVaultError.screenshotFailed(reason: L10n.localized("error.serviceDeallocated"))
+        }
+        let item = self.container.pinWindowController.present(result)
+        // 终局由 CaptureCompletionCoordinator 统一处理：成功仅结束会话，不保留历史。
+        return item.id
+    })
 
     init(container: AppContainer) {
         self.container = container

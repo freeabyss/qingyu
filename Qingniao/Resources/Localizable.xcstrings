@@ -1,6 +1,258 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "pin.error.emptyPasteboard" : {
+      "comment" : "Pin error: pasteboard has no supported payload",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clipboard has no pinnable content"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "剪贴板没有可贴图的内容"
+          }
+        }
+      }
+    },
+    "pin.error.imageDecodeFailed" : {
+      "comment" : "Pin error: image payload failed to decode",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Image could not be decoded"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "图片无法解码"
+          }
+        }
+      }
+    },
+    "pin.error.htmlParseFailed" : {
+      "comment" : "Pin error: HTML payload failed to parse",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rich text could not be parsed"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "富文本无法解析"
+          }
+        }
+      }
+    },
+    "pin.menu.close" : {
+      "comment" : "Pin context menu: close pin and enter restore queue (⌘W)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close Pin"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关闭贴图"
+          }
+        }
+      }
+    },
+    "pin.menu.copyPlainText" : {
+      "comment" : "Pin context menu: copy plain text from text/HTML pin (⇧⌘C)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy Plain Text"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "复制纯文本"
+          }
+        }
+      }
+    },
+    "pin.menu.destroy" : {
+      "comment" : "Pin context menu: destroy pin permanently (⇧Esc)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Destroy Pin"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "销毁贴图"
+          }
+        }
+      }
+    },
+    "pin.menu.openSettings" : {
+      "comment" : "Pin context menu: open screenshot & pin settings (⇧⌘P)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Screenshot & Pin Settings"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开截图与贴图设置"
+          }
+        }
+      }
+    },
+    "screenshot.toolbar.pin" : {
+      "comment" : "Screenshot toolbar: pin button",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pin"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "贴图"
+          }
+        }
+      }
+    },
+    "screenshot.toast.pinned" : {
+      "comment" : "Screenshot toast: pinned",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pinned"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已贴图"
+          }
+        }
+      }
+    },
+    "screenshot.toast.pinFailed" : {
+      "comment" : "Screenshot toast: pin failed",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pin failed: %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "贴图失败：%@"
+          }
+        }
+      }
+    },
+    "settings.pin.section" : {
+      "comment" : "Screenshot settings: pin section header",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pins"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "贴图"
+          }
+        }
+      }
+    },
+    "settings.pin.filePathToImage" : {
+      "comment" : "Pin setting: first pin of a file path converts to image",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "File path → image on first pin"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文件路径首贴转图片"
+          }
+        }
+      }
+    },
+    "settings.pin.restoreCapacity" : {
+      "comment" : "Pin setting: restore queue capacity",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restore queue"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "恢复队列"
+          }
+        }
+      }
+    },
+    "settings.pin.mouseEventsShortcut" : {
+      "comment" : "Pin setting: mouse-events passthrough shortcut",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mouse passthrough shortcut"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "鼠标穿透快捷键"
+          }
+        }
+      }
+    },
     "screenshot.hint.clickWindow" : {
       "comment" : "Screenshot overlay hint: click to capture window",
       "extractionState" : "manual",

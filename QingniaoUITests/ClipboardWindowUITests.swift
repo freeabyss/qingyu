@@ -85,13 +85,18 @@ final class ClipboardWindowUITests: XCTestCase {
         }
 
         // 类型筛选：收拢在命令栏样式的筛选菜单；展开后应可选择文本类型。
-        let filterMenu = app.buttons["clipboard.filterMenu"]
+        // SwiftUI Menu 在当前 macOS 运行时的 AX 类型是 MenuButton（非 Button），
+        // 用任意类型 + identifier 匹配，避免对元素类型的硬依赖（同 PinWindowUITests）。
+        let filterMenu = app.descendants(matching: .any).matching(identifier: "clipboard.filterMenu").firstMatch
         XCTAssertTrue(filterMenu.waitForExistence(timeout: 5), "TC-UI-021: 搜索栏应包含筛选菜单")
         XCTAssertTrue(filterMenu.isHittable, "TC-UI-021: 筛选菜单应可点击")
         filterMenu.click()
         XCTAssertTrue(app.menuItems["文本"].waitForExistence(timeout: 3),
                       "TC-UI-021: 筛选菜单应包含\"文本\"")
         app.typeKey(.escape, modifierFlags: [])
+        // 等筛选菜单完全收起再聚焦搜索框：菜单收起动画会吞掉随后的首次点击聚焦，
+        // 导致 typeText 因字段无键盘焦点而失败（macOS 26 实测）。
+        Thread.sleep(forTimeInterval: 0.5)
 
         // 搜索框可见可聚焦（硬依赖 §0.5：clipboard.searchField）
         XCTAssertTrue(searchField.waitForExistence(timeout: 5),
@@ -99,8 +104,13 @@ final class ClipboardWindowUITests: XCTestCase {
         XCTAssertTrue(searchField.isHittable,
                       "TC-UI-021: 搜索框应可点击聚焦")
         searchField.click()
-        // 验证可输入：typeText 不抛错即视为可输入（cases.md §TC-UI-021：通过键盘输入验证可输入）
-        searchField.typeText("a")
+        // 验证可输入（cases.md §TC-UI-021：通过键盘输入验证可输入）。
+        // 用剪贴板粘贴而非 typeText：筛选菜单收起后字段的键盘焦点偶发不落地，
+        // typeText 会因 "Neither element nor any descendant has keyboard focus" 失败；
+        // Cmd+V 走应用级按键（仅需窗口为 key），对焦点竞态稳健。
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString("a", forType: .string)
+        searchField.typeKey("v", modifierFlags: .command)
         XCTAssertTrue(searchField.exists,
                       "TC-UI-021: 输入后搜索框应仍存在")
     }

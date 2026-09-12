@@ -131,9 +131,11 @@ final class MenuDispatchUITests: XCTestCase {
         app.launch()
         app.activate()
 
-        // 权限提示 NSAlert（cases.md §TC-UI-013：查 app.alerts.firstMatch 或 alert button 文案）
+        // NSAlert 在当前 macOS 运行时的 AX 类型是 Dialog（非 Alert/Sheet），
+        // 三种类型都查，避免对元素类型的硬依赖。
         let alert = app.alerts.firstMatch
-        let alertExists = alert.waitForExistence(timeout: 10)
+        let dialog = app.dialogs.firstMatch
+        let alertExists = alert.waitForExistence(timeout: 10) || dialog.waitForExistence(timeout: 3)
 
         // 兜底：macOS 权限提示有时以 sheet 形式呈现
         let sheet = app.sheets.firstMatch
@@ -157,12 +159,19 @@ final class MenuDispatchUITests: XCTestCase {
         app.launch()
         app.activate()
 
-        let sidebar = app.groups["settings.sidebar"]
+        // SwiftUI NavigationSplitView 侧栏在当前 macOS 运行时是 Outline 类型（非 Group），
+        // 用任意类型 + identifier 匹配，避免对元素类型的硬依赖（同 PinWindowUITests）。
+        let sidebar = app.descendants(matching: .any).matching(identifier: "settings.sidebar").firstMatch
         let sidebarExists = sidebar.waitForExistence(timeout: 10)
 
-        // 兜底：若 sidebar identifier 查询不到，按侧栏项文本查询（"概览"/"剪贴板历史"，实际 L10n）
-        let overviewText = app.staticTexts["概览"]
-        let clipboardText = app.staticTexts["剪贴板历史"]
+        // 兜底：若 sidebar identifier 查询不到，按侧栏项文本查询（"通用"/"剪贴板"，实际 L10n；
+        // AX StaticText 在当前运行时只带 value 不带 label，用 value 匹配）
+        let overviewText = app.staticTexts.containing(
+            NSPredicate(format: "label == %@ OR value == %@", "通用", "通用")
+        ).firstMatch
+        let clipboardText = app.staticTexts.containing(
+            NSPredicate(format: "label == %@ OR value == %@", "剪贴板", "剪贴板")
+        ).firstMatch
         let textExists = sidebarExists
             ? (overviewText.exists || clipboardText.exists)
             : (overviewText.waitForExistence(timeout: 3) || clipboardText.exists)
@@ -186,12 +195,13 @@ final class MenuDispatchUITests: XCTestCase {
         app.launch()
         app.activate()
 
-        // 关于页内容含 "青鸟" 或 "Qingniao"（实际：AboutPage 用 about.appName，OverviewPage 用字面量"青鸟 Qingniao"）
+        // 关于页内容含 "青鸟" 或 "Qingniao"（实际：AboutPage 用 about.appName，OverviewPage 用字面量"青鸟 Qingniao"；
+        // AX StaticText 在当前运行时只带 value 不带 label，label/value 双匹配）
         let qingniaoText = app.staticTexts.containing(
-            NSPredicate(format: "label CONTAINS %@", "青鸟")
+            NSPredicate(format: "label CONTAINS %@ OR value CONTAINS %@", "青鸟", "青鸟")
         ).firstMatch
         let pinyinText = app.staticTexts.containing(
-            NSPredicate(format: "label CONTAINS %@", "Qingniao")
+            NSPredicate(format: "label CONTAINS %@ OR value CONTAINS %@", "Qingniao", "Qingniao")
         ).firstMatch
         let qingniaoExists = qingniaoText.waitForExistence(timeout: 10)
         let pinyinExists = qingniaoExists

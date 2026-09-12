@@ -16,6 +16,8 @@ struct ScreenshotPluginSettingsPage: View {
     @AppStorage("screenshot.playSound") private var playSound = true
     @AppStorage("screenshot.includeShadow") private var includeShadow = true
 
+    @State private var pinFilePathToImage = true
+    @State private var pinRestoreCapacity = PinStore.defaultRestoreCapacity
     @State private var saveDirectory: URL = URL(fileURLWithPath: ("~/Desktop" as NSString).expandingTildeInPath)
     @State private var showDirectoryImporter = false
 
@@ -84,6 +86,43 @@ struct ScreenshotPluginSettingsPage: View {
                     Divider().overlay(JadeColor.border)
                     JadeSwitchRow(L10n.localized("management.screenshot.includeShadow"), isOn: $includeShadow)
                 }
+
+                SettingsSection("settings.pin.section") {
+                    JadeSwitchRow(
+                        L10n.localized("settings.pin.filePathToImage"),
+                        isOn: $pinFilePathToImage
+                    )
+                    .onChange(of: pinFilePathToImage) { newValue in
+                        Task { try? await viewModel.set(newValue, for: .pinFilePathToImage) }
+                    }
+                    Divider().overlay(JadeColor.border)
+                    VStack(alignment: .leading, spacing: JadeSpace.x2.value) {
+                        Text(L10n.localized("settings.pin.restoreCapacity"))
+                            .font(JadeFont.body)
+                        Picker("", selection: $pinRestoreCapacity) {
+                            ForEach(0...20, id: \.self) { count in
+                                Text("\(count)").tag(count)
+                            }
+                        }
+                        .labelsHidden()
+                        .pickerStyle(.menu)
+                        .onChange(of: pinRestoreCapacity) { newValue in
+                            Task { try? await viewModel.set(newValue, for: .pinRestoreCapacity) }
+                        }
+                    }
+                    Divider().overlay(JadeColor.border)
+                    HStack {
+                        Text(L10n.localized("settings.pin.mouseEventsShortcut"))
+                            .font(JadeFont.body)
+                            .foregroundStyle(JadeColor.textPrimary)
+                        Spacer()
+                        HotkeyRecorder(
+                            for: .pinToggleMouseEvents,
+                            isConflicting: .constant(false),
+                            conflictMessage: .constant(nil)
+                        )
+                    }
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(JadeSpace.x6.value)
@@ -117,5 +156,7 @@ struct ScreenshotPluginSettingsPage: View {
     private func load() async {
         saveDirectory = (try? await viewModel.value(for: .screenshotSaveDirectory, as: URL.self))
             ?? URL(fileURLWithPath: ("~/Desktop" as NSString).expandingTildeInPath)
+        pinFilePathToImage = (try? await viewModel.value(for: .pinFilePathToImage, as: Bool.self)) ?? true
+        pinRestoreCapacity = (try? await viewModel.value(for: .pinRestoreCapacity, as: Int.self)) ?? PinStore.defaultRestoreCapacity
     }
 }

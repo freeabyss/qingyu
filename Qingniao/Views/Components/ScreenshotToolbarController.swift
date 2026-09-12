@@ -10,6 +10,8 @@ enum ScreenshotToolbarAction {
     case save
     /// ⌥-click on Save (or explicit "save as") — opens an NSSavePanel.
     case saveAs
+    /// Task 008: 贴图 — converts the capture into a runtime pin window.
+    case pin
     case annotate(AnnotationTool)
     case cancel
     case dismiss
@@ -30,17 +32,16 @@ enum ScreenshotToolbarAction {
 final class ScreenshotToolbarController {
     private let logger = Logger.screenshot
     /// Task 007: all terminal actions flow through the completion coordinator;
-    /// successful outcomes are recorded into the in-memory capture history.
-    private let completionCoordinator = CaptureCompletionCoordinator()
-    private let captureHistory = CaptureHistory.shared
+    /// successful outcomes only end the current capture session (no history).
+    private let completionCoordinator: CaptureCompletionCoordinator
+    /// Task 008: pin handler converts a successful capture into a pin window.
+    private let pinHandler: ((ScreenshotResult) async throws -> UUID)?
 
-    private var window: ScreenshotPreviewWindow?
-    private var annotationWindow: AnnotationEditorWindow?
-    private var overlayCancelObserver: NSObjectProtocol?
-    private var toastWorkItem: DispatchWorkItem?
-    private var regionCleanup: (() -> Void)?
-
-    init() {
+    init(pinHandler: ((ScreenshotResult) async throws -> UUID)? = nil) {
+        self.pinHandler = pinHandler
+        var handlers = CaptureCompletionHandlers.live()
+        handlers.pin = pinHandler
+        self.completionCoordinator = CaptureCompletionCoordinator(handlers: handlers)
         overlayCancelObserver = NotificationCenter.default.addObserver(
             forName: .screenshotOverlayDidCancel,
             object: nil,
@@ -51,6 +52,12 @@ final class ScreenshotToolbarController {
             }
         }
     }
+
+    private var window: ScreenshotPreviewWindow?
+    private var annotationWindow: AnnotationEditorWindow?
+    private var overlayCancelObserver: NSObjectProtocol?
+    private var toastWorkItem: DispatchWorkItem?
+    private var regionCleanup: (() -> Void)?
 
     deinit {
         toastWorkItem?.cancel()
@@ -109,7 +116,7 @@ final class ScreenshotToolbarController {
                 self?.handle(action: action, result: result, viewModel: viewModel)
             }
         )
-        let toolbarSize = NSSize(width: 560, height: 64)
+        let toolbarSize = NSSize(width: 620, height: 64)
         let window = ScreenshotPreviewWindow(
             contentRect: NSRect(origin: .zero, size: toolbarSize),
             styleMask: [.borderless, .fullSizeContentView],
@@ -186,7 +193,6 @@ final class ScreenshotToolbarController {
         case .copy:
             do {
                 try copyToPasteboard(result.imageData)
-                captureHistory.record(result, completion: .copied)
                 if regionCleanup != nil {
                     dismiss(reason: .action)
                     return
@@ -202,7 +208,6 @@ final class ScreenshotToolbarController {
         case .save:
             do {
                 let url = try savePNG(result.imageData, date: result.captureDate)
-                captureHistory.record(result, completion: .saved(url))
                 if regionCleanup != nil {
                     dismiss(reason: .action)
                     return
@@ -221,7 +226,6 @@ final class ScreenshotToolbarController {
             }
             do {
                 try result.imageData.write(to: url, options: .atomic)
-                captureHistory.record(result, completion: .saved(url))
                 logger.info("Screenshot saved via panel to \(url.path, privacy: .public)")
                 if regionCleanup != nil {
                     dismiss(reason: .action)
@@ -234,6 +238,25 @@ final class ScreenshotToolbarController {
             } catch {
                 logger.error("Screenshot save-as failed: \(error.localizedDescription, privacy: .public)")
                 viewModel.showToast(L10n.localized("screenshot.toast.saveFailed", error.localizedDescription))
+            }
+        case .pin:
+            Task { @MainActor in
+                do {
+                    let outcome = try await completionCoordinator.perform(.pin, result: result)
+                    if case .completed(.pinned) = outcome {
+                        if regionCleanup != nil {
+                            dismiss(reason: .action)
+                        } else {
+                            viewModel.showToast(L10n.localized("screenshot.toast.pinned"))
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { [weak self] in
+                                self?.dismiss(reason: .action)
+                            }
+                        }
+                    }
+                } catch {
+                    logger.error("Screenshot pin failed: \(error.localizedDescription, privacy: .public)")
+                    viewModel.showToast(L10n.localized("screenshot.toast.pinFailed", error.localizedDescription))
+                }
             }
         case .annotate(let tool):
             presentAnnotationEditor(
@@ -282,11 +305,9 @@ final class ScreenshotToolbarController {
                     self.annotationWindow = nil
                     switch completion {
                     case .copied:
-                        self.recordAnnotatedExport(of: result, completion: .copied)
                         viewModel?.showToast(L10n.localized("screenshot.toast.copied"))
                         self.dismiss(reason: .action)
                     case .saved(let url):
-                        self.recordAnnotatedExport(of: result, completion: .saved(url))
                         viewModel?.showToast(L10n.localized("screenshot.toast.saved", url.deletingLastPathComponent().path))
                         self.dismiss(reason: .action)
                     case .cancelled:
@@ -303,20 +324,6 @@ final class ScreenshotToolbarController {
         annotationWindow = editor
         editor.present()
         logger.info("Screenshot annotation editor opened")
-    }
-
-    /// 标注导出只含已完成标注：把扁平化后的图像登记为一条记录。
-    private func recordAnnotatedExport(of result: ScreenshotResult, completion: CaptureCompletion) {
-        let annotated = ScreenshotResult(
-            id: result.id,
-            imageData: result.imageData,
-            width: result.width,
-            height: result.height,
-            captureDate: result.captureDate,
-            sourceType: result.sourceType,
-            regionSelection: result.regionSelection
-        )
-        captureHistory.record(annotated, completion: completion)
     }
 
     private func copyToPasteboard(_ pngData: Data) throws {
@@ -456,6 +463,9 @@ private struct RegionScreenshotToolbarView: View {
                 ToolbarButton(systemName: "square.and.arrow.down", label: L10n.localized("screenshot.toolbar.save")) {
                     onAction(.save)
                 }
+                ToolbarButton(systemName: "pin", label: L10n.localized("screenshot.toolbar.pin")) {
+                    onAction(.pin)
+                }
                 ForEach(AnnotationTool.allCases) { tool in
                     ToolbarButton(systemName: tool.systemImage, label: tool.displayName) {
                         onAction(.annotate(tool))
@@ -479,7 +489,7 @@ private struct RegionScreenshotToolbarView: View {
                     .offset(y: -48)
             }
         }
-        .frame(width: 560, height: 64)
+        .frame(width: 620, height: 64)
     }
 }
 
@@ -562,6 +572,9 @@ private struct ScreenshotPreviewView: View {
                 } else {
                     onAction(.save)
                 }
+            }
+            ToolbarButton(systemName: "pin", label: L10n.localized("screenshot.toolbar.pin")) {
+                onAction(.pin)
             }
             ToolbarButton(systemName: "pencil.tip", label: L10n.localized("screenshot.toolbar.annotate")) {
                 onAction(.annotate(.rectangle))
