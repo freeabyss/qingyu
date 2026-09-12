@@ -2,11 +2,11 @@
 
 **目标：** 将剪贴板或成功截图转换为跨 Space 置顶贴图，并实现关闭、恢复、销毁和变换。
 
-**范围：** 载荷解析、运行期状态、贴图窗口、键鼠交互、分组和设置。
+**范围：** 载荷解析、运行期状态、贴图窗口、键鼠交互和设置。
 
 **相关模块：** 系统剪贴板、Task 007 完成协调器、截图设置页、AppKit window level。
 
-**业务规则：** 解析顺序为图像、颜色、HTML、纯文本、文件路径；恢复队列默认 1、范围 `0…20`；退出应用销毁全部运行期贴图。
+**业务规则：** 解析顺序为图像、颜色、HTML、纯文本、文件路径；恢复队列默认 1、范围 `0…20`；退出应用销毁全部运行期贴图；贴图之间不建立分组关系。
 
 **技术约束：** HTML 仅本地富文本渲染；脚本与远程资源关闭；窗口使用 `.floating`、`.canJoinAllSpaces`、`.fullScreenAuxiliary`；状态不持久化。
 
@@ -46,7 +46,6 @@ struct PinItem: Identifiable, Equatable {
     var transform: PinTransform
     var isHidden: Bool
     var ignoresMouseEvents: Bool
-    var groupID: UUID?
 }
 
 struct PinTransform: Equatable {
@@ -87,7 +86,7 @@ XCTAssertNil(store.restoreLatestClosed())
 - [ ] 运行 Pin 三组单元测试，确认新类型缺失导致失败。
 - [ ] 实现 `PinPayloadFactory` 与 `PinStore`；图片解码失败或载荷无效时返回明确错误且不创建空贴图。
 - [ ] 实现 `PinWindowController` 和窗口 View，接入滚轮、数字键、双击、中键、`⌘V`、关闭、销毁、隐藏和鼠标穿透。
-- [ ] 将 Task 007 的 `.pinned` 完成动作接到 `PinWindowController.present(_:)`，截图成功贴图写入截图记录。
+- [ ] 将 Task 007 的 `.pinned` 完成动作接到 `PinWindowController.present(_:)`；截图成功贴图只创建贴图，不写入截图历史。
 - [ ] 添加截图设置：文件路径转图片、恢复队列容量、鼠标穿透快捷键。
 - [ ] 运行：
 

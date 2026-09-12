@@ -6,7 +6,7 @@
 
 **相关模块：** `ClipboardMonitor`、`ClipboardService`、`AssistantClipboardSource`、`ClipboardHistoryWindowController`、`AppContainer`。
 
-**业务规则：** 默认记录、30 天保留、文件引用、暂停/恢复、删除和清空行为保持不变；插件停用时停止监听但保留历史与设置。
+**业务规则：** 剪贴板记录默认开启，默认保留 30 天，记录文件引用；用户可在欢迎向导或剪贴板设置页暂停/恢复；删除和清空行为保持不变；插件停用时停止监听但保留历史与设置。
 
 **技术约束：** `start()` 和 `stop()` 幂等；监控 Task 由插件持有并取消；数据栈仍由应用核心初始化。
 
@@ -64,6 +64,7 @@ xcodebuild test -project Qingniao.xcodeproj -scheme Qingniao -only-testing:Qingn
 - [ ] 把 `AppContainer.startClipboardMonitoring()` 和 `monitorTask` 移入 `ClipboardPlugin`，由构造器注入 repository、resource store、settings service 和历史窗口动作。
 - [ ] 将 `AssistantClipboardSource` 加入插件 manifest；从 `makeSearchPanelViewModel` 删除临时硬编码来源。
 - [ ] 让应用完成或跳过欢迎向导后调用 `pluginRegistry.start(.clipboard)`；退出时由 `stopAll()` 停止监听。
+- [ ] 验证剪贴板记录默认开启，欢迎向导和剪贴板设置页均可暂停/恢复，状态即时保存。
 - [ ] 运行：
 
 ```bash
