@@ -1285,7 +1285,7 @@
 				CODE_SIGN_ENTITLEMENTS = Qingniao/Qingniao.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 215;
+				CURRENT_PROJECT_VERSION = 216;
 				DEVELOPMENT_TEAM = 454XB348PX;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -1294,7 +1294,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.2.15;
+				MARKETING_VERSION = 0.2.16;
 				PRODUCT_BUNDLE_IDENTIFIER = com.assistant.app;
 				PRODUCT_MODULE_NAME = Qingniao;
 				PRODUCT_NAME = Qingniao;
@@ -1310,7 +1310,7 @@
 				CODE_SIGN_ENTITLEMENTS = Qingniao/Qingniao.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 215;
+				CURRENT_PROJECT_VERSION = 216;
 				DEVELOPMENT_TEAM = 454XB348PX;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -1319,7 +1319,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.2.15;
+				MARKETING_VERSION = 0.2.16;
 				PRODUCT_BUNDLE_IDENTIFIER = com.assistant.app;
 				PRODUCT_MODULE_NAME = Qingniao;
 				PRODUCT_NAME = Qingniao;

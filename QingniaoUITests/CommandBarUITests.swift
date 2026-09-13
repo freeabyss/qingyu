@@ -1,9 +1,11 @@
 import Carbon
 import XCTest
 
-/// TC-UI-016~018：Command Bar 搜索基本交互
+/// TC-UI-016~018、TC-UI-024：Command Bar 搜索基本交互 + 打开即聚焦回归
 ///
-/// 依据：`docs/iterations/v1.2.1/test/cases.md` TC-UI-016~018
+/// 依据：`docs/iterations/v1.2.1/test/cases.md` TC-UI-016~018；
+/// TC-UI-024 为 v1.2.2 回归用例（⌥Space 打开命令栏后光标不在输入框、必须点击
+/// 才能输入的缺陷），用例说明随本文件注释维护，不改已冻结的迭代文档。
 /// 前置：`--uitest-mark-onboarding-completed` + `--uitest-trigger openSearch`（与 TC-UI-011 一致）
 /// 硬依赖（cases.md §0.5）：`commandBar.searchField`、`commandBar.resultList`
 /// 边界：不验证搜索结果正确性（那是 SearchServiceCoreTests / SearchTextMatcherTests 的事），
@@ -287,6 +289,40 @@ final class CommandBarUITests: XCTestCase {
             "TC-UI-023: 回车后应打开剪贴板历史窗口"
         )
         XCTAssertFalse(searchField.exists, "TC-UI-023: 打开历史窗口后 Command Bar 应关闭")
+    }
+
+    // MARK: - TC-UI-024　打开后立即获得键盘焦点（无需点击）
+
+    /// 覆盖：FR-SEARCH-4；回归 v1.2.2「⌥Space 打开后必须点击才能输入」缺陷。
+    /// 验证面板成为 key window 后搜索框已是 first responder：不点击搜索框，
+    /// app 级 ⌘V 粘贴应直接落到输入框。粘贴不经过输入法（见 inputSearchText 注）；
+    /// 若未自动聚焦，⌘V 无处落地、字段值保持为空，用例失败。
+    /// 用 app 级按键而非元素级 typeText：与 TC-UI-016 的 ESC 同理，对焦点/快照
+    /// 竞态稳健，且只依赖「字段是 first responder」这一被测行为本身。
+    func testTCUI024ImmediateKeyboardFocusOnOpen() throws {
+        launchWithCommandBar(for: "TC-UI-024")
+
+        XCTAssertTrue(
+            searchField.waitForExistence(timeout: 10),
+            "TC-UI-024: Command Bar 搜索框应呈现"
+        )
+
+        // 关键差异：不调用 searchField.click()，依赖打开后自动聚焦。
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString("设置", forType: .string)
+        app.typeKey("v", modifierFlags: .command)
+
+        // 粘贴落地是异步的，用 NSPredicate 轮询字段值（cases.md §0.6）。
+        let pasted = expectation(
+            for: NSPredicate(format: "value == %@", "设置"),
+            evaluatedWith: searchField
+        )
+        wait(for: [pasted], timeout: 5)
+
+        XCTAssertEqual(
+            searchField.value as? String, "设置",
+            "TC-UI-024: 打开后无需点击输入框即可接收键盘输入（自动聚焦）"
+        )
     }
 
 }

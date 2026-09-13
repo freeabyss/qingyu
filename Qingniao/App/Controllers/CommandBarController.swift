@@ -25,6 +25,8 @@ final class CommandBarController: NSObject {
     private var searchStateCancellable: AnyCancellable?
     private var localEventMonitor: Any?
     private var isClosingPanel = false
+    /// Block-based panel observers (didBecomeKey focus driver); torn down in `hide()`.
+    private var panelObservers: [NSObjectProtocol] = []
 
     private static let panelWidth: CGFloat = 760
     private static let collapsedHeight: CGFloat = 128
@@ -71,18 +73,27 @@ final class CommandBarController: NSObject {
 
         activateApp()
         panel.makeKeyAndOrderFront(nil)
+        // makeKey 之后再激活一次：若首次激活被前台应用延迟/忽略，面板已先成为
+        // key window（nonactivating panel 也能收键），此次激活兜底把应用带到前台；
+        // 激活完成时面板仍是 key window，不会触发 didResignKey 关闭。
+        activateApp()
         startMonitoringEvents()
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-            NotificationCenter.default.post(name: .focusSearchField, object: nil)
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            NotificationCenter.default.post(name: .focusSearchField, object: nil)
+        // 事件驱动聚焦：didBecomeKey 观察者在面板真正成为 key window 后立即聚焦
+        // （见 registerPanelObservers）。定时重试只作首次布局竞态的兜底，0.45s 一档
+        // 覆盖 SwiftUI 平台文本视图晚于 didBecomeKey 才挂载的情况。
+        for delay in [0.05, 0.2, 0.45] {
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+                self?.focusSearchInput()
+            }
         }
         logger.info("CommandBar shown")
     }
 
     func hide(animate: Bool = true) {
+        // 先摘掉面板级观察者：防止 close/orderOut 触发的 didResignKey 重入，
+        // 也保证面板释放后没有陈旧的 didBecomeKey 回调引用。
+        removePanelObservers()
         guard !isClosingPanel else { return }
         isClosingPanel = true
         stopMonitoringEvents()
@@ -159,15 +170,84 @@ final class CommandBarController: NSObject {
             ])
         }
 
+        registerPanelObservers(for: panel)
+
+        self.panel = panel
+        logger.info("CommandBar panel created")
+    }
+
+    // MARK: - Panel observers & input focus
+
+    /// 面板级通知观察者：
+    /// - `didBecomeKey`：面板真正成为 key window 后立即驱动聚焦（事件驱动，
+    ///   替代纯定时赌 makeKey/首次布局时序；重复触发幂等）。
+    /// - `didResignKey`：失焦自动关闭（既有语义，保持不变）。
+    /// 两者统一在 `hide()` 里清理，保证每次 show 重建面板后无陈旧引用。
+    private func registerPanelObservers(for panel: NSPanel) {
+        panelObservers.append(
+            NotificationCenter.default.addObserver(
+                forName: NSWindow.didBecomeKeyNotification,
+                object: panel,
+                queue: .main
+            ) { [weak self] _ in
+                // 下一轮 runloop：让 SwiftUI 在新 key window 里完成首次布局。
+                DispatchQueue.main.async {
+                    self?.focusSearchInput()
+                }
+            }
+        )
+
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(panelDidResignKey),
             name: NSWindow.didResignKeyNotification,
             object: panel
         )
+    }
 
-        self.panel = panel
-        logger.info("CommandBar panel created")
+    private func removePanelObservers() {
+        for observer in panelObservers {
+            NotificationCenter.default.removeObserver(observer)
+        }
+        panelObservers.removeAll()
+        if let panel {
+            NotificationCenter.default.removeObserver(
+                self,
+                name: NSWindow.didResignKeyNotification,
+                object: panel
+            )
+        }
+    }
+
+    /// 聚焦命令栏输入框（didBecomeKey 事件与定时兜底共用）。
+    ///
+    /// 先走 AppKit 直接路径：在 hostingView 子树中递归查找第一个可成为 first
+    /// responder 的 NSTextField（SwiftUI `TextField` 的平台实现）并直接
+    /// `makeFirstResponder` ——不依赖应用激活状态，也不受 SwiftUI 丢弃早期
+    /// `@FocusState` 请求的影响。随后照常发出 `.focusSearchField` 通知同步
+    /// `@FocusState`（已聚焦时为幂等空操作）；找不到平台文本框（SwiftUI 内部
+    /// 结构变化）时静默依赖通知路径，不崩溃、不抢其他输入。
+    private func focusSearchInput() {
+        guard let panel, panel.isVisible else { return }
+        if let field = firstFocusableTextField(in: panel.contentView) {
+            panel.makeFirstResponder(field)
+        }
+        NotificationCenter.default.post(name: .focusSearchField, object: nil)
+    }
+
+    /// 递归查找子树中第一个可聚焦的 `NSTextField`；找不到返回 nil。
+    private func firstFocusableTextField(in view: NSView?) -> NSTextField? {
+        guard let view else { return nil }
+        if let field = view as? NSTextField,
+           field.isEnabled, !field.isHidden, field.acceptsFirstResponder {
+            return field
+        }
+        for subview in view.subviews {
+            if let field = firstFocusableTextField(in: subview) {
+                return field
+            }
+        }
+        return nil
     }
 
     private func resizePanel(isActive: Bool) {
@@ -223,10 +303,10 @@ final class CommandBarController: NSObject {
     }
 
     private func activateApp() {
-        if #available(macOS 14.0, *) {
-            NSApp.activate()
-        } else {
-            NSApp.activate(ignoringOtherApps: true)
-        }
+        // 快捷键触发属于显式用户意图，必须强制激活：macOS 14+ 的协同式
+        // `NSApp.activate()` 在其他应用前台时可能被系统静默忽略（macOS 26 实测
+        // ⌥Space 后面板拿不到键盘焦点的根因之一）。`ignoringOtherApps:` 自 14
+        // 起弃用但功能正常，deployment target 13.0 下编译无弃用警告。
+        NSApp.activate(ignoringOtherApps: true)
     }
 }
