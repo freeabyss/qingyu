@@ -282,8 +282,9 @@ final class FileSearchSource: FileSearchSourceProtocol {
             baseScore: SourcePriority.file,
             matchScore: matchScore,
             usageScore: 0,
-            primaryAction: .openFile(item.path),
-            secondaryActions: [.revealInFinder(item.path), .copyText(item.path.path)]
+            // 默认动作：在 Finder 中打开文件所在目录并选中该文件；直接打开为次动作。
+            primaryAction: .revealInFinder(item.path),
+            secondaryActions: [.openFile(item.path), .copyText(item.path.path)]
         )
     }
 

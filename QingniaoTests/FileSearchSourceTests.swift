@@ -70,22 +70,22 @@ final class FileSearchSourceTests: XCTestCase {
         XCTAssertEqual(result.title, "quarterly-budget.xlsx")
         XCTAssertEqual(result.sourceID, .file)
 
-        // Primary action opens the file; secondary actions reveal + copy path.
+        // 默认动作在 Finder 中打开文件所在目录并选中文件；直接打开与复制路径为次动作。
         // Compare by resolved path since the enumerator resolves the /var → /private/var symlink.
-        guard case .openFile(let openURL) = result.primaryAction else {
-            return XCTFail("primary action should be openFile, got \(result.primaryAction)")
+        guard case .revealInFinder(let revealURL) = result.primaryAction else {
+            return XCTFail("primary action should be revealInFinder, got \(result.primaryAction)")
         }
-        XCTAssertEqual(openURL.lastPathComponent, "quarterly-budget.xlsx")
+        XCTAssertEqual(revealURL.lastPathComponent, "quarterly-budget.xlsx")
 
-        let hasReveal = result.secondaryActions.contains {
-            if case .revealInFinder(let url) = $0 { return url.lastPathComponent == "quarterly-budget.xlsx" }
+        let hasOpen = result.secondaryActions.contains {
+            if case .openFile(let url) = $0 { return url.lastPathComponent == "quarterly-budget.xlsx" }
             return false
         }
         let hasCopyPath = result.secondaryActions.contains {
-            if case .copyText(let path) = $0 { return path == openURL.path }
+            if case .copyText(let path) = $0 { return path == revealURL.path }
             return false
         }
-        XCTAssertTrue(hasReveal, "should offer reveal-in-Finder")
+        XCTAssertTrue(hasOpen, "should offer direct open")
         XCTAssertTrue(hasCopyPath, "should offer copy-path")
     }
 
