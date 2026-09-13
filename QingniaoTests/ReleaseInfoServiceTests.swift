@@ -5,10 +5,10 @@ final class ReleaseInfoServiceTests: XCTestCase {
     func testReleaseLinksAreCanonicalProjectHomepageAssets() {
         let info = BundleAboutInfoProvider(bundle: .main).info
 
-        XCTAssertEqual(info.homepageURL.absoluteString, "https://github.com/freeabyss/assistant")
-        XCTAssertEqual(info.privacyPolicyURL.absoluteString, "https://github.com/freeabyss/assistant/blob/main/PRIVACY.md")
-        XCTAssertEqual(info.releasesURL.absoluteString, "https://github.com/freeabyss/assistant/releases")
-        XCTAssertEqual(info.thirdPartyLicensesURL.absoluteString, "https://github.com/freeabyss/assistant/blob/main/THIRD_PARTY_NOTICES.md")
+        XCTAssertEqual(info.homepageURL.absoluteString, "https://github.com/freeabyss/qingniao")
+        XCTAssertEqual(info.privacyPolicyURL.absoluteString, "https://github.com/freeabyss/qingniao/blob/main/PRIVACY.md")
+        XCTAssertEqual(info.releasesURL.absoluteString, "https://github.com/freeabyss/qingniao/releases")
+        XCTAssertEqual(info.thirdPartyLicensesURL.absoluteString, "https://github.com/freeabyss/qingniao/blob/main/THIRD_PARTY_NOTICES.md")
         XCTAssertEqual(info.feedbackEmail, "feedback@qingniao.app")
     }
 
@@ -33,7 +33,7 @@ final class ReleaseInfoServiceTests: XCTestCase {
             "FAQ",
             "Screen Recording",
             "Accessibility",
-            "https://github.com/freeabyss/assistant/releases"
+            "https://github.com/freeabyss/qingniao/releases"
         ] {
             XCTAssertTrue(readme.contains(required), "README.md should contain \\(required)")
         }

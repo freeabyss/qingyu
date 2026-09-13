@@ -16,15 +16,15 @@ Qingniao (青鸟) is a native macOS productivity app. It stays in the menu bar, 
 | Core features | Command bar search (apps / commands / files / clipboard / calculator / settings), clipboard history, region/window/full-screen screenshots with annotation, safe built-in commands, and a unified settings center. |
 | App icon | Jade `bird` glyph placeholder in `assets/product/` (final icon to follow). |
 | Screenshots / demo GIF | `assets/product/` placeholders (`command-bar.png`, `clipboard-history.png`, `screenshot-annotation.gif`). Capture from the v1.2 release build before wider distribution. |
-| Download button | [Download the latest release from GitHub Releases](https://github.com/freeabyss/assistant/releases). |
-| Version history | [CHANGELOG.md](CHANGELOG.md) and [GitHub Releases](https://github.com/freeabyss/assistant/releases). |
+| Download button | [Download the latest release from GitHub Releases](https://github.com/freeabyss/qingniao/releases). |
+| Version history | [CHANGELOG.md](CHANGELOG.md) and [GitHub Releases](https://github.com/freeabyss/qingniao/releases). |
 | Privacy policy | [PRIVACY.md](PRIVACY.md). |
 | Feedback email | [feedback@qingniao.app](mailto:feedback@qingniao.app). |
 | FAQ | See [FAQ](#faq). |
 
 ## Download
 
-[Download the latest release](https://github.com/freeabyss/assistant/releases)
+[Download the latest release](https://github.com/freeabyss/qingniao/releases)
 
 Qingniao is distributed as a Developer ID-signed and notarized app via GitHub Releases.
 It does not use accounts, payment, subscriptions, license keys, or the Mac App Store.
@@ -77,7 +77,7 @@ Read the full [Privacy Policy](PRIVACY.md).
 ## Version history
 
 See [CHANGELOG.md](CHANGELOG.md) for release notes. The app's **Check for Updates** action opens
-[GitHub Releases](https://github.com/freeabyss/assistant/releases) so users can manually download
+[GitHub Releases](https://github.com/freeabyss/qingniao/releases) so users can manually download
 updates. Qingniao does not auto-download, auto-install, or restart to update.
 
 ## Feedback
@@ -95,7 +95,7 @@ Yes. Qingniao is free and does not include payment, subscription, license-key, a
 
 ### Where do I download updates?
 
-Use [GitHub Releases](https://github.com/freeabyss/assistant/releases). The app's **Check for Updates** button opens the same page.
+Use [GitHub Releases](https://github.com/freeabyss/qingniao/releases). The app's **Check for Updates** button opens the same page.
 
 ### Does the app upload my clipboard or screenshots?
 

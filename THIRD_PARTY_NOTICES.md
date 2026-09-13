@@ -11,5 +11,5 @@ Qingniao (青鸟) uses Swift Package Manager dependencies listed in `Package.swi
 
 ## Update policy
 
-Qingniao's user-facing **Check for Updates** action opens [GitHub Releases](https://github.com/freeabyss/assistant/releases) for manual download. Qingniao does not auto-download, auto-install, or restart to update.
+Qingniao's user-facing **Check for Updates** action opens [GitHub Releases](https://github.com/freeabyss/qingniao/releases) for manual download. Qingniao does not auto-download, auto-install, or restart to update.
 </content>

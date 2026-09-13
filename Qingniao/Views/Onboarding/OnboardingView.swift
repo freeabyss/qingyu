@@ -9,7 +9,7 @@ struct OnboardingView: View {
     @StateObject var viewModel: OnboardingViewModel
     @State private var showSkipConfirmation = false
 
-    private let privacyURL = URL(string: "https://github.com/freeabyss/assistant/blob/main/PRIVACY.md")
+    private let privacyURL = URL(string: "https://github.com/freeabyss/qingniao/blob/main/PRIVACY.md")
 
     init(viewModel: OnboardingViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)

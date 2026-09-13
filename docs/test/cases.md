@@ -590,7 +590,7 @@ MVP 暂不覆盖：
 #### BRAND-003：无残留旧品牌串（SnapVault / Mac Super Assistant / Assistant 显示名）
 - **关联**：§2.0、D-101 ｜ **优先级**：P1 ｜ **类型**：脚本/静态 ｜ **文件**：grep 检查（可入 CI）
 - **步骤**：grep 用户可见文案（Localizable.xcstrings、关于页、Onboarding、隐私政策、菜单项）是否含 `SnapVault`/`Mac Super Assistant`/单独作为品牌名的 `Assistant`。
-- **预期结果**：用户可见文案无旧品牌串；内部类型名 `Assistant*`→`Qingniao*`（api §2.1，领域名 Clipboard*/Search* 保留）；GitHub 仓库路径 `freeabyss/assistant` 保留不算残留。
+- **预期结果**：用户可见文案无旧品牌串；内部类型名 `Assistant*`→`Qingniao*`（api §2.1，领域名 Clipboard*/Search* 保留）；GitHub 仓库路径 `freeabyss/qingniao` 保留不算残留。
 
 #### BRAND-004：反馈邮箱为 feedback@qingniao.app【上线前校验】
 - **关联**：FR-UI-25、D-053 ｜ **优先级**：P1 ｜ **类型**：swift + 手工 ｜ **文件**：`BrandingConsistencyTests.swift` + 手工
@@ -910,7 +910,7 @@ MVP 暂不覆盖：
 #### DIST-006：检查更新跳 GitHub Releases（无 Sparkle）
 - **关联**：FR-UI-15、§10.5 ｜ **优先级**：P0 ｜ **类型**：swift + 手工 ｜ **文件**：`QingniaoTests/UpdateServiceTests.swift`（承接 TC-U-002）+ 手工
 - **步骤**：点关于/更新页「检查更新」。
-- **预期结果**：浏览器打开 `github.com/freeabyss/assistant/releases`，无 Sparkle UI/错误弹窗（见 UPD 系列）。
+- **预期结果**：浏览器打开 `github.com/freeabyss/qingniao/releases`，无 Sparkle UI/错误弹窗（见 UPD 系列）。
 
 ### 11.14 UPD —— 更新（移除 Sparkle）
 

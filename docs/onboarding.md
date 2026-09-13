@@ -14,7 +14,7 @@
 - 形态：菜单栏常驻 App，无 Dock 图标（`LSUIElement=true`）。
 - 数据：**默认仅本地**，不上传、不同步、不训练。
 - 最低系统：macOS 13 Ventura；语言 Swift 5.9；UI 用 SwiftUI + AppKit 混合。
-- 分发：Developer ID 签名 + 公证，走 GitHub Releases（`github.com/freeabyss/assistant`），不上架 Mac App Store，v1.2 起**关闭 App Sandbox**。
+- 分发：Developer ID 签名 + 公证，走 GitHub Releases（`github.com/freeabyss/qingniao`），不上架 Mac App Store，v1.2 起**关闭 App Sandbox**。
 
 当前迭代 **v1.2.0**（分支 `v1.2.0`），主题是品牌改名 + 产品全面审视。历史版本见 `doc/architecture/design.md` §版本记录。
 

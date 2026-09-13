@@ -15,15 +15,15 @@
 | 核心功能 | 命令栏搜索(应用 / 命令 / 文件 / 剪贴板 / 计算器 / 设置)、剪贴板历史、区域 / 窗口 / 全屏截图与标注、安全内置命令、统一设置中心。 |
 | 应用图标 | `assets/product/` 中的青玉 `bird` 图标占位(正式图标后补)。 |
 | 截图 / 演示 GIF | `assets/product/` 占位素材(`command-bar.png`、`clipboard-history.png`、`screenshot-annotation.gif`)。在更大范围分发前基于 v1.2 发布版捕获。 |
-| 下载按钮 | [从 GitHub Releases 下载最新版本](https://github.com/freeabyss/assistant/releases)。 |
-| 版本历史 | [CHANGELOG.md](CHANGELOG.md) 与 [GitHub Releases](https://github.com/freeabyss/assistant/releases)。 |
+| 下载按钮 | [从 GitHub Releases 下载最新版本](https://github.com/freeabyss/qingniao/releases)。 |
+| 版本历史 | [CHANGELOG.md](CHANGELOG.md) 与 [GitHub Releases](https://github.com/freeabyss/qingniao/releases)。 |
 | 隐私政策 | [PRIVACY.md](PRIVACY.md)。 |
 | 反馈邮箱 | [feedback@qingniao.app](mailto:feedback@qingniao.app)。 |
 | FAQ | 查看 [常见问题](#常见问题)。 |
 
 ## 下载
 
-[下载最新版本](https://github.com/freeabyss/assistant/releases)
+[下载最新版本](https://github.com/freeabyss/qingniao/releases)
 
 青鸟通过 GitHub Releases 分发,采用 Developer ID 签名并经过公证。不含账号系统、支付、订阅、许可证密钥,也不通过 Mac App Store 交付。
 
@@ -67,7 +67,7 @@
 
 ## 版本历史
 
-发布说明见 [CHANGELOG.md](CHANGELOG.md)。应用内的 **检查更新** 操作会打开 [GitHub Releases](https://github.com/freeabyss/assistant/releases),用户可手动下载更新。青鸟不会自动下载、自动安装或重启以完成更新。
+发布说明见 [CHANGELOG.md](CHANGELOG.md)。应用内的 **检查更新** 操作会打开 [GitHub Releases](https://github.com/freeabyss/qingniao/releases),用户可手动下载更新。青鸟不会自动下载、自动安装或重启以完成更新。
 
 ## 反馈
 
@@ -81,7 +81,7 @@
 
 ### 我在哪里下载更新？
 
-使用 [GitHub Releases](https://github.com/freeabyss/assistant/releases)。应用的 **检查更新** 按钮会打开同一页面。
+使用 [GitHub Releases](https://github.com/freeabyss/qingniao/releases)。应用的 **检查更新** 按钮会打开同一页面。
 
 ### 应用会上传我的剪贴板或截图吗？
 

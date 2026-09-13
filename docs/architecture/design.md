@@ -441,7 +441,7 @@ v1.2 明确 4 类窗口 + 1 类叠层的形态、层级与生命周期，全部�
 | Application Support 目录 | `.../Assistant/` | `.../Qingniao/` | 启动时旧目录存在则 move（见 db.md §8.3） |
 | **Bundle ID** | `com.assistant.app` | **`com.assistant.app`（保留）** | TCC/Keychain/数据目录/登录项绑定键，不改 |
 | build_and_run.sh | `pgrep -x SnapVault` / `PROJECT_NAME=SnapVault` | `Qingniao` | 见 PRD §10.7 |
-| GitHub repo | github.com/freeabyss/assistant | 保留 | 不改 repo 名，避免链接失效 |
+| GitHub repo | github.com/freeabyss/qingniao | 保留 | 不改 repo 名，避免链接失效 |
 
 **版本号三源统一**（PRD FR-UI-36 / D-108）：`MARKETING_VERSION=1.2.0`、`CFBundleShortVersionString=1.2.0`、`CURRENT_PROJECT_VERSION` 按提交号；CHANGELOG 补全 v1.0.0/v1.0.1/v1.1.0/v1.2.0；关于页显示一致。现状三源均为 `0.1.0`、`PRODUCT_NAME=Assistant`，须一并修正。
 
@@ -456,7 +456,7 @@ v1.2 明确 4 类窗口 + 1 类叠层的形态、层级与生命周期，全部�
 - **签名**：Developer ID Application 证书。
 - **公证**：Apple `notarytool` 提交公证。
 - **装订**：`stapler` staple 票据到 `.app` / `.dmg`。
-- **渠道**：GitHub Releases（github.com/freeabyss/assistant/releases）；不上 Mac App Store。
+- **渠道**：GitHub Releases（github.com/freeabyss/qingniao/releases）；不上 Mac App Store。
 - **检查更新**：`ReleaseInfoService` 仅跳 GitHub Releases，用户手动下载安装；无 Sparkle、无自动下载/安装。
 
 **entitlements 清单（v1.2）**：

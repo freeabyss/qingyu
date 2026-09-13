@@ -36,7 +36,7 @@
 - **Bundle ID**：`com.assistant.app`（**保留不变**）
   - 原因：Bundle ID 是 macOS TCC 权限（屏幕录制、辅助功能等）、Keychain、Application Support 数据目录、开机启动项的绑定键。若修改 Bundle ID，已授权用户会丢失全部权限、需重新授权，剪贴板/截图历史数据目录也会失联。因此显示名、工程 target 名、源码目录、对外文案全面改为青鸟 / Qingniao，但 Bundle ID 保持 `com.assistant.app` 不动（见决策 D-102）。
 - **反馈邮箱**：feedback@qingniao.app
-- **GitHub 仓库**：github.com/freeabyss/assistant（仓库路径保留，不改 repo 名，避免既有链接、Release、Issue 失效）
+- **GitHub 仓库**：github.com/freeabyss/qingniao（仓库路径保留，不改 repo 名，避免既有链接、Release、Issue 失效）
 
 ### 2.1 核心定位
 
@@ -1074,7 +1074,7 @@ MVP 明确不支持：关机、重启系统、注销、删除文件、杀进程�
 ### 10.5 分发模式（v1.2 更新）
 
 - **签名与公证**：Developer ID Application 证书签名 + Apple `notarytool` 公证 + `stapler` staple 票据。
-- **分发渠道**：GitHub Releases（github.com/freeabyss/assistant/releases）。
+- **分发渠道**：GitHub Releases（github.com/freeabyss/qingniao/releases）。
 - **不上 Mac App Store**：因产品需关闭 Sandbox 以可靠执行 AppleEvents 系统命令，MAS 沙盒策略与之冲突。
 - **检查更新**："检查更新"发现新版本后跳转 GitHub Releases 页面，由用户手动下载安装。**不集成 Sparkle 自动更新**；此前文档中的 Sparkle 自动更新占位已删除，MVP 不做自动下载/安装/重启更新。
 - **Sandbox**：v1.2 关闭 App Sandbox（保留 Hardened Runtime 与必要 entitlements）。

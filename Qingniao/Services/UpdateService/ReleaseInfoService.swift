@@ -76,10 +76,10 @@ enum ReleaseLinks {
         URL(string: string) ?? URL(fileURLWithPath: "/")
     }
 
-    static let homepageURL = url("https://github.com/freeabyss/assistant")
-    static let privacyPolicyURL = url("https://github.com/freeabyss/assistant/blob/main/PRIVACY.md")
-    static let releasesURL = url("https://github.com/freeabyss/assistant/releases")
-    static let thirdPartyLicensesURL = url("https://github.com/freeabyss/assistant/blob/main/THIRD_PARTY_NOTICES.md")
+    static let homepageURL = url("https://github.com/freeabyss/qingniao")
+    static let privacyPolicyURL = url("https://github.com/freeabyss/qingniao/blob/main/PRIVACY.md")
+    static let releasesURL = url("https://github.com/freeabyss/qingniao/releases")
+    static let thirdPartyLicensesURL = url("https://github.com/freeabyss/qingniao/blob/main/THIRD_PARTY_NOTICES.md")
     static let feedbackEmail = "feedback@qingniao.app"
 }
 
