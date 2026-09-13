@@ -117,7 +117,7 @@ final class MenuDispatchUITests: XCTestCase {
     /// 覆盖：AC-04；US-002/009；FR-UI-4；FR-SHOT-1
     /// 前置：mark-completed + `--uitest-mock-screen-recording-denied`
     ///       + `--uitest-trigger startScreenshot` + `--uitest-skip-screenshot-capture`
-    /// trigger 等价性（§0.4）：`startScreenshot` 调 `screenshotWindowController.captureRegion()`
+    /// trigger 等价性（§0.4）：`startScreenshot` 调 `screenshotWindowController.startCapture()`
     ///       （配合 `--uitest-skip-screenshot-capture`），门禁已移除，走 `ensureScreenRecordingPermission()` 检查。
     /// 验证 v1.2.1 修复点：截图入口不再被 onboarding 门禁劫持到欢迎页，而是走自身权限提示逻辑。
     /// 不测真实截图捕获（C 级，退回手动）。

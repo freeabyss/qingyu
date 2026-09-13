@@ -206,18 +206,17 @@ final class SearchPanelViewModelTests: XCTestCase {
         XCTAssertTrue(homeViewModel.shouldExpandPanel)
     }
 
-    func testHomeQuickActionsIncludeClipboardHistoryAndAllScreenshotModes() {
+    func testHomeQuickActionsIncludeClipboardHistoryAndSingleScreenshotEntry() {
         let service = StubPanelSearchService(results: [])
         let viewModel = SearchPanelViewModel(searchService: service)
         let commandIDs = viewModel.homeQuickActions.compactMap { result -> CommandID? in
             result.primaryAction.commandID
         }
 
+        // PRD「截图与贴图」规则 1：截图只有一个入口，不区分区域/窗口/全屏。
         XCTAssertEqual(commandIDs, [
             .openClipboardHistory,
-            .captureRegion,
-            .captureWindow,
-            .captureFullScreen
+            .captureScreenshot
         ])
     }
 }

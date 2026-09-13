@@ -335,10 +335,6 @@ struct AssistantSettingDefaults {
         // Non-empty means completed/skipped. Added now; gating switch is deferred.
         "onboarding.completedAt": "",
         "hotkey.search": "option+space",
-        // v1.2: screenshot capture hotkey defaults (mirror KeyboardShortcuts.Name defaults).
-        "hotkey.capture.region": "shift+ctrl+cmd+4",
-        "hotkey.capture.window": "shift+ctrl+cmd+5",
-        "hotkey.capture.fullscreen": "ctrl+option+cmd+3",
         "launchAtLogin.enabled": "true",
         "clipboard.enabled": "true",
         "clipboard.showInSearch": "true",

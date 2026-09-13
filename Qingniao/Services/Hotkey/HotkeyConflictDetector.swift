@@ -8,9 +8,7 @@ import KeyboardShortcuts
 /// (mirrors `KeyboardShortcuts.Name.managedGlobalShortcuts`, api.md §17).
 enum HotkeyAction: Hashable, CaseIterable {
     case search
-    case regionCapture
-    case windowCapture
-    case fullscreenCapture
+    case screenshot
     case openClipboard
     case openSettings
 
@@ -18,9 +16,7 @@ enum HotkeyAction: Hashable, CaseIterable {
     var name: KeyboardShortcuts.Name {
         switch self {
         case .search: return .togglePanel
-        case .regionCapture: return .captureRegion
-        case .windowCapture: return .captureWindow
-        case .fullscreenCapture: return .captureFullscreen
+        case .screenshot: return .startScreenshot
         case .openClipboard: return .openClipboardHistory
         case .openSettings: return .openSettings
         }

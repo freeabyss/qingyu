@@ -13,17 +13,10 @@ extension KeyboardShortcuts.Name {
     ///   page surfaces a conflict warning instead (see `HotkeyConflictDetector`).
     static let togglePanel = Self("togglePanel", default: .init(.space, modifiers: [.option]))
 
-    /// Capture a region of the screen (user selects area via overlay).
-    /// Default shortcut: ⇧⌃⌘4 (per PRD §9.6 快捷键总表 / FR-UI-HOTKEYS).
-    static let captureRegion = Self("captureRegion", default: .init(.four, modifiers: [.command, .control, .shift]))
-
-    /// Capture the window under the mouse cursor.
-    /// Default shortcut: ⇧⌃⌘5 (per PRD §9.6).
-    static let captureWindow = Self("captureWindow", default: .init(.five, modifiers: [.command, .control, .shift]))
-
-    /// Capture the entire screen.
-    /// Default shortcut: ⌃⌥⌘3 (v1.2 新增, per PRD §9.6).
-    static let captureFullscreen = Self("captureFullscreen", default: .init(.three, modifiers: [.control, .option, .command]))
+    /// Start the single unified screenshot session (PRD「截图与贴图」规则 1；
+    /// Task 009：F1 开始截图）。Region / window / full-display modes are decided
+    /// automatically inside the session.
+    static let startScreenshot = Self("startScreenshot", default: .init(.f1))
 
     /// Open the clipboard-history window.
     /// Default shortcut: ⌥⌘C (v1.2 新增, per PRD §9.6).
@@ -41,9 +34,7 @@ extension KeyboardShortcuts.Name {
     /// registration, conflict scanning, and "reset to defaults".
     static let managedGlobalShortcuts: [KeyboardShortcuts.Name] = [
         .togglePanel,
-        .captureRegion,
-        .captureWindow,
-        .captureFullscreen,
+        .startScreenshot,
         .openClipboardHistory,
         .openSettings
     ]

@@ -4,11 +4,11 @@ import UniformTypeIdentifiers
 
 /// Settings page contributed by the Screenshot plugin (Task 004).
 ///
-/// Hosts the merged screenshot settings per the page mapping: screenshot
-/// shortcuts (region/window/fullscreen recorders), save directory, format and
-/// after-capture behaviour. Bindings come from the shared `SettingsViewModel`
-/// injected by the settings window's environment, keeping the previous
-/// autosave/conflict-warning behaviour.
+/// Hosts the merged screenshot settings per the page mapping: the single
+/// screenshot shortcut recorder (PRD「截图与贴图」规则 1；Task 009：F1 开始截图),
+/// save directory, format and after-capture behaviour. Bindings come from the
+/// shared `SettingsViewModel` injected by the settings window's environment,
+/// keeping the previous autosave/conflict-warning behaviour.
 struct ScreenshotPluginSettingsPage: View {
     @EnvironmentObject private var viewModel: SettingsViewModel
 
@@ -29,9 +29,7 @@ struct ScreenshotPluginSettingsPage: View {
 
     private var recorderRows: [RecorderRow] {
         [
-            RecorderRow(label: L10n.localized("management.shortcuts.captureRegion"), name: .captureRegion),
-            RecorderRow(label: L10n.localized("management.shortcuts.captureWindow"), name: .captureWindow),
-            RecorderRow(label: L10n.localized("management.shortcuts.captureFullscreen"), name: .captureFullscreen)
+            RecorderRow(label: L10n.localized("management.shortcuts.startScreenshot"), name: .startScreenshot)
         ]
     }
 

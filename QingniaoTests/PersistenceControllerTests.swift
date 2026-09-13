@@ -140,7 +140,7 @@ final class PersistenceControllerTests: XCTestCase {
 
         let usage = CDUsageStat(context: context)
         usage.id = UUID()
-        usage.targetID = "command:captureRegion"
+        usage.targetID = "command:captureScreenshot"
         usage.targetType = "command"
         usage.useCount = 1
         usage.lastUsedAt = now

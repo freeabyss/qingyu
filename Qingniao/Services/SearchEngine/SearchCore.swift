@@ -53,19 +53,12 @@ enum SettingsPageID: Hashable {
     case about
 }
 
-enum AssistantScreenshotMode: String, Codable, Hashable {
-    case region
-    case fullScreen
-    case window
-}
-
 enum SearchAction: Hashable {
     case openApplication(ApplicationID)
     case copyClipboardRecord(UUID)
     case copyText(String)
     case runCommand(CommandID)
     case openSettings(SettingsRoute)
-    case startScreenshot(AssistantScreenshotMode)
     case openFile(URL)
     case revealInFinder(URL)
     /// Task 002: cross-feature actions route through `PluginRegistry.execute(_:)`
@@ -129,7 +122,7 @@ extension SearchAction {
             return commandID
         case .runPluginAction(let actionID):
             return actionID.quickLaunchCommandID
-        case .openApplication, .copyClipboardRecord, .copyText, .openSettings, .startScreenshot, .openFile, .revealInFinder:
+        case .openApplication, .copyClipboardRecord, .copyText, .openSettings, .openFile, .revealInFinder:
             return nil
         }
     }
@@ -272,7 +265,7 @@ final class DefaultSearchActionExecutor: SearchActionExecutorProtocol {
             await MainActor.run {
                 NSWorkspace.shared.activateFileViewerSelecting([url])
             }
-        case .openApplication, .copyClipboardRecord, .runCommand, .openSettings, .startScreenshot, .runPluginAction:
+        case .openApplication, .copyClipboardRecord, .runCommand, .openSettings, .runPluginAction:
             // The UI/system integration layer supplies concrete handlers for non-copy actions in later tasks.
             break
         }

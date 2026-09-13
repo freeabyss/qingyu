@@ -254,19 +254,19 @@
       }
     },
     "screenshot.hint.clickWindow" : {
-      "comment" : "Screenshot overlay hint: click to capture window",
+      "comment" : "Screenshot overlay hint: click to capture the highlighted target",
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Click Capture window"
+            "value" : "Click Capture highlighted target"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "单击 截取窗口"
+            "value" : "单击 截取高亮目标"
           }
         }
       }
@@ -6062,60 +6062,6 @@
         }
       }
     },
-    "management.shortcuts.captureFullscreen" : {
-      "comment" : "T-008 global shortcut label",
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Capture Full Screen"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "全屏截图"
-          }
-        }
-      }
-    },
-    "management.shortcuts.captureRegion" : {
-      "comment" : "US-015 management center",
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Capture Region"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "区域截图"
-          }
-        }
-      }
-    },
-    "management.shortcuts.captureWindow" : {
-      "comment" : "US-015 management center",
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Capture Window"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "窗口截图"
-          }
-        }
-      }
-    },
     "management.shortcuts.clipboardHistory" : {
       "comment" : "T-008 global shortcut label",
       "extractionState" : "stale",
@@ -9136,23 +9082,6 @@
         }
       }
     },
-    "screenshot.windowOverlay.hint" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Click to capture · ESC to cancel"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "点击捕获 · ESC 取消"
-          }
-        }
-      }
-    },
     "search.action.copyClipboard" : {
       "comment" : "Action hint for copying to clipboard",
       "extractionState" : "stale",
@@ -10841,42 +10770,6 @@
         }
       }
     },
-    "settings.shortcuts.captureRegion" : {
-      "comment" : "Label for Capture Region shortcut",
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Capture Region:"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "区域截图："
-          }
-        }
-      }
-    },
-    "settings.shortcuts.captureWindow" : {
-      "comment" : "Label for Capture Window shortcut",
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Capture Window:"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "窗口截图："
-          }
-        }
-      }
-    },
     "settings.shortcuts.footer.defaults" : {
       "comment" : "Footer showing default shortcut values",
       "extractionState" : "stale",
@@ -11770,7 +11663,25 @@
     "计数 / 快捷键" : {},
     "需要屏幕录制权限" : {},
     "青鸟 Qingniao" : {},
-    "青鸟需要屏幕录制权限才能截取屏幕内容。请在系统设置中开启后重试。" : {}
+    "青鸟需要屏幕录制权限才能截取屏幕内容。请在系统设置中开启后重试。" : {},
+    "management.shortcuts.startScreenshot" : {
+      "comment" : "Screenshot settings: single unified screenshot shortcut recorder label",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start Screenshot"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开始截图"
+          }
+        }
+      }
+    }
   },
   "version" : "1.0"
 }

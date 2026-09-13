@@ -81,13 +81,12 @@ final class SearchPanelViewModel: ObservableObject {
 
     /// Stable, executable shortcuts shown on the empty-query home screen. These
     /// keep the two most common tool flows discoverable without requiring users
-    /// to remember a keyword or global shortcut.
+    /// to remember a keyword or global shortcut. Screenshot is a single entry
+    /// (PRD「截图与贴图」规则 1)。
     var homeQuickActions: [SearchResult] {
         let commandIDs: [CommandID] = [
             .openClipboardHistory,
-            .captureRegion,
-            .captureWindow,
-            .captureFullScreen
+            .captureScreenshot
         ]
         return commandIDs.compactMap { commandID in
             guard let command = AssistantCommandCatalog.byID[commandID] else { return nil }
@@ -255,7 +254,7 @@ final class SearchPanelViewModel: ObservableObject {
             return result.subtitle
         case .copyClipboardRecord:
             return result.title
-        case .runCommand, .runPluginAction, .openSettings, .startScreenshot:
+        case .runCommand, .runPluginAction, .openSettings:
             return result.title
         }
     }
@@ -387,8 +386,6 @@ final class SearchPanelActionExecutor: SearchActionExecutorProtocol {
             }
         case .openSettings(let route):
             await openSettings(route)
-        case .startScreenshot(let mode):
-            await startScreenshot(mode)
         case .openFile(let url):
             await MainActor.run {
                 _ = NSWorkspace.shared.open(url)
@@ -471,18 +468,6 @@ final class SearchPanelActionExecutor: SearchActionExecutorProtocol {
             NSApp.activate()
         } else {
             NSApp.activate(ignoringOtherApps: true)
-        }
-    }
-
-    @MainActor
-    private func startScreenshot(_ mode: AssistantScreenshotMode) {
-        switch mode {
-        case .region:
-            NotificationCenter.default.post(name: .commandCaptureRegion, object: nil)
-        case .fullScreen:
-            NotificationCenter.default.post(name: .commandCaptureFullScreen, object: nil)
-        case .window:
-            NotificationCenter.default.post(name: .commandCaptureWindow, object: nil)
         }
     }
 }

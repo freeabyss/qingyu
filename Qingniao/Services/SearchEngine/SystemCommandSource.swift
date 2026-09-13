@@ -10,9 +10,7 @@ extension CommandID {
     static let openDownloads = CommandID(rawValue: "openDownloads")
     static let openApplications = CommandID(rawValue: "openApplications")
     static let openDesktop = CommandID(rawValue: "openDesktop")
-    static let captureRegion = CommandID(rawValue: "captureRegion")
-    static let captureFullScreen = CommandID(rawValue: "captureFullScreen")
-    static let captureWindow = CommandID(rawValue: "captureWindow")
+    static let captureScreenshot = CommandID(rawValue: "captureScreenshot")
     static let openClipboardHistory = CommandID(rawValue: "openClipboardHistory")
     static let clearClipboardHistory = CommandID(rawValue: "clearClipboardHistory")
     static let toggleClipboardRecording = CommandID(rawValue: "toggleClipboardRecording")
@@ -124,28 +122,12 @@ enum AssistantCommandCatalog {
             icon: "desktopcomputer"
         ),
         command(
-            .captureRegion,
-            zh: "区域截图",
-            en: "Capture Region",
-            zhAliases: ["截图", "截屏", "区域截屏", "选择区域截图"],
-            enAliases: ["screenshot", "capture region", "region screenshot", "area screenshot"],
-            icon: "crop"
-        ),
-        command(
-            .captureFullScreen,
-            zh: "全屏截图",
-            en: "Capture Full Screen",
-            zhAliases: ["全屏截屏", "截取全屏", "屏幕截图"],
-            enAliases: ["full screen screenshot", "capture full screen", "screen capture"],
-            icon: "rectangle.inset.filled"
-        ),
-        command(
-            .captureWindow,
-            zh: "窗口截图",
-            en: "Capture Window",
-            zhAliases: ["窗口截屏", "截取窗口", "选窗口截图"],
-            enAliases: ["window screenshot", "capture window"],
-            icon: "macwindow"
+            .captureScreenshot,
+            zh: "截图",
+            en: "Screenshot",
+            zhAliases: ["截屏", "屏幕截图", "屏幕截屏", "区域截图", "区域截屏", "选择区域截图", "全屏截图", "全屏截屏", "截取全屏", "窗口截图", "窗口截屏", "截取窗口", "选窗口截图"],
+            enAliases: ["capture screenshot", "take screenshot", "capture region", "region screenshot", "area screenshot", "capture full screen", "full screen screenshot", "screen capture", "capture window", "window screenshot"],
+            icon: "camera.viewfinder"
         ),
         command(
             .openClipboardHistory,
@@ -236,10 +218,11 @@ enum AssistantCommandCatalog {
 
 // MARK: - Assistant MVP command source
 
-/// Search source for the Assistant MVP built-in command whitelist.
+/// Search source for the Assistant built-in command whitelist.
 ///
-/// The catalog is intentionally closed: it exposes exactly the 15 commands in
-/// `docs/architecture/api.md` section 10.1. It does not parse arbitrary user text
+/// The catalog is intentionally closed: it exposes the built-in commands
+/// registered with the quick-launch plugin (screenshot is a single "截图"
+/// entry per PRD「截图与贴图」规则 1). It does not parse arbitrary user text
 /// as shell, and it does not include shutdown, system restart, logout, sudo,
 /// file deletion, process killing, or custom command execution.
 final class SystemCommandSource: CommandSourceProtocol {
@@ -352,12 +335,8 @@ final class SystemCommandExecutor: CommandExecutorProtocol {
             workspace.open(URL(fileURLWithPath: "/Applications", isDirectory: true))
         case .openDesktop:
             workspace.open(FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask).first ?? FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Desktop"))
-        case .captureRegion:
-            await postOnMainActor(name: .commandCaptureRegion)
-        case .captureFullScreen:
-            await postOnMainActor(name: .commandCaptureFullScreen)
-        case .captureWindow:
-            await postOnMainActor(name: .commandCaptureWindow)
+        case .captureScreenshot:
+            await postOnMainActor(name: .commandCaptureScreenshot)
         case .openClipboardHistory:
             await postOnMainActor(name: .commandOpenClipboardHistory)
         case .clearClipboardHistory:
@@ -442,9 +421,7 @@ final class CommandSearchActionExecutor: SearchActionExecutorProtocol {
 }
 
 extension Notification.Name {
-    static let commandCaptureRegion = Notification.Name("com.assistant.command.captureRegion")
-    static let commandCaptureFullScreen = Notification.Name("com.assistant.command.captureFullScreen")
-    static let commandCaptureWindow = Notification.Name("com.assistant.command.captureWindow")
+    static let commandCaptureScreenshot = Notification.Name("com.assistant.command.captureScreenshot")
     static let commandOpenClipboardHistory = Notification.Name("com.assistant.command.openClipboardHistory")
     static let commandToggleClipboardRecording = Notification.Name("com.assistant.command.toggleClipboardRecording")
     static let commandCheckPermissions = Notification.Name("com.assistant.command.checkPermissions")

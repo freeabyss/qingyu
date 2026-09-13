@@ -73,7 +73,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         // v1.2.1: 功能入口不再被 onboarding 门禁劫持（PRD §4.1）。
         // onboarding 仅在首启自动展示，或经菜单「欢迎向导」主动打开。
         container.statusItemController.onStartScreenshot = { [weak self] in
-            self?.container.screenshotWindowController.captureRegion()
+            self?.container.screenshotWindowController.startCapture()
         }
         container.statusItemController.onShowOnboarding = { [weak self] in
             self?.showOnboardingWindow()
@@ -260,7 +260,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         case .startScreenshot:
             // 与 statusItemController.onStartScreenshot 闭包调用同一方法
             // （cases.md §0.4）；配合 --uitest-skip-screenshot-capture 仅测入口可达。
-            container.screenshotWindowController.captureRegion()
+            container.screenshotWindowController.startCapture()
         }
     }
     #endif

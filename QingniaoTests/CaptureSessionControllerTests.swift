@@ -246,6 +246,20 @@ final class CaptureSessionControllerTests: XCTestCase {
         )
     }
 
+    /// PRD「截图与贴图」规则 2/5：菜单栏/桌面空白悬停时单击 = 当前显示器全屏截图。
+    func testClickWithoutWindowCandidateLocksActiveDisplay() {
+        let (controller, _) = makeController()
+        var lockedTarget: CaptureTarget?
+        controller.onLocked = { lockedTarget = $0 }
+        controller.start()
+        controller.handle(.pointerMoved(CGPoint(x: rightDisplay.frame.midX, y: rightDisplay.frame.midY)))
+
+        controller.handle(.mouseDown(CGPoint(x: rightDisplay.frame.midX, y: rightDisplay.frame.midY)))
+        controller.handle(.mouseUp(CGPoint(x: rightDisplay.frame.midX, y: rightDisplay.frame.midY)))
+
+        XCTAssertEqual(lockedTarget, .display(rightDisplay))
+    }
+
     func testSelectFullDisplayLocksActiveDisplay() {
         let (controller, _) = makeController()
         var lockedTarget: CaptureTarget?

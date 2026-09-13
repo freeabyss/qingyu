@@ -87,7 +87,7 @@ private struct HotkeyRecorderGallery: View {
                     .font(JadeFont.subhead)
                     .foregroundStyle(JadeColor.textSecondary)
                 HotkeyRecorder(
-                    for: .captureRegion,
+                    for: .startScreenshot,
                     isConflicting: .constant(true),
                     conflictMessage: .constant("与系统截图快捷键冲突")
                 )

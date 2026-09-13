@@ -52,8 +52,9 @@ struct CaptureSessionState {
     }
 
     /// 左键抬起：
-    /// - 无拖拽事件的单击 → 锁定当前窗口候选；
-    /// - 拖拽达到最小选区 → 锁定区域；
+    /// - 无拖拽事件的单击 → 锁定悬停默认值：有窗口候选锁定窗口，否则锁定当前显示器全屏
+    ///   （PRD「截图与贴图」规则 2/5：菜单栏或桌面空白悬停时单击 = 全屏截图）；
+    /// - 拖拽达到最小选区 → 锁定区域（区域圈选优先于悬停默认值）；
     /// - 拖拽不足最小选区 → 回到 targeting，保留当前窗口候选。
     mutating func mouseUp(at point: CGPoint) {
         guard case .draggingRegion(let start, let current, let display) = phase else { return }
@@ -62,7 +63,7 @@ struct CaptureSessionState {
             if let window = lastWindowCandidate {
                 phase = .locked(.window(window))
             } else {
-                phase = .targetingWindow(nil)
+                phase = .locked(.display(display))
             }
             return
         }

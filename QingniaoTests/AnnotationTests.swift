@@ -4,14 +4,6 @@ import AppKit
 
 @MainActor
 final class AnnotationTests: XCTestCase {
-    func testRegionCaptureSessionGuardOnlyAllowsMatchingSessionToFinish() {
-        let activeID = UUID()
-
-        XCTAssertTrue(RegionCaptureSessionGuard.shouldFinish(activeSessionID: activeID, requestedSessionID: activeID))
-        XCTAssertFalse(RegionCaptureSessionGuard.shouldFinish(activeSessionID: activeID, requestedSessionID: UUID()))
-        XCTAssertFalse(RegionCaptureSessionGuard.shouldFinish(activeSessionID: nil, requestedSessionID: activeID))
-    }
-
     func testRegionCropRectUsesMainDisplayOrigin() throws {
         let crop = try XCTUnwrap(ScreenshotGeometry.cropRect(
             globalSelection: NSRect(x: 100, y: 200, width: 300, height: 150),

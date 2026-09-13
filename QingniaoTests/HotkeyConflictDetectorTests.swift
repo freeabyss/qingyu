@@ -8,17 +8,15 @@ final class HotkeyConflictDetectorTests: XCTestCase {
     // MARK: - Default binding values (SHORTCUT-001..004)
 
     func testDefaultShortcutValuesMatchPRD() {
-        // PRD §9.6 快捷键总表.
+        // PRD「截图与贴图」/ Task 009：F1 开始截图（唯一截图快捷键槽位）。
         assertShortcut(.togglePanel, key: .space, modifiers: [.option])
-        assertShortcut(.captureRegion, key: .four, modifiers: [.command, .control, .shift])
-        assertShortcut(.captureWindow, key: .five, modifiers: [.command, .control, .shift])
-        assertShortcut(.captureFullscreen, key: .three, modifiers: [.control, .option, .command])
+        assertShortcut(.startScreenshot, key: .f1, modifiers: [])
         assertShortcut(.openClipboardHistory, key: .c, modifiers: [.option, .command])
         assertShortcut(.openSettings, key: .comma, modifiers: [.option, .command])
     }
 
-    func testManagedGlobalShortcutsCoversSixSlots() {
-        XCTAssertEqual(KeyboardShortcuts.Name.managedGlobalShortcuts.count, 6)
+    func testManagedGlobalShortcutsCoversFourSlots() {
+        XCTAssertEqual(KeyboardShortcuts.Name.managedGlobalShortcuts.count, 4)
         XCTAssertEqual(Set(HotkeyAction.allCases.map(\.name)), Set(KeyboardShortcuts.Name.managedGlobalShortcuts))
     }
 
@@ -73,18 +71,18 @@ final class HotkeyConflictDetectorTests: XCTestCase {
             currentShortcutProvider: { _ in nil },
             systemShortcutProvider: { [] }
         )
-        let outcome = detector.evaluate(KeyboardShortcuts.Shortcut(.f, modifiers: [.command, .control]), for: .captureFullscreen)
+        let outcome = detector.evaluate(KeyboardShortcuts.Shortcut(.f, modifiers: [.command, .control]), for: .startScreenshot)
         XCTAssertEqual(outcome, .registered)
     }
 
     func testEvaluateReturnsConflictForSystemShortcut() {
         let system = KeyboardShortcuts.Shortcut(.three, modifiers: [.control, .option, .command])
         let detector = HotkeyConflictDetector(
-            managedNames: [.captureFullscreen],
+            managedNames: [.startScreenshot],
             currentShortcutProvider: { _ in nil },
             systemShortcutProvider: { [system] }
         )
-        let outcome = detector.evaluate(system, for: .captureFullscreen)
+        let outcome = detector.evaluate(system, for: .startScreenshot)
         guard case .conflict = outcome else {
             return XCTFail("Expected .conflict, got \(outcome)")
         }

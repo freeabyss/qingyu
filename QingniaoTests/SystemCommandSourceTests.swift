@@ -2,7 +2,7 @@ import XCTest
 @testable import Qingniao
 
 final class SystemCommandSourceTests: XCTestCase {
-    func testAllFifteenMVPCommandsAreDefinedAndSearchable() async {
+    func testAllMVPCommandsAreDefinedAndSearchable() async {
         let source = SystemCommandSource()
         let expectedIDs: [CommandID] = [
             .openSystemSettings,
@@ -10,9 +10,7 @@ final class SystemCommandSourceTests: XCTestCase {
             .openDownloads,
             .openApplications,
             .openDesktop,
-            .captureRegion,
-            .captureFullScreen,
-            .captureWindow,
+            .captureScreenshot,
             .openClipboardHistory,
             .clearClipboardHistory,
             .toggleClipboardRecording,
@@ -22,7 +20,7 @@ final class SystemCommandSourceTests: XCTestCase {
             .toggleAppearance
         ]
 
-        XCTAssertEqual(source.commands.count, 15)
+        XCTAssertEqual(source.commands.count, 13)
         XCTAssertEqual(Set(source.commands.map(\.id)), Set(expectedIDs))
 
         for command in source.commands {
@@ -30,6 +28,27 @@ final class SystemCommandSourceTests: XCTestCase {
             XCTAssertTrue(results.contains { $0.id == SearchResultID(rawValue: "command:\(command.id.rawValue)") }, "Expected \(command.id.rawValue) to be searchable by English name")
             XCTAssertEqual(results.first { $0.id == SearchResultID(rawValue: "command:\(command.id.rawValue)") }?.primaryAction, .runPluginAction(.quickLaunchCommand(command.id)))
         }
+    }
+
+    /// PRD「截图与贴图」规则 1：截图只提供一个“截图”命令；
+    /// 旧的区域/全屏/窗口关键词仍应命中这一唯一命令（别名机制不变）。
+    func testSingleScreenshotCommandMatchesLegacyModeQueries() async {
+        let source = SystemCommandSource()
+        let queries = [
+            "截图", "截屏", "区域截图", "全屏截图", "窗口截图",
+            "jietu", "jt", "screen capture",
+            "screenshot", "capture region", "capture full screen", "capture window"
+        ]
+
+        for query in queries {
+            let results = await source.search(query: query)
+            XCTAssertTrue(results.containsCommand(.captureScreenshot), "Query '\(query)' should match the single screenshot command")
+        }
+
+        // 无旧三命令 ID 残留：所有截图类结果都指向唯一命令。
+        let results = await source.search(query: "截图")
+        XCTAssertEqual(results.count, 1)
+        XCTAssertEqual(results.first?.primaryAction, .runPluginAction(.quickLaunchCommand(.captureScreenshot)))
     }
 
     func testCommandsHaveChineseEnglishAliasesPinyinAndInitials() {
@@ -76,8 +95,8 @@ final class SystemCommandSourceTests: XCTestCase {
         UserDefaults.standard.set(["en"], forKey: "AppleLanguages")
         let chineseQueryInEnglishUI = await source.search(query: "窗口截图")
 
-        XCTAssertTrue(englishQueryInChineseUI.containsCommand(.captureWindow))
-        XCTAssertTrue(chineseQueryInEnglishUI.containsCommand(.captureWindow))
+        XCTAssertTrue(englishQueryInChineseUI.containsCommand(.captureScreenshot))
+        XCTAssertTrue(chineseQueryInEnglishUI.containsCommand(.captureScreenshot))
     }
 
     func testConfirmationFlagsMatchMVPRequirements() {
@@ -161,6 +180,25 @@ final class SystemCommandSourceTests: XCTestCase {
         }
 
         try await executor.execute(.openClipboardHistory)
+
+        await fulfillment(of: [expectation], timeout: 0.1)
+    }
+
+    /// PRD「截图与贴图」规则 1：唯一截图命令只发一个通知，由
+    /// AppContainer 路由到 ScreenshotWindowController.startCapture()。
+    func testCaptureScreenshotPostsSingleNotification() async throws {
+        let center = NotificationCenter()
+        let executor = SystemCommandExecutor(notificationCenter: center)
+        let expectation = expectation(
+            forNotification: .commandCaptureScreenshot,
+            object: nil,
+            notificationCenter: center
+        ) { _ in
+            XCTAssertTrue(Thread.isMainThread)
+            return true
+        }
+
+        try await executor.execute(.captureScreenshot)
 
         await fulfillment(of: [expectation], timeout: 0.1)
     }

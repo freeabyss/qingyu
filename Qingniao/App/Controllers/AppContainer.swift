@@ -151,9 +151,7 @@ final class AppContainer: NSObject {
         center.addObserver(self, selector: #selector(handleSettingsDidChange), name: .settingsDidChange, object: nil)
         center.addObserver(self, selector: #selector(handleCommandToggleClipboardRecording), name: .commandToggleClipboardRecording, object: nil)
         center.addObserver(self, selector: #selector(handleCommandCheckPermissions), name: .commandCheckPermissions, object: nil)
-        center.addObserver(self, selector: #selector(handleCommandCaptureRegion), name: .commandCaptureRegion, object: nil)
-        center.addObserver(self, selector: #selector(handleCommandCaptureWindow), name: .commandCaptureWindow, object: nil)
-        center.addObserver(self, selector: #selector(handleCommandCaptureFullScreen), name: .commandCaptureFullScreen, object: nil)
+        center.addObserver(self, selector: #selector(handleCommandCaptureScreenshot), name: .commandCaptureScreenshot, object: nil)
         center.addObserver(self, selector: #selector(handleCommandOpenClipboardHistory), name: .commandOpenClipboardHistory, object: nil)
     }
 
@@ -182,16 +180,8 @@ final class AppContainer: NSObject {
         settingsWindowController.show(route: .general)
     }
 
-    @objc private func handleCommandCaptureRegion() {
-        screenshotWindowController.captureRegion()
-    }
-
-    @objc private func handleCommandCaptureWindow() {
-        screenshotWindowController.captureWindow()
-    }
-
-    @objc private func handleCommandCaptureFullScreen() {
-        screenshotWindowController.captureFullScreen()
+    @objc private func handleCommandCaptureScreenshot() {
+        screenshotWindowController.startCapture()
     }
 
     @objc private func handleCommandOpenClipboardHistory() {

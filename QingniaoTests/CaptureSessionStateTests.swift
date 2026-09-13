@@ -44,12 +44,34 @@ final class CaptureSessionStateTests: XCTestCase {
         XCTAssertEqual(state.phase, .locked(.window(leftWindow)))
     }
 
-    func testClickWithoutWindowCandidateStaysTargeting() {
+    /// PRD「截图与贴图」规则 2/5：菜单栏或桌面空白区域悬停时单击 = 当前显示器全屏截图。
+    func testClickOnEmptyAreaLocksFullDisplay() {
         var state = CaptureSessionState()
         state.mouseDown(at: CGPoint(x: 50, y: 50), display: leftDisplay)
         state.mouseUp(at: CGPoint(x: 50, y: 50))
 
-        XCTAssertEqual(state.phase, .targetingWindow(nil))
+        XCTAssertEqual(state.phase, .locked(.display(leftDisplay)))
+    }
+
+    /// PRD 规则 2：先悬停窗口、再移到空白处后单击，应按当前悬停默认值锁定全屏。
+    func testClickOnEmptyAreaAfterWindowHoverLocksFullDisplayOfCurrentScreen() {
+        var state = CaptureSessionState()
+        state.pointerMoved(to: CGPoint(x: 100, y: 100), display: leftDisplay, window: leftWindow)
+        state.pointerMoved(to: CGPoint(x: 1900, y: 60), display: leftDisplay, window: nil)
+        state.mouseDown(at: CGPoint(x: 1900, y: 60), display: leftDisplay)
+        state.mouseUp(at: CGPoint(x: 1900, y: 60))
+
+        XCTAssertEqual(state.phase, .locked(.display(leftDisplay)))
+    }
+
+    /// PRD 规则 2：窗口悬停单击 = 窗口截图。
+    func testWindowHoverClickLocksWindow() {
+        var state = CaptureSessionState()
+        state.pointerMoved(to: CGPoint(x: 100, y: 100), display: leftDisplay, window: leftWindow)
+        state.mouseDown(at: CGPoint(x: 100, y: 100), display: leftDisplay)
+        state.mouseUp(at: CGPoint(x: 100, y: 100))
+
+        XCTAssertEqual(state.phase, .locked(.window(leftWindow)))
     }
 
     // MARK: - Region drag flow
@@ -86,6 +108,45 @@ final class CaptureSessionStateTests: XCTestCase {
         state.mouseUp(at: CGPoint(x: 103, y: 102))
 
         XCTAssertEqual(state.phase, .targetingWindow(leftWindow), "不足最小选区应回到当前窗口候选")
+    }
+
+    func testTinyDragFromEmptyAreaReturnsToTargeting() {
+        var state = CaptureSessionState()
+        state.pointerMoved(to: CGPoint(x: 1900, y: 60), display: leftDisplay, window: nil)
+        state.mouseDown(at: CGPoint(x: 1900, y: 60), display: leftDisplay)
+        state.mouseDragged(to: CGPoint(x: 1902, y: 62))
+        state.mouseUp(at: CGPoint(x: 1902, y: 62))
+
+        XCTAssertEqual(state.phase, .targetingWindow(nil), "不足最小选区应回到 targeting")
+    }
+
+    /// PRD 规则 3：只要左键发生拖拽，区域圈选优先于窗口悬停默认值。
+    func testDragFromWindowCandidateLocksRegionNotWindow() {
+        var state = CaptureSessionState()
+        state.pointerMoved(to: CGPoint(x: 100, y: 100), display: leftDisplay, window: leftWindow)
+        state.mouseDown(at: CGPoint(x: 100, y: 100), display: leftDisplay)
+        state.mouseDragged(to: CGPoint(x: 210, y: 180))
+        state.mouseUp(at: CGPoint(x: 210, y: 180))
+
+        XCTAssertEqual(
+            state.phase,
+            .locked(.region(display: leftDisplay, globalRect: CGRect(x: 100, y: 100, width: 110, height: 80))),
+            "从窗口候选上拖拽应锁定区域，而非窗口"
+        )
+    }
+
+    /// PRD 规则 5：桌面空白区域拖拽仍由区域圈选优先。
+    func testDragFromEmptyAreaLocksRegion() {
+        var state = CaptureSessionState()
+        state.pointerMoved(to: CGPoint(x: 1900, y: 60), display: leftDisplay, window: nil)
+        state.mouseDown(at: CGPoint(x: 1900, y: 60), display: leftDisplay)
+        state.mouseDragged(to: CGPoint(x: 1910, y: 130))
+        state.mouseUp(at: CGPoint(x: 1910, y: 130))
+
+        XCTAssertEqual(
+            state.phase,
+            .locked(.region(display: leftDisplay, globalRect: CGRect(x: 1900, y: 60, width: 10, height: 70)))
+        )
     }
 
     func testExactlyMinimumSizeRegionLocks() {

@@ -43,7 +43,7 @@ protocol CaptureOverlayWindowFactory: AnyObject {
     func makeWindow(for display: CaptureDisplay) -> CaptureOverlayWindow
 }
 
-/// 统一截图会话协调器（重构自单屏 `ScreenshotOverlayController`）：
+/// 统一截图会话协调器（PRD「截图与贴图」单一入口）：
 /// 在所有显示器各建一个叠层窗口，全部窗口共享一个 `CaptureSessionState`；
 /// 只有指针所在屏展示活动高亮与快捷键提示，跨屏即时切换；
 /// 锁定目标回调 `onLocked`，取消回调 `onCancel`，关闭全部叠层由调用方经
@@ -296,7 +296,9 @@ final class CaptureSessionController {
             switch state.phase {
             case .targetingWindow(let candidate):
                 window.updateHighlight(window: isActive ? candidate : nil)
-                window.updateRegion(rect: nil)
+                // PRD「截图与贴图」规则 2/5：候选为空（菜单栏/桌面空白悬停）时，
+                // 活动屏按整屏范围复用区域选框绘制路径，让“默认选中当前显示器全屏”可见。
+                window.updateRegion(rect: isActive && candidate == nil ? window.display.frame : nil)
             case .draggingRegion(let start, let current, _):
                 window.updateHighlight(window: nil)
                 window.updateRegion(rect: isActive ? Self.regionRect(start: start, current: current) : nil)

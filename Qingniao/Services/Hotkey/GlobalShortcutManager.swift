@@ -9,13 +9,11 @@ import os.log
 /// actions. It replaces the ad-hoc `KeyboardShortcuts.onKeyUp` calls that used
 /// to live inline in `AppDelegate`.
 ///
-/// Default bindings (PRD §9.6):
+/// Default bindings (PRD「截图与贴图」/ Task 009):
 ///   - togglePanel          = ⌥ Space
-///   - captureRegion        = ⇧⌃⌘4
-///   - captureWindow        = ⇧⌃⌘5
-///   - captureFullscreen    = ⌃⌥⌘3   (v1.2 新增 → ScreenshotService.captureScreen)
-///   - openClipboardHistory = ⌥⌘C    (v1.2 新增)
-///   - openSettings         = ⌥⌘,    (v1.2 新增)
+///   - startScreenshot      = F1      (single screenshot entry, modes auto-detected)
+///   - openClipboardHistory = ⌥⌘C
+///   - openSettings         = ⌥⌘,
 ///
 /// User customizations are persisted automatically by `KeyboardShortcuts` via
 /// `UserDefaults`; this manager only re-attaches the handlers on each launch.
@@ -34,18 +32,16 @@ final class GlobalShortcutManager {
 
     // MARK: - Bulk lifecycle
 
-    /// Registers all six global shortcuts and refreshes conflict state. Defaults
+    /// Registers all global shortcuts and refreshes conflict state. Defaults
     /// are applied automatically by `KeyboardShortcuts.Name(default:)`; persisted
     /// user overrides win.
     func setupShortcuts() {
         registerSearchToggle()
-        registerRegionCapture()
-        registerWindowCapture()
-        registerFullscreenCapture()
+        registerScreenshot()
         registerOpenClipboardHistory()
         registerOpenSettings()
         refreshConflicts()
-        logger.info("Global shortcuts registered: togglePanel, captureRegion, captureWindow, captureFullscreen, openClipboardHistory, openSettings")
+        logger.info("Global shortcuts registered: togglePanel, startScreenshot, openClipboardHistory, openSettings")
     }
 
     func unregisterAll() {
@@ -75,21 +71,9 @@ final class GlobalShortcutManager {
         }
     }
 
-    func registerRegionCapture() {
-        KeyboardShortcuts.onKeyUp(for: .captureRegion) { [weak self] in
-            Task { @MainActor in self?.container.screenshotWindowController.captureRegion() }
-        }
-    }
-
-    func registerWindowCapture() {
-        KeyboardShortcuts.onKeyUp(for: .captureWindow) { [weak self] in
-            Task { @MainActor in self?.container.screenshotWindowController.captureWindow() }
-        }
-    }
-
-    func registerFullscreenCapture() {
-        KeyboardShortcuts.onKeyUp(for: .captureFullscreen) { [weak self] in
-            Task { @MainActor in self?.container.screenshotWindowController.captureFullScreen() }
+    func registerScreenshot() {
+        KeyboardShortcuts.onKeyUp(for: .startScreenshot) { [weak self] in
+            Task { @MainActor in self?.container.screenshotWindowController.startCapture() }
         }
     }
 

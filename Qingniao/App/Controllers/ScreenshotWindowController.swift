@@ -3,10 +3,11 @@ import os.log
 
 /// Thin wrapper around the screenshot capture + preview flow (design §2.5).
 ///
-/// Region and window captures enter the unified multi-display session
-/// (Task 006): one overlay window per screen, window highlight following the
-/// pointer, click to capture a window, drag to select a region, `⌘A` full
-/// display, Esc cancels. Full-screen capture stays a direct backend call.
+/// The single public entry `startCapture()` opens the unified multi-display
+/// session (Task 006): one overlay window per screen, window highlight
+/// following the pointer, click to capture the highlighted target (window or
+/// current display), drag to select a region, `⌘A` full display, Esc cancels.
+/// PRD「截图与贴图」规则 1：截图只提供一个入口和一个“截图”命令。
 @MainActor
 final class ScreenshotWindowController {
     private let logger = Logger.screenshot
@@ -27,29 +28,16 @@ final class ScreenshotWindowController {
         self.container = container
     }
 
-    func captureRegion() {
-        startUnifiedCaptureSession(kind: "region")
-    }
-
-    func captureWindow() {
-        startUnifiedCaptureSession(kind: "window")
-    }
-
-    func captureFullScreen() {
-        performCapture(kind: "full screen") { try await self.container.screenshotService.captureScreen() }
-    }
-
-    // MARK: - Unified capture session (Task 006)
-
-    private func startUnifiedCaptureSession(kind: String) {
-        logger.info("\(kind, privacy: .public) capture triggered")
+    /// 唯一公开入口：进入统一截图会话（模式由指针位置与鼠标操作自动判定）。
+    func startCapture() {
+        logger.info("Screenshot capture triggered")
         guard ensureScreenRecordingPermission() else { return }
 
         #if DEBUG
         // TC-UI-013：跳过真实屏幕捕获（不弹全屏 overlay、不依赖屏幕录制权限），
         // 仅发通知标记"截图入口可达"，供 UI 测试断言。无 flag 时行为不变。
         if ProcessInfo.processInfo.arguments.contains(UITestLaunchArg.skipScreenshotCapture) {
-            logger.info("UITest: skipping \(kind, privacy: .public) capture, posting notification")
+            logger.info("UITest: skipping capture, posting notification")
             NotificationCenter.default.post(name: .uitestScreenshotTriggered, object: nil)
             return
         }
@@ -78,19 +66,21 @@ final class ScreenshotWindowController {
                     let result = try await self.container.screenshotService.captureTarget(target)
                     self.showPreview(for: result)
                     session.finish()
-                    self.logger.info("\(kind, privacy: .public) capture completed, preview shown")
+                    self.logger.info("Capture completed, preview shown")
                 } catch {
                     session.finish()
-                    self.handleCaptureError(error, kind: kind, restoreCommandBar: wasCommandBarVisible)
+                    self.handleCaptureError(error, restoreCommandBar: wasCommandBarVisible)
                 }
             }
         }
 
         session.onCancel = { [weak self] in
-            self?.logger.info("\(kind, privacy: .public) capture cancelled")
+            self?.logger.info("Capture cancelled")
             if wasCommandBarVisible {
                 self?.container.commandBarController.show()
             }
+            // 取消截图时同步关闭已打开的预览/工具条（复用旧取消广播语义）。
+            NotificationCenter.default.post(name: .screenshotOverlayDidCancel, object: nil)
         }
 
         session.start()
@@ -100,19 +90,19 @@ final class ScreenshotWindowController {
 
     private func showPreview(for result: ScreenshotResult) {
         if result.sourceType == .region, let selection = result.regionSelection {
-            toolbar.showRegion(result: result, selection: selection) { [weak self] in
-                self?.container.screenshotService.finishRegionCapture(sessionID: selection.sessionID)
-            }
+            // 统一会话的叠层已随 session.finish() 关闭，无额外清理；
+            // onDismiss 闭包保留以维持工具条的“来自区域截图”呈现语义。
+            toolbar.showRegion(result: result, selection: selection) { }
         } else {
             toolbar.show(result: result)
         }
     }
 
-    private func handleCaptureError(_ error: Error, kind: String, restoreCommandBar: Bool) {
+    private func handleCaptureError(_ error: Error, restoreCommandBar: Bool) {
         if case SnapVaultError.screenshotFailed(let reason) = error, reason == SnapVaultError.userCancelledReason {
-            logger.debug("\(kind, privacy: .public) capture cancelled")
+            logger.debug("Capture cancelled")
         } else {
-            logger.error("\(kind, privacy: .public) capture failed: \(error.localizedDescription, privacy: .public)")
+            logger.error("Capture failed: \(error.localizedDescription, privacy: .public)")
             NSAlert(error: error).runModal()
         }
         if restoreCommandBar {
@@ -132,62 +122,6 @@ final class ScreenshotWindowController {
         return count
     }
     #endif
-
-    // MARK: - Legacy direct capture flow
-
-    private func performCapture(kind: String, _ capture: @escaping () async throws -> ScreenshotResult) {
-        logger.info("\(kind, privacy: .public) capture triggered")
-        guard ensureScreenRecordingPermission() else { return }
-
-        #if DEBUG
-        if ProcessInfo.processInfo.arguments.contains(UITestLaunchArg.skipScreenshotCapture) {
-            logger.info("UITest: skipping \(kind, privacy: .public) capture, posting notification")
-            NotificationCenter.default.post(name: .uitestScreenshotTriggered, object: nil)
-            return
-        }
-        #endif
-
-        // Hide the command bar so it doesn't appear in the screenshot.
-        let wasCommandBarVisible = container.commandBarController.isVisible
-        if wasCommandBarVisible {
-            container.commandBarController.hide()
-        }
-
-        Task {
-            var shouldRestoreCommandBar = wasCommandBarVisible
-            do {
-                let result = try await capture()
-                await MainActor.run { [weak self] in
-                    guard let self else { return }
-                    if result.sourceType == .region, let selection = result.regionSelection {
-                        self.toolbar.showRegion(result: result, selection: selection) { [weak self] in
-                            self?.container.screenshotService.finishRegionCapture(sessionID: selection.sessionID)
-                        }
-                    } else {
-                        self.toolbar.show(result: result)
-                    }
-                }
-                // Keep the command bar hidden while the preview is active.
-                shouldRestoreCommandBar = false
-                logger.info("\(kind, privacy: .public) capture completed, preview shown")
-            } catch {
-                if case SnapVaultError.screenshotFailed(let reason) = error, reason == SnapVaultError.userCancelledReason {
-                    logger.debug("\(kind, privacy: .public) capture cancelled")
-                } else {
-                    logger.error("\(kind, privacy: .public) capture failed: \(error.localizedDescription, privacy: .public)")
-                    _ = await MainActor.run {
-                        NSAlert(error: error).runModal()
-                    }
-                }
-            }
-
-            if shouldRestoreCommandBar {
-                DispatchQueue.main.async { [weak self] in
-                    self?.container.commandBarController.show()
-                }
-            }
-        }
-    }
 
     private func ensureScreenRecordingPermission() -> Bool {
         let permissionService = container.permissionService
