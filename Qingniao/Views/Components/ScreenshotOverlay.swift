@@ -7,6 +7,14 @@ extension Notification.Name {
 
 // MARK: - CaptureOverlayWindowController (Task 006)
 
+/// 截图叠层专用窗口：borderless 全屏压暗层。
+/// borderless 窗口默认不能成为 key 窗口，而叠层键盘交互（Esc/⌘A）依赖 key 窗口
+/// （同 Task 008 `PinNSWindow` 的处理）。
+final class CaptureOverlayNSWindow: NSWindow {
+    override var canBecomeKey: Bool { true }
+    override var canBecomeMain: Bool { true }
+}
+
 /// `CaptureOverlayWindow` 的具体实现：每显示器一个 borderless 全屏窗口。
 /// 只绘制与接收事件；会话状态保存在 `CaptureSessionController`。
 final class CaptureOverlayWindowController: CaptureOverlayWindow {
@@ -22,7 +30,7 @@ final class CaptureOverlayWindowController: CaptureOverlayWindow {
     init(display: CaptureDisplay) {
         self.display = display
 
-        let window = NSWindow(
+        let window = CaptureOverlayNSWindow(
             contentRect: display.frame,
             styleMask: .borderless,
             backing: .buffered,
@@ -52,6 +60,11 @@ final class CaptureOverlayWindowController: CaptureOverlayWindow {
         contentView.isActiveDisplay = active
         contentView.needsDisplay = true
         contentView.hintsView?.isHidden = !active
+        // 只有活动显示器持有 key 窗口：Esc/⌘A 只路由到该屏，
+        // 跨屏切换时旧屏让出 key，避免多窗互相争抢。
+        if active {
+            makeKey()
+        }
     }
 
     func updateHighlight(window candidate: CaptureWindowCandidate?) {
@@ -69,8 +82,8 @@ final class CaptureOverlayWindowController: CaptureOverlayWindow {
     }
 
     func orderFront() {
+        // 仅上屏，不争 key：makeKey 由 setActive(true) 分支统一负责。
         window.orderFrontRegardless()
-        makeKey()
     }
 
     func hide() {

@@ -94,6 +94,8 @@ final class ScreenshotWindowController {
         }
 
         session.start()
+        // 让叠层窗口立即成为活动 key 窗口：鼠标首击直接进入拖拽，Esc 立即可用。
+        NSApp.activate(ignoringOtherApps: true)
     }
 
     private func showPreview(for result: ScreenshotResult) {

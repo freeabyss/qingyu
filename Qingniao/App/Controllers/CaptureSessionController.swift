@@ -63,6 +63,11 @@ final class CaptureSessionController {
     private var overlayWindows: [CGDirectDisplayID: CaptureOverlayWindow] = [:]
     private var screenChangeObserver: NSObjectProtocol?
 
+    /// 激活期自持有：`start()` 赋 `self`，`finish()`/`cancel()` 清 nil（与 start 严格配对）。
+    /// 防止调用方只以局部变量持有会话时 ARC 提前释放——否则键盘/事件回调的 `weak self`
+    /// 全部失效，叠层窗口被 NSApp.windows 持有后沦为无法响应的"僵尸"暗幕。
+    private var livenessReference: CaptureSessionController?
+
     /// 目标锁定（窗口/区域/整屏）。调用方完成捕获后必须调用 `finish()`。
     var onLocked: ((CaptureTarget) -> Void)?
     /// 用户取消（Esc）。控制器已关闭全部叠层。
@@ -85,6 +90,9 @@ final class CaptureSessionController {
         if let keyboardMonitor {
             NSEvent.removeMonitor(keyboardMonitor)
         }
+        if let globalKeyboardMonitor {
+            NSEvent.removeMonitor(globalKeyboardMonitor)
+        }
     }
 
     // MARK: - Lifecycle
@@ -99,6 +107,8 @@ final class CaptureSessionController {
         let pointerLocation = NSEvent.mouseLocation
         switchActiveDisplay(to: pointerLocation, notifyState: false)
         observeScreenChanges()
+        // 与 finish()/cancel() 严格配对：激活期间由会话自己持有自己。
+        livenessReference = self
         logger.info("Capture session started on \(self.overlayWindows.count) display(s)")
     }
 
@@ -110,11 +120,13 @@ final class CaptureSessionController {
     }
 
     /// 捕获完成（成功或失败）后关闭全部叠层。
+    /// 注意：清除自持有必须是最后一步——它可能立即触发 deinit。
     func finish() {
         isSessionActive = false
         closeAllWindows()
         removeScreenObserver()
         removeKeyboardMonitor()
+        livenessReference = nil
     }
 
     /// 用户取消：关闭全部叠层并广播取消回调。
@@ -127,6 +139,8 @@ final class CaptureSessionController {
         removeKeyboardMonitor()
         onCancel?()
         logger.info("Capture session cancelled")
+        // 清除自持有必须是最后一步——它可能立即触发 deinit。
+        livenessReference = nil
     }
 
     // MARK: - Input
@@ -185,9 +199,10 @@ final class CaptureSessionController {
     // MARK: - Keyboard
 
     private var keyboardMonitor: Any?
+    private var globalKeyboardMonitor: Any?
 
     private func setupKeyboardMonitor() {
-        guard keyboardMonitor == nil else { return }
+        guard keyboardMonitor == nil, globalKeyboardMonitor == nil else { return }
         keyboardMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             switch event.keyCode {
             case 53:                                       // Esc
@@ -200,12 +215,22 @@ final class CaptureSessionController {
                 return event
             }
         }
+        // 全局监听只接收其他应用派发的 keyDown（只读、不可拦截）：
+        // 应用自身未激活时 Esc 仍可取消截图会话。
+        globalKeyboardMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard event.keyCode == 53 else { return }      // Esc
+            self?.handle(.cancel)
+        }
     }
 
     private func removeKeyboardMonitor() {
         if let keyboardMonitor {
             NSEvent.removeMonitor(keyboardMonitor)
             self.keyboardMonitor = nil
+        }
+        if let globalKeyboardMonitor {
+            NSEvent.removeMonitor(globalKeyboardMonitor)
+            self.globalKeyboardMonitor = nil
         }
     }
 

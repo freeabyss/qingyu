@@ -178,6 +178,38 @@ final class CaptureSessionControllerTests: XCTestCase {
         XCTAssertEqual(factory.closedDisplayIDs.count, 2)
     }
 
+    /// 回归：调用方不持有会话时（如 `ScreenshotWindowController.startUnifiedCaptureSession`
+    /// 的局部 `session`），`start()` 后必须靠自持有存活，否则叠层成"僵尸"暗幕。
+    /// - `start()` 后释放外部引用 → 会话仍存活（激活期自持有）；
+    /// - `finish()` 后 → 自持有解除，会话释放。`cancel()` 路径对称。
+    func testSessionStaysAliveWhileActiveAndReleasesOnFinish() {
+        var session: CaptureSessionController? = makeController().0
+        weak var weakSession = session
+
+        session?.start()
+        session = nil
+        XCTAssertNotNil(weakSession, "激活期间应自持有：调用方释放后会话仍存活")
+
+        session = weakSession
+        session?.finish()
+        session = nil
+        XCTAssertNil(weakSession, "finish() 应解除自持有并释放会话")
+    }
+
+    func testSessionStaysAliveWhileActiveAndReleasesOnCancel() {
+        var session: CaptureSessionController? = makeController().0
+        weak var weakSession = session
+
+        session?.start()
+        session = nil
+        XCTAssertNotNil(weakSession, "激活期间应自持有：调用方释放后会话仍存活")
+
+        session = weakSession
+        session?.cancel()
+        session = nil
+        XCTAssertNil(weakSession, "cancel() 应解除自持有并释放会话")
+    }
+
     // MARK: - Window flow
 
     func testClickLocksWindowUnderPointerAndDeliversTarget() {
