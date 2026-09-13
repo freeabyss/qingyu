@@ -30,7 +30,7 @@ struct ManagementCenterView: View {
         } detail: {
             detail
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(JadeColor.surface1)
+                .background(JadeColor.surface2)
         }
         .tint(JadeColor.primary)
         .preferredColorScheme(viewModel.preferredColorScheme)
@@ -186,7 +186,7 @@ private struct GeneralPage: View {
                         }
                     }
                     .labelsHidden()
-                    .pickerStyle(.segmented)
+                    .pickerStyle(.menu)
                 }
             }
 
@@ -608,7 +608,8 @@ struct PrivacyPolicySheet: View {
 
 // MARK: - Shared layout primitives
 
-/// Standard scrollable settings page container: 24pt padding, top-leading aligned.
+/// Standard scrollable settings page container: 24pt padding, top-leading aligned;
+/// 内容列约束到 760pt（白底灰卡的 System Settings 比例）。
 struct SettingsScrollPage<Content: View>: View {
     @ViewBuilder let content: Content
 
@@ -617,7 +618,8 @@ struct SettingsScrollPage<Content: View>: View {
             VStack(alignment: .leading, spacing: JadeSpace.x6.value) {
                 content
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(maxWidth: 760, alignment: .leading)
+            .frame(maxWidth: .infinity)
             .padding(JadeSpace.x6.value)
         }
     }
@@ -661,14 +663,14 @@ struct SettingsSection<Content: View>: View {
             if let title {
                 Text(L10n.localized(title))
                     .font(JadeFont.headline)
-                    .foregroundStyle(JadeColor.textSecondary)
+                    .foregroundStyle(JadeColor.textPrimary)
             }
             VStack(alignment: .leading, spacing: JadeSpace.x3.value) {
                 content
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(JadeSpace.x4.value)
-            .background(JadeColor.surface2)
+            .background(JadeColor.settingsCard)
             .jadeRadius(.lg)
         }
     }
@@ -715,9 +717,10 @@ struct JadeSwitchRow: View {
                     }
                 }
             }
+            .padding(.vertical, JadeSpace.x1.value)
         }
         .toggleStyle(.switch)
-        .tint(JadeColor.primary)
+        .tint(Color(nsColor: .controlAccentColor))
     }
 }
 

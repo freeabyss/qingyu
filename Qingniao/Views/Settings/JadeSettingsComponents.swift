@@ -76,7 +76,7 @@ struct JadeSettingsCard<Content: View>: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(JadeSpace.x4.value)
-        .background(JadeColor.surface2)
+        .background(JadeColor.settingsCard)
         .jadeRadius(.lg)
     }
 }

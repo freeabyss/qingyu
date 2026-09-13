@@ -97,6 +97,13 @@ public enum JadeColor {
     ))
     public static let surface3 = Color(surface3NS)
 
+    /// 设置卡片填充（System Settings 白底灰卡风格）：Light `#F2F2F7` / Dark `#2A2A2A`。
+    public static let settingsCardNS = dynamic("SettingsCard", Pair(
+        light: NSColor(srgbHex: 0xF2F2F7),
+        dark: NSColor(srgbHex: 0x2A2A2A)
+    ))
+    public static let settingsCard = Color(settingsCardNS)
+
     // MARK: - 描边 / 遮罩（PRD §9.2.2）
 
     /// Border 分隔线 / 描边：Light `rgba(0,0,0,0.08)` / Dark `rgba(255,255,255,0.08)`。
