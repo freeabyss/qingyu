@@ -24,7 +24,7 @@ struct QuickLaunchPluginSettingsPage: View {
 
                 SettingsSection("management.settings.sources") {
                     ForEach(Array($viewModel.sourceToggles.enumerated()), id: \.element.id) { index, $source in
-                        if index > 0 { Divider().overlay(JadeColor.border) }
+                        if index > 0 { JadeSettingsDivider() }
                         JadeSwitchRow(icon: source.iconName,
                                       title: source.title,
                                       subtitle: source.subtitle,

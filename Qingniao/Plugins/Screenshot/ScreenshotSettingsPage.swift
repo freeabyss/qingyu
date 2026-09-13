@@ -38,7 +38,7 @@ struct ScreenshotPluginSettingsPage: View {
             VStack(alignment: .leading, spacing: JadeSpace.x6.value) {
                 SettingsSection("management.settings.shortcuts") {
                     ForEach(Array(recorderRows.enumerated()), id: \.element.id) { index, row in
-                        if index > 0 { Divider().overlay(JadeColor.border) }
+                        if index > 0 { JadeSettingsDivider() }
                         recorderRow(row)
                     }
                 }
@@ -79,9 +79,9 @@ struct ScreenshotPluginSettingsPage: View {
 
                 SettingsSection("management.screenshot.afterCapture") {
                     JadeSwitchRow(L10n.localized("management.screenshot.copyToClipboard"), isOn: $copyToClipboard)
-                    Divider().overlay(JadeColor.border)
+                    JadeSettingsDivider()
                     JadeSwitchRow(L10n.localized("management.screenshot.playSound"), isOn: $playSound)
-                    Divider().overlay(JadeColor.border)
+                    JadeSettingsDivider()
                     JadeSwitchRow(L10n.localized("management.screenshot.includeShadow"), isOn: $includeShadow)
                 }
 
@@ -93,7 +93,7 @@ struct ScreenshotPluginSettingsPage: View {
                     .onChange(of: pinFilePathToImage) { newValue in
                         Task { try? await viewModel.set(newValue, for: .pinFilePathToImage) }
                     }
-                    Divider().overlay(JadeColor.border)
+                    JadeSettingsDivider()
                     VStack(alignment: .leading, spacing: JadeSpace.x2.value) {
                         Text(L10n.localized("settings.pin.restoreCapacity"))
                             .font(JadeFont.body)
@@ -108,7 +108,7 @@ struct ScreenshotPluginSettingsPage: View {
                             Task { try? await viewModel.set(newValue, for: .pinRestoreCapacity) }
                         }
                     }
-                    Divider().overlay(JadeColor.border)
+                    JadeSettingsDivider()
                     HStack {
                         Text(L10n.localized("settings.pin.mouseEventsShortcut"))
                             .font(JadeFont.body)

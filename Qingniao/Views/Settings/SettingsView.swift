@@ -95,25 +95,37 @@ struct ManagementCenterView: View {
 
     @ViewBuilder
     private var generalRow: some View {
-        Label(L10n.localized("settings.page.general"), systemImage: "gearshape")
-            .tag(SettingsPageID.general)
-            .accessibilityIdentifier("settings.general")
+        HStack(spacing: JadeSpace.x2.value) {
+            JadeIconTile(systemImage: "gearshape", tint: .neutral)
+            Text(L10n.localized("settings.page.general"))
+        }
+        .tag(SettingsPageID.general)
+        .accessibilityIdentifier("settings.general")
     }
 
     @ViewBuilder
     private var aboutRow: some View {
-        Label(L10n.localized("settings.page.about"), systemImage: "info.circle")
-            .tag(SettingsPageID.about)
-            .accessibilityIdentifier("settings.about")
+        HStack(spacing: JadeSpace.x2.value) {
+            JadeIconTile(systemImage: "info.circle", tint: .blue)
+            Text(L10n.localized("settings.page.about"))
+        }
+        .tag(SettingsPageID.about)
+        .accessibilityIdentifier("settings.about")
     }
 
     @ViewBuilder
     private var pluginRows: some View {
         ForEach(viewModel.visiblePageIDs, id: \.self) { pageID in
             if case .plugin(let pluginID) = pageID, let descriptor = viewModel.pluginSettingsPage(for: pluginID) {
-                Label(L10n.localized(descriptor.titleKey), systemImage: descriptor.systemImageName)
-                    .tag(pageID)
-                    .accessibilityIdentifier("settings.\(pluginID.rawValue)")
+                HStack(spacing: JadeSpace.x2.value) {
+                    JadeIconTile(
+                        systemImage: descriptor.systemImageName,
+                        tint: .forPluginID(pluginID.rawValue)
+                    )
+                    Text(L10n.localized(descriptor.titleKey))
+                }
+                .tag(pageID)
+                .accessibilityIdentifier("settings.\(pluginID.rawValue)")
             }
         }
     }
@@ -158,11 +170,12 @@ private struct GeneralPage: View {
         SettingsScrollPage {
             SettingsHeader(titleKey: "settings.page.general",
                            subtitleKey: "settings.general.subtitle",
-                           iconName: "gearshape")
+                           iconName: "gearshape",
+                           tint: .neutral)
 
             SettingsSection("settings.general.startup") {
                 JadeSwitchRow(L10n.localized("settings.launchAtLogin"), isOn: launchBinding)
-                Divider().overlay(JadeColor.border)
+                JadeSettingsDivider()
                 VStack(alignment: .leading, spacing: JadeSpace.x2.value) {
                     Text(L10n.localized("settings.general.language"))
                         .font(JadeFont.body)
@@ -209,7 +222,7 @@ private struct GeneralPage: View {
 
             SettingsSection("management.page.permissions") {
                 ForEach(Array(PermissionKind.allCases.enumerated()), id: \.element) { index, kind in
-                    if index > 0 { Divider().overlay(JadeColor.border) }
+                    if index > 0 { JadeSettingsDivider() }
                     permissionRow(kind)
                 }
                 HStack {
@@ -233,7 +246,7 @@ private struct GeneralPage: View {
                         .font(JadeFont.body)
                         .foregroundStyle(JadeColor.textSecondary)
                 }
-                Divider().overlay(JadeColor.border)
+                JadeSettingsDivider()
                 HStack(spacing: JadeSpace.x3.value) {
                     Button(L10n.localized("management.data.openDirectory")) {
                         viewModel.openDataDirectory()
@@ -249,7 +262,7 @@ private struct GeneralPage: View {
 
                     Spacer()
                 }
-                Divider().overlay(JadeColor.border)
+                JadeSettingsDivider()
                 HStack {
                     VStack(alignment: .leading, spacing: JadeSpace.x1.value) {
                         Text(L10n.localized("management.data.resetAll"))
@@ -347,7 +360,8 @@ private struct AboutPage: View {
         SettingsScrollPage {
             SettingsHeader(titleKey: "settings.page.about",
                            subtitleKey: "management.about.system",
-                           iconName: "info.circle")
+                           iconName: "info.circle",
+                           tint: .blue)
 
             SettingsSection("management.updates.current") {
                 HStack {
@@ -360,7 +374,7 @@ private struct AboutPage: View {
                     }
                     .buttonStyle(.jadePrimary)
                 }
-                Divider().overlay(JadeColor.border)
+                JadeSettingsDivider()
                 FeedbackSection()
             }
 
@@ -378,7 +392,7 @@ private struct AboutPage: View {
 
             SettingsSection("management.about.system") {
                 aboutRow(L10n.localized("management.about.macos"), value: ProcessInfo.processInfo.operatingSystemVersionString)
-                Divider().overlay(JadeColor.border)
+                JadeSettingsDivider()
                 Text(L10n.localized("management.about.acknowledgements"))
                     .font(JadeFont.caption)
                     .foregroundStyle(JadeColor.textTertiary)
@@ -537,7 +551,7 @@ struct BlacklistManagementSection: View {
                             }
                             .buttonStyle(.jadeGhost)
                         }
-                        Divider().overlay(JadeColor.border)
+                        JadeSettingsDivider()
                     }
                 }
             }
@@ -609,21 +623,16 @@ struct SettingsScrollPage<Content: View>: View {
     }
 }
 
-/// Page title header (icon chip + title + subtitle).
+/// Page title header (icon tile + title + subtitle).
 struct SettingsHeader: View {
     let titleKey: String
     let subtitleKey: String
     let iconName: String
+    var tint: JadeSettingsPageTint = .primary
 
     var body: some View {
         HStack(spacing: JadeSpace.x3.value) {
-            Image(systemName: iconName)
-                .font(.system(size: 24, weight: .semibold))
-                .foregroundStyle(JadeColor.primary)
-                .frame(width: 44, height: 44)
-                .background(JadeColor.primaryFill)
-                .jadeRadius(.md)
-                .accessibilityHidden(true)
+            JadeIconTile(systemImage: iconName, tint: tint, size: 36)
             VStack(alignment: .leading, spacing: 2) {
                 Text(L10n.localized(titleKey))
                     .font(JadeFont.title2)
@@ -651,8 +660,8 @@ struct SettingsSection<Content: View>: View {
         VStack(alignment: .leading, spacing: JadeSpace.x3.value) {
             if let title {
                 Text(L10n.localized(title))
-                    .font(JadeFont.title3)
-                    .foregroundStyle(JadeColor.textPrimary)
+                    .font(JadeFont.headline)
+                    .foregroundStyle(JadeColor.textSecondary)
             }
             VStack(alignment: .leading, spacing: JadeSpace.x3.value) {
                 content

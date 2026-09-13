@@ -42,6 +42,7 @@
 		AB0100000000000000000092 /* PinStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0100000000000000000091 /* PinStoreTests.swift */; };
 		AB0100000000000000000094 /* PinWindowControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0100000000000000000093 /* PinWindowControllerTests.swift */; };
 		AB0100000000000000000097 /* PinWindowUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0100000000000000000098 /* PinWindowUITests.swift */; };
+		AB0100000000000000000100 /* JadeSettingsComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0100000000000000000099 /* JadeSettingsComponents.swift */; };
 		48960A05A2DF71B339FEDE8A /* ClipboardWindowUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A66E86C8A0860C49F8909E51 /* ClipboardWindowUITests.swift */; };
 		68463D96302B2DE20044EC9B /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = A10007000000000000000001 /* GRDB */; };
 		68463D97302B2DE20044EC9B /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = A10007000000000000000002 /* KeyboardShortcuts */; };
@@ -211,6 +212,7 @@
 		AB0100000000000000000091 /* PinStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QingniaoTests/PinStoreTests.swift; sourceTree = SOURCE_ROOT; };
 		AB0100000000000000000093 /* PinWindowControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QingniaoTests/PinWindowControllerTests.swift; sourceTree = SOURCE_ROOT; };
 		AB0100000000000000000098 /* PinWindowUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinWindowUITests.swift; sourceTree = "<group>"; };
+		AB0100000000000000000099 /* JadeSettingsComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JadeSettingsComponents.swift; sourceTree = "<group>"; };
 		AB0100000000000000000001 /* Qingniao/Plugins/Core/PluginTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingniao/Plugins/Core/PluginTypes.swift; sourceTree = SOURCE_ROOT; };
 		AB0100000000000000000003 /* Qingniao/Plugins/Core/PluginRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingniao/Plugins/Core/PluginRegistry.swift; sourceTree = SOURCE_ROOT; };
 		342931FCF5D4AB36B533F4B7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -593,6 +595,7 @@
 			isa = PBXGroup;
 			children = (
 				A10000000000000000000015 /* SettingsView.swift */,
+				AB0100000000000000000099 /* JadeSettingsComponents.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -1025,6 +1028,7 @@
 				A10001000000000000000013 /* JadeClipboardRow.swift in Sources */,
 				A10001000000000000000014 /* PreviewPanel.swift in Sources */,
 				A10001000000000000000015 /* SettingsView.swift in Sources */,
+				AB0100000000000000000100 /* JadeSettingsComponents.swift in Sources */,
 				A10001000000000000000016 /* ClipboardListViewModel.swift in Sources */,
 				A10001000000000000000017 /* SettingsViewModel.swift in Sources */,
 				A10001000000000000000019 /* ToastView.swift in Sources */,
@@ -1285,7 +1289,7 @@
 				CODE_SIGN_ENTITLEMENTS = Qingniao/Qingniao.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 218;
+				CURRENT_PROJECT_VERSION = 219;
 				DEVELOPMENT_TEAM = 454XB348PX;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -1294,7 +1298,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.2.18;
+				MARKETING_VERSION = 0.2.19;
 				PRODUCT_BUNDLE_IDENTIFIER = com.assistant.app;
 				PRODUCT_MODULE_NAME = Qingniao;
 				PRODUCT_NAME = Qingniao;
@@ -1310,7 +1314,7 @@
 				CODE_SIGN_ENTITLEMENTS = Qingniao/Qingniao.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 218;
+				CURRENT_PROJECT_VERSION = 219;
 				DEVELOPMENT_TEAM = 454XB348PX;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -1319,7 +1323,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.2.18;
+				MARKETING_VERSION = 0.2.19;
 				PRODUCT_BUNDLE_IDENTIFIER = com.assistant.app;
 				PRODUCT_MODULE_NAME = Qingniao;
 				PRODUCT_NAME = Qingniao;

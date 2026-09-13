@@ -31,7 +31,7 @@ struct ClipboardPluginSettingsPage: View {
 
                 SettingsSection("management.settings.clipboard") {
                     JadeSwitchRow(L10n.localized("management.clipboard.enabled"), isOn: clipboardEnabledBinding)
-                    Divider().overlay(JadeColor.border)
+                    JadeSettingsDivider()
                     VStack(alignment: .leading, spacing: JadeSpace.x2.value) {
                         Text(L10n.localized("management.clipboard.retention"))
                             .font(JadeFont.body)

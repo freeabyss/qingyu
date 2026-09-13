@@ -27,6 +27,9 @@ public enum JadeFont {
     /// 卡片标题 / 结果首行:≈17pt semibold（随 title2 缩放）
     public static let title3 = Font.system(.title2, design: .default, weight: .semibold)
 
+    /// 小节标题（设置卡片外标题 / 分组标题）:≈13pt semibold（随 headline 缩放）
+    public static let headline = Font.system(.headline, design: .default, weight: .semibold)
+
     /// 主阅读正文:≈13pt regular（随 body 缩放,PRD §9.8 到 15pt）
     public static let body = Font.system(.body, design: .default, weight: .regular)
 
