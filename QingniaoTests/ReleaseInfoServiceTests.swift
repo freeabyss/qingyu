@@ -21,21 +21,25 @@ final class ReleaseInfoServiceTests: XCTestCase {
         let changelog = try String(contentsOf: root.appendingPathComponent("CHANGELOG.md"), encoding: .utf8)
         let notices = try String(contentsOf: root.appendingPathComponent("THIRD_PARTY_NOTICES.md"), encoding: .utf8)
 
+        // 锚点对齐 ee8f0bd 重写后的 README 结构（US-020 产品页材料 + MVP 范围守卫）。
+        // 「Screen Recording」在 1.0.0 随 FeatureGate.screenshotEnabled 关闭而移出权限表，
+        // 截图功能恢复时必须同步加回本断言与 README 权限表。
         for required in [
-            "Product name",
-            "Slogan",
-            "Core features",
-            "Screenshots / demo GIF",
-            "Download the latest release",
-            "Version history",
-            "Privacy policy",
+            "# Qingniao (青鸟)",
+            "local-first macOS productivity tool",
+            "## Features",
+            "## Download",
+            "Get the latest release",
+            "https://github.com/freeabyss/qingniao/releases",
+            "## Privacy",
+            "PRIVACY.md",
+            "### Permissions",
+            "Accessibility",
+            "## Version History",
             "feedback@qingniao.app",
             "FAQ",
-            "Screen Recording",
-            "Accessibility",
-            "https://github.com/freeabyss/qingniao/releases"
         ] {
-            XCTAssertTrue(readme.contains(required), "README.md should contain \\(required)")
+            XCTAssertTrue(readme.contains(required), "README.md should contain \(required)")
         }
 
         for excluded in ["account", "payment", "subscriptions", "Mac App Store"] {
