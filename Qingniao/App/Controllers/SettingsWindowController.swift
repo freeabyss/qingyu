@@ -39,11 +39,16 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
                 .tint(JadeColor.primary) // 全局主色注入（Design Token T-004）
             let window = NSWindow(
                 contentRect: NSRect(x: 0, y: 0, width: 920, height: 640),
-                styleMask: [.titled, .closable, .miniaturizable, .resizable],
+                styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
                 backing: .buffered,
                 defer: false
             )
+            // 参考系统设置的侧栏一体式外观：不显示「管理中心」标题文字，
+            // 红绿灯叠在侧栏上方；标题栏透明 + 可拖动背景保持移动能力。
             window.title = L10n.localized("management.title")
+            window.titleVisibility = .hidden
+            window.titlebarAppearsTransparent = true
+            window.isMovableByWindowBackground = true
             window.contentMinSize = NSSize(width: 920, height: 640)
             window.center()
             window.contentView = NSHostingView(rootView: view)

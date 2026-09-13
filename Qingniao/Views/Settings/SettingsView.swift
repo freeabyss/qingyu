@@ -634,13 +634,13 @@ struct SettingsHeader: View {
 
     var body: some View {
         HStack(spacing: JadeSpace.x3.value) {
-            JadeIconTile(systemImage: iconName, tint: tint, size: 36)
+            JadeIconTile(systemImage: iconName, tint: tint, size: 28)
             VStack(alignment: .leading, spacing: 2) {
                 Text(L10n.localized(titleKey))
-                    .font(JadeFont.title2)
+                    .font(JadeFont.title3)
                     .foregroundStyle(JadeColor.textPrimary)
                 Text(L10n.localized(subtitleKey))
-                    .font(JadeFont.callout)
+                    .font(JadeFont.caption)
                     .foregroundStyle(JadeColor.textSecondary)
             }
             Spacer()
