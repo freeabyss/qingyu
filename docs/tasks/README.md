@@ -18,7 +18,7 @@
 - 版本单一事实来源是 `Qingniao/Info.plist`；`MARKETING_VERSION`、`CURRENT_PROJECT_VERSION` 必须同步。
 - “关于”、更新和反馈从 Bundle 读取版本与构建号。
 - 新 Swift 文件必须加入 `Qingniao.xcodeproj/project.pbxproj` 对应 target。
-- 每个任务先写失败测试，再实现最小改动，最后运行定向测试与 `git diff --check`。
+- 每个任务先写失败测试，再实现最小改动，最后运行 `./scripts/verify.sh`（全量单元测试 + `git diff --check`）并全部通过；截图会话生命周期回归用例见 `docs/test/cases.md` 第 12 节。
 - 现有工作区含未提交修改；执行者必须保留无关改动，禁止重置或覆盖整个文件。
 
 ## 执行前决策

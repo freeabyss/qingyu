@@ -19,6 +19,7 @@
 | 2026-07-02 | Claude | v1.0.1：新增 TC-U-001（常量断言）/TC-U-002（checkNow spy）2 条自动化用例 + TC-M-001/002/003 手工验收记录 |
 | 2026-07-03 | Claude | v1.1.0：新增 +7 条自动化用例（协议 conformer / request 触发 / skipOnboarding / 7 步参数化 / hotkey 持久化）+6 条手工用例；+2 条回归基线更新（swift 134 / xcodebuild 125）；3 条端到端用例（TC-M-007/008/009）留待下一迭代。详见第 10 节「Onboarding 与权限（v1.1.0 起）」 |
 | 2026-07-03 | Claude | v1.2.0：新增第 11 节「青鸟 Qingniao v1.2 测试用例」，按模块新增 TC（TOK/BRAND/DATA/DI/SEARCH-F/SEARCH-E/SHOT-FS/SHOT-UI/ONB-V2/PERM-OD/CODE/DIST/UPD/SHORTCUT/SETNEW/REG/BUILD/ROBUST/ACC/I18N 前缀）；对第 5 节因 UI 重设计受影响的旧 TC 就地标注「v1.2 修订」并给出新步骤/预期；开发尚未开始，report.md v1.2.0 节仅为计划占位。 |
+| 2026-09-13 | Claude | 下一阶段：新增第 12 节「截图会话生命周期回归」——针对反复复发的截图叠层「僵尸暗幕」缺陷（会话 ARC 提前释放 + borderless 窗口不可为 key）建立 SHOT-LIFE 用例组（3 自动化 + 1 手工）；新增 `scripts/verify.sh` 必跑门禁并写入 AGENTS.md「测试门禁」。 |
 
 ---
 
@@ -1128,5 +1129,39 @@ MVP 暂不覆盖：
 | P0 中纯手工 / E2E（系统权限/签名公证/真机截图等） | 6 |
 
 > 注：多数 TC 为「swift + 手工」混合（swift 覆盖逻辑层，手工覆盖系统交互），上表按是否含 swift 自动化成分归类，故三类之和大于「纯手工」列。确切通过数在开发完成后于 report.md v1.2.0 节记录。各模块 TC 数：TOK6 / BRAND7 / DATA5 / DI3 / SEARCH-F9 / SEARCH-E5 / SHOT-FS4 / SHOT-UI5 / ONB-V2 8 / PERM-OD3 / CODE5 / DIST6 / UPD3 / SHORTCUT4 / SETNEW5 / REG7 / BUILD2 / ROBUST2 / ACC5 / I18N4 = 98。
+
+---
+
+## 12. 截图会话生命周期回归（下一阶段起）
+
+> **背景**：截图统一会话上线后多次出现同一缺陷：进入截图状态后屏幕压暗，但点击、拖拽、Esc 全部无效，会话永不退出且反复触发会叠层。根因有二——`CaptureSessionController` 作为调用方局部变量且全部回调为 `weak`，函数返回即被 ARC 释放，叠层窗口被 `NSApp.windows` 持有而事件闭包的 self 已为 nil（"僵尸暗幕"）；叠加 borderless 窗口默认 `canBecomeKey == false`，Esc/⌘A 键盘事件不可达。修复见提交 `7e02195`。本节用例防止该类缺陷复发；自动化部分已纳入 `scripts/verify.sh` 必跑门禁。
+
+### 12.1 自动化用例（提交前必跑：`./scripts/verify.sh`）
+
+#### SHOT-LIFE-001：会话激活期自持有，结束即释放
+- **关联**：Task 005/006 会话生命周期 ｜ **优先级**：P0 ｜ **类型**：XCTest ｜ **文件**：`QingniaoTests/CaptureSessionControllerTests.swift`（`testSessionStaysAliveWhileActiveAndReleasesOnFinish` / `testSessionStaysAliveWhileActiveAndReleasesOnCancel`）
+- **步骤**：创建会话 → `start()` → 释放全部外部引用 → 断言会话仍存活 → `finish()`（及对称的 `cancel()`）→ 断言会话释放。
+- **预期结果**：激活期间会话自持有存活，调用方是否持有不影响生命周期；finish/cancel 严格配对解除自持有。
+
+#### SHOT-LIFE-002：调用方释放引用后叠层事件仍驱动会话（僵尸复现）
+- **关联**：生产 bug 复现场景 ｜ **优先级**：P0 ｜ **类型**：XCTest ｜ **文件**：同上（`testOverlayEventsStillDriveSessionAfterCallerDropsReference`）
+- **步骤**：`start()` 后丢弃调用方全部强引用，从叠层窗口的 `onEvent` 上抛 mouseDown/mouseDragged/mouseUp。
+- **预期结果**：会话仍收到事件并锁定区域目标（`onLocked` 触发）；事件链不得因会话提前释放而中断。
+
+#### SHOT-LIFE-003：borderless 叠层窗口可成为 key/main 窗口
+- **关联**：键盘事件可达性 ｜ **优先级**：P0 ｜ **类型**：XCTest ｜ **文件**：同上（`testOverlayWindowCanBecomeKeyAndMain`）
+- **预期结果**：`CaptureOverlayNSWindow.canBecomeKey` / `canBecomeMain` 均为 true，保证 Esc/⌘A 可达叠层视图。
+
+### 12.2 手工验收用例（真实屏幕录制环境）
+
+#### SHOT-LIFE-004：真实交互冒烟
+- **优先级**：P0 ｜ **类型**：手工
+- **时机**：发版前，以及任何截图链路（叠层、会话、完成协调器）改动之后。
+- **步骤**：F1 或菜单「截图」进入截图状态，依次验证：屏幕压暗；悬停窗口出现高亮框；单击截取窗口；拖拽圈选自动截取区域；`⌘A` 截当前屏；悬停菜单栏/桌面空白出现整屏提示框且单击截全屏；`Esc` 随时退出；连续多次触发后取消不残留暗幕。
+- **预期结果**：以上全部可用；任何一步无响应即为本节回归缺陷复发。
+
+### 12.3 必跑门禁
+
+- 每次代码修改完毕、提交之前运行 `./scripts/verify.sh`（全量单元测试 + `git diff --check`），失败必须修复后提交；该要求已写入根目录 `AGENTS.md`「测试门禁」。
 
 ---

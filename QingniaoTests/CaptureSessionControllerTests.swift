@@ -210,6 +210,51 @@ final class CaptureSessionControllerTests: XCTestCase {
         XCTAssertNil(weakSession, "cancel() 应解除自持有并释放会话")
     }
 
+    /// 回归（僵尸叠层·行为级）：复现生产 bug 场景——`startUnifiedCaptureSession`
+    /// 返回后调用方丢弃引用，从叠层窗口上抛的事件仍必须驱动会话锁定目标。
+    /// 此前 `onEvent` 闭包的 weak self 已释放，表现为"屏幕压暗但点击/拖拽/Esc 全部无效"。
+    func testOverlayEventsStillDriveSessionAfterCallerDropsReference() {
+        let factory = RecordingOverlayWindowFactory()
+        var session: CaptureSessionController? = CaptureSessionController(
+            displayProvider: FakeDisplayProvider(displays),
+            windowProvider: FakeWindowProvider(),
+            overlayFactory: factory
+        )
+        weak var weakSession = session
+        var lockedTarget: CaptureTarget?
+        session?.onLocked = { lockedTarget = $0 }
+        session?.start()
+        session = nil
+        XCTAssertNotNil(weakSession, "激活期间应自持有：调用方释放后会话仍存活")
+
+        // 真实链路：CaptureOverlayContentView 鼠标事件 → 窗口 onEvent → 会话。
+        let overlay = factory.window(for: leftDisplay.id)
+        overlay?.onEvent?(.mouseDown(CGPoint(x: 10, y: 10)))
+        overlay?.onEvent?(.mouseDragged(CGPoint(x: 110, y: 80)))
+        overlay?.onEvent?(.mouseUp(CGPoint(x: 110, y: 80)))
+
+        XCTAssertEqual(
+            lockedTarget,
+            .region(display: leftDisplay, globalRect: CGRect(x: 10, y: 10, width: 100, height: 70)),
+            "调用方释放引用后，叠层事件仍应驱动会话锁定区域目标"
+        )
+
+        weakSession?.finish()
+        XCTAssertNil(weakSession, "finish() 应解除自持有并释放会话")
+    }
+
+    /// 回归：borderless 叠层窗口必须能成为 key/main 窗口，否则 Esc/⌘A 键盘事件到不了叠层视图。
+    func testOverlayWindowCanBecomeKeyAndMain() {
+        let window = CaptureOverlayNSWindow(
+            contentRect: CGRect(x: 0, y: 0, width: 100, height: 100),
+            styleMask: .borderless,
+            backing: .buffered,
+            defer: false
+        )
+        XCTAssertTrue(window.canBecomeKey, "borderless 叠层必须可成为 key 窗口")
+        XCTAssertTrue(window.canBecomeMain, "borderless 叠层必须可成为 main 窗口")
+    }
+
     // MARK: - Window flow
 
     func testClickLocksWindowUnderPointerAndDeliversTarget() {
