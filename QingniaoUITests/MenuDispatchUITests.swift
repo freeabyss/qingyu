@@ -112,16 +112,16 @@ final class MenuDispatchUITests: XCTestCase {
         }
     }
 
-    // MARK: - TC-UI-013　截图入口 -> 权限提示（未授权）
+    // MARK: - TC-UI-013　截图入口不可达（1.0.0 FeatureGate 修订）
 
-    /// 覆盖：AC-04；US-002/009；FR-UI-4；FR-SHOT-1
+    /// 1.0.0 修订：截图功能整体隐藏（FeatureGate），`startScreenshot` 触发链
+    /// （菜单/快捷键/命令）在 ScreenshotWindowController.startCapture() 守卫处
+    /// 直接返回：不弹权限提示、不进入截图会话，应用继续驻留。
     /// 前置：mark-completed + `--uitest-mock-screen-recording-denied`
     ///       + `--uitest-trigger startScreenshot` + `--uitest-skip-screenshot-capture`
-    /// trigger 等价性（§0.4）：`startScreenshot` 调 `screenshotWindowController.startCapture()`
-    ///       （配合 `--uitest-skip-screenshot-capture`），门禁已移除，走 `ensureScreenRecordingPermission()` 检查。
-    /// 验证 v1.2.1 修复点：截图入口不再被 onboarding 门禁劫持到欢迎页，而是走自身权限提示逻辑。
-    /// 不测真实截图捕获（C 级，退回手动）。
-    func testTCUI013ScreenshotEntryShowsPermissionPrompt() throws {
+    /// trigger 等价性（§0.4）：`startScreenshot` 调 `screenshotWindowController.startCapture()`，
+    /// 与菜单/全局快捷键入口同路径，适合断言「入口不可达」。
+    func testTCUI013ScreenshotEntryUnreachableWhileGateOff() throws {
         let tmpDir = makeTmpDir(for: "TC-UI-013")
         app.launchArguments = baseArgs(tmpDir: tmpDir)
             + ["--uitest-mark-onboarding-completed",
@@ -131,20 +131,20 @@ final class MenuDispatchUITests: XCTestCase {
         app.launch()
         app.activate()
 
-        // NSAlert 在当前 macOS 运行时的 AX 类型是 Dialog（非 Alert/Sheet），
-        // 三种类型都查，避免对元素类型的硬依赖。
+        // 触发后短暂等待：不应出现权限提示（NSAlert 在当前 macOS 运行时的
+        // AX 类型是 Dialog，Alert/Sheet 也一并查询兜底）。
         let alert = app.alerts.firstMatch
         let dialog = app.dialogs.firstMatch
-        let alertExists = alert.waitForExistence(timeout: 10) || dialog.waitForExistence(timeout: 3)
-
-        // 兜底：macOS 权限提示有时以 sheet 形式呈现
         let sheet = app.sheets.firstMatch
-        let sheetExists = !alertExists && sheet.waitForExistence(timeout: 2)
+        let appeared = alert.waitForExistence(timeout: 3)
+            || dialog.exists
+            || sheet.exists
 
-        XCTAssertTrue(
-            alertExists || sheetExists,
-            "TC-UI-013: 截图入口在未授权时应弹出权限提示（Alert 或 Sheet），不进入 onboarding 门禁"
+        XCTAssertFalse(
+            appeared,
+            "TC-UI-013: 1.0.0 截图入口隐藏，触发 startScreenshot 不应弹出权限提示"
         )
+        XCTAssertNotEqual(app.state, .notRunning, "TC-UI-013: 触发后应用应继续驻留运行")
     }
 
     // MARK: - TC-UI-014　菜单分发 -> 设置窗口呈现

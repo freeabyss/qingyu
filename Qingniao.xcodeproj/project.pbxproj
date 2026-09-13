@@ -58,6 +58,7 @@
 		A10001000000000000000009 /* SnapVaultError.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000009 /* SnapVaultError.swift */; };
 		A1000100000000000000000A /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000000A /* Logger.swift */; };
 		A1000100000000000000000B /* CryptoHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000000B /* CryptoHelper.swift */; };
+		A1000100000000000000004C /* FeatureGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000004C /* FeatureGate.swift */; };
 		A1000100000000000000000C /* ClipboardMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000000C /* ClipboardMonitor.swift */; };
 		A10001000000000000000010 /* UpdateService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000010 /* UpdateService.swift */; };
 		A10001000000000000000012 /* ClipboardHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000012 /* ClipboardHistoryView.swift */; };
@@ -121,6 +122,7 @@
 		C01400000000000000000021 /* Qingniao/Services/Hotkey/GlobalShortcutManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C01400000000000000000020 /* Qingniao/Services/Hotkey/GlobalShortcutManager.swift */; };
 		C01400000000000000000023 /* Qingniao/Services/Hotkey/HotkeyConflictDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = C01400000000000000000022 /* Qingniao/Services/Hotkey/HotkeyConflictDetector.swift */; };
 		C01400000000000000000025 /* QingniaoTests/HotkeyConflictDetectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C01400000000000000000024 /* QingniaoTests/HotkeyConflictDetectorTests.swift */; };
+		C01400000000000000000027 /* QingniaoTests/GlobalShortcutManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C01400000000000000000026 /* QingniaoTests/GlobalShortcutManagerTests.swift */; };
 		CF970CC4575FF8B6A203E310 /* UITestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 196C77B49D5FF71402A7D06A /* UITestSupport.swift */; };
 		D01700000000000000000001 /* AnnotationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D01700000000000000000002 /* AnnotationTests.swift */; };
 		D7A3BA8A2388B77F1D1D0728 /* OnboardingUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7B303A41D4CF442EA7C1FC2 /* OnboardingUITests.swift */; };
@@ -224,6 +226,7 @@
 		A10000000000000000000009 /* SnapVaultError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapVaultError.swift; sourceTree = "<group>"; };
 		A1000000000000000000000A /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		A1000000000000000000000B /* CryptoHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoHelper.swift; sourceTree = "<group>"; };
+		A1000000000000000000004C /* FeatureGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureGate.swift; sourceTree = "<group>"; };
 		A1000000000000000000000C /* ClipboardMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardMonitor.swift; sourceTree = "<group>"; };
 		A10000000000000000000010 /* UpdateService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateService.swift; sourceTree = "<group>"; };
 		A10000000000000000000012 /* ClipboardHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardHistoryView.swift; sourceTree = "<group>"; };
@@ -292,6 +295,7 @@
 		C01400000000000000000020 /* Qingniao/Services/Hotkey/GlobalShortcutManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingniao/Services/Hotkey/GlobalShortcutManager.swift; sourceTree = SOURCE_ROOT; };
 		C01400000000000000000022 /* Qingniao/Services/Hotkey/HotkeyConflictDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingniao/Services/Hotkey/HotkeyConflictDetector.swift; sourceTree = SOURCE_ROOT; };
 		C01400000000000000000024 /* QingniaoTests/HotkeyConflictDetectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QingniaoTests/HotkeyConflictDetectorTests.swift; sourceTree = SOURCE_ROOT; };
+		C01400000000000000000026 /* QingniaoTests/GlobalShortcutManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QingniaoTests/GlobalShortcutManagerTests.swift; sourceTree = SOURCE_ROOT; };
 		D01700000000000000000002 /* AnnotationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnnotationTests.swift; sourceTree = "<group>"; };
 		D7B303A41D4CF442EA7C1FC2 /* OnboardingUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OnboardingUITests.swift; sourceTree = "<group>"; };
 		E01800000000000000000001 /* ReleaseInfoService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseInfoService.swift; sourceTree = "<group>"; };
@@ -496,6 +500,7 @@
 			children = (
 				A1000000000000000000000A /* Logger.swift */,
 				A1000000000000000000000B /* CryptoHelper.swift */,
+				A1000000000000000000004C /* FeatureGate.swift */,
 				A1000000000000000000001E /* KeyboardShortcuts+Names.swift */,
 				A10000000000000000000030 /* PinyinHelper.swift */,
 				8A83119274E3E3D3FA6D9AB0 /* L10n.swift */,
@@ -518,6 +523,7 @@
 				D01700000000000000000002 /* AnnotationTests.swift */,
 				C0140000000000000000000C /* QingniaoTests/OnboardingViewModelTests.swift */,
 				C01400000000000000000024 /* QingniaoTests/HotkeyConflictDetectorTests.swift */,
+				C01400000000000000000026 /* QingniaoTests/GlobalShortcutManagerTests.swift */,
 				A10000000000000000000038 /* CalculatorSourceTests.swift */,
 				A10000000000000000000039 /* SystemCommandSourceTests.swift */,
 				A1000000000000000000003B /* CryptoHelperTests.swift */,
@@ -1011,6 +1017,7 @@
 				A10001000000000000000009 /* SnapVaultError.swift in Sources */,
 				A1000100000000000000000A /* Logger.swift in Sources */,
 				A1000100000000000000000B /* CryptoHelper.swift in Sources */,
+				A1000100000000000000004C /* FeatureGate.swift in Sources */,
 				A1000100000000000000000C /* ClipboardMonitor.swift in Sources */,
 				A10001000000000000000010 /* UpdateService.swift in Sources */,
 				E01801000000000000000001 /* ReleaseInfoService.swift in Sources */,
@@ -1085,6 +1092,7 @@
 				D01700000000000000000001 /* AnnotationTests.swift in Sources */,
 				C0140000000000000000000B /* QingniaoTests/OnboardingViewModelTests.swift in Sources */,
 				C01400000000000000000025 /* QingniaoTests/HotkeyConflictDetectorTests.swift in Sources */,
+				C01400000000000000000027 /* QingniaoTests/GlobalShortcutManagerTests.swift in Sources */,
 				A10001000000000000000038 /* CalculatorSourceTests.swift in Sources */,
 				A10001000000000000000039 /* SystemCommandSourceTests.swift in Sources */,
 				A1000100000000000000003B /* CryptoHelperTests.swift in Sources */,
@@ -1277,7 +1285,7 @@
 				CODE_SIGN_ENTITLEMENTS = Qingniao/Qingniao.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 214;
+				CURRENT_PROJECT_VERSION = 215;
 				DEVELOPMENT_TEAM = 454XB348PX;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -1286,7 +1294,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.2.14;
+				MARKETING_VERSION = 0.2.15;
 				PRODUCT_BUNDLE_IDENTIFIER = com.assistant.app;
 				PRODUCT_MODULE_NAME = Qingniao;
 				PRODUCT_NAME = Qingniao;
@@ -1302,7 +1310,7 @@
 				CODE_SIGN_ENTITLEMENTS = Qingniao/Qingniao.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 214;
+				CURRENT_PROJECT_VERSION = 215;
 				DEVELOPMENT_TEAM = 454XB348PX;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -1311,7 +1319,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.2.14;
+				MARKETING_VERSION = 0.2.15;
 				PRODUCT_BUNDLE_IDENTIFIER = com.assistant.app;
 				PRODUCT_MODULE_NAME = Qingniao;
 				PRODUCT_NAME = Qingniao;

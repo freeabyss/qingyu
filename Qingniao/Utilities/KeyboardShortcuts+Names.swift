@@ -32,10 +32,13 @@ extension KeyboardShortcuts.Name {
 
     /// All global shortcuts managed by `GlobalShortcutManager`. Used for bulk
     /// registration, conflict scanning, and "reset to defaults".
-    static let managedGlobalShortcuts: [KeyboardShortcuts.Name] = [
-        .togglePanel,
-        .startScreenshot,
-        .openClipboardHistory,
-        .openSettings
-    ]
+    ///
+    /// 1.0.0 FeatureGate：截图快捷键（F1）不注册，故同步从该列表剔除，
+    /// 保持「未注册的 Name 不参与冲突扫描 / 批量重置」的现有语义。
+    /// Name 定义与默认键位保留，开关恢复后自动回到四槽位。
+    static var managedGlobalShortcuts: [KeyboardShortcuts.Name] {
+        FeatureGate.screenshotEnabled
+            ? [.togglePanel, .startScreenshot, .openClipboardHistory, .openSettings]
+            : [.togglePanel, .openClipboardHistory, .openSettings]
+    }
 }

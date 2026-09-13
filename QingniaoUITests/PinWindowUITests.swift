@@ -1,13 +1,13 @@
 import XCTest
 
-/// Task 008 贴图 UI 冒烟（PinWindowUITests）。
+/// Task 008 贴图 UI 冒烟（PinWindowUITests；1.0.0 FeatureGate 修订）。
 ///
 /// 取舍说明：贴图窗口只能由「真实截图 → 截图工具条贴图按钮」或剪贴板贴图触发产生。
 /// 前者依赖屏幕录制 TCC 授权与全屏 overlay 自动化交互（现有基建中 ScreenshotOverlayUITests
 /// 对此类用例采用环境性 XCTSkip）；后者没有任何用户入口/触发钩子，无法在 UI 测试内驱动。
-/// 因此按 Task 008 验收允许的最贴近稳定形式断言：设置 → 截图页包含「贴图」区块
-/// （`settings.pin.*`：文件路径首贴转图片、恢复队列、鼠标穿透快捷键），
-/// 沿用 `--uitest-trigger openSettings` 免 TCC 触发模式（同 SettingsWindowUITests）。
+/// 1.0.0 FeatureGate：截图功能整体隐藏，ScreenshotPlugin 不注册——设置侧栏不再有
+/// 截图页（`settings.screenshot`），贴图设置区块随页面一并隐藏（key 保留，开关恢复后回归）。
+/// 因此本用例改为断言「截图设置入口不可达」，沿用 `--uitest-trigger openSettings` 触发模式。
 final class PinWindowUITests: XCTestCase {
 
     private var app: XCUIApplication!
@@ -37,8 +37,8 @@ final class PinWindowUITests: XCTestCase {
         return url.path
     }
 
-    /// 截图设置页应展示贴图区块（贴图设置项存在于统一设置窗口）。
-    func testScreenshotSettingsShowsPinSection() throws {
+    /// 1.0.0 FeatureGate：设置窗口不应出现截图设置项（贴图区块随页隐藏）。
+    func testScreenshotSettingsEntryUnreachableWhileGateOff() throws {
         let tmpDir = makeTmpDir(for: "PinSettingsSection")
         app.launchArguments = [
             "--uitest-data-dir", tmpDir,
@@ -56,17 +56,12 @@ final class PinWindowUITests: XCTestCase {
         let sidebar = app.descendants(matching: .any).matching(identifier: "settings.sidebar").firstMatch
         XCTAssertTrue(sidebar.waitForExistence(timeout: 30), "设置窗口侧栏应呈现")
 
+        // 截图设置项不应出现（开关恢复后此断言回到「截图页含贴图区块」用例）。
         let screenshotItem = sidebar.descendants(matching: .any).matching(identifier: "settings.screenshot").firstMatch
-        XCTAssertTrue(screenshotItem.waitForExistence(timeout: 10), "侧栏应含截图设置项")
-        screenshotItem.click()
+        XCTAssertFalse(screenshotItem.waitForExistence(timeout: 3), "1.0.0 截图功能隐藏：侧栏不应出现截图设置项")
 
+        // 贴图区块随截图页隐藏：主区域不应出现「贴图」区块标题。
         let pinSectionHeader = app.staticTexts["贴图"]
-        XCTAssertTrue(pinSectionHeader.waitForExistence(timeout: 10), "截图设置页应包含「贴图」区块")
-
-        let filePathToImageRow = app.staticTexts["文件路径首贴转图片"]
-        XCTAssertTrue(filePathToImageRow.waitForExistence(timeout: 10), "贴图区块应含「文件路径首贴转图片」设置")
-
-        let restoreCapacityRow = app.staticTexts["恢复队列"]
-        XCTAssertTrue(restoreCapacityRow.waitForExistence(timeout: 10), "贴图区块应含「恢复队列」设置")
+        XCTAssertFalse(pinSectionHeader.exists, "1.0.0 截图功能隐藏：贴图区块不应可见")
     }
 }

@@ -25,7 +25,11 @@ struct OnboardingView: View {
             ScrollView {
                 VStack(spacing: JadeSpace.x6.value) {
                     configCards
-                    screenRecordingSection
+                    // 1.0.0 FeatureGate：截图整体隐藏，屏幕录制（必选）段不渲染；
+                    // 「开始使用」不再被权限阻塞（见 OnboardingViewModel.canStart）。
+                    if FeatureGate.screenshotEnabled {
+                        screenRecordingSection
+                    }
                     accessibilitySection
                 }
                 .frame(maxWidth: .infinity)

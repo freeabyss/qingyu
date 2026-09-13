@@ -96,13 +96,20 @@ final class AppContainer: NSObject {
     /// recorded and isolated by the registry. Plugins are started separately:
     /// quick launch contributes passively, clipboard starts with the full
     /// experience (after onboarding) via `pluginRegistry.start(.clipboard)`.
+    ///
+    /// 1.0.0 FeatureGate：截图插件不注册（设置页五页侧栏变四页）；
+    /// `screenshotPlugin` 为 lazy 属性，未注册即不会被构造。
     func registerBuiltInPlugins() {
         guard !builtInPluginsRegistered else { return }
         builtInPluginsRegistered = true
         do {
             try pluginRegistry.register(quickLaunchPlugin)
             try pluginRegistry.register(clipboardPlugin)
-            try pluginRegistry.register(screenshotPlugin)
+            if FeatureGate.screenshotEnabled {
+                try pluginRegistry.register(screenshotPlugin)
+            } else {
+                logger.info("FeatureGate: screenshot disabled, ScreenshotPlugin not registered")
+            }
         } catch {
             logger.error("Failed to register built-in plugins: \(error, privacy: .public)")
         }
@@ -269,7 +276,11 @@ final class AppContainer: NSObject {
 
     func stopRuntimeServices() {
         cleanupService.stop()
-        pinWindowController.destroyAll()
+        // 1.0.0 FeatureGate：截图隐藏期间贴图无入口，pinWindowController 不应被
+        // 构造/访问（lazy）。开关恢复后 destroyAll() 照常执行。
+        if FeatureGate.screenshotEnabled {
+            pinWindowController.destroyAll()
+        }
         Task { await pluginRegistry.stopAll() }
     }
 

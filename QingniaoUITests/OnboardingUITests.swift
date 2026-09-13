@@ -167,10 +167,13 @@ final class OnboardingUITests: XCTestCase {
         XCTAssertTrue(skip5b.exists && skip5b.isHittable, "5b: 放大字号下「跳过设置」应可见可点")
     }
 
-    // MARK: - TC-UI-006 未授权时「开始使用」禁用、「跳过设置」可用（AC-12）
+    // MARK: - TC-UI-006 屏幕录制段隐藏、「开始使用」/「跳过设置」可用（AC-12，1.0.0 修订）
 
+    /// 1.0.0 FeatureGate：截图整体隐藏，屏幕录制（必选）段不渲染，
+    /// 「开始使用」不再被屏幕录制授权阻塞（canStart 恒 true）；
+    /// 「跳过设置」保持可用（v1.1.0 死锁修复回归的等价断言）。
     /// 前置：`--uitest-reset-onboarding` + `--uitest-mock-screen-recording-denied`（cases.md TC-UI-006）。
-    func testTC_UI_006_StartDisabledSkipEnabledWhenDenied() throws {
+    func testTC_UI_006_ScreenRecordingSectionHiddenStartEnabledWhenDenied() throws {
         let dir = makeDataDir(named: "TC-UI-006")
         launchApp(arguments: [
             "--uitest-reset-onboarding",
@@ -182,8 +185,13 @@ final class OnboardingUITests: XCTestCase {
         let skipButton = app!.buttons["onboarding.skipButton"]
         XCTAssertTrue(startButton.exists, "「开始使用」按钮应可见")
         XCTAssertTrue(skipButton.exists, "「跳过设置」按钮应可见")
-        XCTAssertFalse(startButton.isEnabled, "未授权时「开始使用」应禁用（canStart == false）")
-        XCTAssertTrue(skipButton.isEnabled, "未授权时「跳过设置」应可用（v1.1.0 死锁修复回归）")
+        XCTAssertTrue(startButton.isEnabled, "截图隐藏期间未授权也不应禁用「开始使用」（canStart == true）")
+        XCTAssertTrue(skipButton.isEnabled, "「跳过设置」应可用（v1.1.0 死锁修复回归）")
+        // 屏幕录制段整体不渲染：授予/暂不开启按钮均不存在（key 保留，仅隐藏入口）。
+        XCTAssertFalse(app!.buttons["onboarding.screenRecording.grant"].exists,
+                       "1.0.0 截图功能隐藏：屏幕录制授予按钮不应出现")
+        XCTAssertFalse(app!.buttons["onboarding.screenRecording.skip"].exists,
+                       "1.0.0 截图功能隐藏：屏幕录制「暂不开启」按钮不应出现")
     }
 
     // MARK: - TC-UI-007 点「开始使用」后关窗 + 驻留 authorized（AC-08）

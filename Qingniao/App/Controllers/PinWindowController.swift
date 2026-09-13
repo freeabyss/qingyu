@@ -107,7 +107,10 @@ final class PinWindowController {
     }
 
     /// 鼠标穿透全局快捷键（设置页可改键；不属于六个核心槽位）。
+    /// 1.0.0 FeatureGate：截图/贴图入口整体隐藏，快捷键不注册；
+    /// 贴图窗口只能在截图工具条/剪贴板贴图入口恢复后出现。
     private func attachMouseEventsShortcut() {
+        guard FeatureGate.screenshotEnabled else { return }
         KeyboardShortcuts.onKeyUp(for: .pinToggleMouseEvents) { [weak self] in
             Task { @MainActor in self?.toggleIgnoresMouseEventsForAll() }
         }

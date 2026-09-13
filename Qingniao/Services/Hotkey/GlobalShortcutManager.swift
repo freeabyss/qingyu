@@ -35,13 +35,20 @@ final class GlobalShortcutManager {
     /// Registers all global shortcuts and refreshes conflict state. Defaults
     /// are applied automatically by `KeyboardShortcuts.Name(default:)`; persisted
     /// user overrides win.
+    ///
+    /// 1.0.0 FeatureGate：截图功能整体隐藏，F1（startScreenshot）不注册，
+    /// 也不参与冲突扫描 / 批量重置（见 `managedGlobalShortcuts`）。
     func setupShortcuts() {
         registerSearchToggle()
-        registerScreenshot()
+        if FeatureGate.screenshotEnabled {
+            registerScreenshot()
+        } else {
+            logger.info("FeatureGate: screenshot disabled, skipping startScreenshot (F1) registration")
+        }
         registerOpenClipboardHistory()
         registerOpenSettings()
         refreshConflicts()
-        logger.info("Global shortcuts registered: togglePanel, startScreenshot, openClipboardHistory, openSettings")
+        logger.info("Global shortcuts registered: togglePanel, openClipboardHistory, openSettings")
     }
 
     func unregisterAll() {

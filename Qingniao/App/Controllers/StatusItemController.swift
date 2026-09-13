@@ -62,11 +62,15 @@ final class StatusItemController: NSObject {
         clipboard.setAccessibilityIdentifier("menubar.clipboard")
         menu.addItem(clipboard)
 
-        let screenshot = NSMenuItem(title: L10n.localized("menubar.screenshot"), action: #selector(startScreenshotFromMenu), keyEquivalent: "")
-        screenshot.image = NSImage(systemSymbolName: "camera.viewfinder", accessibilityDescription: nil)
-        screenshot.target = self
-        screenshot.setAccessibilityIdentifier("menubar.screenshot")
-        menu.addItem(screenshot)
+        // 1.0.0 FeatureGate：截图入口整体隐藏，菜单不出现「截图」项；
+        // 代码保留，开关恢复后自动回到菜单。
+        if FeatureGate.screenshotEnabled {
+            let screenshot = NSMenuItem(title: L10n.localized("menubar.screenshot"), action: #selector(startScreenshotFromMenu), keyEquivalent: "")
+            screenshot.image = NSImage(systemSymbolName: "camera.viewfinder", accessibilityDescription: nil)
+            screenshot.target = self
+            screenshot.setAccessibilityIdentifier("menubar.screenshot")
+            menu.addItem(screenshot)
+        }
 
         menu.addItem(.separator())
 

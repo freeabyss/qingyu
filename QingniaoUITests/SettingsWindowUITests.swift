@@ -1,11 +1,12 @@
 import XCTest
 
-/// TC-UI-019~020：设置窗口导航（Task 004 五页结构）
+/// TC-UI-019~020：设置窗口导航（Task 004 五页结构；1.0.0 FeatureGate 隐藏截图页后为四页）
 ///
 /// 前置：`--uitest-mark-onboarding-completed` + `--uitest-trigger openSettings`/`openAbout`
-/// 硬依赖：`settings.sidebar`；侧栏恰好 5 项：
-/// `settings.general` / `settings.quick-launch` / `settings.clipboard` / `settings.screenshot` / `settings.about`
-/// （插件页 identifier 取 PluginID rawValue，快速启动插件为 `quick-launch`）
+/// 硬依赖：`settings.sidebar`；侧栏恰好 4 项：
+/// `settings.general` / `settings.quick-launch` / `settings.clipboard` / `settings.about`
+/// （插件页 identifier 取 PluginID rawValue，快速启动插件为 `quick-launch`；
+/// 1.0.0 FeatureGate：ScreenshotPlugin 不注册，`settings.screenshot` 不出现）
 final class SettingsWindowUITests: XCTestCase {
 
     private var app: XCUIApplication!
@@ -42,8 +43,9 @@ final class SettingsWindowUITests: XCTestCase {
         ["--uitest-data-dir", tmpDir, "--uitest-skip-shortcuts"]
     }
 
-    /// 侧栏恰好出现 5 个可选页面（两固定页 + 三插件页），以 accessibility id 断言。
-    private func assertSidebarContainsExactlyFivePages() {
+    /// 侧栏恰好出现 4 个可选页面（两固定页 + 两插件页），以 accessibility id 断言；
+    /// 并断言截图设置页不出现（1.0.0 FeatureGate）。
+    private func assertSidebarContainsExactlyFourPages() {
         // SwiftUI NavigationSplitView 侧栏在当前 macOS 运行时不是 Group 类型，
         // 用任意类型 + identifier 匹配，避免对元素类型的硬依赖（同 PinWindowUITests）。
         let sidebar = app.descendants(matching: .any).matching(identifier: "settings.sidebar").firstMatch
@@ -52,7 +54,7 @@ final class SettingsWindowUITests: XCTestCase {
             "设置窗口侧栏应呈现"
         )
 
-        let identifiers = ["settings.general", "settings.quick-launch", "settings.clipboard", "settings.screenshot", "settings.about"]
+        let identifiers = ["settings.general", "settings.quick-launch", "settings.clipboard", "settings.about"]
         for identifier in identifiers {
             let item = sidebar.descendants(matching: .any)[identifier]
             XCTAssertTrue(
@@ -60,6 +62,13 @@ final class SettingsWindowUITests: XCTestCase {
                 "侧栏应含 \(identifier) 项"
             )
         }
+
+        // 1.0.0 FeatureGate：截图设置页与插件行应消失（key 保留，仅隐藏入口）。
+        let screenshotItem = sidebar.descendants(matching: .any)["settings.screenshot"]
+        XCTAssertFalse(
+            screenshotItem.exists,
+            "1.0.0 截图功能隐藏：侧栏不应出现 settings.screenshot 项"
+        )
 
         let unexpected = sidebar.descendants(matching: .any)
             .matching(NSPredicate(
@@ -69,16 +78,16 @@ final class SettingsWindowUITests: XCTestCase {
         XCTAssertEqual(unexpected.count, 0, "侧栏不应出现旧导航残留项")
     }
 
-    // MARK: - TC-UI-019　设置窗口侧栏导航切换（五页）
+    // MARK: - TC-UI-019　设置窗口侧栏导航切换（1.0.0 起四页）
 
-    func testTCUI019SidebarHasExactlyFivePagesAndSwitches() throws {
+    func testTCUI019SidebarHasExactlyFourPagesAndSwitches() throws {
         let tmpDir = makeTmpDir(for: "TC-UI-019")
         app.launchArguments = baseArgs(tmpDir: tmpDir)
             + ["--uitest-mark-onboarding-completed", "--uitest-trigger", "openSettings"]
         app.launch()
         app.activate()
 
-        assertSidebarContainsExactlyFivePages()
+        assertSidebarContainsExactlyFourPages()
 
         // 点侧栏"剪贴板"项 -> 剪贴板设置（含"保留时间"）
         let clipboardItem = sidebarItem("settings.clipboard")
@@ -87,15 +96,6 @@ final class SettingsWindowUITests: XCTestCase {
         XCTAssertTrue(
             retentionText.waitForExistence(timeout: 3),
             "点\"剪贴板\"后主区域应切换到剪贴板设置（含\"保留时间\"）"
-        )
-
-        // 点侧栏"截图"项 -> 截图设置（含"保存目录"区块）
-        let screenshotItem = sidebarItem("settings.screenshot")
-        screenshotItem?.click()
-        let saveDirectoryText = app.staticTexts["保存目录"]
-        XCTAssertTrue(
-            saveDirectoryText.waitForExistence(timeout: 3),
-            "点\"截图\"后主区域应切换到截图设置（含\"保存目录\"）"
         )
 
         // 点侧栏"关于"项 -> 关于页（含"青鸟"/"Qingniao"；AX StaticText 只带 value 不带 label，

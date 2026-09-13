@@ -80,7 +80,8 @@ enum AssistantCommandExecutionError: LocalizedError, Equatable {
 // MARK: - Command catalog
 
 enum AssistantCommandCatalog {
-    static let commands: [AssistantCommandDefinition] = [
+    /// 全量命令定义（含截图命令）。定义永久保留，便于 FeatureGate 恢复后直接生效。
+    private static let allCommands: [AssistantCommandDefinition] = [
         command(
             .openSystemSettings,
             zh: "打开系统设置",
@@ -189,6 +190,12 @@ enum AssistantCommandCatalog {
             icon: "circle.lefthalf.filled"
         )
     ]
+
+    /// 当前生效的命令目录：1.0.0 截图入口整体隐藏（FeatureGate），
+    /// `captureScreenshot` 不登记、不返回；定义保留在 `allCommands`。
+    static let commands: [AssistantCommandDefinition] = allCommands.filter { command in
+        FeatureGate.screenshotEnabled || command.id != .captureScreenshot
+    }
 
     static let allowedIDs = Set(commands.map(\.id))
     static let byID = Dictionary(uniqueKeysWithValues: commands.map { ($0.id, $0) })

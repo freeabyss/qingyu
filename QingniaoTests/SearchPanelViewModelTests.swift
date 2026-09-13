@@ -206,18 +206,16 @@ final class SearchPanelViewModelTests: XCTestCase {
         XCTAssertTrue(homeViewModel.shouldExpandPanel)
     }
 
-    func testHomeQuickActionsIncludeClipboardHistoryAndSingleScreenshotEntry() {
+    /// 1.0.0 FeatureGate 关闭：空查询快捷操作只保留剪贴板历史，不出现截图命令。
+    func testHomeQuickActionsExcludeScreenshotWhileGateOff() {
+        XCTAssertFalse(FeatureGate.screenshotEnabled)
         let service = StubPanelSearchService(results: [])
         let viewModel = SearchPanelViewModel(searchService: service)
         let commandIDs = viewModel.homeQuickActions.compactMap { result -> CommandID? in
             result.primaryAction.commandID
         }
 
-        // PRD「截图与贴图」规则 1：截图只有一个入口，不区分区域/窗口/全屏。
-        XCTAssertEqual(commandIDs, [
-            .openClipboardHistory,
-            .captureScreenshot
-        ])
+        XCTAssertEqual(commandIDs, [.openClipboardHistory])
     }
 }
 

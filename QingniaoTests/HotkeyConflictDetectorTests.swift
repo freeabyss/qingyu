@@ -15,15 +15,25 @@ final class HotkeyConflictDetectorTests: XCTestCase {
         assertShortcut(.openSettings, key: .comma, modifiers: [.option, .command])
     }
 
-    func testManagedGlobalShortcutsCoversFourSlots() {
-        XCTAssertEqual(KeyboardShortcuts.Name.managedGlobalShortcuts.count, 4)
-        XCTAssertEqual(Set(HotkeyAction.allCases.map(\.name)), Set(KeyboardShortcuts.Name.managedGlobalShortcuts))
+    /// 1.0.0 FeatureGate 关闭：F1（startScreenshot）不注册，因此不参与
+    /// 冲突扫描 / 批量重置（managedGlobalShortcuts 同步条件化）。
+    /// Name 定义与 F1 默认键位保留，开关恢复后自动回到四槽位。
+    func testManagedGlobalShortcutsExcludeScreenshotWhileGateOff() {
+        XCTAssertFalse(FeatureGate.screenshotEnabled)
+        XCTAssertEqual(KeyboardShortcuts.Name.managedGlobalShortcuts.count, 3)
+        XCTAssertFalse(KeyboardShortcuts.Name.managedGlobalShortcuts.contains(.startScreenshot))
+        XCTAssertEqual(
+            Set(KeyboardShortcuts.Name.managedGlobalShortcuts),
+            [.togglePanel, .openClipboardHistory, .openSettings]
+        )
     }
 
+    /// F1 槽位的 HotkeyAction 映射保留（开关恢复后 .screenshot 重新可用）。
     func testHotkeyActionNameRoundTrip() {
         for action in HotkeyAction.allCases {
             XCTAssertEqual(HotkeyAction(name: action.name), action)
         }
+        XCTAssertEqual(HotkeyAction.screenshot.name, .startScreenshot)
     }
 
     // MARK: - Conflict detection

@@ -82,12 +82,13 @@ final class SearchPanelViewModel: ObservableObject {
     /// Stable, executable shortcuts shown on the empty-query home screen. These
     /// keep the two most common tool flows discoverable without requiring users
     /// to remember a keyword or global shortcut. Screenshot is a single entry
-    /// (PRD「截图与贴图」规则 1)。
+    /// (PRD「截图与贴图」规则 1)。1.0.0 FeatureGate：截图隐藏期间只保留
+    /// 剪贴板历史一个快捷操作。
     var homeQuickActions: [SearchResult] {
-        let commandIDs: [CommandID] = [
-            .openClipboardHistory,
-            .captureScreenshot
-        ]
+        var commandIDs: [CommandID] = [.openClipboardHistory]
+        if FeatureGate.screenshotEnabled {
+            commandIDs.append(.captureScreenshot)
+        }
         return commandIDs.compactMap { commandID in
             guard let command = AssistantCommandCatalog.byID[commandID] else { return nil }
             return SearchResult(

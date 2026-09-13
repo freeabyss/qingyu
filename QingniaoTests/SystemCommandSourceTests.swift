@@ -2,6 +2,22 @@ import XCTest
 @testable import Qingniao
 
 final class SystemCommandSourceTests: XCTestCase {
+    /// 1.0.0 FeatureGate 关闭：截图命令不登记/不返回（统一搜索不再出现截图）。
+    func testScreenshotCommandHiddenFromCatalogWhileGateOff() async {
+        // 固化开关状态：本组断言依赖 1.0.0「截图入口整体隐藏」。
+        XCTAssertFalse(FeatureGate.screenshotEnabled)
+
+        let source = SystemCommandSource()
+        XCTAssertFalse(source.commands.contains { $0.id == .captureScreenshot }, "FeatureGate 关闭时命令目录不应包含 captureScreenshot")
+        XCTAssertFalse(AssistantCommandCatalog.allowedIDs.contains(.captureScreenshot))
+        XCTAssertNil(AssistantCommandCatalog.byID[.captureScreenshot])
+
+        for query in ["截图", "截屏", "screenshot", "capture window"] {
+            let results = await source.search(query: query)
+            XCTAssertFalse(results.containsCommand(.captureScreenshot), "Query '\(query)' should not surface the hidden screenshot command")
+        }
+    }
+
     func testAllMVPCommandsAreDefinedAndSearchable() async {
         let source = SystemCommandSource()
         let expectedIDs: [CommandID] = [
@@ -10,7 +26,6 @@ final class SystemCommandSourceTests: XCTestCase {
             .openDownloads,
             .openApplications,
             .openDesktop,
-            .captureScreenshot,
             .openClipboardHistory,
             .clearClipboardHistory,
             .toggleClipboardRecording,
@@ -20,7 +35,8 @@ final class SystemCommandSourceTests: XCTestCase {
             .toggleAppearance
         ]
 
-        XCTAssertEqual(source.commands.count, 13)
+        // 13 条全量定义中 captureScreenshot 因 FeatureGate 关闭而不返回（1.0.0）。
+        XCTAssertEqual(source.commands.count, 12)
         XCTAssertEqual(Set(source.commands.map(\.id)), Set(expectedIDs))
 
         for command in source.commands {
@@ -30,9 +46,11 @@ final class SystemCommandSourceTests: XCTestCase {
         }
     }
 
-    /// PRD「截图与贴图」规则 1：截图只提供一个“截图”命令；
-    /// 旧的区域/全屏/窗口关键词仍应命中这一唯一命令（别名机制不变）。
-    func testSingleScreenshotCommandMatchesLegacyModeQueries() async {
+    /// PRD「截图与贴图」规则 1：截图只提供一个“截图”命令（别名机制保留在目录定义中）。
+    /// 1.0.0 FeatureGate 关闭期间：截图命令不返回；截图专属查询无任何结果。
+    /// （注：'jt' 等极短模糊串同时命中剪贴板命令的拼音缩写，属匹配器既有行为，
+    /// 与截图入口无关，故只断言其中不再出现 captureScreenshot。）
+    func testScreenshotQueriesReturnNothingWhileGateOff() async {
         let source = SystemCommandSource()
         let queries = [
             "截图", "截屏", "区域截图", "全屏截图", "窗口截图",
@@ -42,13 +60,13 @@ final class SystemCommandSourceTests: XCTestCase {
 
         for query in queries {
             let results = await source.search(query: query)
-            XCTAssertTrue(results.containsCommand(.captureScreenshot), "Query '\(query)' should match the single screenshot command")
+            XCTAssertFalse(results.containsCommand(.captureScreenshot), "Query '\(query)' should not surface the hidden screenshot command")
         }
 
-        // 无旧三命令 ID 残留：所有截图类结果都指向唯一命令。
-        let results = await source.search(query: "截图")
-        XCTAssertEqual(results.count, 1)
-        XCTAssertEqual(results.first?.primaryAction, .runPluginAction(.quickLaunchCommand(.captureScreenshot)))
+        for query in ["截图", "截屏", "screenshot", "capture full screen"] {
+            let results = await source.search(query: query)
+            XCTAssertTrue(results.isEmpty, "Screenshot-specific query '\(query)' should return nothing while the feature is gated off")
+        }
     }
 
     func testCommandsHaveChineseEnglishAliasesPinyinAndInitials() {
@@ -90,13 +108,13 @@ final class SystemCommandSourceTests: XCTestCase {
         }
 
         UserDefaults.standard.set(["zh-Hans"], forKey: "AppleLanguages")
-        let englishQueryInChineseUI = await source.search(query: "capture window")
+        let englishQueryInChineseUI = await source.search(query: "clipboard")
 
         UserDefaults.standard.set(["en"], forKey: "AppleLanguages")
-        let chineseQueryInEnglishUI = await source.search(query: "窗口截图")
+        let chineseQueryInEnglishUI = await source.search(query: "剪贴板历史")
 
-        XCTAssertTrue(englishQueryInChineseUI.containsCommand(.captureScreenshot))
-        XCTAssertTrue(chineseQueryInEnglishUI.containsCommand(.captureScreenshot))
+        XCTAssertTrue(englishQueryInChineseUI.containsCommand(.openClipboardHistory))
+        XCTAssertTrue(chineseQueryInEnglishUI.containsCommand(.openClipboardHistory))
     }
 
     func testConfirmationFlagsMatchMVPRequirements() {
@@ -132,7 +150,11 @@ final class SystemCommandSourceTests: XCTestCase {
 
     func testSearchReturnsOnlyWhitelistCommands() async throws {
         let source = SystemCommandSource()
-        let results = await source.search(query: "截图")
+        // FeatureGate 关闭：截图查询返回空（入口隐藏），用剪贴板命令验证白名单路径。
+        let screenshotResults = await source.search(query: "截图")
+        XCTAssertTrue(screenshotResults.isEmpty, "FeatureGate 关闭时截图查询不应返回命令")
+
+        let results = await source.search(query: "剪贴板")
 
         XCTAssertFalse(results.isEmpty)
         for result in results {
@@ -184,23 +206,17 @@ final class SystemCommandSourceTests: XCTestCase {
         await fulfillment(of: [expectation], timeout: 0.1)
     }
 
-    /// PRD「截图与贴图」规则 1：唯一截图命令只发一个通知，由
-    /// AppContainer 路由到 ScreenshotWindowController.startCapture()。
-    func testCaptureScreenshotPostsSingleNotification() async throws {
-        let center = NotificationCenter()
-        let executor = SystemCommandExecutor(notificationCenter: center)
-        let expectation = expectation(
-            forNotification: .commandCaptureScreenshot,
-            object: nil,
-            notificationCenter: center
-        ) { _ in
-            XCTAssertTrue(Thread.isMainThread)
-            return true
+    /// 1.0.0 FeatureGate 关闭：截图命令不登记到执行器，执行应报 unknownCommand
+    /// （唯一入口 ScreenshotWindowController.startCapture() 另有守卫兜底）。
+    func testCaptureScreenshotExecutionRejectedWhileGateOff() async throws {
+        let executor = SystemCommandExecutor(notificationCenter: NotificationCenter())
+
+        do {
+            try await executor.execute(.captureScreenshot)
+            XCTFail("Expected unknownCommand while the screenshot feature is gated off")
+        } catch AssistantCommandExecutionError.unknownCommand(let id) {
+            XCTAssertEqual(id, .captureScreenshot)
         }
-
-        try await executor.execute(.captureScreenshot)
-
-        await fulfillment(of: [expectation], timeout: 0.1)
     }
 
     func testCommandSearchActionExecutorCancelsWhenConfirmationDenied() async throws {

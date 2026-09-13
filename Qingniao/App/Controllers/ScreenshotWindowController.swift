@@ -29,7 +29,14 @@ final class ScreenshotWindowController {
     }
 
     /// 唯一公开入口：进入统一截图会话（模式由指针位置与鼠标操作自动判定）。
+    ///
+    /// 1.0.0 FeatureGate：截图入口整体隐藏，正常不应有调用方可达；
+    /// 此守卫为防御性兜底（记录日志后直接返回）。
     func startCapture() {
+        guard FeatureGate.screenshotEnabled else {
+            logger.info("FeatureGate: screenshot disabled, startCapture ignored")
+            return
+        }
         logger.info("Screenshot capture triggered")
         guard ensureScreenRecordingPermission() else { return }
 

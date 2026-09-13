@@ -20,6 +20,7 @@
 | 2026-07-03 | Claude | v1.1.0：新增 +7 条自动化用例（协议 conformer / request 触发 / skipOnboarding / 7 步参数化 / hotkey 持久化）+6 条手工用例；+2 条回归基线更新（swift 134 / xcodebuild 125）；3 条端到端用例（TC-M-007/008/009）留待下一迭代。详见第 10 节「Onboarding 与权限（v1.1.0 起）」 |
 | 2026-07-03 | Claude | v1.2.0：新增第 11 节「青鸟 Qingniao v1.2 测试用例」，按模块新增 TC（TOK/BRAND/DATA/DI/SEARCH-F/SEARCH-E/SHOT-FS/SHOT-UI/ONB-V2/PERM-OD/CODE/DIST/UPD/SHORTCUT/SETNEW/REG/BUILD/ROBUST/ACC/I18N 前缀）；对第 5 节因 UI 重设计受影响的旧 TC 就地标注「v1.2 修订」并给出新步骤/预期；开发尚未开始，report.md v1.2.0 节仅为计划占位。 |
 | 2026-09-13 | Claude | 下一阶段：新增第 12 节「截图会话生命周期回归」——针对反复复发的截图叠层「僵尸暗幕」缺陷（会话 ARC 提前释放 + borderless 窗口不可为 key）建立 SHOT-LIFE 用例组（3 自动化 + 1 手工）；新增 `scripts/verify.sh` 必跑门禁并写入 AGENTS.md「测试门禁」。 |
+| 2026-09-13 | Claude | 1.0.0 隐藏截图入口（`FeatureGate.screenshotEnabled = false`：菜单项、搜索命令与空查询快捷操作、全局快捷键 F1、设置页截图插件、欢迎向导屏幕录制段均不暴露，代码保留），相关 TC（五页侧栏、F1、向导屏幕录制等截图入口类用例）暂缓执行，开关恢复后回归。 |
 
 ---
 

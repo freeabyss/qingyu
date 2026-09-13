@@ -60,8 +60,12 @@ final class OnboardingViewModel: ObservableObject {
     ///
     /// 规则（P-06，简单明确）：屏幕录制已授权，**或**用户已点「暂不开启截图」。
     /// 其余项（热键 / 剪贴板 / 开机启动）不阻塞完成。
+    ///
+    /// 1.0.0 FeatureGate：截图整体隐藏，屏幕录制段不渲染、不再是必选门槛，
+    /// 「开始使用」恒可用；开关恢复后回到授权/跳过二选一的语义。
     var canStart: Bool {
-        screenRecordingAuthorized || screenshotSkipped
+        if !FeatureGate.screenshotEnabled { return true }
+        return screenRecordingAuthorized || screenshotSkipped
     }
 
     // MARK: - 生命周期
