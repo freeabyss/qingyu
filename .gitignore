@@ -33,3 +33,7 @@ CLAUDE.md
 
 # Local agent tool state
 .omo/
+
+# Product website workflow metadata (local only)
+website/.apps-builder/
+website/history/

@@ -1,0 +1,129 @@
+青鸟 Qingniao 软件许可协议
+Qingniao Software License Agreement
+
+版权所有 © 2026 青鸟 Qingniao。保留所有权利。
+Copyright © 2026 Qingniao. All rights reserved.
+
+---
+
+## 简体中文
+
+### 1. 授予的权利
+
+在遵守本协议的前提下，项目所有者授予你一项有限的、非独占的、不可转让、
+不可再许可的许可，允许你：
+
+- 出于**个人、非商业目的**免费下载、安装和使用本软件的编译版本；
+- 查看本仓库公开的源代码，用于学习、研究和安全审查；
+- 为本仓库提交问题报告、改进建议与代码贡献（Pull Request）。
+
+### 2. 明确的限制
+
+未经项目所有者事先书面许可，你**不得**：
+
+- 将本软件用于任何**商业用途**，包括但不限于在公司、组织或经营性活动中
+  部署、使用或分发本软件；
+- 出售、出租、出借、再分发、转授权本软件或其任何部分；
+- 修改、翻译、反向工程、反编译或基于本软件创建衍生作品并对外分发；
+- 移除、掩盖或更改本软件中的任何版权、商标或权利声明；
+- 将本软件的名称、图标或品牌用于宣传你自己的产品或服务；
+- 绕过、破坏或规避本软件的技术限制或安全机制。
+
+**"商业用途"**指任何以营利为目的、在经营活动中使用、或为商业实体带来
+直接或间接收益的使用行为。
+
+### 3. 未来收费说明
+
+本软件当前免费提供。项目所有者保留在未来版本中引入付费功能、订阅或
+商业授权的权利。届时，新的授权条款将单独公布；本协议不保证任何功能
+或版本的永久免费。
+
+### 4. 第三方组件
+
+本软件包含第三方开源组件，各组件遵循其自身的许可证。详见
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。本文件的限制条款
+不覆盖这些第三方组件，其使用与再分发须遵循各自的原始许可证。
+
+### 5. 免责声明
+
+本软件按"现状"提供，不附带任何明示或暗示的担保，包括但不限于适销性、
+特定用途适用性和不侵权的担保。在任何情况下，项目所有者均不对因使用或
+无法使用本软件所产生的任何索赔、损害或其他责任承担责任，无论该等责任
+源于合同、侵权或其他方面。
+
+### 6. 协议终止
+
+若你违反本协议的任何条款，授予你的许可将自动终止。终止后，你必须停止
+使用本软件并销毁其所有副本。
+
+### 7. 商业授权咨询
+
+如需商业授权，请联系：feedback@qingniao.app
+
+---
+
+## English
+
+### 1. Rights Granted
+
+Subject to the terms of this Agreement, the project owner grants you a limited,
+non-exclusive, non-transferable, non-sublicensable license to:
+
+- Download, install, and use the compiled version of this software free of charge
+  for **personal, non-commercial purposes**;
+- View the publicly available source code in this repository for learning,
+  research, and security review;
+- Submit issue reports, improvement suggestions, and code contributions
+  (pull requests) to this repository.
+
+### 2. Explicit Restrictions
+
+Without prior written permission from the project owner, you **may not**:
+
+- Use this software for any **commercial purpose**, including but not limited to
+  deploying, using, or distributing it within a company, organization, or
+  revenue-generating activity;
+- Sell, rent, lease, redistribute, or sublicense this software or any part of it;
+- Modify, translate, reverse engineer, decompile, or create derivative works
+  based on this software and distribute them;
+- Remove, obscure, or alter any copyright, trademark, or proprietary notices;
+- Use the name, icon, or branding of this software to promote your own product
+  or service;
+- Circumvent, defeat, or bypass any technical limitation or security mechanism.
+
+**"Commercial purpose"** means any use that is profit-seeking, made in the course
+of business operations, or provides direct or indirect benefit to a commercial
+entity.
+
+### 3. Future Paid Offering
+
+This software is currently provided free of charge. The project owner reserves
+the right to introduce paid features, subscriptions, or commercial licensing in
+future versions. New licensing terms will be published separately at that time.
+This Agreement does not guarantee that any feature or version remains free
+indefinitely.
+
+### 4. Third-Party Components
+
+This software includes third-party open-source components, each governed by its
+own license. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). The
+restrictions in this document do not extend to those components; their use and
+redistribution remain subject to their original licenses.
+
+### 5. Disclaimer of Warranty
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE PROJECT OWNER
+BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+### 6. Termination
+
+Your license terminates automatically if you violate any term of this Agreement.
+Upon termination, you must cease using the software and destroy all copies.
+
+### 7. Commercial Licensing
+
+For commercial licensing inquiries, contact: feedback@qingniao.app
