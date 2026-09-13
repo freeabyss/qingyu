@@ -111,7 +111,8 @@ final class PinPayloadFactory {
             .documentType: NSAttributedString.DocumentType.html,
             .characterEncoding: String.Encoding.utf8.rawValue
         ]
-        guard let raw = try? NSAttributedString(html: html, options: options, documentAttributes: nil) else {
+        // macOS 上该重载为可失败初始化（失败返回 nil），不抛错，无需 try?。
+        guard let raw = NSAttributedString(html: html, options: options, documentAttributes: nil) else {
             return nil
         }
         let full = NSMutableAttributedString(attributedString: raw)

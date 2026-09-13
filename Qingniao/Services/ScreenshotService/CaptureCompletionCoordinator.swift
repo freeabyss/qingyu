@@ -31,12 +31,12 @@ struct CaptureCompletionHandlers {
     var quickSaveDirectory: () async -> URL
     /// 依据捕获结果生成建议文件名（不含扩展名）。
     var suggestedFilename: (ScreenshotResult) -> String
-    /// 「另存为」面板；返回 nil 表示用户取消。
-    var savePanel: (String) async -> URL?
+    /// 「另存为」面板；返回 nil 表示用户取消。NSSavePanel 链路为 MainActor 隔离。
+    var savePanel: @MainActor (String) async -> URL?
     /// 贴图转换（Task 008 注入）；未注入时贴图不可用。
     var pin: ((ScreenshotResult) async throws -> UUID)?
-    /// 打印（仅结束会话，不产生记录）。
-    var print: ((ScreenshotResult) -> Void)?
+    /// 打印（仅结束会话，不产生记录）。NSImageView/NSPrintOperation 为 MainActor 隔离。
+    var print: (@MainActor (ScreenshotResult) -> Void)?
 
     static func live() -> CaptureCompletionHandlers {
         CaptureCompletionHandlers(

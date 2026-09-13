@@ -6,9 +6,10 @@ import Foundation
 /// 状态不持久化；退出应用调用 `destroyAll()`。
 @MainActor
 final class PinStore {
-    static let defaultRestoreCapacity = 1
-    static let minimumRestoreCapacity = 0
-    static let maximumRestoreCapacity = 20
+    // 纯值常量：nonisolated 使其可在默认参数等非隔离上下文中引用（Swift 6 兼容）。
+    nonisolated static let defaultRestoreCapacity = 1
+    nonisolated static let minimumRestoreCapacity = 0
+    nonisolated static let maximumRestoreCapacity = 20
 
     private(set) var items: [PinItem] = []
     private var closedQueue: [PinItem] = []
