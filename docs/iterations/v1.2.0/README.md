@@ -1,6 +1,6 @@
 # v1.2.0 迭代
 
-- **主题**：青鸟 Qingniao —— 产品全面审视 + 品牌改名
+- **主题**：清羽 Qingyu —— 产品全面审视 + 品牌改名
 - **状态**：released
 - **当前节点**：⑥ 已上线
 - **模式**：auto
@@ -12,12 +12,12 @@
 
 ## 迭代说明
 
-用户正式确立产品名：中文「青鸟」、英文 **Qingniao**。
+用户正式确立产品名：中文「清羽」、英文 **Qingyu**。
 
 本次迭代特殊约定：
 - 审视阶段（①②③④）直接修订 doc/ 全局文件（用户明确授权，跳过双轨暂存）
 - doc/iterations/v1.2.0/ 只存放：本迭代的架构增量、test/cases.md 增量、tasks.json、progress.md、reviews/
-- Bundle ID `com.assistant.app` 保留不变，避免用户权限/容器失效
+- Bundle ID `com.freeabyss.qingyu` 保留不变，避免用户权限/容器失效
 - Xcode 工程、target、源码目录、显示名、文案全面改名
 - PRD/架构审视发现的产品不足直接落到文档修订中；对应的代码改动在 ⑤ 逐任务开发
 

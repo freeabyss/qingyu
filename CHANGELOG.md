@@ -1,9 +1,29 @@
 # Changelog
 
-All notable changes to Qingniao (青鸟) are documented here. The format is based on
+All notable changes to Qingyu (清羽) are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Public downloads are published on
-[GitHub Releases](https://github.com/freeabyss/qingniao/releases).
+[GitHub Releases](https://github.com/freeabyss/qingyu/releases).
+
+## [Unreleased]
+
+### Fixed
+
+- **Clipboard "Show in Finder" no longer fails silently.** When a file or folder
+  copied earlier has since been moved or deleted, the row icon, the context menu
+  item, the detail-pane button and the preview sheet now report it with an error
+  toast ("文件已不存在，可能已被移动或删除" / "File or folder no longer exists…")
+  instead of doing nothing. The toast auto-dismisses after a short delay.
+
+### Changed
+
+- **Product rename: 青鸟 Qingniao → 清羽 Qingyu.** App display name, module,
+  Xcode project/targets/scheme, source directories, data directory
+  (`~/Library/Application Support/Qingyu/`), Bundle Identifier
+  (`com.freeabyss.qingyu`), feedback address (`qingyu_freeabyss@163.com`), GitHub
+  repository (`freeabyss/qingyu`), website, docs, and scripts are updated.
+  Launch-time migration still moves an existing `Qingniao/` (or older
+  `Assistant/`) data directory into `Qingyu/` and renames the Core Data store.
 
 ## [1.2.1] - 2026-08-11
 
@@ -33,7 +53,7 @@ points for new users (issue #7).
 
 - A "欢迎向导" menu item that re-opens the onboarding guide without resetting
   completion state.
-- XCUITest infrastructure: a `QingniaoUITests` target, DEBUG-only launch-argument
+- XCUITest infrastructure: a `QingyuUITests` target, DEBUG-only launch-argument
   hooks (`--uitest-reset-onboarding`, `--uitest-mock-screen-recording-*`,
   `--uitest-trigger`, `--uitest-data-dir`, `--uitest-large-text`,
   `--uitest-skip-shortcuts` / `--uitest-skip-screenshot-capture`), and
@@ -44,7 +64,7 @@ points for new users (issue #7).
 
 ## [1.2.0] - 2026-07-06
 
-Public release of **Qingniao (青鸟)** — a full product review and brand rename from the
+Public release of **Qingyu (清羽)** — a full product review and brand rename from the
 earlier SnapVault/Assistant MVP.
 
 ### Added
@@ -63,7 +83,7 @@ earlier SnapVault/Assistant MVP.
 
 ### Changed
 
-- Brand name is now **Qingniao (青鸟)**; project renamed SnapVault → Qingniao.
+- Brand name is now **Qingyu (清羽)**; project renamed SnapVault → Qingyu.
 - Default screenshot directory changed to `~/Desktop`.
 - Region / window screenshot hotkeys changed to `⇧⌃⌘4` / `⇧⌃⌘5`.
 - Accessibility permission is now requested on demand instead of during onboarding.

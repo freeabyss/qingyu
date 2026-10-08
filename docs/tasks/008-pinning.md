@@ -14,17 +14,17 @@
 
 ## 文件
 
-- 新建：`Qingniao/Models/PinItem.swift`
-- 新建：`Qingniao/Services/Pinning/PinPayloadFactory.swift`
-- 新建：`Qingniao/Services/Pinning/PinStore.swift`
-- 新建：`Qingniao/App/Controllers/PinWindowController.swift`
-- 新建：`Qingniao/Views/Pinning/PinWindowView.swift`
-- 修改：`Qingniao/Models/AppSetting.swift`
-- 修改：`Qingniao/Views/Components/ScreenshotToolbarController.swift`
-- 修改：`Qingniao/App/Controllers/AppContainer.swift`
-- 修改：`Qingniao.xcodeproj/project.pbxproj`
-- 测试：`QingniaoTests/PinPayloadFactoryTests.swift`、`PinStoreTests.swift`、`PinWindowControllerTests.swift`
-- UI 测试：`QingniaoUITests/PinWindowUITests.swift`
+- 新建：`Qingyu/Models/PinItem.swift`
+- 新建：`Qingyu/Services/Pinning/PinPayloadFactory.swift`
+- 新建：`Qingyu/Services/Pinning/PinStore.swift`
+- 新建：`Qingyu/App/Controllers/PinWindowController.swift`
+- 新建：`Qingyu/Views/Pinning/PinWindowView.swift`
+- 修改：`Qingyu/Models/AppSetting.swift`
+- 修改：`Qingyu/Views/Components/ScreenshotToolbarController.swift`
+- 修改：`Qingyu/App/Controllers/AppContainer.swift`
+- 修改：`Qingyu.xcodeproj/project.pbxproj`
+- 测试：`QingyuTests/PinPayloadFactoryTests.swift`、`PinStoreTests.swift`、`PinWindowControllerTests.swift`
+- UI 测试：`QingyuUITests/PinWindowUITests.swift`
 
 ## 接口
 
@@ -91,11 +91,11 @@ XCTAssertNil(store.restoreLatestClosed())
 - [ ] 运行：
 
 ```bash
-xcodebuild test -project Qingniao.xcodeproj -scheme Qingniao \
-  -only-testing:QingniaoTests/PinPayloadFactoryTests \
-  -only-testing:QingniaoTests/PinStoreTests \
-  -only-testing:QingniaoTests/PinWindowControllerTests \
-  -only-testing:QingniaoUITests/PinWindowUITests
+xcodebuild test -project Qingyu.xcodeproj -scheme Qingyu \
+  -only-testing:QingyuTests/PinPayloadFactoryTests \
+  -only-testing:QingyuTests/PinStoreTests \
+  -only-testing:QingyuTests/PinWindowControllerTests \
+  -only-testing:QingyuUITests/PinWindowUITests
 ```
 
 - [ ] 递增版本、校验版本字段、运行 `git diff --check`。

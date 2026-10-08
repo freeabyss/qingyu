@@ -1,4 +1,4 @@
-# 青鸟 Qingniao 工程上手指南（New Engineer Onboarding）
+# 清羽 Qingyu 工程上手指南（New Engineer Onboarding）
 
 > 面向新加入的工程师，帮助你在 1 小时内理解项目全貌、跑起来、并知道去哪里改代码。
 > 关联文档：`doc/prd.md`（需求）、`doc/architecture/design.md`（架构总设计 v17）、`doc/architecture/api.md`（接口契约 v3）、`doc/architecture/db.md`（数据模型 v3）、`BUILD_README.md`（构建细节）。
@@ -9,12 +9,12 @@
 
 ## 1. 这是什么项目
 
-青鸟（Qingniao，中文名青鸟 / 英文名 Qingniao）是一款 **macOS 原生菜单栏效率工具**，定位为「增强版 Spotlight + 常用效率工具集成中心」。核心是一个统一搜索框（Command Bar，默认 `⌥ Space`），聚合：应用启动、剪贴板历史、文件搜索、截图标注、白名单命令、计算器/单位换算、设置。
+清羽（Qingyu，中文名清羽 / 英文名 Qingyu）是一款 **macOS 原生菜单栏效率工具**，定位为「增强版 Spotlight + 常用效率工具集成中心」。核心是一个统一搜索框（Command Bar，默认 `⌥ Space`），聚合：应用启动、剪贴板历史、文件搜索、截图标注、白名单命令、计算器/单位换算、设置。
 
 - 形态：菜单栏常驻 App，无 Dock 图标（`LSUIElement=true`）。
 - 数据：**默认仅本地**，不上传、不同步、不训练。
 - 最低系统：macOS 13 Ventura；语言 Swift 5.9；UI 用 SwiftUI + AppKit 混合。
-- 分发：Developer ID 签名 + 公证，走 GitHub Releases（`github.com/freeabyss/qingniao`），不上架 Mac App Store，v1.2 起**关闭 App Sandbox**。
+- 分发：Developer ID 签名 + 公证，走 GitHub Releases（`github.com/freeabyss/qingyu`），不上架 Mac App Store，v1.2 起**关闭 App Sandbox**。
 
 当前迭代 **v1.2.0**（分支 `v1.2.0`），主题是品牌改名 + 产品全面审视。历史版本见 `doc/architecture/design.md` §版本记录。
 
@@ -31,19 +31,19 @@ chmod +x build_and_run.sh      # 首次
 ./build_and_run.sh             # 默认 = clean+build+run；也支持 build / run / release / help
 
 # 方式 B：Xcode
-open Qingniao.xcodeproj         # 选 Qingniao scheme，Cmd+R
+open Qingyu.xcodeproj         # 选 Qingyu scheme，Cmd+R
 
 # 方式 C：命令行 xcodebuild
-xcodebuild -project Qingniao.xcodeproj -scheme Qingniao -configuration Debug build
+xcodebuild -project Qingyu.xcodeproj -scheme Qingyu -configuration Debug build
 ```
 
-Debug 产物：`DerivedData/Build/Products/Debug/Qingniao.app`。
+Debug 产物：`DerivedData/Build/Products/Debug/Qingyu.app`。
 
 **跑测试**（两种，日常用 SPM 快）：
 
 ```bash
-swift test                                                   # SPM 测试目标 QingniaoTests，最快
-xcodebuild test -project Qingniao.xcodeproj -scheme Qingniao # Xcode 测试计划
+swift test                                                   # SPM 测试目标 QingyuTests，最快
+xcodebuild test -project Qingyu.xcodeproj -scheme Qingyu # Xcode 测试计划
 ```
 
 > 注意：`build_and_run.sh` **没有** test 子命令，测试用上面两条命令。当前测试基线 **159 个测试全绿 / 25 个测试文件**。
@@ -53,9 +53,9 @@ xcodebuild test -project Qingniao.xcodeproj -scheme Qingniao # Xcode 测试计�
 ```bash
 sudo xcodebuild -license accept                 # 首次许可
 rm -rf .build .swiftpm                           # 清 SPM 缓存
-rm -rf ~/Library/Application\ Support/Qingniao/  # 重置本地数据
-defaults delete com.assistant.app               # 重置偏好（注意 Bundle ID 仍是 com.assistant.app）
-log stream --process Qingniao --level debug      # 实时日志
+rm -rf ~/Library/Application\ Support/Qingyu/  # 重置本地数据
+defaults delete com.freeabyss.qingyu               # 重置偏好（注意 Bundle ID 仍是 com.freeabyss.qingyu）
+log stream --process Qingyu --level debug      # 实时日志
 ```
 
 ---
@@ -64,11 +64,11 @@ log stream --process Qingniao --level debug      # 实时日志
 
 项目**同时**有 SwiftPM 与 Xcode 工程，这是新人最容易踩的坑：
 
-| | `Package.swift`（SPM） | `Qingniao.xcodeproj`（Xcode） |
+| | `Package.swift`（SPM） | `Qingyu.xcodeproj`（Xcode） |
 | :--- | :--- | :--- |
 | 用途 | 跑单元测试（`swift test`），CI 友好 | 构建可运行的 `.app`、调试、发布 |
-| 构建内容 | library target `Qingniao` | 完整 App（含 `@main`、资源、entitlements） |
-| 关键排除 | **排除** `App/QingniaoApp.swift`、`Info.plist`、`Qingniao.entitlements`、`Resources/Assets.xcassets`、`Resources/Localizable.xcstrings` | 全部纳入 |
+| 构建内容 | library target `Qingyu` | 完整 App（含 `@main`、资源、entitlements） |
+| 关键排除 | **排除** `App/QingyuApp.swift`、`Info.plist`、`Qingyu.entitlements`、`Resources/Assets.xcassets`、`Resources/Localizable.xcstrings` | 全部纳入 |
 
 含义：SwiftUI `@main` 入口和 App 资源只在 Xcode 构建里生效；SPM 只编译库代码 + 测试。**加了新文件要同时确认两个系统都能编到**。
 
@@ -80,12 +80,12 @@ log stream --process Qingniao --level debug      # 实时日志
 
 ## 4. 目录地图（去哪里改代码）
 
-源码根 `Qingniao/`，按层组织。绝对定位建议直接搜类型名。
+源码根 `Qingyu/`，按层组织。绝对定位建议直接搜类型名。
 
 ```
-Qingniao/
+Qingyu/
 ├── App/                     App Shell 层：入口、生命周期、DI、窗口
-│   ├── QingniaoApp.swift        SwiftUI @main（⚠ 类型名仍是 AssistantApp，见 §8）
+│   ├── QingyuApp.swift        SwiftUI @main（⚠ 类型名仍是 AssistantApp，见 §8）
 │   ├── AppDelegate.swift        仅生命周期回调（136 行，已从旧 955 行 god object 瘦身）
 │   ├── AppState.swift
 │   └── Controllers/
@@ -116,7 +116,7 @@ Qingniao/
 ├── Database/                Data 层
 │   ├── PersistenceController.swift   Core Data 活动栈
 │   ├── AssistantFileSystem.swift     文件资源目录
-│   ├── DataDirectoryMigrator.swift   Assistant/ → Qingniao/ 目录迁移
+│   ├── DataDirectoryMigrator.swift   Assistant/ → Qingyu/ 目录迁移
 │   ├── DatabaseManager.swift         GRDB（历史遗留/技术债）
 │   └── Repositories/
 │       ├── AssistantClipboardRepository.swift  ★ 唯一活动剪贴板仓库（文件名未改，见 §8）
@@ -148,7 +148,7 @@ Qingniao/
 
 ### AppContainer 是入口（先读它）
 
-`Qingniao/App/Controllers/AppContainer.swift` 是**依赖注入根 / 组合根**——唯一知道「如何拼装整个对象图」的地方。它 `lazy` 构造并持有：Data 层（`InMemorySearchIndex`、`FileResourceStore`、`ClipboardRepository` 用 `IndexingClipboardRepository` 装饰）、Services（`ClipboardService`/`ClipboardMonitor`/`ScreenshotService`/`UpdateService`）、四个搜索源、5 个窗口/状态控制器、`GlobalShortcutManager`。`AppDelegate` 现在只做生命周期回调，把组装全权委托给 `AppContainer`。**要理解数据如何流动，从 AppContainer 顺藤摸瓜最快。**
+`Qingyu/App/Controllers/AppContainer.swift` 是**依赖注入根 / 组合根**——唯一知道「如何拼装整个对象图」的地方。它 `lazy` 构造并持有：Data 层（`InMemorySearchIndex`、`FileResourceStore`、`ClipboardRepository` 用 `IndexingClipboardRepository` 装饰）、Services（`ClipboardService`/`ClipboardMonitor`/`ScreenshotService`/`UpdateService`）、四个搜索源、5 个窗口/状态控制器、`GlobalShortcutManager`。`AppDelegate` 现在只做生命周期回调，把组装全权委托给 `AppContainer`。**要理解数据如何流动，从 AppContainer 顺藤摸瓜最快。**
 
 ---
 
@@ -170,7 +170,7 @@ Qingniao/
 2. **关闭 Sandbox**：v1.2 移除 App Sandbox，保留 Hardened Runtime + `apple-events` entitlement，让重启 Finder/Dock 等 AppleEvents 命令可靠执行。命令严格白名单（15 条，含“打开剪贴板历史”），**永不支持任意 shell**。
 3. **辅助功能按需申请**：Onboarding 只强制屏幕录制（截图依赖）；辅助功能改为首次真正用到时才经 `PermissionService.onDemandAccessibilityCheck()` 申请。全局热键用 KeyboardShortcuts 库，不依赖辅助功能。
 4. **Design Token 硬约束靠 review**：View 里**禁止硬编码颜色/圆角/字号**，必须走 `Views/Design/Jade*`。无静态 lint，靠 code review 把关。
-5. **Bundle ID 保留 `com.assistant.app`**：改名青鸟只改显示名/target/目录/module，Bundle ID 不动（它绑定 TCC 权限、Keychain、数据目录、登录项）。
+5. **Bundle ID 保留 `com.freeabyss.qingyu`**：改名清羽只改显示名/target/目录/module，Bundle ID 不动（它绑定 TCC 权限、Keychain、数据目录、登录项）。
 
 ---
 
@@ -180,10 +180,10 @@ Qingniao/
 
 | 文档说 | 代码实际 |
 | :--- | :--- |
-| `@main` 类型为 `QingniaoApp` | 文件名是 `QingniaoApp.swift`，但类型仍叫 **`AssistantApp`**（改名未完成） |
+| `@main` 类型为 `QingyuApp` | 文件名是 `QingyuApp.swift`，但类型仍叫 **`AssistantApp`**（改名未完成） |
 | `SearchService` / `ClipboardService` 是独立文件 | 分别在 **`SearchCore.swift`** 和 **`ClipboardMonitor.swift`** 内 |
 | 无 `DesignToken` 类型 | Design Token 就是 `Views/Design/` 下的 `Jade*` 枚举，没有叫 `DesignToken` 的类型 |
-| `api.md` 称仓库改名为 `ClipboardRepository`（Qingniao 模块） | 文件名仍是 **`AssistantClipboardRepository.swift`**；`AppContainer` 里用的类型名是 `ClipboardRepository`（经 `IndexingClipboardRepository` 装饰）——类型/文件命名尚未完全统一 |
+| `api.md` 称仓库改名为 `ClipboardRepository`（Qingyu 模块） | 文件名仍是 **`AssistantClipboardRepository.swift`**；`AppContainer` 里用的类型名是 `ClipboardRepository`（经 `IndexingClipboardRepository` 装饰）——类型/文件命名尚未完全统一 |
 | `design.md` 列 5 类窗口控制器（含 `AnnotationWindowController`/`ScreenshotOverlayController`） | 实际是 **5 个**：Status/CommandBar/ClipboardHistory/Settings/**ScreenshotWindowController**（截图相关合并到一个），标注在 `Views/Annotation/` |
 | 文件搜索权重 `design §7.4`=75 vs `PRD FR-SEARCH-11`=60 | 取 **75**（已在文档标注差异，测试以 75 为准） |
 
@@ -204,7 +204,7 @@ Qingniao/
 
 ### 提交前自检清单
 1. `swift test` 全绿（当前基线 159）。
-2. `xcodebuild -project Qingniao.xcodeproj -scheme Qingniao -configuration Debug build` → `BUILD SUCCEEDED`。
+2. `xcodebuild -project Qingyu.xcodeproj -scheme Qingyu -configuration Debug build` → `BUILD SUCCEEDED`。
 3. 新增文件在 SPM 和 Xcode 两套构建里都可编。
 4. View 无硬编码样式，走 `Jade*` token。
 5. 更新了 `progress.md` / `tasks.json`（若在迭代任务内）。

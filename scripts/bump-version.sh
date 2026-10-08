@@ -3,8 +3,8 @@
 set -euo pipefail
 
 project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-plist_path="$project_root/Qingniao/Info.plist"
-project_path="$project_root/Qingniao.xcodeproj/project.pbxproj"
+plist_path="$project_root/Qingyu/Info.plist"
+project_path="$project_root/Qingyu.xcodeproj/project.pbxproj"
 
 usage() {
     echo "Usage: $0 --set 0.MINOR.PATCH [BUILD] | --bump" >&2

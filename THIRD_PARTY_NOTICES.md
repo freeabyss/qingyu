@@ -1,6 +1,6 @@
 # Third-Party Notices
 
-Qingniao (青鸟) uses Swift Package Manager dependencies listed in `Package.swift`. Each dependency remains under its own license.
+Qingyu (清羽) uses Swift Package Manager dependencies listed in `Package.swift`. Each dependency remains under its own license.
 
 ## Dependencies
 
@@ -11,5 +11,5 @@ Qingniao (青鸟) uses Swift Package Manager dependencies listed in `Package.swi
 
 ## Update policy
 
-Qingniao's user-facing **Check for Updates** action opens [GitHub Releases](https://github.com/freeabyss/qingniao/releases) for manual download. Qingniao does not auto-download, auto-install, or restart to update.
+Qingyu's user-facing **Check for Updates** action opens [GitHub Releases](https://github.com/freeabyss/qingyu/releases) for manual download. Qingyu does not auto-download, auto-install, or restart to update.
 </content>

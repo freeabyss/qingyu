@@ -7,9 +7,9 @@
 | 版本 | 上线日期 | 说明 |
 |------|---------|------|
 | v1.0.0 | 2026-07-02 | 首次上线，Mac Super Assistant MVP（22 个用户故事） |
-| v1.2.0 | 2026-07-03（用例定稿；开发未开始） | 品牌改名青鸟 Qingniao、文件搜索接入、全屏截图热键、Onboarding 单屏 + 辅助功能按需、关闭 Sandbox + Developer ID 签名公证、DesignToken 层、AppContainer DI、数据目录迁移、死代码清理、健壮性整改。用例见第 11 节。 |
+| v1.2.0 | 2026-07-03（用例定稿；开发未开始） | 品牌改名清羽 Qingyu、文件搜索接入、全屏截图热键、Onboarding 单屏 + 辅助功能按需、关闭 Sandbox + Developer ID 签名公证、DesignToken 层、AppContainer DI、数据目录迁移、死代码清理、健壮性整改。用例见第 11 节。 |
 
-> 命名说明：v1.2.0 起产品正式定名 **青鸟 / Qingniao**（Bundle ID 保留 `com.assistant.app`）。本文标题与第 1–10 节保留历史「Mac Super Assistant / Assistant / SnapVault」命名以体现追溯语境；第 11 节起一律使用青鸟 Qingniao。
+> 命名说明：v1.2.0 起产品正式定名 **清羽 / Qingyu**（Bundle ID 保留 `com.freeabyss.qingyu`）。本文标题与第 1–10 节保留历史「Mac Super Assistant / Assistant / SnapVault」命名以体现追溯语境；第 11 节起一律使用清羽 Qingyu。
 
 ## 修订记录
 
@@ -18,7 +18,7 @@
 | 2026-06-11 | Claude | 重写为当前 Mac Super Assistant / Assistant MVP 测试方案，对齐 `doc/prd.md` |
 | 2026-07-02 | Claude | v1.0.1：新增 TC-U-001（常量断言）/TC-U-002（checkNow spy）2 条自动化用例 + TC-M-001/002/003 手工验收记录 |
 | 2026-07-03 | Claude | v1.1.0：新增 +7 条自动化用例（协议 conformer / request 触发 / skipOnboarding / 7 步参数化 / hotkey 持久化）+6 条手工用例；+2 条回归基线更新（swift 134 / xcodebuild 125）；3 条端到端用例（TC-M-007/008/009）留待下一迭代。详见第 10 节「Onboarding 与权限（v1.1.0 起）」 |
-| 2026-07-03 | Claude | v1.2.0：新增第 11 节「青鸟 Qingniao v1.2 测试用例」，按模块新增 TC（TOK/BRAND/DATA/DI/SEARCH-F/SEARCH-E/SHOT-FS/SHOT-UI/ONB-V2/PERM-OD/CODE/DIST/UPD/SHORTCUT/SETNEW/REG/BUILD/ROBUST/ACC/I18N 前缀）；对第 5 节因 UI 重设计受影响的旧 TC 就地标注「v1.2 修订」并给出新步骤/预期；开发尚未开始，report.md v1.2.0 节仅为计划占位。 |
+| 2026-07-03 | Claude | v1.2.0：新增第 11 节「清羽 Qingyu v1.2 测试用例」，按模块新增 TC（TOK/BRAND/DATA/DI/SEARCH-F/SEARCH-E/SHOT-FS/SHOT-UI/ONB-V2/PERM-OD/CODE/DIST/UPD/SHORTCUT/SETNEW/REG/BUILD/ROBUST/ACC/I18N 前缀）；对第 5 节因 UI 重设计受影响的旧 TC 就地标注「v1.2 修订」并给出新步骤/预期；开发尚未开始，report.md v1.2.0 节仅为计划占位。 |
 | 2026-09-13 | Claude | 下一阶段：新增第 12 节「截图会话生命周期回归」——针对反复复发的截图叠层「僵尸暗幕」缺陷（会话 ARC 提前释放 + borderless 窗口不可为 key）建立 SHOT-LIFE 用例组（3 自动化 + 1 手工）；新增 `scripts/verify.sh` 必跑门禁并写入 AGENTS.md「测试门禁」。 |
 | 2026-09-13 | Claude | 1.0.0 隐藏截图入口（`FeatureGate.screenshotEnabled = false`：菜单项、搜索命令与空查询快捷操作、全局快捷键 F1、设置页截图插件、欢迎向导屏幕录制段均不暴露，代码保留），相关 TC（五页侧栏、F1、向导屏幕录制等截图入口类用例）暂缓执行，开关恢复后回归。 |
 
@@ -68,7 +68,7 @@ Mac Super Assistant（工程内部代号：Assistant）是 macOS 原生效率工
 | :--- | :--- | :--- |
 | SearchSource Provider、触发规则、排序、总上限、执行后关闭 | `SnapVaultTests/SearchServiceCoreTests.swift` | mock sources 聚合测试；验证空输入、分来源 canSearch、`baseScore + matchScore + usageScore` 排序、12 条截断、主动作执行返回关闭搜索框 |
 | AppSource 应用索引、拼音、黑名单、使用统计 | `SnapVaultTests/AppSearchSourceTests.swift` | 临时 `.app` bundle 目录；验证 MVP 三目录范围、中文应用拼音/首字母、黑名单隐藏/恢复、启动统计加权 |
-| CommandSource 白名单、双语别名、拼音、确认、使用统计 | `QingniaoTests/SystemCommandSourceTests.swift` | 验证 15 个内置命令（含打开剪贴板历史）、危险命令不可搜、确认门禁、中文/英文/拼音/首字母搜索和命令选择加权 |
+| CommandSource 白名单、双语别名、拼音、确认、使用统计 | `QingyuTests/SystemCommandSourceTests.swift` | 验证 15 个内置命令（含打开剪贴板历史）、危险命令不可搜、确认门禁、中文/英文/拼音/首字母搜索和命令选择加权 |
 | SettingsSource 页面入口、拼音和设置源开关 | `SnapVaultTests/SettingsSourceTests.swift` | 验证设置/权限/剪贴板历史/搜索源/快捷键/截图/关于入口，且搜索结果只打开页面不直接切换设置 |
 | 拼音工具与文本匹配 | `SnapVaultTests/PinyinHelperTests.swift`、`SnapVaultTests/SearchTextMatcherTests.swift` | 验证中文转拼音、首字母、混合中英文、英文别名和中文别名拼音匹配 |
 | CalculatorSource 与单位换算 | `SnapVaultTests/CalculatorSourceTests.swift`、`SnapVaultTests/UnitConverterSourceTests.swift` | 验证四则、括号、小数、非法/除零/范围外输入拒绝；长度、重量、数据大小、温度换算；回车复制动作 |
@@ -255,7 +255,7 @@ P0/P1 手动用例执行时，应记录：执行日期、macOS 版本、构建�
 | MENU-003 | 菜单栏截图 | 点击“截图” | 直接进入区域截图 | P0 |
 | MENU-004 | 退出 App | 点击“退出” | App 完全退出，快捷键监听和剪贴板记录停止 | P0 |
 
-> **v1.2 修订（品牌改名 + 死代码清理）**：MENU-001「菜单栏图标」预期更新为**青鸟单色 template 图标**（见 BRAND-005）。`MenuBarView` 为 legacy 死代码将被删除（管理中心走独立 NSWindow，非菜单栏下拉承载复杂视图，见 D-114 / CODE-002），但菜单栏 statusItem 菜单项（打开搜索/剪贴板/截图/设置/关于/退出）本身**保留有效**。MENU-001~004 仍执行，图标断言以青鸟图标为准。
+> **v1.2 修订（品牌改名 + 死代码清理）**：MENU-001「菜单栏图标」预期更新为**清羽单色 template 图标**（见 BRAND-005）。`MenuBarView` 为 legacy 死代码将被删除（管理中心走独立 NSWindow，非菜单栏下拉承载复杂视图，见 D-114 / CODE-002），但菜单栏 statusItem 菜单项（打开搜索/剪贴板/截图/设置/关于/退出）本身**保留有效**。MENU-001~004 仍执行，图标断言以清羽图标为准。
 
 ### 5.3 统一搜索入口
 
@@ -294,7 +294,7 @@ P0/P1 手动用例执行时，应记录：执行日期、macOS 版本、构建�
 | CLIP-011 | 存储占用 | 打开设置或剪贴板页面 | 显示剪贴板历史存储占用，并提供清空入口 | P1 |
 | CLIP-012 | 清空确认 | 点击清空全部 | 显示二次确认，提示不可撤销 | P0 |
 
-> **v1.2 修订（P-02 剪贴板窗口重设计）**：剪贴板历史改为**独立 NSWindow + 两栏 NavigationSplitView**（64px 行、hover 操作、预览 Sheet、swipe action、底部状态栏，见 §9.4 P-02）。CLIP-001~012 功能语义**全部保留有效**，但界面断言（行高、hover 4 按钮、预览 Sheet、swipe 收藏/删除）走新布局；数据链路（去重/置顶/保留/存储占用）不变。数据目录由 `Assistant/` 迁移到 `Qingniao/`，迁移后历史数据必须仍在（见 **DATA** 系列）。
+> **v1.2 修订（P-02 剪贴板窗口重设计）**：剪贴板历史改为**独立 NSWindow + 两栏 NavigationSplitView**（64px 行、hover 操作、预览 Sheet、swipe action、底部状态栏，见 §9.4 P-02）。CLIP-001~012 功能语义**全部保留有效**，但界面断言（行高、hover 4 按钮、预览 Sheet、swipe 收藏/删除）走新布局；数据链路（去重/置顶/保留/存储占用）不变。数据目录由 `Assistant/` 迁移到 `Qingyu/`，迁移后历史数据必须仍在（见 **DATA** 系列）。
 
 ### 5.5 截图与标注
 
@@ -352,11 +352,11 @@ P0/P1 手动用例执行时，应记录：执行日期、macOS 版本、构建�
 | PRIV-001 | 隐私政策入口 | 关于页点击隐私政策 | 打开隐私政策，说明本地保存、不上传、不同步、不训练、关闭记录和清空方式 | P0 |
 
 > **v1.2 修订（品牌/版本号/设置新页/更新策略）**：
-> - **ABOUT-001「关于页信息」→ 修订**：应用名称改为**青鸟 Qingniao**，版本号显示 **1.2.0**（三源一致，见 BRAND-006 / BRAND-007）。
+> - **ABOUT-001「关于页信息」→ 修订**：应用名称改为**清羽 Qingyu**，版本号显示 **1.2.0**（三源一致，见 BRAND-006 / BRAND-007）。
 > - **ABOUT-002「检查更新」→ 修订**：彻底移除 Sparkle，检查更新直接跳 GitHub Releases（见 UPD 系列）。
-> - **ABOUT-003「邮件反馈」→ 修订**：反馈邮箱改为 **feedback@qingniao.app**（上线前校验，见 BRAND-004）。
+> - **ABOUT-003「邮件反馈」→ 修订**：反馈邮箱改为 **qingyu_freeabyss@163.com**（上线前校验，见 BRAND-004）。
 > - **SET-001~005 保留有效**，新增「外观」「数据」页与快捷键冲突检测见 **SETNEW** 系列。
-> - PRIV-001 保留，隐私政策数据目录路径更新为 `~/Library/Application Support/Qingniao/`（见 DATA-005）。
+> - PRIV-001 保留，隐私政策数据目录路径更新为 `~/Library/Application Support/Qingyu/`（见 DATA-005）。
 
 ### 5.8 本地化
 
@@ -476,7 +476,7 @@ MVP 暂不覆盖：
 | TC-M-005 | Skip 弹确认 Alert，Cancel 不改变 | P-2.2 | P0 | 通过 |
 | TC-M-006 | Skip 确认后进主界面 | AC-5 | P0 | 通过 |
 
-- **TC-M-001**：`tccutil reset ScreenCapture com.assistant.app` 后 Clean 构建首启，进入 `.screenRecording` 步骤 5 秒内出现 macOS 系统屏幕录制授权弹窗。
+- **TC-M-001**：`tccutil reset ScreenCapture com.freeabyss.qingyu` 后 Clean 构建首启，进入 `.screenRecording` 步骤 5 秒内出现 macOS 系统屏幕录制授权弹窗。
 - **TC-M-002**：TC-M-001 触发 request 后，「系统设置 → 隐私与安全 → 屏幕录制与系统录音」列表中出现本 App（Mac Super Assistant / Assistant）。
 - **TC-M-003**：系统设置勾选授权后切回 app 点 Recheck，Continue 由禁用变可用、进入 accessibility 步骤（无 activation 自动检测、需手动 Recheck 是可接受降级）。
 - **TC-M-004**：welcome/searchHotkey/clipboardPrivacy/screenRecording/accessibility/launchAtLogin/done 7 步 footer 左下角均可见 Skip Setup 按钮。
@@ -507,13 +507,13 @@ MVP 暂不覆盖：
 
 ---
 
-## 11. 青鸟 Qingniao v1.2 测试用例
+## 11. 清羽 Qingyu v1.2 测试用例
 
-> 本节为 v1.2.0 迭代新增用例，累积式追加，不覆盖第 1–10 节历史。用例 ID 采用模块前缀（TOK/BRAND/DATA/DI/SEARCH-F/SEARCH-E/SHOT-FS/SHOT-UI/ONB-V2/PERM-OD/CODE/DIST/UPD/SHORTCUT/SETNEW/REG/BUILD/ROBUST/ACC/I18N），与第 1–10 节的 TC-U/TC-M/TC-R 及 ONB/SEARCH/CLIP 等前缀不冲突。追溯依据：`doc/prd.md`（青鸟 v1.2）、`doc/architecture/design.md` v17、`api.md` v3、`db.md` v3、`doc/iterations/v1.2.0/architecture/review.md`（评审 6 个改善级问题 M-1~M-6）。
+> 本节为 v1.2.0 迭代新增用例，累积式追加，不覆盖第 1–10 节历史。用例 ID 采用模块前缀（TOK/BRAND/DATA/DI/SEARCH-F/SEARCH-E/SHOT-FS/SHOT-UI/ONB-V2/PERM-OD/CODE/DIST/UPD/SHORTCUT/SETNEW/REG/BUILD/ROBUST/ACC/I18N），与第 1–10 节的 TC-U/TC-M/TC-R 及 ONB/SEARCH/CLIP 等前缀不冲突。追溯依据：`doc/prd.md`（清羽 v1.2）、`doc/architecture/design.md` v17、`api.md` v3、`db.md` v3、`doc/iterations/v1.2.0/architecture/review.md`（评审 6 个改善级问题 M-1~M-6）。
 >
 > **开发状态**：本用例集定稿时 v1.2 开发尚未开始（见 review.md §八 T-A~T-O 任务拆解）。用例只描述**外部可观察行为**，不锁定内部代码结构（死代码清理 CODE 系列、强制解包 ROBUST 系列除外，属明确要求的工程健康度校验）。
 >
-> **字段说明**：每条 TC 含 关联 FR/AC、前置条件、步骤、预期结果、优先级（P0/P1/P2）、自动化类型（swift = `swift test`；xcodebuild = `xcodebuild test`；手工 = 人工验收；E2E UI = 端到端 UI 走查）、对应测试文件（或「待建」）。测试模块随改名由 `SnapVaultTests` → `QingniaoTests`，本节测试文件路径统一以 `QingniaoTests/` 记（现物理目录 `SnapVaultTests/`，改名任务 T-A 落地后一致）。
+> **字段说明**：每条 TC 含 关联 FR/AC、前置条件、步骤、预期结果、优先级（P0/P1/P2）、自动化类型（swift = `swift test`；xcodebuild = `xcodebuild test`；手工 = 人工验收；E2E UI = 端到端 UI 走查）、对应测试文件（或「待建」）。测试模块随改名由 `SnapVaultTests` → `QingyuTests`，本节测试文件路径统一以 `QingyuTests/` 记（现物理目录 `SnapVaultTests/`，改名任务 T-A 落地后一致）。
 
 ### 11.1 覆盖模块与前缀索引
 
@@ -543,7 +543,7 @@ MVP 暂不覆盖：
 ### 11.2 TOK —— Design Token 层
 
 #### TOK-001：JadeColor 明暗双模式取值
-- **关联**：FR-UI-DESIGN-TOKENS、§9.2.1、D-113 ｜ **优先级**：P0 ｜ **类型**：swift ｜ **文件**：待建 `QingniaoTests/DesignTokenTests.swift`
+- **关联**：FR-UI-DESIGN-TOKENS、§9.2.1、D-113 ｜ **优先级**：P0 ｜ **类型**：swift ｜ **文件**：待建 `QingyuTests/DesignTokenTests.swift`
 - **前置条件**：DesignToken 层已建立，`JadeColor` 暴露 Light/Dark 取值。
 - **步骤**：1) 读取 `JadeColor.jade500` 在 light/dark 下的解析值；2) 断言 light ≈ `#0A9488`、dark ≈ `#2DD4BF`；3) 对 jade600/jade50 同理。
 - **预期结果**：品牌主色明暗取值与 §9.2.1 表一致；语义色走系统色（`systemGreen` 等），不自定义。
@@ -576,35 +576,35 @@ MVP 暂不覆盖：
 
 ### 11.3 BRAND —— 品牌改名一致性
 
-#### BRAND-001：Bundle ID 保持 com.assistant.app 不变
-- **关联**：§2.0、D-102 ｜ **优先级**：P0 ｜ **类型**：swift/脚本 ｜ **文件**：待建 `QingniaoTests/BrandingConsistencyTests.swift`
+#### BRAND-001：Bundle ID 保持 com.freeabyss.qingyu 不变
+- **关联**：§2.0、D-102 ｜ **优先级**：P0 ｜ **类型**：swift/脚本 ｜ **文件**：待建 `QingyuTests/BrandingConsistencyTests.swift`
 - **前置条件**：改名任务 T-A 完成。
 - **步骤**：读取运行时 `Bundle.main.bundleIdentifier`（或解析 Info.plist `CFBundleIdentifier`）。
-- **预期结果**：等于 `com.assistant.app`（TCC/Keychain/数据目录绑定键不变，绝不能改）。
+- **预期结果**：等于 `com.freeabyss.qingyu`（TCC/Keychain/数据目录绑定键不变，绝不能改）。
 
-#### BRAND-002：CFBundleName / 显示名为 Qingniao
+#### BRAND-002：CFBundleName / 显示名为 Qingyu
 - **关联**：§2.0、FR-UI-30 ｜ **优先级**：P0 ｜ **类型**：swift/脚本 ｜ **文件**：`BrandingConsistencyTests.swift`
-- **步骤**：断言 Info.plist `CFBundleName`（或 display name）为 `Qingniao`；产物为 `Qingniao.app`。
-- **预期结果**：显示名/产物名改为青鸟 Qingniao。
+- **步骤**：断言 Info.plist `CFBundleName`（或 display name）为 `Qingyu`；产物为 `Qingyu.app`。
+- **预期结果**：显示名/产物名改为清羽 Qingyu。
 
 #### BRAND-003：无残留旧品牌串（SnapVault / Mac Super Assistant / Assistant 显示名）
 - **关联**：§2.0、D-101 ｜ **优先级**：P1 ｜ **类型**：脚本/静态 ｜ **文件**：grep 检查（可入 CI）
 - **步骤**：grep 用户可见文案（Localizable.xcstrings、关于页、Onboarding、隐私政策、菜单项）是否含 `SnapVault`/`Mac Super Assistant`/单独作为品牌名的 `Assistant`。
-- **预期结果**：用户可见文案无旧品牌串；内部类型名 `Assistant*`→`Qingniao*`（api §2.1，领域名 Clipboard*/Search* 保留）；GitHub 仓库路径 `freeabyss/qingniao` 保留不算残留。
+- **预期结果**：用户可见文案无旧品牌串；内部类型名 `Assistant*`→`Qingyu*`（api §2.1，领域名 Clipboard*/Search* 保留）；GitHub 仓库路径 `freeabyss/qingyu` 保留不算残留。
 
-#### BRAND-004：反馈邮箱为 feedback@qingniao.app【上线前校验】
+#### BRAND-004：反馈邮箱为 qingyu_freeabyss@163.com【上线前校验】
 - **关联**：FR-UI-25、D-053 ｜ **优先级**：P1 ｜ **类型**：swift + 手工 ｜ **文件**：`BrandingConsistencyTests.swift` + 手工
-- **步骤**：1) 断言反馈邮件 mailto 目标为 `feedback@qingniao.app`；2)【上线前校验】确认该邮箱真实可收件。
-- **预期结果**：反馈入口指向 feedback@qingniao.app；**邮箱可用性上线前人工确认**。
+- **步骤**：1) 断言反馈邮件 mailto 目标为 `qingyu_freeabyss@163.com`；2)【上线前校验】确认该邮箱真实可收件。
+- **预期结果**：反馈入口指向 qingyu_freeabyss@163.com；**邮箱可用性上线前人工确认**。
 
-#### BRAND-005：菜单栏图标为青鸟单色 template
+#### BRAND-005：菜单栏图标为清羽单色 template
 - **关联**：FR-UI-30b、§9.2.9 ｜ **优先级**：P1 ｜ **类型**：手工 ｜ **文件**：手工
 - **步骤**：深/浅色模式下观察菜单栏 statusItem 图标。
-- **预期结果**：单色 template 青鸟 glyph，深浅色自适应，无 Dock 图标。
+- **预期结果**：单色 template 清羽 glyph，深浅色自适应，无 Dock 图标。
 
 #### BRAND-006：关于页应用名与版本号一致（1.2.0）
 - **关联**：FR-UI-8、FR-UI-ABOUT-VERSION、AC-VERSION、D-108 ｜ **优先级**：P0 ｜ **类型**：手工 + swift ｜ **文件**：手工 + `BrandingConsistencyTests.swift`
-- **步骤**：1) 打开关于页；2) 断言名称=青鸟 Qingniao、版本号=1.2.0；3) 与 `Bundle.main` 的 `CFBundleShortVersionString` 比对一致。
+- **步骤**：1) 打开关于页；2) 断言名称=清羽 Qingyu、版本号=1.2.0；3) 与 `Bundle.main` 的 `CFBundleShortVersionString` 比对一致。
 - **预期结果**：关于页显示 1.2.0，与工程版本源一致。
 
 #### BRAND-007：版本号三源一致（MARKETING_VERSION / Info.plist / CHANGELOG）
@@ -614,11 +614,11 @@ MVP 暂不覆盖：
 
 ### 11.4 DATA —— 数据目录迁移
 
-#### DATA-001：Assistant/ → Qingniao/ move 迁移成功
-- **关联**：db §8.4、FR-DATA-EXPORT-BACKUP-2、D-111 ｜ **优先级**：P0 ｜ **类型**：swift ｜ **文件**：待建 `QingniaoTests/DataMigrationTests.swift`
+#### DATA-001：Assistant/ → Qingyu/ move 迁移成功
+- **关联**：db §8.4、FR-DATA-EXPORT-BACKUP-2、D-111 ｜ **优先级**：P0 ｜ **类型**：swift ｜ **文件**：待建 `QingyuTests/DataMigrationTests.swift`
 - **前置条件**：临时 Application Support 目录下预置旧 `Assistant/`（含 store + `Clipboard/Images|Thumbnails|RichText`）。
-- **步骤**：1) 触发迁移逻辑；2) 断言 `Qingniao/` 存在且含原数据；3) store 重命名正确、可打开。
-- **预期结果**：旧目录内容 move 到 `Qingniao/`，历史剪贴板数据不丢失，store 可加载。
+- **步骤**：1) 触发迁移逻辑；2) 断言 `Qingyu/` 存在且含原数据；3) store 重命名正确、可打开。
+- **预期结果**：旧目录内容 move 到 `Qingyu/`，历史剪贴板数据不丢失，store 可加载。
 
 #### DATA-002：迁移失败 fallback 备份旧库 + 新建空库不阻塞启动
 - **关联**：db §8.4、review 第二节 #4 ｜ **优先级**：P0 ｜ **类型**：swift ｜ **文件**：`DataMigrationTests.swift`
@@ -638,15 +638,15 @@ MVP 暂不覆盖：
 - **步骤**：1) 设置→数据→「清空所有数据」；2) 二次确认（不可撤销）；3) 断言 Core Data 记录、UsageStat、黑名单、`Clipboard/*` 大对象全部清除。
 - **预期结果**：一键清空全部数据，二次确认拦截，清除后目录无残留大对象。
 
-#### DATA-005：数据目录路径为 Qingniao/ 且 Time Machine 兼容
+#### DATA-005：数据目录路径为 Qingyu/ 且 Time Machine 兼容
 - **关联**：FR-DATA-EXPORT-BACKUP-1/3、§11.5、D-111 ｜ **优先级**：P1 ｜ **类型**：swift + 手工 ｜ **文件**：`DataMigrationTests.swift`
-- **步骤**：1) 断言数据根目录解析为 `~/Library/Application Support/Qingniao/`；2) 断言未设置 Time Machine 排除标志（`isExcludedFromBackup=false`）。
-- **预期结果**：数据存于 Qingniao/，随系统备份；隐私政策/FAQ 文案路径同步更新。
+- **步骤**：1) 断言数据根目录解析为 `~/Library/Application Support/Qingyu/`；2) 断言未设置 Time Machine 排除标志（`isExcludedFromBackup=false`）。
+- **预期结果**：数据存于 Qingyu/，随系统备份；隐私政策/FAQ 文案路径同步更新。
 
 ### 11.5 DI —— AppContainer 依赖注入
 
 #### DI-001：AppContainer 组装根提供各服务依赖
-- **关联**：design §2.5、api §17、M-1 ｜ **优先级**：P0 ｜ **类型**：swift ｜ **文件**：待建 `QingniaoTests/AppContainerTests.swift`
+- **关联**：design §2.5、api §17、M-1 ｜ **优先级**：P0 ｜ **类型**：swift ｜ **文件**：待建 `QingyuTests/AppContainerTests.swift`
 - **前置条件**：AppContainer 已建立为 DI 根。
 - **步骤**：1) 构造 AppContainer（可注入 mock）；2) 断言其暴露的服务（Permission/Settings/Search/Clipboard/Hotkey 等）非空且类型正确；3) 单例服务同实例复用。
 - **预期结果**：AppContainer 正确组装依赖，可注入替身用于测试。
@@ -665,7 +665,7 @@ MVP 暂不覆盖：
 ### 11.6 SEARCH-F —— 文件搜索接入
 
 #### SEARCH-F-001：FileSearchSource 启动时实例化并注册
-- **关联**：FR-SEARCH-FILE-1、US-012、D-105 ｜ **优先级**：P0 ｜ **类型**：swift ｜ **文件**：`QingniaoTests/FileSearchSourceTests.swift`（现存文件转接线回归）
+- **关联**：FR-SEARCH-FILE-1、US-012、D-105 ｜ **优先级**：P0 ｜ **类型**：swift ｜ **文件**：`QingyuTests/FileSearchSourceTests.swift`（现存文件转接线回归）
 - **前置条件**：AppContainer 注册 FileSearchSource（修复此前 522 行从未实例化的问题）。
 - **步骤**：1) 从 SearchService 获取已注册 source 列表；2) 断言包含 FileSearchSource 且启用。
 - **预期结果**：文件搜索源被注册进搜索服务，`⌥ Space` 可返回文件结果。
@@ -693,7 +693,7 @@ MVP 暂不覆盖：
 - **预期结果**：结果字段完整；主动作打开、次动作 Finder 定位（手工验收 AC-FILE）。
 
 #### SEARCH-F-006：文件来源权重 75（高于剪贴板 70）
-- **关联**：FR-SEARCH-11、D-121、design §7.4 ｜ **优先级**：P1 ｜ **类型**：swift ｜ **文件**：`QingniaoTests/SearchServiceCoreTests.swift`
+- **关联**：FR-SEARCH-11、D-121、design §7.4 ｜ **优先级**：P1 ｜ **类型**：swift ｜ **文件**：`QingyuTests/SearchServiceCoreTests.swift`
 - **步骤**：构造同等文本匹配分的文件结果与剪贴板结果，断言文件排前（基础优先级 75 > 70）。
 - **预期结果**：文件权重 75 生效，排序高于剪贴板。**备注**：架构已按 75 落地并标注与 FR-SEARCH-11 原 60 的差异（review 冲突 #1），测试以 75 为准。
 
@@ -715,11 +715,10 @@ MVP 暂不覆盖：
 
 ### 11.7 SEARCH-E —— 命令栏空态与增强
 
-#### SEARCH-E-001：空输入显示最近使用（≤5）+ 收藏（≤5）
-- **关联**：FR-SEARCH-14、§9.3、D-120 ｜ **优先级**：P0 ｜ **类型**：swift + 手工 ｜ **文件**：`QingniaoTests/SearchPanelViewModelTests.swift`
-- **前置条件**：存在最近使用记录与收藏项。
-- **步骤**：1) 打开命令栏不输入；2) 断言展示最近使用最多 5 条 + 收藏最多 5 条；3) 断言不展示通用搜索推荐结果。
-- **预期结果**：空态显示最近/收藏入口（演进语义，D-120），不是搜索推荐结果。
+#### SEARCH-E-001：空输入不展示任何内容区
+- **关联**：FR-SEARCH-14 ｜ **优先级**：P0 ｜ **类型**：swift ｜ **文件**：`QingyuTests/SearchPanelViewModelTests.swift`
+- **步骤**：1) 打开命令栏不输入；2) 断言 `hasQuery` 为假、`navigableResults` 为空；3) 断言此时回车不执行任何动作。
+- **预期结果**：空态没有内容区，命令栏只有输入框（原「最近使用 ≤5 + 收藏 ≤5」随产品决策移除，见 Task 010 第 08 节）。
 
 #### SEARCH-E-002：⌘1-6 切换搜索源
 - **关联**：FR-SEARCH-25、§9.6、D-122 ｜ **优先级**：P0 ｜ **类型**：swift ｜ **文件**：`SearchPanelViewModelTests.swift`
@@ -732,7 +731,7 @@ MVP 暂不覆盖：
 - **预期结果**：⌘K 清空输入。
 
 #### SEARCH-E-004：计算器/换算命中时答案固定首行
-- **关联**：§9.4 P-01、FR-PROVIDER-9 ｜ **优先级**：P1 ｜ **类型**：swift ｜ **文件**：`QingniaoTests/CalculatorSourceTests.swift` + `SearchServiceCoreTests.swift`
+- **关联**：§9.4 P-01、FR-PROVIDER-9 ｜ **优先级**：P1 ｜ **类型**：swift ｜ **文件**：`QingyuTests/CalculatorSourceTests.swift` + `SearchServiceCoreTests.swift`
 - **步骤**：输入 `1+2*3`，断言结果列表第一行为答案 `7`，回车复制到剪贴板。
 - **预期结果**：答案固定首行，回车复制。
 
@@ -744,7 +743,7 @@ MVP 暂不覆盖：
 ### 11.8 SHOT-FS —— 全屏截图热键
 
 #### SHOT-FS-001：默认全屏截图热键 ⌃⌥⌘3
-- **关联**：FR-SHOT-FULLSCREEN、US-013、D-107、§9.6 ｜ **优先级**：P0 ｜ **类型**：swift ｜ **文件**：待建 `QingniaoTests/GlobalShortcutTests.swift`
+- **关联**：FR-SHOT-FULLSCREEN、US-013、D-107、§9.6 ｜ **优先级**：P0 ｜ **类型**：swift ｜ **文件**：待建 `QingyuTests/GlobalShortcutTests.swift`
 - **前置条件**：GlobalShortcutManager 提供 registerFullscreenCapture。
 - **步骤**：断言全屏截图默认热键为 `⌃⌥⌘3`（与系统 `⇧⌘3` 错开）。
 - **预期结果**：默认热键 ⌃⌥⌘3 注册。
@@ -773,7 +772,7 @@ MVP 暂不覆盖：
 - **预期结果**：顶部工具 pill（rect/arrow/text/mosaic/blur禁用）+ 底部 pill（撤销/重做、六色 swatch、三档线宽、取消/复制/保存），居中悬浮、ultraThinMaterial。
 
 #### SHOT-UI-002：mosaic 保留可用
-- **关联**：FR-SHOT-7、§9.4 P-05、D-117 ｜ **优先级**：P0 ｜ **类型**：手工 + swift ｜ **文件**：手工 + `QingniaoTests/AnnotationTests.swift`
+- **关联**：FR-SHOT-7、§9.4 P-05、D-117 ｜ **优先级**：P0 ｜ **类型**：手工 + swift ｜ **文件**：手工 + `QingyuTests/AnnotationTests.swift`
 - **步骤**：选 mosaic 工具在画布涂抹。
 - **预期结果**：马赛克生效（`CIPixellate` scale 10），撤销/重做可用。
 
@@ -801,13 +800,13 @@ MVP 暂不覆盖：
 - **预期结果**：单屏 720×520、24px 圆角、大图标 + 欢迎语 + slogan + 3 配置卡（热键/剪贴板/开机启动）+ 权限段 + 底部按钮，不再是多步向导。
 
 #### ONB-V2-002：⌥ Space 默认热键录制
-- **关联**：FR-ONBOARD-15、P-06 ｜ **优先级**：P0 ｜ **类型**：swift + 手工 ｜ **文件**：`QingniaoTests/OnboardingViewModelTests.swift`
+- **关联**：FR-ONBOARD-15、P-06 ｜ **优先级**：P0 ｜ **类型**：swift + 手工 ｜ **文件**：`QingyuTests/OnboardingViewModelTests.swift`
 - **步骤**：断言默认展示 `⌥ Space` 热键；可在卡内重录。
 - **预期结果**：默认 ⌥ Space，成功注册后方可完成（FR-ONBOARD-17）。
 
 #### ONB-V2-003：屏幕录制主按钮触发 TCC
 - **关联**：FR-ONBOARD-3/10、P-06、AC-1 ｜ **优先级**：P0 ｜ **类型**：swift + 手工 ｜ **文件**：`OnboardingViewModelTests.swift`（request 计数）+ 手工
-- **步骤**：1) 单测断言点击「授予屏幕录制权限」调用 requestScreenRecordingPrompt 一次；2) 手工 `tccutil reset ScreenCapture com.assistant.app` 后首启点击，5s 内弹系统授权。
+- **步骤**：1) 单测断言点击「授予屏幕录制权限」调用 requestScreenRecordingPrompt 一次；2) 手工 `tccutil reset ScreenCapture com.freeabyss.qingyu` 后首启点击，5s 内弹系统授权。
 - **预期结果**：主按钮触发 TCC 注册弹窗（复用 v1.1 request API）。
 
 #### ONB-V2-004：屏幕录制未授权时「开始使用」禁用
@@ -828,7 +827,7 @@ MVP 暂不覆盖：
 #### ONB-V2-007：隐私政策链接
 - **关联**：FR-UI-20、P-06 ｜ **优先级**：P1 ｜ **类型**：手工 ｜ **文件**：手工
 - **步骤**：点右下「隐私政策」link。
-- **预期结果**：打开隐私政策，说明本地保存/不上传/清空方式，路径含 Qingniao/。
+- **预期结果**：打开隐私政策，说明本地保存/不上传/清空方式，路径含 Qingyu/。
 
 #### ONB-V2-008：完成/跳过后重启不重弹（AC-6）
 - **关联**：FR-ONBOARD-19、AC-6、db §8.3（onboarding.completedAt 迁移）｜ **优先级**：P0 ｜ **类型**：swift + 手工 E2E ｜ **文件**：`OnboardingViewModelTests.swift`（持久化）+ 手工
@@ -843,12 +842,12 @@ MVP 暂不覆盖：
 - **预期结果**：Onboarding 不主动申请辅助功能。
 
 #### PERM-OD-002：首次触发相关能力时才弹说明 Alert（AC-7）
-- **关联**：FR-ONBOARD-20、AC-7、api §13 onDemandAccessibilityCheck ｜ **优先级**：P0 ｜ **类型**：swift + 手工 E2E ｜ **文件**：待建 `QingniaoTests/OnDemandPermissionTests.swift` + 手工
+- **关联**：FR-ONBOARD-20、AC-7、api §13 onDemandAccessibilityCheck ｜ **优先级**：P0 ｜ **类型**：swift + 手工 E2E ｜ **文件**：待建 `QingyuTests/OnDemandPermissionTests.swift` + 手工
 - **步骤**：1) 单测断言首次触发需辅助功能能力时调用 onDemandAccessibilityCheck 弹说明 Alert、可打开系统设置；2) 手工端到端验证 Alert 弹出。
 - **预期结果**：按需申请正确弹出并可跳系统设置（v1.1 遗留 TC-M-008 闭环）。
 
 #### PERM-OD-003：onDemandAccessibilityCheck 两 conformer 补齐
-- **关联**：review 第二节 #1、api §13、承接 v1.1 TC-U-001 教训 ｜ **优先级**：P0 ｜ **类型**：swift ｜ **文件**：`QingniaoTests/PermissionServiceProtocolConformanceTests.swift`
+- **关联**：review 第二节 #1、api §13、承接 v1.1 TC-U-001 教训 ｜ **优先级**：P0 ｜ **类型**：swift ｜ **文件**：`QingyuTests/PermissionServiceProtocolConformanceTests.swift`
 - **步骤**：断言 `PermissionServiceProtocol.onDemandAccessibilityCheck()` 在真实 PermissionService、MockPermissionService、StaticPermissionService 三 conformer 均实现且可调用。
 - **预期结果**：三 conformer 均实现（否则编译失败），Mock 可配返回/计数。
 
@@ -908,9 +907,9 @@ MVP 暂不覆盖：
 - **预期结果**：公证通过、票据 staple 成功、Gatekeeper 校验通过。
 
 #### DIST-006：检查更新跳 GitHub Releases（无 Sparkle）
-- **关联**：FR-UI-15、§10.5 ｜ **优先级**：P0 ｜ **类型**：swift + 手工 ｜ **文件**：`QingniaoTests/UpdateServiceTests.swift`（承接 TC-U-002）+ 手工
+- **关联**：FR-UI-15、§10.5 ｜ **优先级**：P0 ｜ **类型**：swift + 手工 ｜ **文件**：`QingyuTests/UpdateServiceTests.swift`（承接 TC-U-002）+ 手工
 - **步骤**：点关于/更新页「检查更新」。
-- **预期结果**：浏览器打开 `github.com/freeabyss/qingniao/releases`，无 Sparkle UI/错误弹窗（见 UPD 系列）。
+- **预期结果**：浏览器打开 `github.com/freeabyss/qingyu/releases`，无 Sparkle UI/错误弹窗（见 UPD 系列）。
 
 ### 11.14 UPD —— 更新（移除 Sparkle）
 
@@ -932,7 +931,7 @@ MVP 暂不覆盖：
 ### 11.15 SHORTCUT —— 快捷键与冲突检测
 
 #### SHORTCUT-001：冲突检测（注册失败提示 + 一键替换）
-- **关联**：FR-UI-HOTKEYS、FR-ONBOARD-16、§9.4 P-03 ｜ **优先级**：P0 ｜ **类型**：swift + 手工 ｜ **文件**：待建 `QingniaoTests/HotkeyConflictDetectorTests.swift`
+- **关联**：FR-UI-HOTKEYS、FR-ONBOARD-16、§9.4 P-03 ｜ **优先级**：P0 ｜ **类型**：swift + 手工 ｜ **文件**：待建 `QingyuTests/HotkeyConflictDetectorTests.swift`
 - **步骤**：将某全局热键绑到已占用组合，断言 HotkeyConflictDetector 报冲突、行内红色警告 + 一键替换按钮。
 - **预期结果**：冲突可检测并提示重录/替换。
 
@@ -947,7 +946,7 @@ MVP 暂不覆盖：
 - **预期结果**：重绑生效。
 
 #### SHORTCUT-004：重绑后持久化（重启保持）
-- **关联**：FR-UI-HOTKEYS ｜ **优先级**：P1 ｜ **类型**：swift + 手工 ｜ **文件**：`QingniaoTests/SettingsServiceTests.swift` + 手工
+- **关联**：FR-UI-HOTKEYS ｜ **优先级**：P1 ｜ **类型**：swift + 手工 ｜ **文件**：`QingyuTests/SettingsServiceTests.swift` + 手工
 - **步骤**：重绑热键后重启 App，断言仍为新键。
 - **预期结果**：重绑值持久化。
 
@@ -961,7 +960,7 @@ MVP 暂不覆盖：
 #### SETNEW-002：数据页 - 打开数据目录
 - **关联**：§9.4 P-03、FR-UNINSTALL-3 ｜ **优先级**：P1 ｜ **类型**：手工 ｜ **文件**：手工
 - **步骤**：数据页点「打开数据目录」。
-- **预期结果**：Finder 打开 `~/Library/Application Support/Qingniao/`。
+- **预期结果**：Finder 打开 `~/Library/Application Support/Qingyu/`。
 
 #### SETNEW-003：数据页 - 清空所有数据
 - **关联**：FR-UNINSTALL-2、db §11.5 ｜ **优先级**：P0 ｜ **类型**：swift + 手工 ｜ **文件**：`DataMigrationTests.swift`（同 DATA-004）+ 手工
@@ -981,17 +980,17 @@ MVP 暂不覆盖：
 ### 11.17 REG —— 回归（既有核心功能在 v1.2 UI 下）
 
 #### REG-001：剪贴板 4 类型记录与恢复
-- **关联**：FR-CLIP-2~5、CLIP-001~004 ｜ **优先级**：P0 ｜ **类型**：swift + 手工 ｜ **文件**：`QingniaoTests/AssistantClipboardRepositoryTests.swift`（改名后 Clipboard*Tests）+ 手工
+- **关联**：FR-CLIP-2~5、CLIP-001~004 ｜ **优先级**：P0 ｜ **类型**：swift + 手工 ｜ **文件**：`QingyuTests/AssistantClipboardRepositoryTests.swift`（改名后 Clipboard*Tests）+ 手工
 - **步骤**：复制文本/富文本/图片/文件，验证记录与回车恢复。
 - **预期结果**：四类型在 P-02 新窗口下记录/恢复正常，去重/置顶/保留不变。
 
 #### REG-002：应用启动
-- **关联**：FR-APP-1~5、SEARCH-003 ｜ **优先级**：P0 ｜ **类型**：swift + 手工 ｜ **文件**：`QingniaoTests/AppSearchSourceTests.swift`
+- **关联**：FR-APP-1~5、SEARCH-003 ｜ **优先级**：P0 ｜ **类型**：swift + 手工 ｜ **文件**：`QingyuTests/AppSearchSourceTests.swift`
 - **步骤**：搜索并启动三目录下的 .app。
 - **预期结果**：应用索引与启动正常。
 
 #### REG-003：命令白名单 15 条 + 确认门禁
-- **关联**：FR-CMD-1~10、CMD-001~010、§8 ｜ **优先级**：P0 ｜ **类型**：swift ｜ **文件**：`QingniaoTests/SystemCommandSourceTests.swift`
+- **关联**：FR-CMD-1~10、CMD-001~010、§8 ｜ **优先级**：P0 ｜ **类型**：swift ｜ **文件**：`QingyuTests/SystemCommandSourceTests.swift`
 - **步骤**：断言 15 条命令（含“打开剪贴板历史”）、确认门禁、危险命令拒绝、双语/拼音搜索、使用统计。
 - **预期结果**：命令白名单回归通过。
 
@@ -1015,17 +1014,22 @@ MVP 暂不覆盖：
 - **步骤**：`swift test --skip-update` 与 `xcodebuild test`。
 - **预期结果**：全绿；基线在 v1.1（swift 134 / xcodebuild 125）基础上，删 UnitConverter/OCR 相关用例、增 v1.2 新用例后重新核定（开发完成时在 report.md 记录实际数）。
 
+#### REG-008：剪贴板文件项「打开文件所在位置」文件缺失提示
+- **关联**：CLIP-005、P-02「点击打开文件所在位置」反馈要求 ｜ **优先级**：P1 ｜ **类型**：swift + 手工 ｜ **文件**：`QingyuTests/ClipboardListViewModelTests.swift` + 手工
+- **步骤**：1) 复制一个文件并在剪贴板历史中保留该项；2) 删除或移走原文件；3) 点击行内文件夹图标、右键菜单「在 Finder 中显示」或详情栏「在 Finder 中显示」；4) 断言 `ClipboardListViewModel.revealInFinder` 在路径缺失（含 `filePath` 为空）时置起 error 变体 toast（文案 `toast.fileMissing`），路径存在时才调用 `NSWorkspace.selectFile`。
+- **预期结果**：文件不存在时必弹出提示（「文件已不存在，可能已被移动或删除」），不再出现点击无任何反应；文件存在时正常在 Finder 中定位。
+
 ### 11.18 BUILD —— 构建脚本
 
-#### BUILD-001：build_and_run.sh pgrep -x Qingniao
+#### BUILD-001：build_and_run.sh pgrep -x Qingyu
 - **关联**：§10.7、D-106 ｜ **优先级**：P1 ｜ **类型**：脚本/静态 ｜ **文件**：`build_and_run.sh` 检查
-- **步骤**：检查脚本 `pgrep -x` 目标为 `Qingniao`（原 `SnapVault`），`APP_PATH` 指向 `Qingniao.app`。
-- **预期结果**：脚本进程名/产物名改为 Qingniao。
+- **步骤**：检查脚本 `pgrep -x` 目标为 `Qingyu`（原 `SnapVault`），`APP_PATH` 指向 `Qingyu.app`。
+- **预期结果**：脚本进程名/产物名改为 Qingyu。
 
-#### BUILD-002：scheme / target 名 Qingniao
+#### BUILD-002：scheme / target 名 Qingyu
 - **关联**：§10.7、api §2.1、T-A ｜ **优先级**：P1 ｜ **类型**：脚本/手工 ｜ **文件**：pbxproj/scheme 检查
-- **步骤**：断言 Xcode target/scheme、PRODUCT_NAME、module 名为 Qingniao；测试 target QingniaoTests。
-- **预期结果**：工程命名改为 Qingniao（Bundle ID 仍 com.assistant.app，见 BRAND-001）。
+- **步骤**：断言 Xcode target/scheme、PRODUCT_NAME、module 名为 Qingyu；测试 target QingyuTests。
+- **预期结果**：工程命名改为 Qingyu（Bundle ID 仍 com.freeabyss.qingyu，见 BRAND-001）。
 
 ### 11.19 ROBUST —— 健壮性整改
 
@@ -1140,7 +1144,7 @@ MVP 暂不覆盖：
 ### 12.1 自动化用例（提交前必跑：`./scripts/verify.sh`）
 
 #### SHOT-LIFE-001：会话激活期自持有，结束即释放
-- **关联**：Task 005/006 会话生命周期 ｜ **优先级**：P0 ｜ **类型**：XCTest ｜ **文件**：`QingniaoTests/CaptureSessionControllerTests.swift`（`testSessionStaysAliveWhileActiveAndReleasesOnFinish` / `testSessionStaysAliveWhileActiveAndReleasesOnCancel`）
+- **关联**：Task 005/006 会话生命周期 ｜ **优先级**：P0 ｜ **类型**：XCTest ｜ **文件**：`QingyuTests/CaptureSessionControllerTests.swift`（`testSessionStaysAliveWhileActiveAndReleasesOnFinish` / `testSessionStaysAliveWhileActiveAndReleasesOnCancel`）
 - **步骤**：创建会话 → `start()` → 释放全部外部引用 → 断言会话仍存活 → `finish()`（及对称的 `cancel()`）→ 断言会话释放。
 - **预期结果**：激活期间会话自持有存活，调用方是否持有不影响生命周期；finish/cancel 严格配对解除自持有。
 

@@ -1,8 +1,8 @@
-# v1.2.0 架构评审记录（青鸟 Qingniao）
+# v1.2.0 架构评审记录（清羽 Qingyu）
 
 - **评审日期**：2026-07-03
 - **关联版本**：v1.2.0
-- **评审对象**：`doc/architecture/design.md`（v17）、`doc/architecture/api.md`（v3）、`doc/architecture/db.md`（v3），对照 `doc/prd.md`（青鸟 v1.2）与现网代码（`SnapVault/` 源码树）
+- **评审对象**：`doc/architecture/design.md`（v17）、`doc/architecture/api.md`（v3）、`doc/architecture/db.md`（v3），对照 `doc/prd.md`（清羽 v1.2）与现网代码（`SnapVault/` 源码树）
 - **评审人**：arch-review subagent
 - **评审结论**：**APPROVED_WITH_MINOR_FIXES**
   - 阻塞级问题：**0**（评审中发现的阻塞级缺陷已在本轮直接修订进三份架构文档，下一环输入自洽）
@@ -40,7 +40,7 @@
 1. **协议新增方法的 conformer 完整性**（承接 v1.1 评审教训）：`PermissionServiceProtocol.onDemandAccessibilityCheck()` 为新增方法，`MockPermissionService` / `StaticPermissionService` 两 conformer 必须同步补齐，否则编译失败。已在 api.md §13 显式标注两 conformer 需补。
 2. **改名后仓库命名冲突**：GRDB 版 `ClipboardRepository`（386 行）删除后，其名字被回收给 Core Data 活动仓库（原 `AssistantClipboardRepository`）。若不明确，会出现两个 `ClipboardRepository` 语义混淆。已在 api.md §2.1 改名清单 + §6 明确"名字回收给活动仓库，GRDB 版已删除"。
 3. **首次启动判定键迁移**：Onboarding 单屏化后由 `onboarding.completed`(Bool) 改为 `onboarding.completedAt`(Date?)，若不定义迁移，旧用户会被重弹 Onboarding（违反 AC-6）。已在 db.md §8.3/§8.4 定义迁移（旧 true → 写非空时间戳）。
-4. **数据目录改名的数据丢失风险**：`Assistant/` → `Qingniao/` 若无迁移，等于旧数据失联。已在 db.md §8.4 定义 move 迁移 + lightweight migration + 失败 fallback（备份旧库 + 新建空库，不阻塞启动）。
+4. **数据目录改名的数据丢失风险**：`Assistant/` → `Qingyu/` 若无迁移，等于旧数据失联。已在 db.md §8.4 定义 move 迁移 + lightweight migration + 失败 fallback（备份旧库 + 新建空库，不阻塞启动）。
 5. **文件搜索权重取值冲突（PRD 内部不一致）**：见第五节 PRD 反馈 #1。已在 design §7.4 / api §3.5 采用 75 并显式标注与 FR-SEARCH-11(60) 的差异，避免开发无所适从。
 
 ---
@@ -115,8 +115,8 @@
 
 | # | 模块/主题 | 大致范围 | 依赖 |
 | :--- | :--- | :--- | :--- |
-| T-A | 改名与版本号 | target/module/目录 SnapVault→Qingniao；MARKETING_VERSION/Info.plist/CHANGELOG 三源 1.2.0；build_and_run.sh pgrep；Bundle ID 保留 | 无（先行） |
-| T-B | 数据目录迁移 | Assistant/→Qingniao/ move + store 重命名 + lightweight migration + fallback | T-A |
+| T-A | 改名与版本号 | target/module/目录 SnapVault→Qingyu；MARKETING_VERSION/Info.plist/CHANGELOG 三源 1.2.0；build_and_run.sh pgrep；Bundle ID 保留 | 无（先行） |
+| T-B | 数据目录迁移 | Assistant/→Qingyu/ move + store 重命名 + lightweight migration + fallback | T-A |
 | T-C | AppContainer + AppDelegate 瘦身 | DI 根 + 生命周期剥离 | T-A |
 | T-D | 窗口控制器拆分 | StatusItem/CommandBar/ClipboardHistory/Settings/Annotation/ScreenshotOverlay | T-C |
 | T-E | 死代码清理（搜索侧） | 删 UnifiedSearch*/MenuBarView | T-C |

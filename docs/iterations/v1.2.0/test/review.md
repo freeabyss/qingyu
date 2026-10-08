@@ -1,9 +1,9 @@
-# v1.2.0 测试用例评审记录（青鸟 Qingniao）
+# v1.2.0 测试用例评审记录（清羽 Qingyu）
 
 - **评审日期**：2026-07-03
 - **关联版本**：v1.2.0
-- **评审对象**：`doc/test/cases.md` 第 11 节「青鸟 Qingniao v1.2 测试用例」（新增 98 条 TC）+ 第 5 节旧 TC 的「v1.2 修订」标注
-- **评审依据**：`doc/prd.md`（青鸟 v1.2，1346 行）、`doc/architecture/design.md` v17、`api.md` v3、`db.md` v3、`doc/iterations/v1.2.0/architecture/review.md`（架构评审 6 个改善级问题 M-1~M-6）
+- **评审对象**：`doc/test/cases.md` 第 11 节「清羽 Qingyu v1.2 测试用例」（新增 98 条 TC）+ 第 5 节旧 TC 的「v1.2 修订」标注
+- **评审依据**：`doc/prd.md`（清羽 v1.2，1346 行）、`doc/architecture/design.md` v17、`api.md` v3、`db.md` v3、`doc/iterations/v1.2.0/architecture/review.md`（架构评审 6 个改善级问题 M-1~M-6）
 - **评审人**：test subagent（用例作者自评审）
 - **评审结论**：**APPROVED_WITH_MINOR_FIXES**
   - 阻塞级问题：**0**
@@ -32,7 +32,7 @@
 | FR-ONBOARD-ACCESSIBILITY-ONDEMAND / AC-7 / D-104 | 辅助功能按需 | ONB-V2-005 / PERM-OD-001~003 | ✅ 完整（含三 conformer 编译看护） |
 | FR-ONBOARD-19 / AC-6 | 重启不重弹 | ONB-V2-008 | ✅（承接 v1.1 遗留 TC-M-007，端到端闭环） |
 | FR-UI-ABOUT-VERSION / FR-UI-36 / AC-VERSION / D-108 | 版本号三源一致 | BRAND-006 / BRAND-007 | ✅ 完整 |
-| §2.0 / D-101 / D-102 | 品牌改名 + Bundle ID 不变 | BRAND-001~007 | ✅ 完整（Bundle ID 保持 com.assistant.app 单列 P0） |
+| §2.0 / D-101 / D-102 | 品牌改名 + Bundle ID 不变 | BRAND-001~007 | ✅ 完整（Bundle ID 保持 com.freeabyss.qingyu 单列 P0） |
 | FR-DATA-EXPORT-BACKUP / db §8.4 / D-111 | 数据目录迁移 | DATA-001~005 | ✅ 完整（move/fallback/lightweight/清空/路径） |
 | FR-PERM-APPLE-EVENTS / D-103 / AC-CMD-SANDBOX / AC-SIGN | 关 Sandbox + 签名公证 | DIST-001~006 | ✅ 完整 |
 | §10.5 移除 Sparkle | 更新策略 | UPD-001~003 | ✅ 完整 |

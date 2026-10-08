@@ -1,15 +1,15 @@
-# Privacy Policy for Qingniao (青鸟)
+# Privacy Policy for Qingyu (清羽)
 
 **English** | [简体中文](PRIVACY.zh-CN.md)
 
 Last updated: 2026-07-06
 
-Qingniao (青鸟) is a local-first macOS productivity app. It is designed so clipboard history,
+Qingyu (清羽) is a local-first macOS productivity app. It is designed so clipboard history,
 screenshots, settings, and usage data stay on your Mac by default.
 
 ## Data stored locally
 
-Qingniao may store the following data locally:
+Qingyu may store the following data locally:
 
 - Clipboard records: text, rich text plain-text summaries, image resources, and Finder file references.
 - Clipboard resources: image originals, thumbnails, and rich text RTF/HTML resources in the app support folder.
@@ -17,7 +17,7 @@ Qingniao may store the following data locally:
 - Search metadata: local blacklist entries and app/command usage counts used for result ordering.
 - Screenshot files: PNG screenshots saved to the directory you choose, defaulting to `~/Desktop`.
 
-All app data is stored under `~/Library/Application Support/Qingniao/`.
+All app data is stored under `~/Library/Application Support/Qingyu/`.
 
 ## Clipboard history
 
@@ -38,13 +38,13 @@ Screenshots and annotations are processed locally. Copying a screenshot writes i
 
 ## Network and uploads
 
-Qingniao does not upload clipboard history, screenshots, files, settings, search usage data, or diagnostics automatically. It does not sync data to a cloud service and does not use your data to train models.
+Qingyu does not upload clipboard history, screenshots, files, settings, search usage data, or diagnostics automatically. It does not sync data to a cloud service and does not use your data to train models.
 
-The app's **Check for Updates** action opens the GitHub Releases page in your browser for manual download. Qingniao does not auto-download, auto-install, or restart to update.
+The app's **Check for Updates** action opens the GitHub Releases page in your browser for manual download. Qingyu does not auto-download, auto-install, or restart to update.
 
 ## Feedback email
 
-Feedback is user-initiated email only. Before opening your mail app, Qingniao shows the data scope and lets you cancel. The generated email may include:
+Feedback is user-initiated email only. Before opening your mail app, Qingyu shows the data scope and lets you cancel. The generated email may include:
 
 - App version and build number.
 - macOS version.
@@ -55,9 +55,9 @@ The generated email does not attach clipboard history, screenshots, files, or au
 
 ## Accounts, payment, and subscriptions
 
-Qingniao does not include accounts, login, registration, payment, subscriptions, license keys, or Mac App Store purchase flows.
+Qingyu does not include accounts, login, registration, payment, subscriptions, license keys, or Mac App Store purchase flows.
 
 ## Contact
 
-For privacy questions or feedback, email [feedback@qingniao.app](mailto:feedback@qingniao.app).
+For privacy questions or feedback, email [qingyu_freeabyss@163.com](mailto:qingyu_freeabyss@163.com).
 </content>

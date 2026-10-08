@@ -28,7 +28,7 @@ jobs:
       - name: Prepare site root
         run: |
           mkdir -p _site
-          cp website/qingniao.html _site/index.html
+          cp website/qingyu.html _site/index.html
 
       - name: Configure Pages
         uses: actions/configure-pages@v5

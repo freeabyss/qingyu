@@ -3,7 +3,7 @@
 > 评审对象：`doc/iterations/v1.2.1/architecture/xcuitest-design.md`
 > 评审日期：2026-07-13
 > 评审人：架构评审 subagent（独立于设计者，leader 待复核）
-> 关联文档：`doc/iterations/v1.2.1/prd.md`（AC-01~12）、`doc/prd.md`（§5/§7/§9）、`doc/iterations/v1.2.1/architecture/design.md`（主体架构）、`Qingniao.xcodeproj/project.pbxproj`、`Package.swift`
+> 关联文档：`doc/iterations/v1.2.1/prd.md`（AC-01~12）、`doc/prd.md`（§5/§7/§9）、`doc/iterations/v1.2.1/architecture/design.md`（主体架构）、`Qingyu.xcodeproj/project.pbxproj`、`Package.swift`
 
 ---
 
@@ -36,7 +36,7 @@
 | C-3 | `--uitest-trigger` 绕过路径的行为等价性未说明。§5.5 只说"菜单分发逻辑由代码审查覆盖",未说明在 v1.2.1 门禁移除(design.md §3.2)后,绕过的具体是哪一层、与真实路径的差异。 | §5.5 | 补充说明:v1.2.1 移除门禁后,`--uitest-trigger openSearch` 直接调用 `commandBarController.show()`,与真实菜单路径(`StatusItemController.@objc` -> `show()`)的唯一差异是省略了 `StatusItemController` 的方法分发(已被代码审查覆盖),因此行为等价。这能让评审者/实现者确信绕过不改变被测语义。 |
 | C-4 | 数据隔离实现风险低估。§5.4 说"需评估是否加 `init(storeURL:)`",但经核查 `PersistenceController` **已支持**外部 storeURL(`case .persistent(storeURL: URL?)`,`PersistenceController.swift:32/210`);`AssistantFileSystem` 已有 `init(rootDirectory:)`(`AssistantFileSystem.swift:27`)。仅 `DatabaseManager.shared` 的 dbPath 硬编码(`DatabaseManager.swift:53`)需改造。 | §5.4 | 修正 §5.4:PersistenceController 无需改造(已有 storeURL 注入),AssistantFileSystem 已有 rootDirectory 注入,仅需 DatabaseManager 增加可注入 dbPath。实现风险低于文档预估。 |
 | C-5 | Accessibility Identifier(§7.5)是 TC-UI-011/016/017/018 的硬依赖,但未列为前置阻塞项。若 ⑤ 开发遗漏,Command Bar(`nonactivatingPanel` + `borderless`)等 panel 无法被 XCUITest 查到。 | §7.5 / §7.1 | 将 §7.5 的 6 个 identifier 列为 ⑤ 开发的**前置阻塞项**(P0),明确"未添加这些 identifier 则 TC-UI-011/016/017/018 无法实现"。 |
-| C-6 | §5.4 "独立 Bundle ID"表述混淆。文档说"让 UI test 使用独立 Bundle ID `com.assistant.app.uitest` 使系统分配不同容器",但 UITest bundle 的 Bundle ID 与被测 app 的 Bundle ID 是不同概念;改 UITest bundle ID 不影响 app 容器。 | §5.4 | 澄清:此处"独立 Bundle ID"应指"被测 app 以不同 Bundle ID 启动"(即 `XCUIApplication(bundleIdentifier:)` 指向独立构建的 app),而非 UITest bundle 自身的 Bundle ID。结论(不推荐,因影响 TCC)正确,但表述需修正。 |
+| C-6 | §5.4 "独立 Bundle ID"表述混淆。文档说"让 UI test 使用独立 Bundle ID `com.freeabyss.qingyu.uitest` 使系统分配不同容器",但 UITest bundle 的 Bundle ID 与被测 app 的 Bundle ID 是不同概念;改 UITest bundle ID 不影响 app 容器。 | §5.4 | 澄清:此处"独立 Bundle ID"应指"被测 app 以不同 Bundle ID 启动"(即 `XCUIApplication(bundleIdentifier:)` 指向独立构建的 app),而非 UITest bundle 自身的 Bundle ID。结论(不推荐,因影响 TCC)正确,但表述需修正。 |
 | C-7 | #22 "全局快捷键(app 激活时)触发 Command Bar"标 B 级偏乐观。`⌥ Space` 是 `KeyboardShortcuts` 库注册的系统级热键,XCUITest 模拟键盘事件时序敏感,即使 app 前台也可能 flaky。 | §二 #22 / §六 TC-UI-022(未单列,含在 22 条内) | 建议降为 C 级或标注"高 flaky 风险,首期可跳过"。实际上 §6.1 用例清单未单列 TC-UI-022(22 条不含全局快捷键),与 §二 #22 的 30 项分析不一致 -- 建议统一表述。 |
 | C-8 | §5.3 onboarding 重置时序描述需澄清。文档说"在 `bootstrapDataStack` 之前执行",但 reset 伪代码用 `PersistenceController.shared.viewContext` 删除记录,需 store 已初始化;而 `bootstrapDataStack` 是 store 初始化+迁移。 | §5.3 | 澄清时序:reset 应在 `bootstrapDataStack` 完成(store 就绪)之后、`loadOnboardingCompletionState()`(AppDelegate.swift:32)之前执行。文档"在 bootstrap 之前"与"需访问 store"矛盾。 |
 
@@ -49,19 +49,19 @@
 **结论:可行,与现有项目结构兼容。**
 
 核对 `project.pbxproj`:
-- 现有 2 个 target:`Qingniao`(`com.apple.product-type.application`)+ `QingniaoTests`(`com.apple.product-type.bundle.unit-test`,`TEST_HOST` 指向 `Qingniao.app`)。
+- 现有 2 个 target:`Qingyu`(`com.apple.product-type.application`)+ `QingyuTests`(`com.apple.product-type.bundle.unit-test`,`TEST_HOST` 指向 `Qingyu.app`)。
 - 项目级 `MACOSX_DEPLOYMENT_TARGET = 13.0`,与设计文档"macOS 13.0 对齐"一致。
-- `QingniaoTests` 用 `BUNDLE_LOADER = "$(TEST_HOST)"` + `TEST_HOST = ...`(unit-test 配置)。
+- `QingyuTests` 用 `BUNDLE_LOADER = "$(TEST_HOST)"` + `TEST_HOST = ...`(unit-test 配置)。
 - 设计文档 §3.1 表格的 UI test bundle 配置正确:
   - Product Type `com.apple.product-type.bundle.ui-testing` -- 正确(XCUITest 必需)。
-  - `TEST_TARGET_NAME = Qingniao` -- 正确(UI test bundle 用 `TEST_TARGET_NAME` 而非 `BUNDLE_LOADER`/`TEST_HOST`)。
+  - `TEST_TARGET_NAME = Qingyu` -- 正确(UI test bundle 用 `TEST_TARGET_NAME` 而非 `BUNDLE_LOADER`/`TEST_HOST`)。
   - "Bundle Loader 不需要" -- **正确**。UI Testing Bundle 不使用 `BUNDLE_LOADER`/`TEST_HOST`,通过 `XCUIApplication` 启动 app。设计文档已补充说明,表述可接受。
-  - Bundle ID `com.assistant.app.uitests` -- 与现有命名模式一致(app `com.assistant.app` + unit-test `com.assistant.app.tests`)。
+  - Bundle ID `com.freeabyss.qingyu.uitests` -- 与现有命名模式一致(app `com.freeabyss.qingyu` + unit-test `com.freeabyss.qingyu.tests`)。
   - `CODE_SIGN_STYLE = Automatic` + ad-hoc 签名 -- 合理,本地开发可行。
-- Scheme 文件 `Qingniao.xcodeproj/xcshareddata/xcschemes/Qingniao.xcscheme` 已存在,§3.3 说"勾选 QingniaoUITests 的 Test action"可行。
+- Scheme 文件 `Qingyu.xcodeproj/xcshareddata/xcschemes/Qingyu.xcscheme` 已存在,§3.3 说"勾选 QingyuUITests 的 Test action"可行。
 
 **"不纳入 SPM"理由成立**:
-- `Package.swift` 确认现有 SPM 仅有 `Qingniao`(library)+ `QingniaoTests`(testTarget)。
+- `Package.swift` 确认现有 SPM 仅有 `Qingyu`(library)+ `QingyuTests`(testTarget)。
 - SPM `.testTarget` 只生成 unit-test bundle,无法生成 UI Testing Bundle -- 理由 1 正确。
 - `XCUIApplication` 依赖 Xcode test runner 注入 `XCTestUIBootstrap`,SPM `swift test` 不提供 -- 理由 2 正确。
 - 决策合理,保持 `Package.swift` 不变。

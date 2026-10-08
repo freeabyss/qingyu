@@ -19,19 +19,19 @@ v1.2.1 迭代的 XCUITest 自动化测试扩展（⑤ 扩展）已在代码层�
 
 | 维度 | 状态 | 证据 |
 |------|------|------|
-| QingniaoUITests target 搭建 | 就绪 | `xcodebuild build-for-testing` **TEST BUILD SUCCEEDED**，`QingniaoUITests-Runner.app` 生成，ad-hoc 签名 OK（T-UI-001） |
+| QingyuUITests target 搭建 | 就绪 | `xcodebuild build-for-testing` **TEST BUILD SUCCEEDED**，`QingyuUITests-Runner.app` 生成，ad-hoc 签名 OK（T-UI-001） |
 | 测试 hook（launch arguments） | 就绪 | 8 个 hook 全部 `#if DEBUG` 包裹；Release build 无 hook 符号（`nm` 验证）；`swift build -c release` 0 errors（T-UI-002 + 补 TC-UI-013 hook） |
 | accessibilityIdentifier | 就绪 | §0.5 硬依赖 6 控件 + 命名约定补充 13 控件全部补齐（T-UI-003） |
 | P0 用例代码（TC-UI-001~010） | 就绪 | 10 条用例编译通过，build-for-testing SUCCEEDED（T-UI-004） |
 | P1 用例代码（TC-UI-011~022） | 就绪 | 12 条用例分布 4 文件编译通过，build-for-testing SUCCEEDED（T-UI-006） |
 | 单元测试（SPM） | 全绿 | `swift test` **181/181 passed**（159 原有 + 19 T-UI-002 + 3 补 hook），0 failures，无回归 |
-| xcodebuild 单元测试 | 全绿 | `xcodebuild test -only-testing:QingniaoTests` **TEST EXECUTE SUCCEEDED**（148 passed），证明 xcodebuild test 环境正常 |
-| UI 测试实际跑通 | **阻塞** | `xcodebuild test -only-testing:QingniaoUITests` 卡在 `Timed out while enabling automation mode`（60s 超时），阻塞于 macOS UI automation 首次 GUI 授权（详见 §三） |
+| xcodebuild 单元测试 | 全绿 | `xcodebuild test -only-testing:QingyuTests` **TEST EXECUTE SUCCEEDED**（148 passed），证明 xcodebuild test 环境正常 |
+| UI 测试实际跑通 | **阻塞** | `xcodebuild test -only-testing:QingyuUITests` 卡在 `Timed out while enabling automation mode`（60s 超时），阻塞于 macOS UI automation 首次 GUI 授权（详见 §三） |
 
 ### 结论
 
 - **代码层**：XCUITest 扩展全部交付物就绪（target + hook + a11y + 22 条用例代码），build-for-testing 通过，单元测试 181/181 无回归。
-- **运行层**：UI 测试跑通阻塞于 macOS UI automation 首次 GUI 授权（CLI agent 环境无法处理 GUI 授权弹窗；TCC.db 受 SIP 保护）。需用户在 GUI 执行一次授权（见 §三），授权后 CLI `xcodebuild test -only-testing:QingniaoUITests` 即可跑通，target 与用例代码无需改动。
+- **运行层**：UI 测试跑通阻塞于 macOS UI automation 首次 GUI 授权（CLI agent 环境无法处理 GUI 授权弹窗；TCC.db 受 SIP 保护）。需用户在 GUI 执行一次授权（见 §三），授权后 CLI `xcodebuild test -only-testing:QingyuUITests` 即可跑通，target 与用例代码无需改动。
 - **PRD 合规**：应用经（代码审查 + 单元测试 181/181 + 烟雾测试 + UI 测试代码就绪）验证符合 PRD（AC-01~12）；UI 测试实际跑通待用户 GUI 授权，跑通后将补充运行时证据（详见 §八）。
 
 ---
@@ -65,7 +65,7 @@ v1.2.1 迭代的 XCUITest 自动化测试扩展（⑤ 扩展）已在代码层�
 | TC-UI-012 | 菜单分发 -> 剪贴板窗口呈现 | AC-03 | B | 就绪 | 待 GUI 授权 | 硬依赖 `clipboard.searchField`；空态文案以实际 L10n 为准 |
 | TC-UI-013 | 截图入口 -> 权限提示（未授权） | AC-04 | C/B | 就绪 | 待 GUI 授权 | 仅测权限 Alert，真实截图退回手动；需 startScreenshot trigger + skip-capture hook（已补） |
 | TC-UI-014 | 菜单分发 -> 设置窗口呈现 | AC-05 | B | 就绪 | 待 GUI 授权 | 硬依赖 `settings.sidebar` |
-| TC-UI-015 | 菜单分发 -> 关于页呈现 | AC-05 | B | 就绪 | 待 GUI 授权 | 查"青鸟"/"Qingniao" staticText |
+| TC-UI-015 | 菜单分发 -> 关于页呈现 | AC-05 | B | 就绪 | 待 GUI 授权 | 查"清羽"/"Qingyu" staticText |
 | TC-UI-016 | Command Bar 搜索基本交互 | FR-SEARCH-4/6/7 | A | 就绪 | 待 GUI 授权 | 输入->结果->ESC 关闭；硬依赖 searchField+resultList |
 | TC-UI-017 | Command Bar 回车执行 + 自动关闭 | FR-SEARCH-27/29 | A | 就绪 | 待 GUI 授权 | 验证 panel 自动关闭，不验证主动作结果 |
 | TC-UI-018 | Command Bar 空输入不消失（空态） | FR-SEARCH-14 | B | 就绪 | 待 GUI 授权 | 首期无 mock 使用记录，只测"不消失" |
@@ -82,7 +82,7 @@ v1.2.1 迭代的 XCUITest 自动化测试扩展（⑤ 扩展）已在代码层�
 | 第二批 | 菜单分发 5 + Command Bar 3 + 设置 2 + 剪贴板 2（TC-UI-011~022） | 12 | A: 5, B: 6, C/B: 1 | P1 | 全部就绪 |
 | **合计** | | **22** | **A: 9, B: 12, C/B: 1** | | **全部就绪，编译通过** |
 
-**综合**：22 条用例代码全部实现完毕，`xcodebuild build-for-testing` TEST BUILD SUCCEEDED（含 app + QingniaoTests + QingniaoUITests 全编译）。运行状态统一为"待 GUI 授权"——非代码问题，授权后即可跑通（见 §三）。
+**综合**：22 条用例代码全部实现完毕，`xcodebuild build-for-testing` TEST BUILD SUCCEEDED（含 app + QingyuTests + QingyuUITests 全编译）。运行状态统一为"待 GUI 授权"——非代码问题，授权后即可跑通（见 §三）。
 
 ---
 
@@ -90,7 +90,7 @@ v1.2.1 迭代的 XCUITest 自动化测试扩展（⑤ 扩展）已在代码层�
 
 ### 阻塞现象
 
-`xcodebuild test -only-testing:QingniaoUITests -project Qingniao.xcodeproj -scheme Qingniao -derivedDataPath DerivedData -onlyUsePackageVersionsFromResolvedFile` 运行时，runner 报：
+`xcodebuild test -only-testing:QingyuUITests -project Qingyu.xcodeproj -scheme Qingyu -derivedDataPath DerivedData -onlyUsePackageVersionsFromResolvedFile` 运行时，runner 报：
 
 ```
 Timed out while enabling automation mode. (60s 超时)
@@ -111,10 +111,10 @@ macOS UI automation 首次需用户在 GUI 授权 testmanagerd / Xcode 的 UI au
 
 | 证据 | 结论 |
 |------|------|
-| `xcodebuild build-for-testing` TEST BUILD SUCCEEDED | target 配置正确，QingniaoUITests-Runner.app 生成 |
-| `xcodebuild test -only-testing:QingniaoTests` TEST EXECUTE SUCCEEDED（148 passed） | xcodebuild test 环境正常，单元测试能跑 |
+| `xcodebuild build-for-testing` TEST BUILD SUCCEEDED | target 配置正确，QingyuUITests-Runner.app 生成 |
+| `xcodebuild test -only-testing:QingyuTests` TEST EXECUTE SUCCEEDED（148 passed） | xcodebuild test 环境正常，单元测试能跑 |
 | `swift test` 181/181 passed | SPM 单元测试全绿，无回归 |
-| 现有 Qingniao/QingniaoTests 编译不受影响 | target 隔离正确 |
+| 现有 Qingyu/QingyuTests 编译不受影响 | target 隔离正确 |
 
 阻塞纯在 UI automation 首次 GUI 授权，target 与用例代码无需改动。
 
@@ -128,7 +128,7 @@ macOS UI automation 首次需用户在 GUI 授权 testmanagerd / Xcode 的 UI au
 
 ### 用户解阻步骤（任选其一）
 
-1. **Xcode GUI 跑一次 Test**：打开 `Qingniao.xcodeproj` > Product > Test 运行 QingniaoUITests，处理首次 automation 授权弹窗（点"允许"）。
+1. **Xcode GUI 跑一次 Test**：打开 `Qingyu.xcodeproj` > Product > Test 运行 QingyuUITests，处理首次 automation 授权弹窗（点"允许"）。
 2. **System Settings > Privacy & Security > Developer Tools**：启用 Xcode（推荐，一次性授权）。
 3. **System Settings > Privacy & Security > Accessibility**：启用 Xcode Helper / testmanagerd。
 
@@ -136,9 +136,9 @@ macOS UI automation 首次需用户在 GUI 授权 testmanagerd / Xcode 的 UI au
 
 ```bash
 xcodebuild test \
-  -project Qingniao.xcodeproj \
-  -scheme Qingniao \
-  -only-testing:QingniaoUITests \
+  -project Qingyu.xcodeproj \
+  -scheme Qingyu \
+  -only-testing:QingyuUITests \
   -derivedDataPath DerivedData \
   -onlyUsePackageVersionsFromResolvedFile
 ```
@@ -263,7 +263,7 @@ xcodebuild test \
 |---------|------|------|
 | 代码审查 | AC-01~12 全部（architecture/design.md + review.md） | 通过：门禁移除、布局修复、菜单入口、引用清理、服务幂等全部落实 |
 | 单元测试（SPM `swift test`） | AC-12（canStart，OnboardingViewModelTests）+ 业务逻辑 | **181/181 passed**，0 failures，无回归 |
-| xcodebuild 单元测试 | QingniaoTests | **148 passed**（TEST EXECUTE SUCCEEDED） |
+| xcodebuild 单元测试 | QingyuTests | **148 passed**（TEST EXECUTE SUCCEEDED） |
 | 烟雾测试 | app 启动稳定性 + footer 可见性 | 通过：app 启动稳定未崩溃，footer 可见可达 |
 | XCUITest 代码 | AC-01~12（TC-UI-001~022） | **22 条用例代码就绪**，build-for-testing SUCCEEDED |
 | XCUITest 实际跑通 | TC-UI-001~022 | **待 GUI 授权**（环境阻塞，非代码缺陷，见 §三） |
@@ -277,7 +277,7 @@ xcodebuild test \
 - **烟雾测试通过**：app 启动稳定，footer 可见可达，未崩溃。
 - **UI 测试代码就绪**：22 条 XCUITest 用例代码全部实现完毕，编译通过，覆盖 AC-01~12，待 GUI 授权跑通。
 
-**UI 测试实际跑通待用户 GUI 授权**（macOS UI automation 首次 GUI 授权，见 §三）。授权后 CLI `xcodebuild test -only-testing:QingniaoUITests` 即可跑通 22 条用例，届时将补充运行时 pass/fail 证据与 flakiness 修复记录（T-UI-005/007 阶段）。授权是机器级一次性操作，target 与用例代码无需任何改动。
+**UI 测试实际跑通待用户 GUI 授权**（macOS UI automation 首次 GUI 授权，见 §三）。授权后 CLI `xcodebuild test -only-testing:QingyuUITests` 即可跑通 22 条用例，届时将补充运行时 pass/fail 证据与 flakiness 修复记录（T-UI-005/007 阶段）。授权是机器级一次性操作，target 与用例代码无需任何改动。
 
 ---
 
@@ -289,9 +289,9 @@ xcodebuild test \
 | XCUITest 架构评审 | `docs/iterations/v1.2.1/architecture/xcuitest-review.md` | 完成（APPROVED_WITH_MINOR_FIXES，8 改善级全落实） |
 | 22 条用例定义 | `docs/iterations/v1.2.1/test/cases.md` | 完成 |
 | 测试报告 | `docs/iterations/v1.2.1/test/report.md`（本文） | 完成 |
-| QingniaoUITests target | `Qingniao.xcodeproj/project.pbxproj` + `QingniaoUITests/` | 就绪（build-for-testing SUCCEEDED） |
-| 测试 hook | `Qingniao/App/UITestSupport.swift` + AppDelegate/AppContainer/PersistenceController/DatabaseManager/ScreenshotWindowController | 就绪（8 hook，`#if DEBUG`，Release 无符号） |
+| QingyuUITests target | `Qingyu.xcodeproj/project.pbxproj` + `QingyuUITests/` | 就绪（build-for-testing SUCCEEDED） |
+| 测试 hook | `Qingyu/App/UITestSupport.swift` + AppDelegate/AppContainer/PersistenceController/DatabaseManager/ScreenshotWindowController | 就绪（8 hook，`#if DEBUG`，Release 无符号） |
 | accessibilityIdentifier | OnboardingView/StatusItemController/CommandBarView/ClipboardHistoryView/SettingsView | 就绪（6 硬依赖 + 13 补充） |
-| P0 用例代码 | `QingniaoUITests/OnboardingUITests.swift`（TC-UI-001~010） | 就绪（编译通过） |
-| P1 用例代码 | `QingniaoUITests/MenuDispatchUITests.swift` + `CommandBarUITests.swift` + `SettingsWindowUITests.swift` + `ClipboardWindowUITests.swift`（TC-UI-011~022） | 就绪（编译通过） |
-| hook 单元测试 | `QingniaoTests/UITestSupportTests.swift`（22 用例） | 全绿（181/181 的一部分） |
+| P0 用例代码 | `QingyuUITests/OnboardingUITests.swift`（TC-UI-001~010） | 就绪（编译通过） |
+| P1 用例代码 | `QingyuUITests/MenuDispatchUITests.swift` + `CommandBarUITests.swift` + `SettingsWindowUITests.swift` + `ClipboardWindowUITests.swift`（TC-UI-011~022） | 就绪（编译通过） |
+| hook 单元测试 | `QingyuTests/UITestSupportTests.swift`（22 用例） | 全绿（181/181 的一部分） |

@@ -8,20 +8,20 @@
 
 **业务规则：** 进入状态即高亮指针所在窗口；单击锁定窗口；按住左键拖拽选择区域；`⌘A` 锁定当前显示器；`Esc` 取消全部叠层。
 
-**技术约束：** 每个 `NSScreen` 一个 borderless window；所有 window 共享一个会话状态；窗口命中排除青鸟自身截图叠层、菜单栏和桌面；提示固定在当前显示器左下安全边距内。
+**技术约束：** 每个 `NSScreen` 一个 borderless window；所有 window 共享一个会话状态；窗口命中排除清羽自身截图叠层、菜单栏和桌面；提示固定在当前显示器左下安全边距内。
 
 **验收标准：** 两个显示器上只有指针所在屏展示活动高亮和提示；跨屏后 100ms 内切换；完成或取消时关闭全部叠层。
 
 ## 文件
 
-- 新建：`Qingniao/Services/ScreenshotService/WindowCandidateProvider.swift`
-- 新建：`Qingniao/App/Controllers/CaptureSessionController.swift`
-- 修改：`Qingniao/Views/Components/ScreenshotOverlay.swift`
-- 新建：`Qingniao/Views/Components/ScreenshotShortcutHintsView.swift`
-- 修改：`Qingniao/App/Controllers/ScreenshotWindowController.swift`
-- 修改：`Qingniao.xcodeproj/project.pbxproj`
-- 测试：`QingniaoTests/CaptureSessionControllerTests.swift`
-- UI 测试：`QingniaoUITests/ScreenshotOverlayUITests.swift`
+- 新建：`Qingyu/Services/ScreenshotService/WindowCandidateProvider.swift`
+- 新建：`Qingyu/App/Controllers/CaptureSessionController.swift`
+- 修改：`Qingyu/Views/Components/ScreenshotOverlay.swift`
+- 新建：`Qingyu/Views/Components/ScreenshotShortcutHintsView.swift`
+- 修改：`Qingyu/App/Controllers/ScreenshotWindowController.swift`
+- 修改：`Qingyu.xcodeproj/project.pbxproj`
+- 测试：`QingyuTests/CaptureSessionControllerTests.swift`
+- UI 测试：`QingyuUITests/ScreenshotOverlayUITests.swift`
 
 ## 接口
 
@@ -85,9 +85,9 @@ XCTAssertEqual(windowFactory.closedDisplayIDs.count, 2)
 - [ ] 运行：
 
 ```bash
-xcodebuild test -project Qingniao.xcodeproj -scheme Qingniao \
-  -only-testing:QingniaoTests/CaptureSessionControllerTests \
-  -only-testing:QingniaoUITests/ScreenshotOverlayUITests
+xcodebuild test -project Qingyu.xcodeproj -scheme Qingyu \
+  -only-testing:QingyuTests/CaptureSessionControllerTests \
+  -only-testing:QingyuUITests/ScreenshotOverlayUITests
 ```
 
 - [ ] 递增版本、校验版本字段、运行 `git diff --check`。

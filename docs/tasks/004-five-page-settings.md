@@ -6,7 +6,7 @@
 
 **相关模块：** `SettingsView`、`SettingsViewModel`、`SettingsSource`、`SettingsWindowController`、插件注册表、现有截图设置。
 
-**业务规则：** 通用和关于是固定页面；功能列表是分组标题；快速启动、剪贴板、截图由插件注册独立页面；语言提供“跟随系统”“简体中文”“English”三项，默认跟随系统，修改后立即切换并保存；跟随系统遇到不支持的语言时回退到 English；数据区域显示青鸟全部本地数据占用空间，并仅提供打开数据目录等非破坏性操作，清空剪贴板历史仍只允许在剪贴板页执行；关于页仅提供用户主动触发的更新检查，不执行后台自动联网检查，手动检查打开项目 GitHub Releases 页面供用户查看和下载；开机启动默认开启，向导和通用页修改后立即保存并同步 macOS 登录项。
+**业务规则：** 通用和关于是固定页面；功能列表是分组标题；快速启动、剪贴板、截图由插件注册独立页面；语言提供“跟随系统”“简体中文”“English”三项，默认跟随系统，修改后立即切换并保存；跟随系统遇到不支持的语言时回退到 English；数据区域显示清羽全部本地数据占用空间，并仅提供打开数据目录等非破坏性操作，清空剪贴板历史仍只允许在剪贴板页执行；关于页仅提供用户主动触发的更新检查，不执行后台自动联网检查，手动检查打开项目 GitHub Releases 页面供用户查看和下载；开机启动默认开启，向导和通用页修改后立即保存并同步 macOS 登录项。
 
 **技术约束：** 现有设置值和 Core Data key 保持兼容；关于页继续从 Bundle 读取版本；侧栏顺序固定为通用、功能列表三页、关于。
 
@@ -14,17 +14,17 @@
 
 ## 文件
 
-- 修改：`Qingniao/Services/SearchEngine/SearchCore.swift`
-- 修改：`Qingniao/Services/SearchEngine/SettingsSource.swift`
-- 修改：`Qingniao/ViewModels/SettingsViewModel.swift`
-- 修改：`Qingniao/Views/Settings/SettingsView.swift`
-- 修改：`Qingniao/App/Controllers/AppContainer.swift`
-- 修改：`Qingniao/Resources/Localizable.xcstrings`
-- 新建：`Qingniao/Plugins/Screenshot/ScreenshotPlugin.swift`
-- 新建：`Qingniao/Plugins/Screenshot/ScreenshotSettingsPage.swift`
-- 测试：`QingniaoTests/SettingsNavigationTests.swift`
-- 回归：`QingniaoTests/SettingsServiceTests.swift`、`SettingsSourceTests.swift`、`ReleaseInfoServiceTests.swift`
-- UI 测试：`QingniaoUITests/SettingsWindowUITests.swift`
+- 修改：`Qingyu/Services/SearchEngine/SearchCore.swift`
+- 修改：`Qingyu/Services/SearchEngine/SettingsSource.swift`
+- 修改：`Qingyu/ViewModels/SettingsViewModel.swift`
+- 修改：`Qingyu/Views/Settings/SettingsView.swift`
+- 修改：`Qingyu/App/Controllers/AppContainer.swift`
+- 修改：`Qingyu/Resources/Localizable.xcstrings`
+- 新建：`Qingyu/Plugins/Screenshot/ScreenshotPlugin.swift`
+- 新建：`Qingyu/Plugins/Screenshot/ScreenshotSettingsPage.swift`
+- 测试：`QingyuTests/SettingsNavigationTests.swift`
+- 回归：`QingyuTests/SettingsServiceTests.swift`、`SettingsSourceTests.swift`、`ReleaseInfoServiceTests.swift`
+- UI 测试：`QingyuUITests/SettingsWindowUITests.swift`
 
 ## 页面映射
 
@@ -80,18 +80,18 @@ XCTAssertFalse(about.buildNumber.isEmpty)
 - [ ] 在通用页实现三项语言选择，默认跟随系统；修改后立即刷新界面并持久化设置；系统语言不受支持时验证回退到 English。
 - [ ] 关于页保留手动更新检查入口；确认当前版本不注册后台自动更新任务，并将自动联网检查留待后续版本。
 - [ ] 关于页手动检查打开 GitHub Releases 页面；不实现应用内自动下载、安装或重启更新。
-- [ ] 数据区域显示青鸟管理的全部本地数据占用空间，并仅保留打开数据目录；移除或隐藏“清空所有数据/重置数据”入口，清空剪贴板仍由剪贴板页负责。
+- [ ] 数据区域显示清羽管理的全部本地数据占用空间，并仅保留打开数据目录；移除或隐藏“清空所有数据/重置数据”入口，清空剪贴板仍由剪贴板页负责。
 - [ ] 验证欢迎向导与通用页的开机启动默认开启，修改后即时保存并同步登录项状态。
 - [ ] 删除只服务旧导航的本地化 key，并添加五页标题、功能列表分组标题和 UI 测试标识符。
 - [ ] 运行：
 
 ```bash
-xcodebuild test -project Qingniao.xcodeproj -scheme Qingniao \
-  -only-testing:QingniaoTests/SettingsNavigationTests \
-  -only-testing:QingniaoTests/SettingsServiceTests \
-  -only-testing:QingniaoTests/SettingsSourceTests \
-  -only-testing:QingniaoTests/ReleaseInfoServiceTests \
-  -only-testing:QingniaoUITests/SettingsWindowUITests
+xcodebuild test -project Qingyu.xcodeproj -scheme Qingyu \
+  -only-testing:QingyuTests/SettingsNavigationTests \
+  -only-testing:QingyuTests/SettingsServiceTests \
+  -only-testing:QingyuTests/SettingsSourceTests \
+  -only-testing:QingyuTests/ReleaseInfoServiceTests \
+  -only-testing:QingyuUITests/SettingsWindowUITests
 ```
 
 - [ ] 递增版本、校验 plist 与 Xcode 字段、运行 `git diff --check`。
@@ -102,4 +102,4 @@ xcodebuild test -project Qingniao.xcodeproj -scheme Qingniao \
 - `SettingsViewModel.applyLanguagePreference()` 当前修改系统语言偏好后显示“需要重启”提示；产品规则要求语言修改后立即切换界面，不应要求重启。
 - `SettingsViewModel` 当前仍保留 `autoCheckUpdates` 偏好字段；当前版本不提供后台自动联网检查，因此该偏好不应出现在设置 UI 或触发后台任务，自动检查留待后续版本重新定义。
 - `SettingsView` 与 `SettingsViewModel` 当前仍提供“清空所有数据”及重置逻辑；产品规则要求通用页不提供破坏性数据清理，该入口及相关流程需后续移除或迁出本任务范围。
-- `SettingsViewModel.refreshStorageUsage()` 当前通过剪贴板仓储统计占用空间；产品规则要求统计青鸟管理的全部本地数据，需后续扩展统计范围。
+- `SettingsViewModel.refreshStorageUsage()` 当前通过剪贴板仓储统计占用空间；产品规则要求统计清羽管理的全部本地数据，需后续扩展统计范围。

@@ -24,7 +24,7 @@ Mac Super Assistant 项目的最新累积文档。所有内容随每次迭代 �
 | 版本 | 上线日期 | 主题 | 关键变更 |
 |------|---------|------|---------|
 | v1.2.1 | 2026-08-11 | 欢迎页路由门禁 + 关闭按钮修复 | 移除 onboarding 功能入口门禁（所有菜单项不再被劫持到欢迎页）；欢迎页改 ScrollView 布局，「开始使用/跳过设置」按钮恒定可见；欢迎窗关闭清理引用；新增「欢迎向导」菜单入口；XCUITest 基础设施（target + DEBUG hook + a11y 标识符 + 22 条用例代码）；Swift 6 并发适配；文档目录 doc/ → docs/ |
-| v1.2.0 | 2026-07-07 | 产品全面审视 + 品牌改名青鸟 Qingniao | 品牌定名青鸟 Qingniao；文件搜索接入（FileSearchSource）；全屏截图全局热键 ⌃⌥⌘3；版本号三源一致；Onboarding 单屏 + 辅助功能按需申请；关闭 Sandbox 改 Developer ID 分发；死代码清理；Jade 设计系统；AppContainer DI 拆分；Command Bar 重写；剪贴板历史独立窗口；设置 11 页；截图标注 pill 工具条；CHANGELOG 格式统一 |
+| v1.2.0 | 2026-07-07 | 产品全面审视 + 品牌改名清羽 Qingyu | 品牌定名清羽 Qingyu；文件搜索接入（FileSearchSource）；全屏截图全局热键 ⌃⌥⌘3；版本号三源一致；Onboarding 单屏 + 辅助功能按需申请；关闭 Sandbox 改 Developer ID 分发；死代码清理；Jade 设计系统；AppContainer DI 拆分；Command Bar 重写；剪贴板历史独立窗口；设置 11 页；截图标注 pill 工具条；CHANGELOG 格式统一 |
 | v1.0.0 | 2026-07-02 | Mac Super Assistant MVP | 首次上线：菜单栏应用形态；Core Data + 文件系统数据层；剪贴板监控与历史；应用/文件/单位换算搜索源；命令白名单；截图与标注；设置/权限入口；发布材料（README、隐私政策、CHANGELOG、Third-Party Notices） |
 | v1.0.1 | 2026-07-02 | Bug 修复 | 修复启动时“无法启动更新程序”弹窗（Issue #1、PR #2）；产品行为不变，“检查更新”继续跳转 GitHub Releases |
 | v1.1.0 | 2026-07-03 | Onboarding 死锁修复 | 修复 onboarding 屏幕录制权限申请断点（TCC 权限申请触发，App 出现在系统设置列表）+ 新增 onboarding “跳过设置”入口（Issue #3、PR #4）；AC-6/AC-7 端到端待下一迭代验证 |

@@ -1,6 +1,6 @@
 # v1.2.0 迭代进度
 
-## ① 需求分析 + ② 产品设计 —— doc/prd.md 全面重写（青鸟 Qingniao）
+## ① 需求分析 + ② 产品设计 —— doc/prd.md 全面重写（清羽 Qingyu）
 
 **执行时间**：2026-07-03
 **产出**：doc/prd.md 直接覆盖重写（1016 行，17 个一级章节）
@@ -15,13 +15,13 @@
 **改（产品行为/策略调整）**
 - onboarding 辅助功能由强制改为按需申请（取代旧 FR-ONBOARD-8/9）。FR-ONBOARD-ACCESSIBILITY-ONDEMAND / D-104。
 - 关闭 App Sandbox → Developer ID 签名 + notarytool 公证 + GitHub Releases，非 MAS（取代 D-050）。FR-PERM-APPLE-EVENTS / §7.9 / §10.5 / D-103。
-- 品牌名定案：青鸟 Qingniao，Bundle ID 保留 com.assistant.app。§2.0 / D-101 / D-102。反馈邮箱 feedback@qingniao.app。
+- 品牌名定案：清羽 Qingyu，Bundle ID 保留 com.freeabyss.qingyu。§2.0 / D-101 / D-102。反馈邮箱 feedback@qingyu.app。
 
 **移除 / 诚实标注（不再声称已支持）**
 - OCR：确认 MVP 不含，死代码 v1.2 删除，列入 V2.x。§5.3 / D-110。
 - 标注"模糊"：v1.2 只保留 mosaic 马赛克；blur 独立工具列入 V1.x。FR-ANNOTATE-BLUR / D-019。
 - 死代码清理：MenuBarView + UnifiedSearchViewModel/Service(legacy)、UnitConverterSource、OCRService/ContentStore。§10.7 / D-106。
-- build_and_run.sh 的 `pgrep -x SnapVault` 改为 Qingniao。§10.7。
+- build_and_run.sh 的 `pgrep -x SnapVault` 改为 Qingyu。§10.7。
 
 **延后（V1.x / V2.x）**
 - 数据备份/导出（FR-DATA-EXPORT-BACKUP，v1.2 只说明存储位置+迁移策略，不做导出）。
@@ -40,7 +40,7 @@ AC-FILE 文件搜索 E2E、AC-FULLSCREEN 全屏热键、AC-VERSION 版本号 1.2
 
 ### 留给后续 subagent 的提示
 - ③ 架构设计：需在 doc/architecture/design.md 落实 FileSearchSource 接线、全屏热键、Sandbox 关闭 entitlements 变更、双栈技术债与统一方向、死代码清理清单。本 PRD 只做产品层，未改架构文档。
-- ⑤ 开发：版本号/CHANGELOG/pgrep/Bundle ID 相关改动逐任务落地，注意 Bundle ID 必须保持 com.assistant.app。
+- ⑤ 开发：版本号/CHANGELOG/pgrep/Bundle ID 相关改动逐任务落地，注意 Bundle ID 必须保持 com.freeabyss.qingyu。
 - 第 16 章 9 条待解决问题需在架构/开发阶段逐一定案。
 
 ---
@@ -83,12 +83,12 @@ AC-FILE 文件搜索 E2E、AC-FULLSCREEN 全屏热键、AC-VERSION 版本号 1.2
 - §4 数据架构：双栈技术债标注；§22 风险表更新（新增双栈/文件搜索性能/DesignToken/改名拆分回归/关闭 Sandbox/强制解包，移除已解决 3 项）；§23 变更记录追加 v1.2.0
 
 ### api.md（v3）接口清单
-- **新增**：DesignTokens（JadeColor/Radius/Space/Font/Shadow/Material/Motion）、JadeButton/JadeTextField/HotkeyRecorder/ListRow/JadeToast 等统一组件、FileSearchSource/FileSearchResult + SearchAction.openFile/revealInFinder + 文件权重 75、AppContainer + StatusItemController + 5 类窗口控制器、GlobalShortcutManager(registerFullscreenCapture)、HotkeyConflictDetector、PermissionService.onDemandAccessibilityCheck()、OnboardingViewModel 单屏化、SettingKey/SettingsRoute 新增（appearance/data/feedback/fileSource/截图热键/onboardingCompletedAt）、QingniaoError 4 新 case
-- **删除（§21 Removed 表）**：UnifiedSearchService/ViewModel/UnifiedResultRow/ResultGroupView/UnifiedResultList/UnifiedSearchTypes、MenuBarView、UnitConverterSource、OCRService/ContentStore/ContentRepository/GRDB ClipboardRepository、ClipboardRecordSnapshot.ocrText、OnboardingStep、三套 Toast、Sparkle 配置；AssistantError→QingniaoError
-- **改名**：module→Qingniao、测试模块→QingniaoTests、类型前缀 Assistant→Qingniao（含 §2.1 改名清单，领域名 Clipboard*/Search* 保持）
+- **新增**：DesignTokens（JadeColor/Radius/Space/Font/Shadow/Material/Motion）、JadeButton/JadeTextField/HotkeyRecorder/ListRow/JadeToast 等统一组件、FileSearchSource/FileSearchResult + SearchAction.openFile/revealInFinder + 文件权重 75、AppContainer + StatusItemController + 5 类窗口控制器、GlobalShortcutManager(registerFullscreenCapture)、HotkeyConflictDetector、PermissionService.onDemandAccessibilityCheck()、OnboardingViewModel 单屏化、SettingKey/SettingsRoute 新增（appearance/data/feedback/fileSource/截图热键/onboardingCompletedAt）、QingyuError 4 新 case
+- **删除（§21 Removed 表）**：UnifiedSearchService/ViewModel/UnifiedResultRow/ResultGroupView/UnifiedResultList/UnifiedSearchTypes、MenuBarView、UnitConverterSource、OCRService/ContentStore/ContentRepository/GRDB ClipboardRepository、ClipboardRecordSnapshot.ocrText、OnboardingStep、三套 Toast、Sparkle 配置；AssistantError→QingyuError
+- **改名**：module→Qingyu、测试模块→QingyuTests、类型前缀 Assistant→Qingyu（含 §2.1 改名清单，领域名 Clipboard*/Search* 保持）
 
 ### db.md（v3）主要变更
-- 数据目录 `Assistant/`→`Qingniao/`（启动 move 迁移 + store 重命名 + lightweight migration，失败 fallback 备份旧库+新建空库）
+- 数据目录 `Assistant/`→`Qingyu/`（启动 move 迁移 + store 重命名 + lightweight migration，失败 fallback 备份旧库+新建空库）
 - 删除 ClipboardRecord.ocrText 及 OCR 索引/表/迁移
 - AppSetting 默认值更新（onboarding.completedAt 取代 onboarding.completed、appearance.mode、data.folderBookmark、三截图热键、search.source.file.enabled；clipboard.enabled=true 保持）
 - UsageStat 保留用于概览页统计；新增"清空所有数据"+"打开数据目录"流程；双栈技术债说明（§14）；删 ContentRepository/ContentStore schema 标注历史
@@ -108,7 +108,7 @@ AC-FILE 文件搜索 E2E、AC-FULLSCREEN 全屏热键、AC-VERSION 版本号 1.2
 
 **执行时间**：2026-07-03
 **产出**：
-- `doc/test/cases.md`：新增第 11 节「青鸟 Qingniao v1.2 测试用例」（+98 条 TC），并对第 5 节因 v1.2 UI 重设计受影响的旧 TC 就地标注「v1.2 修订」（6 处：Onboarding/菜单栏/搜索/剪贴板/截图/命令/关于），更新版本记录与修订记录表。文件由 471 行扩到约 1130 行。
+- `doc/test/cases.md`：新增第 11 节「清羽 Qingyu v1.2 测试用例」（+98 条 TC），并对第 5 节因 v1.2 UI 重设计受影响的旧 TC 就地标注「v1.2 修订」（6 处：Onboarding/菜单栏/搜索/剪贴板/截图/命令/关于），更新版本记录与修订记录表。文件由 471 行扩到约 1130 行。
 - `doc/test/report.md`：追加 v1.2.0 节（**计划占位**，开发未开始，不含执行结果）。
 - 新建 `doc/iterations/v1.2.0/test/review.md`：用例评审记录（APPROVED_WITH_MINOR_FIXES，阻塞级 0、改善级 4 已直接修订）。
 
@@ -133,31 +133,31 @@ TOK(6) 设计 token / BRAND(7) 改名一致性 / DATA(5) 数据迁移 / DI(3) Ap
 - ⑤ 开发每完成一批任务（T-A~T-O），对应回填 report.md v1.2.0 节实际通过数/失败详情；swift/xcodebuild 基线在删 UnitConverter/OCR 用例 + 增 v1.2 新用例后重新核定。
 - 待建测试文件：DesignTokenTests / BrandingConsistencyTests / DataMigrationTests / AppContainerTests / GlobalShortcutTests / HotkeyConflictDetectorTests / OnDemandPermissionTests；FileSearchSourceTests 转接线回归。
 - 可入 CI 的脚本/静态校验：版本三源、entitlements、无 Sparkle、死代码 grep、强制解包 grep、build_and_run pgrep。
-- 上线前专项：反馈邮箱 feedback@qingniao.app 可收件、qingniao.app 域名/隐私政策 URL 最终确定。
+- 上线前专项：反馈邮箱 feedback@qingyu.app 可收件、qingyu.app 域名/隐私政策 URL 最终确定。
 
 ---
 
 ## T-001 工程与品牌改名（已完成 · 2026-07-03）
 
 ### 完成内容
-1. **目录/文件 rename（git mv）**：`SnapVault/`→`Qingniao/`、`SnapVaultTests/`→`QingniaoTests/`、`SnapVault.xcodeproj`→`Qingniao.xcodeproj`、`SnapVault.entitlements`→`Qingniao.entitlements`、`SnapVaultApp.swift`→`QingniaoApp.swift`、`SnapVault.xcscheme`→`Qingniao.xcscheme`。
-2. **project.pbxproj**：target `Assistant`→`Qingniao`、`SnapVaultTests`→`QingniaoTests`；`PRODUCT_NAME` Assistant→Qingniao；`PRODUCT_MODULE_NAME` SnapVault→Qingniao；`INFOPLIST_FILE`/`CODE_SIGN_ENTITLEMENTS` 指向 `Qingniao/`；`MARKETING_VERSION` 0.1.0→1.2.0；`CURRENT_PROJECT_VERSION` 1→120；产物 `Assistant.app`→`Qingniao.app`；TEST_HOST 同步。**Bundle ID `com.assistant.app` 保留不变**。scheme 内 BuildableName/BlueprintName/container 同步。
-3. **Info.plist**：`CFBundleDisplayName`=Qingniao、`CFBundleName`=青鸟、`CFBundleShortVersionString`=1.2.0、`CFBundleVersion`=120；新增 `NSHumanReadableCopyright`（© 2026 青鸟 Qingniao）；`NSScreenCaptureUsageInfo`/`NSAppleEventsUsageDescription` 文案 Mac Super Assistant→青鸟 Qingniao；**删除 Sparkle 键** SUFeedURL/SUPublicEDKey/SUEnableAutomaticChecks/SUScheduledCheckInterval。
-4. **Swift 用户可见字符串**：AppDelegate 状态栏 accessibilityDescription→青鸟 Qingniao；ReleaseInfoService `appName`=Qingniao、版权=青鸟 Qingniao、`feedbackEmail`=feedback@qingniao.app、邮件主题=「青鸟 Qingniao 反馈」、GitHub URL→github.com/freeabyss/qingniao；Localizable.xcstrings 12 处 Mac Super Assistant→青鸟 Qingniao；appcast.xml 品牌+URL 更新。
-5. **测试**：QingniaoTests 全部 `@testable import SnapVault`→`import Qingniao`；ReleaseInfoServiceTests URL/邮箱/主题断言同步更新。
-6. **build_and_run.sh**：PROJECT_NAME/SCHEME_NAME/APP_PATH→Qingniao（pgrep 用 $PROJECT_NAME 自动生效）。
-7. **Package.swift**：module Qingniao、testTarget QingniaoTests、path Qingniao/ & QingniaoTests/、exclude QingniaoApp.swift/Qingniao.entitlements。
+1. **目录/文件 rename（git mv）**：`SnapVault/`→`Qingyu/`、`SnapVaultTests/`→`QingyuTests/`、`SnapVault.xcodeproj`→`Qingyu.xcodeproj`、`SnapVault.entitlements`→`Qingyu.entitlements`、`SnapVaultApp.swift`→`QingyuApp.swift`、`SnapVault.xcscheme`→`Qingyu.xcscheme`。
+2. **project.pbxproj**：target `Assistant`→`Qingyu`、`SnapVaultTests`→`QingyuTests`；`PRODUCT_NAME` Assistant→Qingyu；`PRODUCT_MODULE_NAME` SnapVault→Qingyu；`INFOPLIST_FILE`/`CODE_SIGN_ENTITLEMENTS` 指向 `Qingyu/`；`MARKETING_VERSION` 0.1.0→1.2.0；`CURRENT_PROJECT_VERSION` 1→120；产物 `Assistant.app`→`Qingyu.app`；TEST_HOST 同步。**Bundle ID `com.freeabyss.qingyu` 保留不变**。scheme 内 BuildableName/BlueprintName/container 同步。
+3. **Info.plist**：`CFBundleDisplayName`=Qingyu、`CFBundleName`=清羽、`CFBundleShortVersionString`=1.2.0、`CFBundleVersion`=120；新增 `NSHumanReadableCopyright`（© 2026 清羽 Qingyu）；`NSScreenCaptureUsageInfo`/`NSAppleEventsUsageDescription` 文案 Mac Super Assistant→清羽 Qingyu；**删除 Sparkle 键** SUFeedURL/SUPublicEDKey/SUEnableAutomaticChecks/SUScheduledCheckInterval。
+4. **Swift 用户可见字符串**：AppDelegate 状态栏 accessibilityDescription→清羽 Qingyu；ReleaseInfoService `appName`=Qingyu、版权=清羽 Qingyu、`feedbackEmail`=feedback@qingyu.app、邮件主题=「清羽 Qingyu 反馈」、GitHub URL→github.com/freeabyss/qingyu；Localizable.xcstrings 12 处 Mac Super Assistant→清羽 Qingyu；appcast.xml 品牌+URL 更新。
+5. **测试**：QingyuTests 全部 `@testable import SnapVault`→`import Qingyu`；ReleaseInfoServiceTests URL/邮箱/主题断言同步更新。
+6. **build_and_run.sh**：PROJECT_NAME/SCHEME_NAME/APP_PATH→Qingyu（pgrep 用 $PROJECT_NAME 自动生效）。
+7. **Package.swift**：module Qingyu、testTarget QingyuTests、path Qingyu/ & QingyuTests/、exclude QingyuApp.swift/Qingyu.entitlements。
 
 ### 验证结果
-- `xcodebuild -project Qingniao.xcodeproj -scheme Qingniao -configuration Debug build` → **BUILD SUCCEEDED**。
-- 产物 Qingniao.app/Info.plist：CFBundleDisplayName=Qingniao、CFBundleName=青鸟、ShortVersion=1.2.0、Version=120、Identifier=com.assistant.app（保留）、无 Sparkle 键。
+- `xcodebuild -project Qingyu.xcodeproj -scheme Qingyu -configuration Debug build` → **BUILD SUCCEEDED**。
+- 产物 Qingyu.app/Info.plist：CFBundleDisplayName=Qingyu、CFBundleName=清羽、ShortVersion=1.2.0、Version=120、Identifier=com.freeabyss.qingyu（保留）、无 Sparkle 键。
 - grep：产品源码/Info.plist/构建脚本/Package.swift 无 `Mac Super Assistant` 残留；无 `SnapVault` 残留（仅 `SnapVaultError.swift` 文件名/类型按任务约定保留）。
 
 ### 留给后续 agent 的提示
-- **Swift 类型/文件名未改**：`SnapVaultError`（→QingniaoError, api.md §2.3）、`AssistantClipboardRepository`/`AssistantClipboardSource`/`AssistantFileSystem`、`AssistantApp` struct 名等品牌前缀类型仍在，按 api.md 由 T-004~T-015 逐步改，本任务未动以控制回归面。
-- Logger subsystem 仍为 `com.assistant.app`（与 Bundle ID 一致，按约定保留）。
+- **Swift 类型/文件名未改**：`SnapVaultError`（→QingyuError, api.md §2.3）、`AssistantClipboardRepository`/`AssistantClipboardSource`/`AssistantFileSystem`、`AssistantApp` struct 名等品牌前缀类型仍在，按 api.md 由 T-004~T-015 逐步改，本任务未动以控制回归面。
+- Logger subsystem 仍为 `com.freeabyss.qingyu`（与 Bundle ID 一致，按约定保留）。
 - entitlements 仍含 `com.apple.security.app-sandbox=true`，由 T-002 关闭。
-- 数据目录仍为 Assistant/（PersistenceController 等），由 T-003 迁移到 Qingniao/。
+- 数据目录仍为 Assistant/（PersistenceController 等），由 T-003 迁移到 Qingyu/。
 - markdown 文档（README/PRIVACY/THIRD_PARTY_NOTICES/CHANGELOG）品牌未改，归 T-016；注意 ReleaseInfoServiceTests.testProjectHomepageContainsUS020... 仍断言 README 含 `feedback@assistant.app` 与旧 URL，README 改名时（T-016）需同步或该用例会失败（本任务未跑该用例；build 已通过）。
 
 ---
@@ -165,16 +165,16 @@ TOK(6) 设计 token / BRAND(7) 改名一致性 / DATA(5) 数据迁移 / DI(3) Ap
 ## T-002 关闭 Sandbox + Hardened Runtime + Developer ID 签名/entitlements（已完成 · 2026-07-03）
 
 ### 完成内容
-1. **Qingniao/Qingniao.entitlements**：
+1. **Qingyu/Qingyu.entitlements**：
    - `com.apple.security.app-sandbox` 由 `true` 改为 `false`（Developer ID 分发，非 Mac App Store）。
    - 新增 `com.apple.security.automation.apple-events`=`true`，使 restartFinder/restartDock/toggleAppearance 及控制其他 App 的 AppleEvents 在关闭沙盒后可靠执行。
    - 保留 `com.apple.security.files.user-selected.read-write`、`com.apple.security.screencapture`。
-2. **Qingniao.xcodeproj/project.pbxproj**：Qingniao target 的 Debug 与 Release 配置均加入 `ENABLE_HARDENED_RUNTIME = YES`（公证要求）。Bundle ID 保持 `com.assistant.app`，CODE_SIGN_STYLE 仍 Automatic（本地 Debug 用 ad-hoc/Sign to Run Locally）。
+2. **Qingyu.xcodeproj/project.pbxproj**：Qingyu target 的 Debug 与 Release 配置均加入 `ENABLE_HARDENED_RUNTIME = YES`（公证要求）。Bundle ID 保持 `com.freeabyss.qingyu`，CODE_SIGN_STYLE 仍 Automatic（本地 Debug 用 ad-hoc/Sign to Run Locally）。
 3. **build_and_run.sh**：新增 `build_for_release` 函数与 `release` 子命令。流程：Release clean build → `codesign --force --deep --options runtime --timestamp --entitlements ... --sign "$DEVELOPER_ID_APP"` → `codesign --verify --deep --strict` → `ditto` 打 zip → `xcrun notarytool submit --keychain-profile "$AC_NOTARY_PROFILE" --wait` → `xcrun stapler staple` → `spctl --assess -vvv --type execute`。证书/公证凭据经环境变量 `DEVELOPER_ID_APP` / `AC_NOTARY_PROFILE` 注入。缺少 DEVELOPER_ID_APP 时快速失败；缺少 AC_NOTARY_PROFILE 时仅完成签名并告警（便于无证书环境验证前半程）。help 文本同步。
 
 ### 验证结果
-- `xcodebuild -project Qingniao.xcodeproj -scheme Qingniao -configuration Debug build` → **BUILD SUCCEEDED**。
-- 构建产物 Qingniao.app 的 `codesign -d --entitlements` 确认：`app-sandbox=false`、`automation.apple-events=true`。
+- `xcodebuild -project Qingyu.xcodeproj -scheme Qingyu -configuration Debug build` → **BUILD SUCCEEDED**。
+- 构建产物 Qingyu.app 的 `codesign -d --entitlements` 确认：`app-sandbox=false`、`automation.apple-events=true`。
 - 14 条白名单命令目录（AssistantCommandCatalog.commands）数量不变仍为 14；SystemCommandSource 执行 restartFinder/restartDock 用 NSRunningApplication.terminate、toggleAppearance 切 NSApp.appearance——关闭 sandbox 后这些 NSWorkspace/AppKit 路径不再受沙盒限制。
 - `bash -n build_and_run.sh` 语法 OK；`release` 在无 DEVELOPER_ID_APP 时正确快速失败（exit 1）。
 
@@ -187,7 +187,7 @@ TOK(6) 设计 token / BRAND(7) 改名一致性 / DATA(5) 数据迁移 / DI(3) Ap
 ## T-004 DesignToken 层建立（JadeColor/JadeRadius/JadeSpace/JadeFont/JadeShadow/JadeMaterial）（已完成 · 2026-07-03）
 
 ### 完成内容
-新建 `Qingniao/Views/Design/` 目录，6 个 token 文件，全部按 PRD §9.2 精确取值实现，每个文件带 `#Preview` 可在 Xcode Canvas 查看：
+新建 `Qingyu/Views/Design/` 目录，6 个 token 文件，全部按 PRD §9.2 精确取值实现，每个文件带 `#Preview` 可在 Xcode Canvas 查看：
 
 1. **JadeColor.swift**：
    - 品牌色用 `NSColor(name:dynamicProvider:)` 实现明暗自动适配：jade500 `#0A9488`/`#2DD4BF`、jade600 `#087A70`/`#14B8A6`、jade50 `#E6F7F5`/`#0D3D39`。提供 NS 版（jade500NS 等）与 SwiftUI Color 版。
@@ -203,67 +203,67 @@ TOK(6) 设计 token / BRAND(7) 改名一致性 / DATA(5) 数据迁移 / DI(3) Ap
 5. **JadeShadow.swift**：sm(0 1px 2px 0.06)/md(0 4px 16px 0.10)/lg(0 8px 32px 0.18 + 1px border)/xl(0 24px 64px 0.28 + 1px border)；View 扩展 `.jadeShadow(.xl, radius: .xxl)`，lg/xl 自动附加 1px JadeColor.border 描边。
 6. **JadeMaterial.swift**：commandBar/pill → .ultraThinMaterial，sheet → .thinMaterial；View 扩展 `.jadeMaterial(.commandBar, radius: .xxl)`。
 
-**Assets**：新建 `Qingniao/Resources/Assets.xcassets/AccentColor.colorset/Contents.json`，Light Jade500 `#0A9488` / Dark Jade600 系 Dark 主色 `#2DD4BF`（srgb 分量）。
+**Assets**：新建 `Qingyu/Resources/Assets.xcassets/AccentColor.colorset/Contents.json`，Light Jade500 `#0A9488` / Dark Jade600 系 Dark 主色 `#2DD4BF`（srgb 分量）。
 
-**.tint 全局注入**：QingniaoApp.swift 的 Settings 场景、AppDelegate.swift 三处 NSHostingView rootView（OnboardingView / ManagementCenterView / SearchPanelView）均加 `.tint(JadeColor.primary)`。
+**.tint 全局注入**：QingyuApp.swift 的 Settings 场景、AppDelegate.swift 三处 NSHostingView rootView（OnboardingView / ManagementCenterView / SearchPanelView）均加 `.tint(JadeColor.primary)`。
 
 **Xcode 工程接入**：项目为手工维护 pbxproj（objectVersion 56，非 synchronized group），仿 Onboarding 的 SOURCE_ROOT 全路径模式，用 `F004...` 前缀 ID 手工新增 6 条 PBXBuildFile + 6 条 PBXFileReference + 新建 `Design` PBXGroup 挂到 Views group + 加入 app target Sources build phase。
 
 ### 验证结果
-- `xcodebuild -project Qingniao.xcodeproj -scheme Qingniao -configuration Debug build` → **BUILD SUCCEEDED**。
+- `xcodebuild -project Qingyu.xcodeproj -scheme Qingyu -configuration Debug build` → **BUILD SUCCEEDED**。
 - 确认 6 个 Jade*.o 目标文件均在 DerivedData Objects-normal 下生成（未被静默排除）。
 - 仅新增文件警告：无（仅存量 Swift6 NSLock/Sendable 警告，与本任务无关）。
 
 ### 留给后续 agent 的提示
 - 本任务**不改现有 View 使其改用 token**（那是 T-015），只建立 token 本身与基础扩展。
-- Swift 类型改名（AssistantError→QingniaoError 等）不在本任务，T-005/T-006 处理。
+- Swift 类型改名（AssistantError→QingyuError 等）不在本任务，T-005/T-006 处理。
 - AccentColor.colorset 已建立，macOS 会自动将其作为 App accent；同时代码层显式 `.tint(JadeColor.primary)` 双保险，二者一致（都是 Jade 主色，明暗自适应）。
 - Preview 可在 Xcode Canvas 逐个查看：JadeColor（明暗色板）/JadeRadius/JadeSpace/JadeFont/JadeShadow/JadeMaterial。命令行 xcodebuild 无法渲染 Canvas，需人工在 Xcode 打开验证（TOK-001~006/ACC-005 的 Canvas 目视项）。
 
 ---
 
-## T-003 数据目录迁移 Assistant/ → Qingniao/ 与清空所有数据 + 打开数据目录（已完成 · 2026-07-05）
+## T-003 数据目录迁移 Assistant/ → Qingyu/ 与清空所有数据 + 打开数据目录（已完成 · 2026-07-05）
 
 ### 完成内容
 
-**1. 数据目录路径常量改名（Assistant → Qingniao）**
-- `Qingniao/Database/AssistantFileSystem.swift`：新增静态常量 `directoryName="Qingniao"`、`legacyDirectoryName="Assistant"`、`storeFileName="Qingniao.sqlite"`、`legacyStoreFileName="Assistant.sqlite"`、`applicationSupportDirectory`；`.default` 与 `storeURL` 改用新常量。文件名保留 `AssistantFileSystem.swift`（db.md 允许保留；不重命名以免大面积改 pbxproj/引用，struct 名不变，仅路径常量改）。
-- `Qingniao/Database/PersistenceController.swift`：`NSPersistentContainer(name:)` 由 "Assistant" → "Qingniao"（store 落到 Qingniao/Qingniao.sqlite）。lightweight migration 原本已开启（`shouldMigrateStoreAutomatically`/`shouldInferMappingModelAutomatically` = true，等价 NSMigratePersistentStoresAutomaticallyOption + NSInferMappingModelAutomaticallyOption），保持不动。
-- `Qingniao/Database/DatabaseManager.swift`（GRDB legacy，保留）：`databaseURL()` 由 Assistant/assistant.db → Qingniao/assistant.db（用 `AssistantFileSystem.directoryName`）；文件名 assistant.db 不改（legacy 只读兼容，T-005 处理）。加 legacy 注释。
-- `Qingniao/App/AppDelegate.swift`：`createApplicationSupportDirectory()` 目录名改用 `AssistantFileSystem.directoryName`。
+**1. 数据目录路径常量改名（Assistant → Qingyu）**
+- `Qingyu/Database/AssistantFileSystem.swift`：新增静态常量 `directoryName="Qingyu"`、`legacyDirectoryName="Assistant"`、`storeFileName="Qingyu.sqlite"`、`legacyStoreFileName="Assistant.sqlite"`、`applicationSupportDirectory`；`.default` 与 `storeURL` 改用新常量。文件名保留 `AssistantFileSystem.swift`（db.md 允许保留；不重命名以免大面积改 pbxproj/引用，struct 名不变，仅路径常量改）。
+- `Qingyu/Database/PersistenceController.swift`：`NSPersistentContainer(name:)` 由 "Assistant" → "Qingyu"（store 落到 Qingyu/Qingyu.sqlite）。lightweight migration 原本已开启（`shouldMigrateStoreAutomatically`/`shouldInferMappingModelAutomatically` = true，等价 NSMigratePersistentStoresAutomaticallyOption + NSInferMappingModelAutomaticallyOption），保持不动。
+- `Qingyu/Database/DatabaseManager.swift`（GRDB legacy，保留）：`databaseURL()` 由 Assistant/assistant.db → Qingyu/assistant.db（用 `AssistantFileSystem.directoryName`）；文件名 assistant.db 不改（legacy 只读兼容，T-005 处理）。加 legacy 注释。
+- `Qingyu/App/AppDelegate.swift`：`createApplicationSupportDirectory()` 目录名改用 `AssistantFileSystem.directoryName`。
 
 **2. 启动时目录迁移（新文件 DataDirectoryMigrator.swift）**
-- `Qingniao/Database/DataDirectoryMigrator.swift`（新建）：
-  - `migrateIfNeeded() -> Outcome`：新目录存在→alreadyMigrated；无旧目录→freshInstall；旧目录存在且新目录不存在→`FileManager.moveItem` 整目录 rename + 重命名 store 文件 Assistant.sqlite(/-shm/-wal)→Qingniao.sqlite(...)（migrated）。
-  - move 失败 fallback：`copyItem` 旧目录到 `Qingniao-migration-backup-<ISO8601 无冒号时间戳>/`，再建空 Qingniao/，返回 `.fallbackBackup(backupURL, underlying)`。永不抛错，保证启动不阻塞。
+- `Qingyu/Database/DataDirectoryMigrator.swift`（新建）：
+  - `migrateIfNeeded() -> Outcome`：新目录存在→alreadyMigrated；无旧目录→freshInstall；旧目录存在且新目录不存在→`FileManager.moveItem` 整目录 rename + 重命名 store 文件 Assistant.sqlite(/-shm/-wal)→Qingyu.sqlite(...)（migrated）。
+  - move 失败 fallback：`copyItem` 旧目录到 `Qingyu-migration-backup-<ISO8601 无冒号时间戳>/`，再建空 Qingyu/，返回 `.fallbackBackup(backupURL, underlying)`。永不抛错，保证启动不阻塞。
   - 可注入 applicationSupportDirectory/fileManager/now，便于测试。
 - `AppDelegate.applicationDidFinishLaunching` 最前面（DatabaseManager.setup / PersistenceController.load 之前）调用 `migrateDataDirectoryIfNeeded()`；fallback 分支弹 NSAlert（data.migration.failed.* 本地化）并可在 Finder 显示备份目录。
 
 **3. AppSetting 默认值更新（db.md §8.3）**
 - `PersistenceController.AssistantSettingDefaults.values` 新增：`onboarding.completedAt`(空串=nil)、`hotkey.capture.region`(shift+ctrl+cmd+4)、`hotkey.capture.window`(shift+ctrl+cmd+5)、`hotkey.capture.fullscreen`(ctrl+option+cmd+3)、`search.source.file.enabled`(true)、`appearance.mode`(system)、`data.folderBookmark`(空串=nil)。
 - **保留 `onboarding.completed`(false)**：现有 onboarding 门禁（AppDelegate.loadOnboardingCompletionState / OnboardingViewModel）仍读旧布尔键；切换到 completedAt 语义属后续任务，本任务只新增 completedAt 不破坏门禁。
-- `Qingniao/Models/AppSetting.swift`：`SettingKey` 新增 case onboardingCompletedAt/captureRegionHotkey/captureWindowHotkey/captureFullscreenHotkey/fileSourceEnabled/appearanceMode/dataFolderBookmark；新增 `AppearanceMode` enum(system/light/dark) + SettingsService encode/decode 支持。
+- `Qingyu/Models/AppSetting.swift`：`SettingKey` 新增 case onboardingCompletedAt/captureRegionHotkey/captureWindowHotkey/captureFullscreenHotkey/fileSourceEnabled/appearanceMode/dataFolderBookmark；新增 `AppearanceMode` enum(system/light/dark) + SettingsService encode/decode 支持。
 
 **4. DataManagementService（新文件，供 T-013 UI 接）**
-- `Qingniao/Services/DataManagement/DataManagementService.swift`（新建，含 DataManagement 组）：
-  - `resetAllData() async throws`：remove 已加载 persistent store → 删 Qingniao.sqlite(/-shm/-wal) → 删 Clipboard/Images|Thumbnails|RichText → `removePersistentDomain(forName: bundleIdentifier)`（用 com.assistant.app 域，不动 UserDefaults.standard 全局）→ post `.dataDidReset`。失败抛 `DataManagementError.dataResetFailed(reason:)`。
-  - `openDataDirectory() -> Bool`：确保 Qingniao/ 存在后 `NSWorkspace.open`。
+- `Qingyu/Services/DataManagement/DataManagementService.swift`（新建，含 DataManagement 组）：
+  - `resetAllData() async throws`：remove 已加载 persistent store → 删 Qingyu.sqlite(/-shm/-wal) → 删 Clipboard/Images|Thumbnails|RichText → `removePersistentDomain(forName: bundleIdentifier)`（用 com.freeabyss.qingyu 域，不动 UserDefaults.standard 全局）→ post `.dataDidReset`。失败抛 `DataManagementError.dataResetFailed(reason:)`。
+  - `openDataDirectory() -> Bool`：确保 Qingyu/ 存在后 `NSWorkspace.open`。
   - `exportData() throws`：v1.3 占位（assertionFailure + print + log），UI 侧 disabled+tooltip。
-  - 新增 `Notification.Name.dataDidReset`（com.assistant.dataDidReset）。
-  - 错误类型：因 QingniaoError 伞类型尚不存在（SnapVaultError→QingniaoError 改名属 T-005/T-006），本任务用局部 `DataManagementError.dataResetFailed`。
+  - 新增 `Notification.Name.dataDidReset`（com.freeabyss.qingyu.dataDidReset）。
+  - 错误类型：因 QingyuError 伞类型尚不存在（SnapVaultError→QingyuError 改名属 T-005/T-006），本任务用局部 `DataManagementError.dataResetFailed`。
 
 **5. SettingsViewModel 暴露给 T-013 的方法**
-- `Qingniao/ViewModels/SettingsViewModel.swift`：注入 `DataManagementService`；新增 @Published `showResetAllDataConfirmation`/`showResetAllDataRestartAlert`/`isResettingAllData`；方法 `requestResetAllData()`、`confirmResetAllData() async`、`openDataDirectory()`、`exportData()`。
+- `Qingyu/ViewModels/SettingsViewModel.swift`：注入 `DataManagementService`；新增 @Published `showResetAllDataConfirmation`/`showResetAllDataRestartAlert`/`isResettingAllData`；方法 `requestResetAllData()`、`confirmResetAllData() async`、`openDataDirectory()`、`exportData()`。
 
 **6. 本地化**：Localizable.xcstrings 新增 data.reset.failed / data.migration.failed.{title,message,reveal,dismiss} / management.data.reset.done（中英）。
 
-**7. Xcode 工程接入**：手工维护 pbxproj，用 `F005...` 前缀 ID 新增 3 个 SOURCE_ROOT 全路径 PBXFileReference（DataDirectoryMigrator.swift 挂 Database 组、DataManagementService.swift 挂新建 DataManagement 组、DataDirectoryMigratorTests.swift 挂 QingniaoTests 组）+ 对应 PBXBuildFile + app/test Sources build phase。
+**7. Xcode 工程接入**：手工维护 pbxproj，用 `F005...` 前缀 ID 新增 3 个 SOURCE_ROOT 全路径 PBXFileReference（DataDirectoryMigrator.swift 挂 Database 组、DataManagementService.swift 挂新建 DataManagement 组、DataDirectoryMigratorTests.swift 挂 QingyuTests 组）+ 对应 PBXBuildFile + app/test Sources build phase。
 
 ### 验证结果
 - `swift build` → Build complete（仅存量 warning）。
-- `xcodebuild -project Qingniao.xcodeproj -scheme Qingniao -configuration Debug build` → **BUILD SUCCEEDED**。
+- `xcodebuild -project Qingyu.xcodeproj -scheme Qingyu -configuration Debug build` → **BUILD SUCCEEDED**。
 - `swift test`（Persistence/Settings/DatabaseManager）19 passed；`xcodebuild test`（DataDirectoryMigrator/Persistence/DatabaseManager）15 passed，含新增 3 条迁移测试（freshInstall/alreadyMigrated/move+rename）。
-- 更新受路径改名影响的既有测试：PersistenceControllerTests storeURL 断言 Assistant.sqlite→Qingniao.sqlite；DatabaseManagerTests 路径断言 Assistant→Qingniao。
+- 更新受路径改名影响的既有测试：PersistenceControllerTests storeURL 断言 Assistant.sqlite→Qingyu.sqlite；DatabaseManagerTests 路径断言 Assistant→Qingyu。
 
 ### 暴露给 T-013 的 API 签名
 - `DataManagementService.resetAllData() async throws`
@@ -290,7 +290,7 @@ TOK(6) 设计 token / BRAND(7) 改名一致性 / DATA(5) 数据迁移 / DI(3) Ap
 
 **1. UnitConverterSource（独立死代码）**
 - 删 `Services/SearchEngine/UnitConverterSource.swift`（仅 legacy UnifiedSearchSource 包装；单位换算已在 CalculatorSource 内）。
-- 删 `QingniaoTests/UnitConverterSourceTests.swift`，把其中走 `CalculatorSource.search(query:)` 的换算覆盖（cm/kg/数据大小/温度/拒绝币种体积时长）迁进 `CalculatorSourceTests`；仅删掉走已删类的 legacy wrapper 测试。
+- 删 `QingyuTests/UnitConverterSourceTests.swift`，把其中走 `CalculatorSource.search(query:)` 的换算覆盖（cm/kg/数据大小/温度/拒绝币种体积时长）迁进 `CalculatorSourceTests`；仅删掉走已删类的 legacy wrapper 测试。
 - commit 1。
 
 **2. OCR / ContentStore / GRDB ContentRepository / UnifiedSearch / MenuBar（一体化，互相耦合）**
@@ -314,7 +314,7 @@ TOK(6) 设计 token / BRAND(7) 改名一致性 / DATA(5) 数据迁移 / DI(3) Ap
 - commit 3。
 
 ### 验证结果
-- `xcodebuild -project Qingniao.xcodeproj -scheme Qingniao -configuration Debug build` → **BUILD SUCCEEDED**（每个模块删完都跑）。
+- `xcodebuild -project Qingyu.xcodeproj -scheme Qingyu -configuration Debug build` → **BUILD SUCCEEDED**（每个模块删完都跑）。
 - `xcodebuild ... build-for-testing` → **TEST BUILD SUCCEEDED**。
 - `xcodebuild ... test` → **TEST SUCCEEDED**（全部测试套件通过）。
 - done_definition grep 门禁：`grep -rn "UnifiedSearch|MenuBarView|UnitConverterSource|OCRService|ContentStore|ContentRepository" --include=*.swift` 仅剩解释性注释（无 live 引用）。
@@ -336,7 +336,7 @@ TOK(6) 设计 token / BRAND(7) 改名一致性 / DATA(5) 数据迁移 / DI(3) Ap
 ### 目标
 把 ~600 行 god object `AppDelegate` 按职责拆成 AppContainer(DI 根) + 5 个 App Shell 控制器，AppDelegate 瘦身到 <200 行；顺带清掉 review 标注的强制解包点。不重写任何 UI 外观（SearchPanelView/ClipboardListView/ManagementCenterView 保持现状）。
 
-### 新增文件（Qingniao/App/Controllers/）
+### 新增文件（Qingyu/App/Controllers/）
 - **AppContainer.swift**（@MainActor, NSObject）：依赖注入根。
   - 持有 Data/Repository/Service 单例：`clipboardSearchIndex`、`resourceStore`、`clipboardRepository`(IndexingClipboardRepository)、`clipboardMonitor`、`clipboardService`、`cleanupService`、`updateService`、`screenshotService`、三个 SearchSource(app/command/calculator)。
   - 惰性持有 5 个控制器（statusItem/commandBar/clipboardHistory/settings/screenshot）。
@@ -378,20 +378,20 @@ AppDelegate 通过 `container.onboardingGate = { self.ensureOnboardingGate() }` 
 - 剩余 fatalError 仅 4 处，全是 AppKit `init(coder:)` 样板。
 
 ### 验证结果
-- `xcodebuild -project Qingniao.xcodeproj -scheme Qingniao -configuration Debug build` → **BUILD SUCCEEDED**。
+- `xcodebuild -project Qingyu.xcodeproj -scheme Qingyu -configuration Debug build` → **BUILD SUCCEEDED**。
 - `xcodebuild ... build-for-testing` → **TEST BUILD SUCCEEDED**。
 - `swift build` → Build complete；`swift test` → **133 tests, 0 failures**。
 - `grep 'try!| as! |string:)!'` 非测试代码仅剩 ReleaseInfoService 注释里的说明字样，无 live 强解。
 - AppDelegate.swift = **150 行**（< 200 目标）。
 
 ### commit
-1. `refactor(T-006): extract AppContainer DI root + window controllers from AppDelegate`（新增 6 控制器文件 + AppDelegate 瘦身 + QingniaoApp Settings 场景清空 + pbxproj 接线）
+1. `refactor(T-006): extract AppContainer DI root + window controllers from AppDelegate`（新增 6 控制器文件 + AppDelegate 瘦身 + QingyuApp Settings 场景清空 + pbxproj 接线）
 2. `fix(T-006): remove force-unwraps flagged in v1.2 robustness pass`
 3. 本次 progress/tasks 记录 commit
 
 ### 留给后续 agent 的提示
-- **pbxproj 是手工维护的 group 型工程**（非 fileSystemSynchronized）。新增 .swift 必须同时：① SwiftPM 自动 glob `Qingniao/` 目录（无需改）；② **手动在 project.pbxproj 加 PBXBuildFile + PBXFileReference + PBXGroup children + Sources build phase 四处**。本次新控制器用 `G001...` 前缀 id，放在新建的 `App/Controllers` group。
-- **AppState.swift 现已成为死代码**：QingniaoApp 原来靠它注入 SettingsView 的 environmentObject，本次 Settings 场景改 EmptyView 后无人引用。未删（避免动 pbxproj 引用、非 T-006 目标）；可在后续清理任务顺手删（需同步删 pbxproj 三处引用）。
+- **pbxproj 是手工维护的 group 型工程**（非 fileSystemSynchronized）。新增 .swift 必须同时：① SwiftPM 自动 glob `Qingyu/` 目录（无需改）；② **手动在 project.pbxproj 加 PBXBuildFile + PBXFileReference + PBXGroup children + Sources build phase 四处**。本次新控制器用 `G001...` 前缀 id，放在新建的 `App/Controllers` group。
+- **AppState.swift 现已成为死代码**：QingyuApp 原来靠它注入 SettingsView 的 environmentObject，本次 Settings 场景改 EmptyView 后无人引用。未删（避免动 pbxproj 引用、非 T-006 目标）；可在后续清理任务顺手删（需同步删 pbxproj 三处引用）。
 - **SettingsWindowController 用直接 select(route:) 导航**，没订阅 .openManagementCenter；但 ManagementCenterView 自身仍订阅该通知（SearchPanelViewModel/SystemCommandSource 会 post）。AppContainer.handleOpenManagementCenter 收到通知后调 `settingsWindowController.show(route:)`，窗口已存在时再 select 一次——不会递归（控制器不再 post 通知）。
 - **命令栏 UI 仍是 SearchPanelView**（T-011 会重写为 Jade 风格 CommandBarView，装进 CommandBarController 即可，无需再动窗口层）。
 - **截图 UI 仍是 ScreenshotToolbarController/AnnotationEditorWindow/ScreenshotOverlay**（T-014 重写；ScreenshotWindowController 只搬了编排逻辑，未碰 UI）。
@@ -404,9 +404,9 @@ AppDelegate 通过 `container.onboardingGate = { self.ensureOnboardingGate() }` 
 ## T-007 统一 Jade 组件库（presentation, P1)
 
 ### 状态
-✅ 完成。`xcodebuild -project Qingniao.xcodeproj -scheme Qingniao -configuration Debug build` → **BUILD SUCCEEDED**。tasks.json T-007 passes=true。
+✅ 完成。`xcodebuild -project Qingyu.xcodeproj -scheme Qingyu -configuration Debug build` → **BUILD SUCCEEDED**。tasks.json T-007 passes=true。
 
-### 新增文件（Qingniao/Views/Components/,均带 light+dark #Preview）
+### 新增文件（Qingyu/Views/Components/,均带 light+dark #Preview）
 1. `JadeButton.swift` — `JadeButtonStyle: ButtonStyle`,四变体 primary/secondary/destructive/ghost;hover/pressed/disabled 三态;水平 fixedSize。便捷 API `.jadePrimary/.jadeSecondary/.jadeDestructive/.jadeGhost`。primary=primary 底白字、secondary=surface2 底主色前景+border 描边、destructive=systemRed、ghost 透明底 hover 出 surface2。
 2. `JadeTextField.swift` — `@Binding<String>`+`LocalizedStringKey` placeholder,可选左图标 `Image?`,右 xmark.circle.fill 清空;`@FocusState` 驱动:focus 1.5pt primary 边框/未 focus 1pt border;JadeRadius.md、JadeFont.body、内边 12×9。
 3. `HotkeyRecorder.swift` — 包 `KeyboardShortcuts.Recorder`,jade 圆角/边框/focus primary;**不做冲突检测**(T-008),暴露 `isConflicting: Binding<Bool>`+`conflictMessage: Binding<String?>` 外部传入,冲突时行内红色 exclamationmark.triangle 警告。
@@ -426,7 +426,7 @@ AppDelegate 通过 `container.onboardingGate = { self.ensureOnboardingGate() }` 
 ### commit（3 次)
 1. `feat(T-007): 新增 Jade 组件库 8 个组件`
 2. `feat(T-007): 重写 ToastView 为 JadeToast + 迁移截图内联 toast`
-3. `build(T-007): 注册 9 个 Jade 组件文件到 Qingniao.xcodeproj`
+3. `build(T-007): 注册 9 个 Jade 组件文件到 Qingyu.xcodeproj`
 （+本次 progress/tasks 记录 commit）
 
 ### 留给后续 agent 的提示
@@ -440,7 +440,7 @@ AppDelegate 通过 `container.onboardingGate = { self.ensureOnboardingGate() }` 
 ## T-008 全局快捷键管理（全屏热键 ⌃⌥⌘3 + 冲突检测 + 默认键修正, services, P0)
 
 ### 状态
-✅ 完成。`xcodebuild -project Qingniao.xcodeproj -scheme Qingniao -configuration Debug build` → **BUILD SUCCEEDED**。新增 8 个单测全绿。tasks.json T-008 passes=true。
+✅ 完成。`xcodebuild -project Qingyu.xcodeproj -scheme Qingyu -configuration Debug build` → **BUILD SUCCEEDED**。新增 8 个单测全绿。tasks.json T-008 passes=true。
 
 ### 快捷键默认值清单（PRD §9.6 / FR-UI-HOTKEYS，均用户可重绑）
 | Name | 功能 | 默认键 | 说明 |
@@ -453,18 +453,18 @@ AppDelegate 通过 `container.onboardingGate = { self.ensureOnboardingGate() }` 
 | openSettings | 打开设置 | ⌥⌘, | **新增** |
 
 ### 新增文件
-1. `Qingniao/Services/Hotkey/GlobalShortcutManager.swift`（@MainActor）— 统一注册 6 个热键回调（setupShortcuts / registerXxx / unregisterAll / resetAllShortcutsToDefaults / refreshConflicts）。全屏截图接 `ScreenshotWindowController.captureFullScreen()`（内部走既有 `ScreenshotService.captureScreen()`，命名保持不动，仅在 controller 层用 captureFullScreen 别名编排）；剪贴板历史接 `clipboardHistoryWindowController.show()`；设置接 `settingsWindowController.show(route:.settings)`。持有 `conflictDetector`。
-2. `Qingniao/Services/Hotkey/HotkeyConflictDetector.swift`（@MainActor, ObservableObject）— 基础版冲突检测：①与启用中的 macOS 符号热键冲突（复用 `HotkeyValidationService.enabledSystemShortcuts`）②我方 6 个热键之间重复绑定。`@Published conflictingNames: Set<Name>` + `conflictMessages: [Name:String]`。`scan()` 全量刷新；`evaluate(_:for:)` 单键评估返回 `.registered/.conflict(String)`。附 `HotkeyAction`（含 name 映射 + init?(name:)）与 `HotkeyRegistrationOutcome`（对齐 api.md §17）。init 为 nonisolated 以便默认参数求值。
-3. `QingniaoTests/HotkeyConflictDetectorTests.swift` — 8 测试：6 项默认值断言（SHORTCUT-001..004）、managedGlobalShortcuts 覆盖 6 槽、HotkeyAction<->Name 往返、系统冲突/内部重复 flagged、evaluate free/system。
+1. `Qingyu/Services/Hotkey/GlobalShortcutManager.swift`（@MainActor）— 统一注册 6 个热键回调（setupShortcuts / registerXxx / unregisterAll / resetAllShortcutsToDefaults / refreshConflicts）。全屏截图接 `ScreenshotWindowController.captureFullScreen()`（内部走既有 `ScreenshotService.captureScreen()`，命名保持不动，仅在 controller 层用 captureFullScreen 别名编排）；剪贴板历史接 `clipboardHistoryWindowController.show()`；设置接 `settingsWindowController.show(route:.settings)`。持有 `conflictDetector`。
+2. `Qingyu/Services/Hotkey/HotkeyConflictDetector.swift`（@MainActor, ObservableObject）— 基础版冲突检测：①与启用中的 macOS 符号热键冲突（复用 `HotkeyValidationService.enabledSystemShortcuts`）②我方 6 个热键之间重复绑定。`@Published conflictingNames: Set<Name>` + `conflictMessages: [Name:String]`。`scan()` 全量刷新；`evaluate(_:for:)` 单键评估返回 `.registered/.conflict(String)`。附 `HotkeyAction`（含 name 映射 + init?(name:)）与 `HotkeyRegistrationOutcome`（对齐 api.md §17）。init 为 nonisolated 以便默认参数求值。
+3. `QingyuTests/HotkeyConflictDetectorTests.swift` — 8 测试：6 项默认值断言（SHORTCUT-001..004）、managedGlobalShortcuts 覆盖 6 槽、HotkeyAction<->Name 往返、系统冲突/内部重复 flagged、evaluate free/system。
 
 ### 改写文件
-- `Qingniao/Utilities/KeyboardShortcuts+Names.swift` — 修正 captureRegion/Window 默认键，新增 captureFullscreen/openClipboardHistory/openSettings，新增 `static managedGlobalShortcuts: [Name]`（6 项）。
-- `Qingniao/App/Controllers/AppContainer.swift` — 注入 `globalShortcutManager` lazy 依赖。
-- `Qingniao/App/AppDelegate.swift` — 删除内联 3 键注册，改为 `container.globalShortcutManager.setupShortcuts()`；移除已无用的 KeyboardShortcuts import。
-- `Qingniao/ViewModels/SettingsViewModel.swift` — 注入 HotkeyConflictDetector；新增 `@Published conflictWarnings: [Name:String]`、`isShortcutConflict(_:)`、`conflictMessage(for:)`、`refreshShortcutConflicts()`、`resetAllShortcutsToDefaults()`（**供 T-013 绑定**）；`load()` 末尾刷新冲突。
-- `Qingniao/Views/Settings/SettingsView.swift` — 快捷键 section 补齐 6 项行，shortcutRow 加 name 参数：录制变更 onChange 刷新冲突 + 行内红色 exclamationmark.triangle 警告；重置按钮改走 `viewModel.resetAllShortcutsToDefaults()`。（未重写 UI，符合任务约束）
-- `Qingniao/Resources/Localizable.xcstrings` — 新增 management.shortcuts.captureFullscreen/clipboardHistory/openSettings + conflict.system/conflict.internal + shortcuts.reset（en/zh-Hans）。
-- `Qingniao.xcodeproj/project.pbxproj` — C014 前缀 UUID 接线 3 个新文件（2 源 + 1 测试），四处：PBXBuildFile / PBXFileReference / PBXGroup / PBXSourcesBuildPhase。
+- `Qingyu/Utilities/KeyboardShortcuts+Names.swift` — 修正 captureRegion/Window 默认键，新增 captureFullscreen/openClipboardHistory/openSettings，新增 `static managedGlobalShortcuts: [Name]`（6 项）。
+- `Qingyu/App/Controllers/AppContainer.swift` — 注入 `globalShortcutManager` lazy 依赖。
+- `Qingyu/App/AppDelegate.swift` — 删除内联 3 键注册，改为 `container.globalShortcutManager.setupShortcuts()`；移除已无用的 KeyboardShortcuts import。
+- `Qingyu/ViewModels/SettingsViewModel.swift` — 注入 HotkeyConflictDetector；新增 `@Published conflictWarnings: [Name:String]`、`isShortcutConflict(_:)`、`conflictMessage(for:)`、`refreshShortcutConflicts()`、`resetAllShortcutsToDefaults()`（**供 T-013 绑定**）；`load()` 末尾刷新冲突。
+- `Qingyu/Views/Settings/SettingsView.swift` — 快捷键 section 补齐 6 项行，shortcutRow 加 name 参数：录制变更 onChange 刷新冲突 + 行内红色 exclamationmark.triangle 警告；重置按钮改走 `viewModel.resetAllShortcutsToDefaults()`。（未重写 UI，符合任务约束）
+- `Qingyu/Resources/Localizable.xcstrings` — 新增 management.shortcuts.captureFullscreen/clipboardHistory/openSettings + conflict.system/conflict.internal + shortcuts.reset（en/zh-Hans）。
+- `Qingyu.xcodeproj/project.pbxproj` — C014 前缀 UUID 接线 3 个新文件（2 源 + 1 测试），四处：PBXBuildFile / PBXFileReference / PBXGroup / PBXSourcesBuildPhase。
 
 ### 暴露给 T-013 的 API（SettingsViewModel）
 - `@Published var conflictWarnings: [KeyboardShortcuts.Name: String]`
@@ -496,21 +496,21 @@ AppDelegate 通过 `container.onboardingGate = { self.ensureOnboardingGate() }` 
 将 `FileSearchSource` 从旧的 Spotlight/`NSMetadataQuery` + 拼音实现重写为**固定三目录 + FileManager 一次性内存缓存**方案，并接入 `SearchService`。⌥Space 现在能搜到 `~/Desktop`、`~/Documents`、`~/Downloads` 下文件，⏎ 打开、⌘R Finder 显示、⌘C 复制路径，权重 75。
 
 ### 改写/新增文件
-- `Qingniao/Services/SearchEngine/FileSearchSource.swift` — 完全重写：
+- `Qingyu/Services/SearchEngine/FileSearchSource.swift` — 完全重写：
   - 默认索引根 `~/Desktop`、`~/Documents`、`~/Downloads`（`defaultRoots(home:)`，`SettingKey.fileSearchPaths` 扩展点预留，v1.2 固定）。
   - 构造时 `Task.detached(.utility)` 后台 `FileManager.enumerator` 一次性遍历建缓存 `[FileIndexItem]`（name/path/normalizedName/normalizedPath/uti/size/mtime）；完成后发 `.fileSearchIndexReady`。首次查询若索引未就绪则懒加载 `rebuildIndex()`，不阻塞其他源（SearchService 并发 fan-out）。
   - 排除：隐藏文件/目录（`.skipsHiddenFiles`）、bundle 包内部（`.skipsPackageDescendants`）、bundle 本体（`isPackage`）；深度上限 `maxDepth=8`；文件数上限 `maxIndexedFiles=100_000`。
   - 匹配:大小写 + 变音符 + 全半角不敏感（folding），名称 exact/prefix/contains + 路径 contains 四档 + 最近修改加分；**无拼音**（FR-SEARCH-13）；≥2 字符触发（FR-SEARCH-17）。
   - `FileIndexItem` 结构体取代旧 `FileInfo`；`FileSearchSourceProtocol` 契约改为 `indexedRoots` + `rebuildIndex()`（对齐 api.md §5）。
   - 结果 `SearchResult`：title=文件名、subtitle=`~相对目录 · 大小`、icon=`.appIcon(url)`(经 NSWorkspace 取系统文件图标)、typeLabel=`searchPanel.type.file`(文件/File)、baseScore=`SourcePriority.file`=75、primary=`.openFile`、secondary=`[.revealInFinder, .copyText(path)]`。
-- `QingniaoTests/FileSearchSourceTests.swift`（新增，10 条测试，全部临时目录，不扫用户家目录）：索引三目录、搜索结果+动作、权重 75、≥2 字符触发、isEnabled 开关（用 Mock SettingsService 避免 Core Data 并发争用）、大小写/变音不敏感、prefix > contains 排序、跳过隐藏文件、不索引 bundle 内容、默认三目录。
+- `QingyuTests/FileSearchSourceTests.swift`（新增，10 条测试，全部临时目录，不扫用户家目录）：索引三目录、搜索结果+动作、权重 75、≥2 字符触发、isEnabled 开关（用 Mock SettingsService 避免 Core Data 并发争用）、大小写/变音不敏感、prefix > contains 排序、跳过隐藏文件、不索引 bundle 内容、默认三目录。
 
 ### 被并发 T-008 提交顺带纳入的改动（非本次单独 commit，但属 T-009 接线）
 以下文件在本任务执行期间被并发运行的 T-008 流程的 commit 一并提交（内容为 T-009 接线，已核对无误）：
-- `Qingniao/App/Controllers/AppContainer.swift` — 新增 `private let fileSearchSource = FileSearchSource()`；`makeSearchPanelViewModel` 里 `SettingsBackedSearchSource(..., settingKey: .fileSourceEnabled)` 包装并加入 `sources` 数组（第 5 位，clipboard 之前）。
-- `Qingniao/ViewModels/SettingsViewModel.swift` — 搜索源开关新增「文件」项（`.file` / `.fileSourceEnabled` / icon `doc`）；`resetSettingsToDefaults` 列表补 `.fileSourceEnabled`。
-- `Qingniao/Resources/Localizable.xcstrings` — 新增 `searchPanel.type.file`、`management.source.file`、`management.source.file.subtitle`（en/zh-Hans）。
-- `Qingniao.xcodeproj/project.pbxproj` — FileSearchSource.swift 补进 Qingniao target 的 PBXBuildFile + Sources 构建阶段（此前只有 group 引用，从未编译进 target，这正是它"从未被实例化"的根因之一）；FileSearchSourceTests.swift 加入 QingniaoTests target 四处接线。
+- `Qingyu/App/Controllers/AppContainer.swift` — 新增 `private let fileSearchSource = FileSearchSource()`；`makeSearchPanelViewModel` 里 `SettingsBackedSearchSource(..., settingKey: .fileSourceEnabled)` 包装并加入 `sources` 数组（第 5 位，clipboard 之前）。
+- `Qingyu/ViewModels/SettingsViewModel.swift` — 搜索源开关新增「文件」项（`.file` / `.fileSourceEnabled` / icon `doc`）；`resetSettingsToDefaults` 列表补 `.fileSourceEnabled`。
+- `Qingyu/Resources/Localizable.xcstrings` — 新增 `searchPanel.type.file`、`management.source.file`、`management.source.file.subtitle`（en/zh-Hans）。
+- `Qingyu.xcodeproj/project.pbxproj` — FileSearchSource.swift 补进 Qingyu target 的 PBXBuildFile + Sources 构建阶段（此前只有 group 引用，从未编译进 target，这正是它"从未被实例化"的根因之一）；FileSearchSourceTests.swift 加入 QingyuTests target 四处接线。
 
 ### 说明 / 遗留
 - `SettingKey.fileSourceEnabled` 及默认值 `"true"`、`SearchAction.openFile/.revealInFinder`、`SearchResultIcon` 渲染均已存在（T-005/前序任务已备），本次直接复用，未改 UI（SearchPanelView 仍走 `.appIcon` 分支渲染文件图标，符合"不改 UI"约束，交 T-011）。
@@ -526,18 +526,18 @@ AppDelegate 通过 `container.onboardingGate = { self.ensureOnboardingGate() }` 
 将旧的 7 步向导 Onboarding 重构为 PRD §9.4 P-06 单屏布局（720×520），辅助功能权限由强制改为按需（`onDemandAccessibilityCheck()`），屏幕录制作为主流程前置（可「暂不开启截图」跳过），完成后写 `onboarding.completedAt` 时间戳，重启不重弹（AC-6）。
 
 ### 改写/新增文件
-- `Qingniao/Services/Permissions/PermissionService.swift` — 协议 + 实现新增 `@MainActor onDemandAccessibilityCheck() -> Bool`：已授权直接返回 true；未授权弹 NSAlert（说明用途 + 「打开系统设置」/「取消」），点「打开系统设置」调 `openSystemSettings(for: .accessibility)`（内部走 `requestAccessibilityPromptIfNeeded` + 打开隐私页）。Onboarding **不**触发辅助功能 TCC。
-- `Qingniao/ViewModels/OnboardingViewModel.swift` — 完全重写为单屏状态机：移除 `OnboardingStep`/`step`/`continueToNextStep`/`completeIfPossible`/`canContinueCurrentStep`。新状态：`hotkeyValidation`、`clipboardEnabled`(默认 true)、`launchAtLoginEnabled`(默认 false)、`screenRecordingAuthorized`、`screenshotSkipped`、`completionErrorMessage`。核心规则 `canStart = screenRecordingAuthorized || screenshotSkipped`（简单明确，不卡死）。`requestScreenRecording()` 触发 TCC 并刷新；`skipScreenshot()` 置跳过；`start()` 写 hotkey+clipboard+launchAtLogin+`markCompleted()`；`skipOnboarding()` 显式写 `clipboardEnabled=false`+`markCompleted()`。`markCompleted()` 写 `onboardingCompletedAt`(ISO8601 时间戳) + legacy `onboardingCompleted=true`（双写，兼容旧读取路径）。构造函数新增可注入 `now: () -> Date`。
-- `Qingniao/Views/Onboarding/OnboardingView.swift` — 完全重写为单屏：VStack 720×520 + `JadeRadius.xl` + `JadeShadow.xl` + padding x8（32）。顶部 SF Symbol `bird` 80pt jade 色 + display 标题 + body 副标题；中段 3 张 `surface2` + `JadeRadius.md` 卡片（HotkeyRecorder 绑 `.togglePanel` / 剪贴板 Toggle / 开机启动 Toggle，均 tint primary）；屏幕录制段（说明 + primary「授予屏幕录制权限」/ ghost「暂不开启截图」，已授权显示「已授予 ✓」success）；辅助功能段（说明 + ghost「稍后再说」）；footer（ghost「跳过设置」带 `jadeConfirmationDialog` / primary「开始使用」disabled=`!canStart` / Link「隐私政策」）。全 token 化，无硬编码。#Preview 更新为单屏 Light/Dark。
-- `Qingniao/App/Controllers/AppContainer.swift` — `loadOnboardingCompletionState()` 改为优先读 `onboarding.completedAt`（非空即完成），回落 legacy 布尔（AC-6 重启不重弹核心）。
-- `Qingniao/App/AppDelegate.swift` — onboarding 窗口 680→720 宽；`OnboardingViewModel(onComplete:)` 显式标签。
-- `Qingniao/Resources/Localizable.xcstrings` — 新增 17 键（en + zh-Hans）：onboarding.hotkey.title / clipboard.toggle(.subtitle) / launchAtLogin.toggle.subtitle / screenRecording.explain/.grant/.granted/.skip/.skipped / accessibility.explain/.later / start / error.screenRecordingRequired / permission.onDemand.accessibility.title/.message/.openSettings/.cancel。
-- `QingniaoTests/OnboardingViewModelTests.swift` — 重写为单屏断言（12 条）：canStart 规则、skipScreenshot、requestScreenRecording 触发一次、onboarding 全程 0 次辅助功能申请、start 被 canStart 阻塞、start 写 completedAt+legacy+settings+launchAtLogin、clipboard=false 分支、skipOnboarding 写 false、hotkey 持久化、onAppear 刷新。MockPermissionService 补 `onDemandAccessibilityCheck` 计数替身。
-- `QingniaoTests/PermissionServiceProtocolConformanceTests.swift` — 补 PERM-OD-003：Mock/Static 两 conformer 的 `onDemandAccessibilityCheck` 断言（编译即验证真实服务已实现）。
-- `QingniaoTests/SettingsSourceTests.swift` — `StaticPermissionService` 补 `onDemandAccessibilityCheck`。
+- `Qingyu/Services/Permissions/PermissionService.swift` — 协议 + 实现新增 `@MainActor onDemandAccessibilityCheck() -> Bool`：已授权直接返回 true；未授权弹 NSAlert（说明用途 + 「打开系统设置」/「取消」），点「打开系统设置」调 `openSystemSettings(for: .accessibility)`（内部走 `requestAccessibilityPromptIfNeeded` + 打开隐私页）。Onboarding **不**触发辅助功能 TCC。
+- `Qingyu/ViewModels/OnboardingViewModel.swift` — 完全重写为单屏状态机：移除 `OnboardingStep`/`step`/`continueToNextStep`/`completeIfPossible`/`canContinueCurrentStep`。新状态：`hotkeyValidation`、`clipboardEnabled`(默认 true)、`launchAtLoginEnabled`(默认 false)、`screenRecordingAuthorized`、`screenshotSkipped`、`completionErrorMessage`。核心规则 `canStart = screenRecordingAuthorized || screenshotSkipped`（简单明确，不卡死）。`requestScreenRecording()` 触发 TCC 并刷新；`skipScreenshot()` 置跳过；`start()` 写 hotkey+clipboard+launchAtLogin+`markCompleted()`；`skipOnboarding()` 显式写 `clipboardEnabled=false`+`markCompleted()`。`markCompleted()` 写 `onboardingCompletedAt`(ISO8601 时间戳) + legacy `onboardingCompleted=true`（双写，兼容旧读取路径）。构造函数新增可注入 `now: () -> Date`。
+- `Qingyu/Views/Onboarding/OnboardingView.swift` — 完全重写为单屏：VStack 720×520 + `JadeRadius.xl` + `JadeShadow.xl` + padding x8（32）。顶部 SF Symbol `bird` 80pt jade 色 + display 标题 + body 副标题；中段 3 张 `surface2` + `JadeRadius.md` 卡片（HotkeyRecorder 绑 `.togglePanel` / 剪贴板 Toggle / 开机启动 Toggle，均 tint primary）；屏幕录制段（说明 + primary「授予屏幕录制权限」/ ghost「暂不开启截图」，已授权显示「已授予 ✓」success）；辅助功能段（说明 + ghost「稍后再说」）；footer（ghost「跳过设置」带 `jadeConfirmationDialog` / primary「开始使用」disabled=`!canStart` / Link「隐私政策」）。全 token 化，无硬编码。#Preview 更新为单屏 Light/Dark。
+- `Qingyu/App/Controllers/AppContainer.swift` — `loadOnboardingCompletionState()` 改为优先读 `onboarding.completedAt`（非空即完成），回落 legacy 布尔（AC-6 重启不重弹核心）。
+- `Qingyu/App/AppDelegate.swift` — onboarding 窗口 680→720 宽；`OnboardingViewModel(onComplete:)` 显式标签。
+- `Qingyu/Resources/Localizable.xcstrings` — 新增 17 键（en + zh-Hans）：onboarding.hotkey.title / clipboard.toggle(.subtitle) / launchAtLogin.toggle.subtitle / screenRecording.explain/.grant/.granted/.skip/.skipped / accessibility.explain/.later / start / error.screenRecordingRequired / permission.onDemand.accessibility.title/.message/.openSettings/.cancel。
+- `QingyuTests/OnboardingViewModelTests.swift` — 重写为单屏断言（12 条）：canStart 规则、skipScreenshot、requestScreenRecording 触发一次、onboarding 全程 0 次辅助功能申请、start 被 canStart 阻塞、start 写 completedAt+legacy+settings+launchAtLogin、clipboard=false 分支、skipOnboarding 写 false、hotkey 持久化、onAppear 刷新。MockPermissionService 补 `onDemandAccessibilityCheck` 计数替身。
+- `QingyuTests/PermissionServiceProtocolConformanceTests.swift` — 补 PERM-OD-003：Mock/Static 两 conformer 的 `onDemandAccessibilityCheck` 断言（编译即验证真实服务已实现）。
+- `QingyuTests/SettingsSourceTests.swift` — `StaticPermissionService` 补 `onDemandAccessibilityCheck`。
 
 ### 验证
-- `xcodebuild -scheme Qingniao -configuration Debug clean build` → **BUILD SUCCEEDED**。
+- `xcodebuild -scheme Qingyu -configuration Debug clean build` → **BUILD SUCCEEDED**。
 - `xcodebuild ... test`（隔离 worktree @HEAD，干净 derivedData）→ **All tests passed / TEST SUCCEEDED**，140 test case 全绿，含 12 条 OnboardingViewModelTests + PERM-OD-003 conformance。
 - disabled 规则正确：屏幕录制未授权且未点「暂不开启截图」时「开始使用」disabled；授权后或点跳过后 enabled（`test_canStart_*` 覆盖）。
 - AC-6（重启不重弹）：`start()`/`skipOnboarding()` 写 `onboarding.completedAt` 时间戳；`AppContainer.loadOnboardingCompletionState()` 优先读该键非空即完成 → 重启 `isOnboardingCompleted=true` 直接进主界面，不再 `showOnboardingWindow()`。单测 `test_start_writesSettingsAndCompletedAt` / `test_skipOnboarding_writesFlagsAndInvokesCompletion` 断言 completedAt 非空。手工 E2E（重启真实验证）留待手工测试。
@@ -552,7 +552,7 @@ AppDelegate 通过 `container.onboardingGate = { self.ensureOnboardingGate() }` 
 ## T-012 剪贴板历史窗口（P-02 重写）+ RecentContent 改造（2026-07-06）
 
 ### 状态
-✅ 完成。`xcodebuild -project Qingniao.xcodeproj -scheme Qingniao -configuration Debug build` → **BUILD SUCCEEDED**。剪贴板相关测试全绿（ClipboardListViewModelTests 4 + AssistantClipboardRepositoryTests 10 + InMemorySearchIndexTests 5 + DatabaseManagerTests 4 = 23/23）。tasks.json T-012 passes=true。
+✅ 完成。`xcodebuild -project Qingyu.xcodeproj -scheme Qingyu -configuration Debug build` → **BUILD SUCCEEDED**。剪贴板相关测试全绿（ClipboardListViewModelTests 4 + AssistantClipboardRepositoryTests 10 + InMemorySearchIndexTests 5 + DatabaseManagerTests 4 = 23/23）。tasks.json T-012 passes=true。
 
 ### 数据层（isFavorite 全链路）
 - `PersistenceController`：ClipboardRecord 实体新增 `isFavorite`（Bool，默认 false，`shouldMigrateStoreAutomatically` 已开，轻量迁移自动加列）；`CDClipboardRecord` 加 `@NSManaged var isFavorite`。
@@ -579,7 +579,7 @@ AppDelegate 通过 `container.onboardingGate = { self.ensureOnboardingGate() }` 
 - `Localizable.xcstrings`：新增 clipboard.filter.rtf/pinned/favorite/today/yesterday/earlier、clipboard.sidebar.types/special/time、clipboard.status.summary/retentionDays/retentionForever、clipboard.empty.disabled.title/enable（en + zh-Hans）。
 
 ### RecentContentView 决策
-- **删/留**：无需删除。全工程（Qingniao + QingniaoTests + pbxproj）grep 无 `RecentContentView`/`RecentContentViewModel` 任何引用，文件本身也不存在（早期迭代已移除）。ClipboardHistoryView 即 P-02 唯一浏览/筛选/搜索/操作入口。
+- **删/留**：无需删除。全工程（Qingyu + QingyuTests + pbxproj）grep 无 `RecentContentView`/`RecentContentViewModel` 任何引用，文件本身也不存在（早期迭代已移除）。ClipboardHistoryView 即 P-02 唯一浏览/筛选/搜索/操作入口。
 
 ### pbxproj
 - 手工 rename：A10000...012 ClipboardListView.swift→ClipboardHistoryView.swift、A10000...013 ClipboardItemRow.swift→JadeClipboardRow.swift（PBXBuildFile/PBXFileReference/PBXGroup/Sources 四处，复用原 UUID）。
@@ -599,33 +599,33 @@ AppDelegate 通过 `container.onboardingGate = { self.ensureOnboardingGate() }` 
 ## T-011 Command Bar 重写（P-01，presentation, P0）（2026-07-03）
 
 ### 状态
-✅ 完成。隔离 worktree（基于 HEAD，避免并发 T-012 未提交改动干扰）内 `xcodebuild -project Qingniao.xcodeproj -scheme Qingniao -configuration Debug build/test` → **BUILD SUCCEEDED / TEST SUCCEEDED（148 tests, 0 failures）**。tasks.json T-011 passes=true。
+✅ 完成。隔离 worktree（基于 HEAD，避免并发 T-012 未提交改动干扰）内 `xcodebuild -project Qingyu.xcodeproj -scheme Qingyu -configuration Debug build/test` → **BUILD SUCCEEDED / TEST SUCCEEDED（148 tests, 0 failures）**。tasks.json T-011 passes=true。
 
 ### 文件 rename
-- `Qingniao/Views/SearchPanel/SearchPanelView.swift` → `CommandBarView.swift`（git mv + pbxproj 四处同步：PBXBuildFile/PBXFileReference/group/Sources，UUID B011...0003/0004 复用，仅改 path/注释）。
+- `Qingyu/Views/SearchPanel/SearchPanelView.swift` → `CommandBarView.swift`（git mv + pbxproj 四处同步：PBXBuildFile/PBXFileReference/group/Sources，UUID B011...0003/0004 复用，仅改 path/注释）。
 - `SearchPanelView`(struct) → `CommandBarView`；`SearchPanelResultRow` → `CommandBarResultRow`。
 - **ViewModel 保留原名 `SearchPanelViewModel`**（扩展而非改名，减少 4 处引用面 + 测试改动；类型仍是命令栏后端）。
 
 ### 新增文件
-- `Qingniao/Services/SearchEngine/CommandBarHomeProvider.swift` — 空态 home 内容聚合器（薄只读）：
+- `Qingyu/Services/SearchEngine/CommandBarHomeProvider.swift` — 空态 home 内容聚合器（薄只读）：
   - `recentResults(limit:)`：读 `UsageStatRepository.recentlyUsed`（按 `lastUsedAt` 降序），按 targetType 解析为 app（经 AppSource.index 拿当前 path/名）/命令（catalog 查表）result；过量取 3×limit 容忍已卸载 app/未知命令。
   - `favoriteResults(limit:)`：`clipboardRepository.fetchHistory` 取 `isPinned` 记录（v1.2 D-036 只做置顶，无 favorites/tags；**注意**：working tree 里并发 T-012 给 snapshot 加了 `isFavorite`，本 provider 为对齐 HEAD 基线只依赖 `isPinned`，T-012 落地后可加 `|| isFavorite`）。
   - `CommandBarHomeProviding` 协议 + `StubHomeProvider` 测试替身。
   - pbxproj C011 前缀接线（4 处）。
 
 ### 改写文件
-- `Qingniao/ViewModels/SearchPanelViewModel.swift`：
+- `Qingyu/ViewModels/SearchPanelViewModel.swift`：
   - `CommandBarSource`(⌘1-6 枚举 all/app/command/clipboard/file/settings) + `activeSource` + `visibleResults`(按源过滤，calculator 归 all)。
   - home：`recentResults/favoriteResults/hasHomeContent/loadHomeContent()`；`open()` 触发加载；空 query searchNow 也刷新 home。
   - 危险命令：`isDangerous`(clearClipboardHistory/restartFinder/restartDock)、`trigger`(危险→`pendingDangerResult`,否则执行)、`confirmPendingDanger/cancelPendingDanger`。
   - `copyCurrentValue()`(⌘C：copyText/openFile/revealInFinder/app path/clipboard title→pasteboard,不执行,toast「已复制」)；`clearInput()`(⌘K)；`openSettings()`(⌘,)；`isCalculatorTopResult`(calculator 且 visibleResults 首行)。
   - **init 参数顺序**：`onOpenSettings` 放 `onClose` **之前**，保证尾随闭包仍绑定 `onClose`（否则 `SearchPanelViewModelTests.testConfirmSelection...` 的 `didClose` 尾随闭包会误绑到 onOpenSettings → 该测试一度红）。
-- `Qingniao/Services/SearchEngine/AppSearchSource.swift`：`UsageStatRepositoryProtocol` + `UsageStatRepository` 新增 `recentlyUsed(limit:)`。
-- `Qingniao/App/Controllers/AppContainer.swift`：`makeSearchPanelViewModel` 注入 `CommandBarHomeProvider` + `onOpenSettings`(settingsWindowController.show(route:.settings))。
-- `Qingniao/Views/SearchPanel/CommandBarView.swift`：全新 P-01 Jade 视图（见下）。
-- `Qingniao/App/Controllers/CommandBarController.swift`：NSPanel 680 宽 / 动态高 120-560 / y+120 居中；`titleVisibility=.hidden`、`titlebarAppearsTransparent=true`、`isOpaque=false`、`backgroundColor=.clear`、`isMovableByWindowBackground=true`、加 `.nonactivatingPanel`；圆角/material 交给 SwiftUI（`jadeMaterial(.commandBar, radius:.xxl)` + `jadeShadow(.xl)`），去掉旧 layer.cornerRadius=12。hosts `CommandBarView`。
-- `Qingniao/Views/Components/AutoFocusTextField.swift`：仅更新注释（CommandBarView 改用原生 TextField + @FocusState）。
-- `QingniaoTests/SearchPanelViewModelTests.swift`：+5 测试（切源过滤 / 危险命令二次确认 / ⌘C 复制不执行 / 计算器首行 / home 加载），+import AppKit。
+- `Qingyu/Services/SearchEngine/AppSearchSource.swift`：`UsageStatRepositoryProtocol` + `UsageStatRepository` 新增 `recentlyUsed(limit:)`。
+- `Qingyu/App/Controllers/AppContainer.swift`：`makeSearchPanelViewModel` 注入 `CommandBarHomeProvider` + `onOpenSettings`(settingsWindowController.show(route:.settings))。
+- `Qingyu/Views/SearchPanel/CommandBarView.swift`：全新 P-01 Jade 视图（见下）。
+- `Qingyu/App/Controllers/CommandBarController.swift`：NSPanel 680 宽 / 动态高 120-560 / y+120 居中；`titleVisibility=.hidden`、`titlebarAppearsTransparent=true`、`isOpaque=false`、`backgroundColor=.clear`、`isMovableByWindowBackground=true`、加 `.nonactivatingPanel`；圆角/material 交给 SwiftUI（`jadeMaterial(.commandBar, radius:.xxl)` + `jadeShadow(.xl)`），去掉旧 layer.cornerRadius=12。hosts `CommandBarView`。
+- `Qingyu/Views/Components/AutoFocusTextField.swift`：仅更新注释（CommandBarView 改用原生 TextField + @FocusState）。
+- `QingyuTests/SearchPanelViewModelTests.swift`：+5 测试（切源过滤 / 危险命令二次确认 / ⌘C 复制不执行 / 计算器首行 / home 加载），+import AppKit。
 
 ### P-01 UI 要点（CommandBarView）
 - VStack(spacing 0)：48px 输入框（jade 放大镜 focus 主色、commandBarInput 20pt、ProgressView/清空）→ Divider(border) → content → Divider → 44px hint bar；`.frame(width: 680)`。
@@ -661,7 +661,7 @@ AppDelegate 通过 `container.onboardingGate = { self.ensureOnboardingGate() }` 
 **日期**：2026-07-06　**执行**：子 Agent
 
 ### 做了什么
-1. **ScreenshotOverlay（P-04 叠层）** `Qingniao/Views/Components/ScreenshotOverlay.swift`
+1. **ScreenshotOverlay（P-04 叠层）** `Qingyu/Views/Components/ScreenshotOverlay.swift`
    - 只改样式,不动 NSBezierPath 手绘逻辑。尺寸标签 pill:字体 caption(11pt medium)、圆角 radius-md(8pt)、黑 0.7 底白字,分隔符 `x`→`×`。
    - `WindowCaptureOverlayView` 窗口高亮:systemBlue 0.9 / 3pt 边框 → `JadeColor.primaryNS` 20% 填充 + Jade 2pt 描边。
    - 保留:十字准星、ESC 取消、最小选区 5×5、level `.screenSaver`。
@@ -669,7 +669,7 @@ AppDelegate 通过 `container.onboardingGate = { self.ensureOnboardingGate() }` 
    - `PersistenceController.swift` AssistantSettingDefaults `screenshot.saveDirectory`:`~/Pictures/Screenshots`→`~/Desktop`。
    - `SettingsViewModel.swift` `@Published screenshotSaveDirectory` 默认同改。
    - `SettingsServiceTests.testScreenshotSaveDirectoryAndLaunchAtLoginPersist` 断言同步改 `~/Desktop`。
-3. **ScreenshotToolbarController（P-05 预览）** `Qingniao/Views/Components/ScreenshotToolbarController.swift`
+3. **ScreenshotToolbarController（P-05 预览）** `Qingyu/Views/Components/ScreenshotToolbarController.swift`
    - 底部实心条 → 居中悬浮 Capsule pill(ultraThinMaterial + Jade border 1px + shadow.md)。
    - ToolbarButton 72×46→72×40,hover 背景 `JadeColor.surface3`,取消按钮 `JadeColor.danger` tint。
    - 4 操作:复制(doc.on.doc)/保存(square.and.arrow.down)/标注(pencil.tip)/取消(xmark)。**去掉了旧的 previewHeader 标题栏**,改为左上角源类型 badge(crop/macwindow/rectangle.inset.filled + 中文标签 + WxH,不可点)。
@@ -691,7 +691,7 @@ AppDelegate 通过 `container.onboardingGate = { self.ensureOnboardingGate() }` 
 - 默认快捷键确认:captureRegion=⇧⌃⌘4、captureWindow=⇧⌃⌘5、captureFullscreen=⌃⌥⌘3(全部 T-008 已设,本任务只核对)。
 
 ### build / test
-- `xcodebuild -scheme Qingniao -configuration Debug build` → **BUILD SUCCEEDED**。
+- `xcodebuild -scheme Qingyu -configuration Debug build` → **BUILD SUCCEEDED**。
 - `xcodebuild ... test`:本任务相关 `SettingsServiceTests`(含改过的断言)+ `AnnotationTests` **全通过**。
 - **已知无关失败**:`SearchBlacklistRepositoryTests`(testAddListContainsAndRemoveConcreteResult / testSearchServiceFiltersOnly...)在 `git stash` 还原到 baseline 后**同样失败**,属并发任务/Core Data 环境预存 flaky,与 T-014 无关。
 
@@ -732,12 +732,12 @@ AppDelegate 通过 `container.onboardingGate = { self.ensureOnboardingGate() }` 
 - **本地化**：`Resources/Localizable.xcstrings` 新增 **75** 个 key（en + zh-Hans 全译），覆盖侧栏分组、页标题/副标题、概览统计、外观、截图选项、搜索源、数据页（存储/重置/重启）、更新、关于系统信息、反馈表单。
 
 ### 完整实现 vs 占位
-- **完整实现**：概览统计卡片、外观模式切换（存储 + 根视图 preferredColorScheme）、快捷键录制+冲突行内警告+重置、截图默认目录选择、搜索源开关、权限状态+打开系统设置、数据页存储占用/保留期/打开目录/清空所有数据(确认弹窗+重启提示)、更新检查(跳 GitHub Releases)、关于(隐私 sheet/第三方声明/系统信息)、反馈(mailto feedback@qingniao.app，主题「青鸟 Qingniao 反馈」)。
+- **完整实现**：概览统计卡片、外观模式切换（存储 + 根视图 preferredColorScheme）、快捷键录制+冲突行内警告+重置、截图默认目录选择、搜索源开关、权限状态+打开系统设置、数据页存储占用/保留期/打开目录/清空所有数据(确认弹窗+重启提示)、更新检查(跳 GitHub Releases)、关于(隐私 sheet/第三方声明/系统信息)、反馈(mailto feedback@qingyu.app，主题「清羽 Qingyu 反馈」)。
 - **占位（v1.3 项）**：截图 JPG 格式（disabled + tooltip「暂不支持 JPG」）；数据「导出数据…」（disabled + tooltip「v1.3 支持」）；文件搜索目录（固定三目录 ~/Desktop、~/Documents、~/Downloads，disabled + 「v1.3 可配置」）；外观 AccentColor 自定义（仅显示 jade 色块 + note）。
 - **能力预留（@AppStorage，效果后续 T 处理）**：截图后「复制到剪贴板/播放声音/包含窗口阴影」；外观「减小动态效果」（T-017 a11y 接入实际效果）。
 
 ### build / test
-- `xcodebuild -scheme Qingniao -configuration Debug build` → **BUILD SUCCEEDED**。
+- `xcodebuild -scheme Qingyu -configuration Debug build` → **BUILD SUCCEEDED**。
 - `xcodebuild ... test` → **TEST SUCCEEDED**（148 tests，0 failures），SettingsSourceTests/SettingsServiceTests 全通过（SettingsViewModel 构造签名新增可选 clipboardRepository 参数，向后兼容）。
 
 ### 文件改动
@@ -761,7 +761,7 @@ AppDelegate 通过 `container.onboardingGate = { self.ensureOnboardingGate() }` 
 - **MenuBarIcon**：同脚本生成 18/36/54px 黑色 bird PNG，imageset Contents.json 带 `template-rendering-intent: template`。
 
 ### 具体改动
-1. **StatusItemController.swift**：菜单栏图标由 `sparkles` 换为 `bird`——优先 `NSImage(named: "MenuBarIcon")`，缺失回退 `NSImage(systemSymbolName: "bird", …)`；`isTemplate = true`（跟随菜单栏黑/白），`accessibilityDescription = "青鸟 Qingniao"`。
+1. **StatusItemController.swift**：菜单栏图标由 `sparkles` 换为 `bird`——优先 `NSImage(named: "MenuBarIcon")`，缺失回退 `NSImage(systemSymbolName: "bird", …)`；`isTemplate = true`（跟随菜单栏黑/白），`accessibilityDescription = "清羽 Qingyu"`。
 2. **AppIcon.appiconset/Contents.json**：10 个尺寸条目补齐 `filename`（icon_16…icon_1024.png），Dock/Spotlight/About 页可显示。
 3. **AppIconView（SettingsView.swift 内，About 页 96×96 / 64×64）**：`NSApp.applicationIconImage`（=打包 jade bird）优先，回退 jade `bird` SF Symbol（JadeColor.primary + primaryFill 底 + jadeRadius）。此前 T-013 已实现，本任务确认。
 4. **Onboarding 顶部 80×80**：`Image(systemName:"bird").font(.system(size:80,.semibold)).foregroundStyle(JadeColor.primary)`——jade 色，此前已就绪，本任务确认。
@@ -771,7 +771,7 @@ AppDelegate 通过 `container.onboardingGate = { self.ensureOnboardingGate() }` 
 当前 AppIcon/MenuBarIcon 为**脚本生成的 jade bird 占位图**（squircle + SF Symbol bird），v1.2 用于 Dock/Spotlight/About/菜单栏。**正式 icon 需在发布前由设计师补全**：提供 1024×1024 主视觉（含品牌细节/光影）+ 菜单栏专用 template glyph，替换 `AppIcon.appiconset/` 与 `MenuBarIcon.imageset/` 下 PNG（尺寸与 Contents.json 保持一致，或重跑脚本套用新符号）。
 
 ### build
-- `xcodebuild -project Qingniao.xcodeproj -scheme Qingniao -configuration Debug build` → **BUILD SUCCEEDED**。
+- `xcodebuild -project Qingyu.xcodeproj -scheme Qingyu -configuration Debug build` → **BUILD SUCCEEDED**。
 
 ### commit 列表（branch v1.2.0）
 1. `feat(T-018): menubar status item 使用 jade bird 模板图标`
@@ -789,19 +789,19 @@ AppDelegate 通过 `container.onboardingGate = { self.ensureOnboardingGate() }` 
 
 ### 完成内容
 - **CHANGELOG.md**：改为 Keep a Changelog 格式，新增 [1.2.0]/[1.1.0]/[1.0.1]/[1.0.0] 正式版本段；旧 0.1.0-mvp 草稿移到文件末尾「Early drafts」段（未删除，作历史留存）。
-- **README.md / README.zh-CN.md**：标题改为 Qingniao (青鸟)；slogan「Your jade-feathered Mac productivity companion」/「你的青羽 Mac 效率伙伴」；核心功能反映 v1.2（⌥Space 命令栏、⌥⌘C 剪贴板、⇧⌃⌘4/5 + ⌃⌥⌘3 截图、14 条白名单、⌘, 设置中心）；⌘1-6 切源；产品页 checklist 加 AppIcon/截图占位（assets/product/）；权限说明改「按需辅助功能」；邮箱 feedback@qingniao.app；分发 Developer ID + 公证。
-- **PRIVACY.md / PRIVACY.zh-CN.md**：产品名 → Qingniao/青鸟；数据目录 ~/Library/Application Support/Qingniao/；截图默认目录 ~/Desktop（原文误写 ~/Pictures/Screenshots，已修正）；邮箱 feedback@qingniao.app；辅助功能改按需；last updated 2026-07-06。
+- **README.md / README.zh-CN.md**：标题改为 Qingyu (清羽)；slogan「Your jade-feathered Mac productivity companion」/「你的青羽 Mac 效率伙伴」；核心功能反映 v1.2（⌥Space 命令栏、⌥⌘C 剪贴板、⇧⌃⌘4/5 + ⌃⌥⌘3 截图、14 条白名单、⌘, 设置中心）；⌘1-6 切源；产品页 checklist 加 AppIcon/截图占位（assets/product/）；权限说明改「按需辅助功能」；邮箱 feedback@qingyu.app；分发 Developer ID + 公证。
+- **PRIVACY.md / PRIVACY.zh-CN.md**：产品名 → Qingyu/清羽；数据目录 ~/Library/Application Support/Qingyu/；截图默认目录 ~/Desktop（原文误写 ~/Pictures/Screenshots，已修正）；邮箱 feedback@qingyu.app；辅助功能改按需；last updated 2026-07-06。
 - **THIRD_PARTY_NOTICES.md**：品牌替换；删除 Sparkle 条目（v1.2 已移除 Sparkle）；保留 GRDB（legacy）/KeyboardShortcuts。
-- **BUILD_README.md**：工程名/scheme/APP_PATH 全部 SnapVault → Qingniao；依赖去掉 Sparkle；数据目录/日志进程/defaults 域更新；发布段增补 Developer ID + 公证 + spctl 说明（build_for_release）。
+- **BUILD_README.md**：工程名/scheme/APP_PATH 全部 SnapVault → Qingyu；依赖去掉 Sparkle；数据目录/日志进程/defaults 域更新；发布段增补 Developer ID + 公证 + spctl 说明（build_for_release）。
 
 ### 验证
-- grep 确认 .md 内无 Mac Super Assistant / SnapVault 产品名残留（CHANGELOG「Early drafts」历史段、Changed 段的「renamed SnapVault → Qingniao」为有意保留；BUILD_README 的 `defaults delete com.assistant.app` 为不变的 Bundle ID）。
-- `xcodebuild build -project Qingniao.xcodeproj -scheme Qingniao -configuration Debug` → **BUILD SUCCEEDED**（纯 .md 改动，不影响构建）。
+- grep 确认 .md 内无 Mac Super Assistant / SnapVault 产品名残留（CHANGELOG「Early drafts」历史段、Changed 段的「renamed SnapVault → Qingyu」为有意保留；BUILD_README 的 `defaults delete com.freeabyss.qingyu` 为不变的 Bundle ID）。
+- `xcodebuild build -project Qingyu.xcodeproj -scheme Qingyu -configuration Debug` → **BUILD SUCCEEDED**（纯 .md 改动，不影响构建）。
 - tasks.json T-016 passes → true。
 
 ### 提示后续 Agent
-- 代码内 appcast.xml（Qingniao/Resources/appcast.xml）仍有 Sparkle feed 残留 URL，指向 v0.1.0；文档已不再引用 Sparkle，若代码侧 Sparkle 已在 T-001/T-002 移除，appcast.xml 可由后续清理任务删除（非本文档任务范围）。
-- README GitHub URL 保持 github.com/freeabyss/qingniao（仓库 remote 实际为 freeabyss/qingniao）。
+- 代码内 appcast.xml（Qingyu/Resources/appcast.xml）仍有 Sparkle feed 残留 URL，指向 v0.1.0；文档已不再引用 Sparkle，若代码侧 Sparkle 已在 T-001/T-002 移除，appcast.xml 可由后续清理任务删除（非本文档任务范围）。
+- README GitHub URL 保持 github.com/freeabyss/qingyu（仓库 remote 实际为 freeabyss/qingyu）。
 - 提交按 CHANGELOG / README / PRIVACY / THIRD_PARTY+BUILD 分开多次 commit。
 
 ---
@@ -810,7 +810,7 @@ AppDelegate 通过 `container.onboardingGate = { self.ensureOnboardingGate() }` 
 
 ### 结论:大部分已在 T-007~T-014 增量迁移完成,本任务为收敛剩余散点 + 全量验收
 
-进场即 grep 全量盘点,发现 `Qingniao/Views/` 下的 SwiftUI View 早已在此前各 Presentation 层任务(T-011 命令栏 / T-012 剪贴板 / T-013 设置 / T-014 截图预览等)迁移到位:颜色走 JadeColor、圆角走 JadeRadius/.jadeRadius、字体走 JadeFont、阴影走 .jadeShadow、间距走 JadeSpace token、按钮走 JadeButton、输入框走 JadeTextField、toast 走 JadeToast、列表行走 JadeListRow。本任务只需收敛残留散点并全量验证。
+进场即 grep 全量盘点,发现 `Qingyu/Views/` 下的 SwiftUI View 早已在此前各 Presentation 层任务(T-011 命令栏 / T-012 剪贴板 / T-013 设置 / T-014 截图预览等)迁移到位:颜色走 JadeColor、圆角走 JadeRadius/.jadeRadius、字体走 JadeFont、阴影走 .jadeShadow、间距走 JadeSpace token、按钮走 JadeButton、输入框走 JadeTextField、toast 走 JadeToast、列表行走 JadeListRow。本任务只需收敛残留散点并全量验证。
 
 ### 本次实际改动(4 处 RoundedRectangle 冗长写法 + 2 处 token 收敛)
 1. **JadeClipboardRow.swift**:
@@ -833,8 +833,8 @@ AppDelegate 通过 `container.onboardingGate = { self.ensureOnboardingGate() }` 
 本任务进场时清理率已 ~95%(前序任务成果)。本次消除剩余 4 处冗长 RoundedRectangle 写法 + 2 处 token 收敛。View 层(除上述 AppKit/内容语义例外)已无违规硬编码颜色/圆角/阴影。grep `Color.(blue|green|...)` 命中项全部为 JadeColor 语义扩展引用(JadeColor.blue 等 = 系统色,PRD §9.2.9 类型色)或 AppKit NSColor,非裸 SwiftUI Color。
 
 ### 验证
-- `xcodebuild -scheme Qingniao -configuration Debug build` → **BUILD SUCCEEDED**。
-- `xcodebuild -scheme Qingniao -configuration Debug test` → **148 tests, 0 failures, TEST SUCCEEDED**。
+- `xcodebuild -scheme Qingyu -configuration Debug build` → **BUILD SUCCEEDED**。
+- `xcodebuild -scheme Qingyu -configuration Debug test` → **148 tests, 0 failures, TEST SUCCEEDED**。
 - Preview:各 Design/*.swift + 组件文件均含 #Preview,token 替换不影响。
 
 ### 提示后续 Agent
@@ -850,7 +850,7 @@ AppDelegate 通过 `container.onboardingGate = { self.ensureOnboardingGate() }` 
 
 ### 一、Accessibility 改动（a11y 批）
 
-新增 **`Qingniao/Views/Design/JadeAccessibility.swift`**（需同步登记进 `Qingniao.xcodeproj/project.pbxproj` —— SPM 按目录 glob，但 xcodebuild 用显式引用，忘记登记会导致 xcodebuild 编译失败 "cannot find in scope"，本次已加 4 处 pbxproj 引用：PBXBuildFile / PBXFileReference / Design PBXGroup / Sources phase，ID = F00400000000000000000007 / ...107）：
+新增 **`Qingyu/Views/Design/JadeAccessibility.swift`**（需同步登记进 `Qingyu.xcodeproj/project.pbxproj` —— SPM 按目录 glob，但 xcodebuild 用显式引用，忘记登记会导致 xcodebuild 编译失败 "cannot find in scope"，本次已加 4 处 pbxproj 引用：PBXBuildFile / PBXFileReference / Design PBXGroup / Sources phase，ID = F00400000000000000000007 / ...107）：
 - `JadeAccessibility.reduceMotion / increaseContrast / reduceTransparency` 读 `NSWorkspace.shared.accessibilityDisplay*`。
 - `JadeAccessibility.animation(_:)`：reduce motion 时把传入动画降级为 `.linear(duration: 0.1)`（等价无位移淡入淡出）。
 - `View.jadeAnimation(_:value:)` 便捷 modifier。
@@ -880,8 +880,8 @@ Dynamic Type（JadeFont.swift）：正文类字号（title2/title3/body/callout/
 ### 验证
 - `swift build` → Build complete（仅 2 条既有 Swift6 concurrency 警告，与本任务无关）。
 - `swift test` → **159 / 159 passed**。
-- `xcodebuild -scheme Qingniao -configuration Debug build` → **BUILD SUCCEEDED**。
-- `xcodebuild -scheme Qingniao -configuration Debug test` → **148 / 148 passed，TEST SUCCEEDED**。
+- `xcodebuild -scheme Qingyu -configuration Debug build` → **BUILD SUCCEEDED**。
+- `xcodebuild -scheme Qingyu -configuration Debug test` → **148 / 148 passed，TEST SUCCEEDED**。
   - ⚠️ `SearchBlacklistRepositoryTests`（testAddList... / testSearchServiceFilters...）为**既有 flaky**：`*** Collection was mutated while being enumerated (NSGenericException)`，Core Data/NSSet 并发问题。已 `git stash` 剔除本任务改动后复现（第 3 次跑失败），证明与 T-017 无关。重跑即绿。建议后续单独任务修 fixture 并发。
 
 ### 未覆盖（留给 T-019 手工验收）
@@ -902,7 +902,7 @@ Dynamic Type（JadeFont.swift）：正文类字号（title2/title3/body/callout/
 
 ### 自动化回归结果（全绿）
 
-- `xcodebuild -project Qingniao.xcodeproj -scheme Qingniao -configuration Debug clean build` → **`** BUILD SUCCEEDED **`**
+- `xcodebuild -project Qingyu.xcodeproj -scheme Qingyu -configuration Debug clean build` → **`** BUILD SUCCEEDED **`**
 - `xcodebuild build -configuration Release` → **`** BUILD SUCCEEDED **`**（ad-hoc 签名；note: Disabling hardened runtime with ad-hoc codesigning——无 Developer ID 证书环境，属预期，签名/公证留发布步骤）
 - `xcodebuild test -configuration Debug` → **148 / 148 通过、0 失败，`** TEST SUCCEEDED **`**
 - `swift test` → **159 / 159 通过、0 失败**（v1.1 基线 134 → 159）
@@ -913,14 +913,14 @@ Dynamic Type（JadeFont.swift）：正文类字号（title2/title3/body/callout/
 - a. `grep "Mac Super Assistant"`（swift/plist/entitlements，排除 CHANGELOG/doc）→ 无匹配 ✔
 - b. `grep "try!|as! |fatalError"`（排除 init(coder)）→ 仅 4 处 `fatalError("init(coder:) has not been implemented")`（允许的 NSCoder 样板），无其他危险强解包 ✔
 - c. `grep "SUPublicEDKey|SUFeedURL|SUEnableAutomaticChecks"` Info.plist → 无匹配 ✔（Sparkle 已删）
-- d. `grep "com.apple.security.app-sandbox"` Qingniao.entitlements → 值 `<false/>` ✔（Sandbox 已关）
+- d. `grep "com.apple.security.app-sandbox"` Qingyu.entitlements → 值 `<false/>` ✔（Sandbox 已关）
 - e. `grep "TODO|FIXME|XXX"`（swift，排除 #Preview/test）→ 无匹配 ✔
 - f. `codesign -d --entitlements`（Release 产物）→ `app-sandbox=false`、`automation.apple-events=true`、`files.user-selected.read-write=true`、`get-task-allow=true`、`screencapture=true` ✔
 - 版本号三源一致：MARKETING_VERSION=1.2.0（pbxproj）、CFBundleShortVersionString=1.2.0（Info.plist）✔
 
 ### 手工验收（待上线前人工验证，Agent 不虚构）
 
-系统交互 P0 手工项统一标「待上线前手工验证」：BRAND-005/006、SEARCH-F-005、SHOT-FS-002、ONB-V2-001/003/005/008、PERM-OD-002、DIST-003/004/005、SHOT-UI-001~005、SETNEW-001~005、ACC-001~005、I18N-002、REG-001~007，及上线前专项（feedback@qingniao.app 收件、qingniao.app 域名 URL）。详见 doc/test/report.md v1.2.0 节手工验收清单。
+系统交互 P0 手工项统一标「待上线前手工验证」：BRAND-005/006、SEARCH-F-005、SHOT-FS-002、ONB-V2-001/003/005/008、PERM-OD-002、DIST-003/004/005、SHOT-UI-001~005、SETNEW-001~005、ACC-001~005、I18N-002、REG-001~007，及上线前专项（feedback@qingyu.app 收件、qingyu.app 域名 URL）。详见 doc/test/report.md v1.2.0 节手工验收清单。
 
 ### 结论
 

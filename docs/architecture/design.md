@@ -1,6 +1,6 @@
-# 青鸟 Qingniao 架构设计
+# 清羽 Qingyu 架构设计
 
-> 版本：**v17** · 关联 PRD：`doc/prd.md`（青鸟 Qingniao v1.2）· 关联文档：`doc/architecture/api.md`（v3）、`doc/architecture/db.md`（v3）、`doc/iterations/v1.2.0/architecture/review.md`
+> 版本：**v17** · 关联 PRD：`doc/prd.md`（清羽 Qingyu v1.2）· 关联文档：`doc/architecture/api.md`（v3）、`doc/architecture/db.md`（v3）、`doc/iterations/v1.2.0/architecture/review.md`
 
 ## 版本记录
 
@@ -9,7 +9,7 @@
 | v1.0.0 | 2026-07-02 | 首次上线，MVP（22 个用户故事），当时暂定名 Mac Super Assistant |
 | v1.0.1 | 2026-07-02 | Bug 修复：关闭启动期 Sparkle updater 自动启动 |
 | v1.1.0 | 2026-07-03 | Onboarding 死锁修复 + 跳过设置入口 |
-| v1.2.0 | 2026-07-03 | 品牌改名青鸟 Qingniao；文件搜索接入；全屏截图热键；关闭 Sandbox 改 Developer ID 分发；AppContainer/DI + 窗口控制器拆分；DesignToken 层；死代码清理；版本号三源统一 1.2.0 |
+| v1.2.0 | 2026-07-03 | 品牌改名清羽 Qingyu；文件搜索接入；全屏截图热键；关闭 Sandbox 改 Developer ID 分发；AppContainer/DI + 窗口控制器拆分；DesignToken 层；死代码清理；版本号三源统一 1.2.0 |
 
 ## 修订记录
 
@@ -17,16 +17,16 @@
 | :--- | :--- | :--- |
 | 2026-06-05 → 2026-06-11 | Claude | v1–v15：SnapVault 剪贴板工具 → Spotlight 类启动器 → Mac Super Assistant MVP（SwiftUI+AppKit、Core Data+文件系统、SearchSource Provider、轻量内存索引） |
 | 2026-07-03 | Claude | v16：v1.1.0 Onboarding 修复设计 |
-| 2026-07-03 | arch subagent | **v17：按 v1.2 PRD 全面修订。品牌改名青鸟 Qingniao；明确 6 层职责边界；AppDelegate 拆分为 AppContainer(DI 根)+窗口控制器+StatusItemController；Onboarding 单屏 + 辅助功能按需申请；FileSearchSource 接入 SearchService；删除 UnifiedSearch*/UnitConverterSource/OCR 整套死代码；剪贴板收敛到 AssistantClipboardRepository 单仓；截图补全屏热键 + 悬浮 pill 工具栏；新增 UI/Design System 模块（JadeToken + 统一组件）；移除 Sparkle 仅保留跳 GitHub Releases；新增窗口管理/改名迁移/分发签名/无障碍章节；双数据栈标注为技术债；风险表与变更记录更新。** |
-| 2026-09-06 | Claude | Task 001：新增 §23 插件内核架构（第一方插件模型，ADR-001），`PluginRegistry`/`QingniaoPlugin` 落地，AppContainer 建空注册表。 |
+| 2026-07-03 | arch subagent | **v17：按 v1.2 PRD 全面修订。品牌改名清羽 Qingyu；明确 6 层职责边界；AppDelegate 拆分为 AppContainer(DI 根)+窗口控制器+StatusItemController；Onboarding 单屏 + 辅助功能按需申请；FileSearchSource 接入 SearchService；删除 UnifiedSearch*/UnitConverterSource/OCR 整套死代码；剪贴板收敛到 AssistantClipboardRepository 单仓；截图补全屏热键 + 悬浮 pill 工具栏；新增 UI/Design System 模块（JadeToken + 统一组件）；移除 Sparkle 仅保留跳 GitHub Releases；新增窗口管理/改名迁移/分发签名/无障碍章节；双数据栈标注为技术债；风险表与变更记录更新。** |
+| 2026-09-06 | Claude | Task 001：新增 §23 插件内核架构（第一方插件模型，ADR-001），`PluginRegistry`/`QingyuPlugin` 落地，AppContainer 建空注册表。 |
 
-> 说明：本文件以 `doc/prd.md`（青鸟 Qingniao v1.2）当前决策为准。架构层只定义模块契约、边界、数据流与风险，不落具体 `.swift` 实现行。旧 SnapVault / GRDB 主存储 / FTS5 / OCR 等内容作为历史背景保留在修订记录中，不再作为实现依据。
+> 说明：本文件以 `doc/prd.md`（清羽 Qingyu v1.2）当前决策为准。架构层只定义模块契约、边界、数据流与风险，不落具体 `.swift` 实现行。旧 SnapVault / GRDB 主存储 / FTS5 / OCR 等内容作为历史背景保留在修订记录中，不再作为实现依据。
 
 ---
 
 ## 1. 系统概述
 
-青鸟（Qingniao，英文名 Qingniao，中文名青鸟；Bundle ID 保留 `com.assistant.app`）是一款 macOS 原生效率工具，定位为 **增强版 Spotlight + 常用效率工具集成中心**。
+清羽（Qingyu，英文名 Qingyu，中文名清羽；Bundle ID 保留 `com.freeabyss.qingyu`）是一款 macOS 原生效率工具，定位为 **增强版 Spotlight + 常用效率工具集成中心**。
 
 MVP 以统一搜索入口（Command Bar，默认 `⌥ Space`）为主，集成以下能力：
 
@@ -41,7 +41,7 @@ MVP 以统一搜索入口（Command Bar，默认 `⌥ Space`）为主，集成�
 
 产品形态为菜单栏 App，无 Dock 图标（`LSUIElement=true`）。复杂或低频操作由独立管理窗口（剪贴板历史 / 设置）承载。
 
-> 命名策略见 PRD §2.0 / D-101 / D-102：显示名、工程 target、源码目录、对外文案全面改为青鸟 / Qingniao；Bundle ID 保持 `com.assistant.app` 不变（TCC 权限、Keychain、数据目录、开机启动项的绑定键）。改名迁移策略见本文 §17。
+> 命名策略见 PRD §2.0 / D-101 / D-102：显示名、工程 target、源码目录、对外文案全面改为清羽 / Qingyu；Bundle ID 保持 `com.freeabyss.qingyu` 不变（TCC 权限、Keychain、数据目录、开机启动项的绑定键）。改名迁移策略见本文 §17。
 
 ---
 
@@ -76,7 +76,7 @@ MVP 以统一搜索入口（Command Bar，默认 `⌥ Space`）为主，集成�
 ```text
 ┌─────────────────────────────────────────────────────────────┐
 │  App Shell                                                    │
-│  QingniaoApp / AppDelegate(仅生命周期) / AppContainer(DI 根)   │
+│  QingyuApp / AppDelegate(仅生命周期) / AppContainer(DI 根)   │
 │  StatusItemController / 窗口控制器群 / GlobalShortcutManager   │
 ├───────────────────────────────────────────────────────────── │
 │  Presentation Layer（SwiftUI View + 通用组件 + DesignTokens）  │
@@ -142,7 +142,7 @@ MVP 以统一搜索入口（Command Bar，默认 `⌥ Space`）为主，集成�
 
 | 模块 | 职责 | 关键对象 |
 | :--- | :--- | :--- |
-| App Shell | 生命周期、DI 组装、菜单栏、窗口、全局热键、开机启动 | `QingniaoApp`, `AppDelegate`, `AppContainer`, `StatusItemController`, `GlobalShortcutManager`, `LaunchAtLoginService` |
+| App Shell | 生命周期、DI 组装、菜单栏、窗口、全局热键、开机启动 | `QingyuApp`, `AppDelegate`, `AppContainer`, `StatusItemController`, `GlobalShortcutManager`, `LaunchAtLoginService` |
 | Onboarding | 单屏首次引导、快捷键注册、屏幕录制授权、辅助功能按需说明 | `OnboardingView`, `OnboardingViewModel`, `PermissionService` |
 | Search | 统一搜索、Provider 聚合、排序、黑名单、最近使用加权、空态首页 | `CommandBar`, `SearchPanelViewModel`, `SearchService`, `SearchSource`, `SearchResult` |
 | App Source | 扫描常规 App 目录并启动 `.app` | `AppSource`, `ApplicationIndex` |
@@ -193,9 +193,9 @@ MVP 以统一搜索入口（Command Bar，默认 `⌥ Space`）为主，集成�
 
 - 独立 `UnitConverterSource` 与 `CalculatorSource` 内的 `UnitConverter` 重复，删除独立源，单位换算统一由 CalculatorSource 承载（长度/重量/数据大小/温度）。
 
-**搜索空态**（PRD §9.3 / D-120）：
+**搜索空态**：
 
-- 空查询显示"最近使用（最近 5 条）+ 收藏"（类 Raycast 首页），而非旧 FR-SEARCH-14/15 的"完全空白"。二者为演进关系：空态展示的是入口而非搜索推荐结果。
+- 空查询不展示内容区，命令栏只有输入框；输入字符后才展示结果区。
 
 ### 3.3 Clipboard 模块
 
@@ -224,7 +224,7 @@ MVP 以统一搜索入口（Command Bar，默认 `⌥ Space`）为主，集成�
 设置窗口（`SettingsWindowController`，独立 `NSWindow`，200px 侧栏）分组（PRD P-03）：概览 / 剪贴板 / 快捷键 / 截图 / 搜索源 / **外观** / 权限 / **数据** / 更新 / 关于 / 反馈。
 
 - **新增"外观"页**：明暗模式切换（`.system/.light/.dark`）；accent 颜色预留、材质切换列 v1.3。
-- **新增"数据"页**："打开数据目录"（Finder 打开 `~/Library/Application Support/Qingniao/`）、"清空所有数据"（二次确认，见 db.md §11）、"导出数据"（占位，本体 V1.x）。
+- **新增"数据"页**："打开数据目录"（Finder 打开 `~/Library/Application Support/Qingyu/`）、"清空所有数据"（二次确认，见 db.md §11）、"导出数据"（占位，本体 V1.x）。
 - **快捷键冲突检测（基础版）**：`HotkeyConflictDetector` —— 向 KeyboardShortcuts/Carbon 注册热键返回失败时，回调 UI 行内红色提示并要求重录/一键替换（PRD FR-UI-HOTKEYS）。
 
 ### 3.7 UI / Design System 模块（v1.2 新增）
@@ -233,12 +233,12 @@ MVP 以统一搜索入口（Command Bar，默认 `⌥ Space`）为主，集成�
 
 **DesignTokens**（Light/Dark 双取值，静态常量/枚举）：
 
-- `JadeColor`：品牌色 Jade 500/600/50（Light `#0A9488` / Dark `#2DD4BF` 等，见 PRD §9.2.1）；中性色优先绑定系统动态色（`labelColor` / `windowBackgroundColor` …）。语义色直接走系统色（`systemGreen/Red/Orange/…`）。
-- `JadeRadius`：sm 6 / md 8 / lg 12 / xl 16 / 2xl 20（统一 `.continuous`）。
+- `JadeColor`：低饱和蓝灰强调色与中性表面（Jade 名称保留为 API 兼容；当前视觉值见 `docs/prd/02-ui-spec.md`「视觉语言」）；中性色优先绑定系统动态色（`labelColor` / `windowBackgroundColor` …）。语义色直接走系统色（`systemGreen/Red/Orange/…`）。
+- `JadeRadius`：sm 6 / md 8 / lg 10 / xl 12 / 2xl 16（统一 `.continuous`）。
 - `JadeSpace`：4px 基准（1/2/3/4/6/8）。
 - `JadeFont`：display / title-1~3 / body / callout / subhead / caption / command-bar-input（SF Pro，随系统字体大小动态缩放）。
 - `JadeShadow`：sm/md/lg/xl（command bar 用 xl）。
-- `JadeMaterial`：命令栏/工具条 `.ultraThinMaterial`、Sheet `.thinMaterial`、管理窗口 `windowBackground`。
+- `JadeMaterial`：命令栏使用不透明中性表面以稳定文字对比；工具条 `.ultraThinMaterial`、Sheet `.thinMaterial`、管理窗口 `windowBackground`。
 
 **统一组件**（Presentation 层复用 View）：`JadeButton`（primary/secondary/destructive/ghost(link)）、`JadeTextField`、`HotkeyRecorder`、`StatCard`、`ListRow`（44/64px）、`Pill Badge`、`Tooltip`、`JadeToast`、`ConfirmationDialog`、`PermissionGate`。
 
@@ -264,7 +264,7 @@ MVP 以统一搜索入口（Command Bar，默认 `⌥ Space`）为主，集成�
 - **v1.2 一致性保护**：写入剪贴板时若命中 GRDB 遗留表路径，做容错（try/catch，失败降级不崩溃），保证以 Core Data 展示为准、同一记录展示一致。资源文件缺失容错展示。
 - **V1.x 方向**：统一到单一栈——SwiftData 或单 Core Data 栈，消除双栈一致性风险（迁移时机/验收标准见 PRD 第 16 章待解决问题 #6）。
 
-数据目录、实体、迁移、清理详见 `db.md`（v3）。核心变更：数据目录 `~/Library/Application Support/Assistant/` → `~/Library/Application Support/Qingniao/`（启动时旧目录存在则 move）；删除 OCR 字段；AppSetting 默认值更新。
+数据目录、实体、迁移、清理详见 `db.md`（v3）。核心变更：数据目录 `~/Library/Application Support/Assistant/` → `~/Library/Application Support/Qingyu/`（启动时旧目录存在则 move）；删除 OCR 字段；AppSetting 默认值更新。
 
 ---
 
@@ -323,7 +323,7 @@ Provider 为内置搜索源，非第三方插件。MVP 不支持插件市场/热
 
 ### 7.3 空输入状态
 
-命令栏空态显示"最近使用 + 收藏"（D-120），见 §3.2。
+命令栏空态只有输入框，不展示内容区。
 
 ### 7.4 搜索排序
 
@@ -433,19 +433,19 @@ v1.2 明确 4 类窗口 + 1 类叠层的形态、层级与生命周期，全部�
 
 | 对象 | 旧 | 新 | 说明 |
 | :--- | :--- | :--- | :--- |
-| 显示名 / 产品名 | Assistant / Mac Super Assistant / SnapVault | 青鸟 / Qingniao | 全面替换（历史语境除外） |
-| Xcode 工程 / target / scheme | SnapVault | Qingniao | `PROJECT_NAME` / `SCHEME_NAME` |
-| Swift module 名 | (SnapVault) | Qingniao | 测试模块 `QingniaoTests` |
-| 源码目录 | `SnapVault/` `SnapVaultTests/` | `Qingniao/` `QingniaoTests/` | 目录改名 |
-| 产物 | `Assistant.app` | `Qingniao.app` | `PRODUCT_NAME=Qingniao` |
-| Application Support 目录 | `.../Assistant/` | `.../Qingniao/` | 启动时旧目录存在则 move（见 db.md §8.3） |
-| **Bundle ID** | `com.assistant.app` | **`com.assistant.app`（保留）** | TCC/Keychain/数据目录/登录项绑定键，不改 |
-| build_and_run.sh | `pgrep -x SnapVault` / `PROJECT_NAME=SnapVault` | `Qingniao` | 见 PRD §10.7 |
-| GitHub repo | github.com/freeabyss/qingniao | 保留 | 不改 repo 名，避免链接失效 |
+| 显示名 / 产品名 | Assistant / Mac Super Assistant / SnapVault | 清羽 / Qingyu | 全面替换（历史语境除外） |
+| Xcode 工程 / target / scheme | SnapVault | Qingyu | `PROJECT_NAME` / `SCHEME_NAME` |
+| Swift module 名 | (SnapVault) | Qingyu | 测试模块 `QingyuTests` |
+| 源码目录 | `SnapVault/` `SnapVaultTests/` | `Qingyu/` `QingyuTests/` | 目录改名 |
+| 产物 | `Assistant.app` | `Qingyu.app` | `PRODUCT_NAME=Qingyu` |
+| Application Support 目录 | `.../Assistant/` | `.../Qingyu/` | 启动时旧目录存在则 move（见 db.md §8.3） |
+| **Bundle ID** | `com.freeabyss.qingyu` | **`com.freeabyss.qingyu`（保留）** | TCC/Keychain/数据目录/登录项绑定键，不改 |
+| build_and_run.sh | `pgrep -x SnapVault` / `PROJECT_NAME=SnapVault` | `Qingyu` | 见 PRD §10.7 |
+| GitHub repo | github.com/freeabyss/qingyu | 保留 | 不改 repo 名，避免链接失效 |
 
 **版本号三源统一**（PRD FR-UI-36 / D-108）：`MARKETING_VERSION=1.2.0`、`CFBundleShortVersionString=1.2.0`、`CURRENT_PROJECT_VERSION` 按提交号；CHANGELOG 补全 v1.0.0/v1.0.1/v1.1.0/v1.2.0；关于页显示一致。现状三源均为 `0.1.0`、`PRODUCT_NAME=Assistant`，须一并修正。
 
-> Bundle ID 保留是关键：因数据目录仍绑定 `com.assistant.app` 容器语义，Application Support 目录名可自由改为 `Qingniao`（目录名与 Bundle ID 无强绑定），迁移见 db.md。
+> Bundle ID 保留是关键：因数据目录仍绑定 `com.freeabyss.qingyu` 容器语义，Application Support 目录名可自由改为 `Qingyu`（目录名与 Bundle ID 无强绑定），迁移见 db.md。
 
 ---
 
@@ -456,7 +456,7 @@ v1.2 明确 4 类窗口 + 1 类叠层的形态、层级与生命周期，全部�
 - **签名**：Developer ID Application 证书。
 - **公证**：Apple `notarytool` 提交公证。
 - **装订**：`stapler` staple 票据到 `.app` / `.dmg`。
-- **渠道**：GitHub Releases（github.com/freeabyss/qingniao/releases）；不上 Mac App Store。
+- **渠道**：GitHub Releases（github.com/freeabyss/qingyu/releases）；不上 Mac App Store。
 - **检查更新**：`ReleaseInfoService` 仅跳 GitHub Releases，用户手动下载安装；无 Sparkle、无自动下载/安装。
 
 **entitlements 清单（v1.2）**：
@@ -505,10 +505,10 @@ v1.2 明确 4 类窗口 + 1 类叠层的形态、层级与生命周期，全部�
 
 | 领域 | 文档 | 状态 |
 | :--- | :--- | :--- |
-| 产品需求 | `doc/prd.md` | 当前有效（青鸟 v1.2） |
+| 产品需求 | `doc/prd.md` | 当前有效（清羽 v1.2） |
 | 测试方案 | `doc/test/cases.md`、`doc/test/report.md` | 当前有效 |
 | 数据库设计 | `doc/architecture/db.md` | 当前有效（v3：Core Data 活动栈 + 文件系统；GRDB 技术债标注） |
-| 接口设计 | `doc/architecture/api.md` | 当前有效（v3：Qingniao 内部接口） |
+| 接口设计 | `doc/architecture/api.md` | 当前有效（v3：Qingyu 内部接口） |
 | 迭代评审 | `doc/iterations/v1.2.0/architecture/review.md` | 本迭代评审记录 |
 
 ---
@@ -536,9 +536,9 @@ v1.2 明确 4 类窗口 + 1 类叠层的形态、层级与生命周期，全部�
 
 > 决策依据：`docs/decisions/ADR-001-first-party-plugin-model.md`。接口细节见 `api.md` §Plugin 接口。
 
-青鸟的三大功能（快速启动、剪贴板、截图）以**编译期第一方插件模块**组织，由 `PluginRegistry`（`Qingniao/Plugins/Core/`）统一聚合：
+清羽的三大功能（快速启动、剪贴板、截图）以**编译期第一方插件模块**组织，由 `PluginRegistry`（`Qingyu/Plugins/Core/`）统一聚合：
 
-- **模型**：插件实现 `QingniaoPlugin`（`@MainActor`），经 `manifest` 声明搜索源、动作（稳定 `PluginActionID`）、设置页、菜单项、全局快捷键与 `requiredPermissions`。不扫描磁盘、不加载外部 Bundle、无 SDK/市场（YAGNI 基线，见计划"执行前决策"）。
+- **模型**：插件实现 `QingyuPlugin`（`@MainActor`），经 `manifest` 声明搜索源、动作（稳定 `PluginActionID`）、设置页、菜单项、全局快捷键与 `requiredPermissions`。不扫描磁盘、不加载外部 Bundle、无 SDK/市场（YAGNI 基线，见计划"执行前决策"）。
 - **生命周期**：`startAll()` 逐个启动已启用插件，单个失败记录并隔离（状态 `failed`，贡献隐藏，不阻断其他插件）；`setEnabled(_:for:)` 持久化到 UserDefaults（`plugin.<plugin-id>.enabled`）并同步启停；停用调用 `stop()` 后贡献不可见。
 - **可见性**：贡献可见 ⇔ 已注册 && 已启用 && 非 `failed` && 非 `stopped`；跨模块调用一律走 `PluginRegistry.execute(_:)` 按动作 ID 路由，不用通知字符串作插件 API。
 - **消费方**：SearchService（搜索源聚合）、设置侧栏（设置页聚合）、状态栏菜单、GlobalShortcutManager（快捷键聚合）在 Task 002–009 逐步迁移到注册表；Task 001 仅在 `AppContainer` 创建空注册表，既有接线保持不变。
@@ -552,5 +552,5 @@ v1.2 明确 4 类窗口 + 1 类叠层的形态、层级与生命周期，全部�
 | 2026-06-11 | v15：重写总体架构，对齐 Mac Super Assistant MVP。 |
 | 2026-07-02 · v1.0.1 | UpdateService 关闭启动期 Sparkle updater 自动启动。 |
 | 2026-07-03 · v1.1.0 | Onboarding 死锁修复（方案 A）：PermissionService 新增 `requestScreenRecordingPrompt()`；OnboardingViewModel 触发 request + `skipOnboarding()`；footer Skip 按钮 + 确认 Alert；xcstrings 5 键。 |
-| 2026-07-03 · **v1.2.0（v17）** | 按 v1.2 PRD 全面修订：① 品牌改名青鸟 Qingniao（Bundle ID 保留 `com.assistant.app`）；② 明确 6 层职责边界；③ **AppDelegate(955 行 god object) 拆分为 AppDelegate(仅生命周期) + AppContainer(DI 根) + StatusItemController + 5 类窗口控制器 + GlobalShortcutManager**；④ Onboarding 改单屏、辅助功能按需申请（`onDemandAccessibilityCheck()`）、首次启动以 `onboardingCompletedAt` 判定；⑤ **删除 UnifiedSearch* 系列 + MenuBarView**，SearchService 为唯一入口；⑥ **FileSearchSource 接入**（AppContainer 实例化注册，默认三目录，Spotlight/FileManager，权重 75，`FileSearchResult`）；⑦ **删除 UnitConverterSource**，单位换算并入 CalculatorSource；⑧ 剪贴板收敛到 `AssistantClipboardRepository` 单仓，废弃 GRDB `ClipboardRepository`/`ContentRepository` 及其 UI 依赖；⑨ 截图补全屏全局热键 `⌃⌥⌘3`、悬浮 pill 工具栏、blur 延后 v1.3；⑩ 新增 UI/Design System 模块（JadeToken + 统一组件 + 三套 Toast 收敛为 JadeToast）；⑪ 移除 Sparkle，仅保留 ReleaseInfoService 跳 GitHub Releases；⑫ 新增窗口管理/改名迁移/分发签名/无障碍章节；⑬ 双数据栈标注为技术债（不重构，加一致性容错）；⑭ 风险表更新（新增双栈/文件搜索性能/DesignToken/改名拆分回归/关闭 Sandbox/强制解包；移除已解决项）；⑮ 版本号三源统一 1.2.0。 |
+| 2026-07-03 · **v1.2.0（v17）** | 按 v1.2 PRD 全面修订：① 品牌改名清羽 Qingyu（Bundle ID 保留 `com.freeabyss.qingyu`）；② 明确 6 层职责边界；③ **AppDelegate(955 行 god object) 拆分为 AppDelegate(仅生命周期) + AppContainer(DI 根) + StatusItemController + 5 类窗口控制器 + GlobalShortcutManager**；④ Onboarding 改单屏、辅助功能按需申请（`onDemandAccessibilityCheck()`）、首次启动以 `onboardingCompletedAt` 判定；⑤ **删除 UnifiedSearch* 系列 + MenuBarView**，SearchService 为唯一入口；⑥ **FileSearchSource 接入**（AppContainer 实例化注册，默认三目录，Spotlight/FileManager，权重 75，`FileSearchResult`）；⑦ **删除 UnitConverterSource**，单位换算并入 CalculatorSource；⑧ 剪贴板收敛到 `AssistantClipboardRepository` 单仓，废弃 GRDB `ClipboardRepository`/`ContentRepository` 及其 UI 依赖；⑨ 截图补全屏全局热键 `⌃⌥⌘3`、悬浮 pill 工具栏、blur 延后 v1.3；⑩ 新增 UI/Design System 模块（JadeToken + 统一组件 + 三套 Toast 收敛为 JadeToast）；⑪ 移除 Sparkle，仅保留 ReleaseInfoService 跳 GitHub Releases；⑫ 新增窗口管理/改名迁移/分发签名/无障碍章节；⑬ 双数据栈标注为技术债（不重构，加一致性容错）；⑭ 风险表更新（新增双栈/文件搜索性能/DesignToken/改名拆分回归/关闭 Sandbox/强制解包；移除已解决项）；⑮ 版本号三源统一 1.2.0。 |
 | 2026-09-06 · Task 001 | 新增 §23 插件内核架构：编译期第一方插件模型（ADR-001），`PluginRegistry` 聚合搜索源/动作/设置页/菜单/快捷键/权限声明，启停持久化与失败隔离；AppContainer 创建空注册表，既有硬编码接线暂不变。 |

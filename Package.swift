@@ -3,14 +3,14 @@
 import PackageDescription
 
 let package = Package(
-    name: "Qingniao",
+    name: "Qingyu",
     platforms: [
         .macOS(.v13)
     ],
     products: [
         .library(
-            name: "Qingniao",
-            targets: ["Qingniao"]
+            name: "Qingyu",
+            targets: ["Qingyu"]
         )
     ],
     dependencies: [
@@ -19,24 +19,24 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "Qingniao",
+            name: "Qingyu",
             dependencies: [
                 .product(name: "GRDB", package: "GRDB.swift"),
                 .product(name: "KeyboardShortcuts", package: "KeyboardShortcuts")
             ],
-            path: "Qingniao",
+            path: "Qingyu",
             exclude: [
-                "App/QingniaoApp.swift",
+                "App/QingyuApp.swift",
                 "Info.plist",
-                "Qingniao.entitlements",
+                "Qingyu.entitlements",
                 "Resources/Assets.xcassets",
                 "Resources/Localizable.xcstrings"
             ]
         ),
         .testTarget(
-            name: "QingniaoTests",
-            dependencies: ["Qingniao"],
-            path: "QingniaoTests"
+            name: "QingyuTests",
+            dependencies: ["Qingyu"],
+            path: "QingyuTests"
         )
     ]
 )

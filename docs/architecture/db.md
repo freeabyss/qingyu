@@ -1,22 +1,22 @@
-# 青鸟 Qingniao 数据模型详细方案
+# 清羽 Qingyu 数据模型详细方案
 
-> 版本：**v3** · 关联：`doc/architecture/design.md`（v17）、`doc/architecture/api.md`（v3）、`doc/prd.md`（青鸟 v1.2）
+> 版本：**v3** · 关联：`doc/architecture/design.md`（v17）、`doc/architecture/api.md`（v3）、`doc/prd.md`（清羽 v1.2）
 
 ## 版本记录
 
 | 版本 | 上线日期 | 说明 |
 |------|---------|------|
 | v1.0.0 | 2026-07-02 | 首次上线，MVP（Core Data + 文件系统） |
-| v1.2.0 | 2026-07-03 | 数据目录 Assistant → Qingniao（旧目录 move 迁移）；删除 OCR 字段/表；双栈技术债标注（Core Data 活动、GRDB 遗留只读）；AppSetting 默认值更新（onboardingCompletedAt/appearanceMode/dataFolderBookmark/截图热键）；新增"清空所有数据"流程 |
+| v1.2.0 | 2026-07-03 | 数据目录 Assistant → Qingyu（旧目录 move 迁移；其后品牌 Qingniao → 清羽 Qingyu，legacy 再纳入 Qingniao/）；删除 OCR 字段/表；双栈技术债标注（Core Data 活动、GRDB 遗留只读）；AppSetting 默认值更新（onboardingCompletedAt/appearanceMode/dataFolderBookmark/截图热键）；新增"清空所有数据"流程 |
 
 ## 修订记录
 
 | 日期 | 修改人 | 备注 |
 | :--- | :--- | :--- |
 | 2026-06-05 → 2026-06-11 | Claude | v1–v2：SnapVault GRDB/FTS5 → Assistant Core Data + 文件系统数据模型 |
-| 2026-07-03 | arch subagent | **v3：数据目录 `~/Library/Application Support/Assistant/` → `.../Qingniao/`（启动时旧目录存在则 move，非 copy；Core Data lightweight migration，失败 fallback 新建空库 + 备份旧库）；删除 `ClipboardRecord.ocrText` 与 `DatabaseManager` OCR 表/迁移及 OCR 相关索引（读旧数据忽略）；明确 Core Data 为活动栈、GRDB 相关表 v1.2 保持兼容但不再写入（技术债，V1.x 移除）；`AppSetting` 默认值更新（`onboarding.completedAt`/`appearance.mode`/`data.folderBookmark`/三截图热键/`search.source.file.enabled`；`clipboard.enabled=true` 保持 v1.1 决策）；删除 ContentRepository/ContentStore schema 描述（标注历史）；新增"清空所有数据"与"打开数据目录"说明；风险表更新。** |
+| 2026-07-03 | arch subagent | **v3：数据目录 `~/Library/Application Support/Assistant/` → `.../Qingyu/`（启动时旧目录存在则 move，非 copy；Core Data lightweight migration，失败 fallback 新建空库 + 备份旧库）；删除 `ClipboardRecord.ocrText` 与 `DatabaseManager` OCR 表/迁移及 OCR 相关索引（读旧数据忽略）；明确 Core Data 为活动栈、GRDB 相关表 v1.2 保持兼容但不再写入（技术债，V1.x 移除）；`AppSetting` 默认值更新（`onboarding.completedAt`/`appearance.mode`/`data.folderBookmark`/三截图热键/`search.source.file.enabled`；`clipboard.enabled=true` 保持 v1.1 决策）；删除 ContentRepository/ContentStore schema 描述（标注历史）；新增"清空所有数据"与"打开数据目录"说明；风险表更新。** |
 
-> 本文件以 `doc/prd.md` 与 `doc/architecture/design.md` 当前青鸟 v1.2 决策为准。**Core Data + 文件系统为活动数据层**；旧 SnapVault SQLite/GRDB/FTS5 主存储方案不作为实现依据，GRDB 仅作为待清理的历史遗留栈标注。
+> 本文件以 `doc/prd.md` 与 `doc/architecture/design.md` 当前清羽 v1.2 决策为准。**Core Data + 文件系统为活动数据层**；旧 SnapVault SQLite/GRDB/FTS5 主存储方案不作为实现依据，GRDB 仅作为待清理的历史遗留栈标注。
 
 ---
 
@@ -26,7 +26,7 @@
 2. 文件系统存储大对象（图片原图、缩略图、RTF/HTML）。
 3. 内容 hash 去重；置顶 + 保留时间 + 时间淘汰管理生命周期。
 4. 启动时全量加载轻量索引字段到内存。
-5. 数据目录随品牌改名迁移到 Qingniao，历史数据不丢失。
+5. 数据目录随品牌改名迁移到 Qingyu，历史数据不丢失。
 6. 标注并隔离 GRDB 双栈技术债，v1.2 不重构、不再写入。
 
 ---
@@ -103,21 +103,21 @@ final class PersistenceController {
 
 要求：
 
-- Store 规范路径 `~/Library/Application Support/Qingniao/Qingniao.sqlite`（v1.2 改名，见 §8）。
+- Store 规范路径 `~/Library/Application Support/Qingyu/Qingyu.sqlite`（v1.2 改名，见 §8）。
 - `viewContext.automaticallyMergesChangesFromParent = true`。
 - 后台写入 `performBackgroundTask`；UI 读 main context，服务写 background context。
 
 ### 3.2 Store 命名
 
 ```text
-~/Library/Application Support/Qingniao/
-  Qingniao.sqlite
-  Qingniao.sqlite-shm
-  Qingniao.sqlite-wal
+~/Library/Application Support/Qingyu/
+  Qingyu.sqlite
+  Qingyu.sqlite-shm
+  Qingyu.sqlite-wal
 ```
 
-- `Qingniao.sqlite` 是 Core Data 的 SQLite persistent store；SQLite 仅为 Core Data 实现细节，业务层不直接依赖 SQLite/GRDB/FTS5。
-- 旧 `Assistant.sqlite`（及 -shm/-wal）在迁移时随目录 move 后按新名重命名（见 §8.3）。
+- `Qingyu.sqlite` 是 Core Data 的 SQLite persistent store；SQLite 仅为 Core Data 实现细节，业务层不直接依赖 SQLite/GRDB/FTS5。
+- 旧 `Qingniao.sqlite` / `Assistant.sqlite`（及 -shm/-wal）在迁移时随目录 move 后按新名重命名（见 §8.4）。
 
 ### 3.3 Migration 策略
 
@@ -171,10 +171,10 @@ final class PersistenceController {
 
 沿用 v2：`id`（UUID，兼文件名）/`resourceType`（imageOriginal/imageThumbnail/richTextRTF/richTextHTML）/`relativePath`/`mimeType`/`byteSize`/`width`/`height`/`createdAt`；`record` To-One。
 
-文件目录（数据根改 Qingniao）：
+文件目录（数据根改 Qingyu）：
 
 ```text
-~/Library/Application Support/Qingniao/
+~/Library/Application Support/Qingyu/
   Clipboard/
     Images/{uuid}.png
     Thumbnails/{uuid}.png
@@ -240,23 +240,23 @@ UUID 命名；Core Data 存相对路径；去重依赖 `contentHash` 不依赖�
 
 > **移除**：旧 `onboarding.completed`（布尔）语义由 `onboarding.completedAt` 取代；任何 OCR 相关设置键删除。
 
-### 8.4 数据目录改名迁移（v1.2 核心）
+### 8.4 数据目录改名迁移（v1.2 起，品牌再改后扩展）
 
-品牌改名后数据目录由 `Assistant/` 改为 `Qingniao/`。Bundle ID 保留 `com.assistant.app`，但 Application Support 子目录名可自由命名（与 Bundle ID 无强绑定），因此迁移目录名。
+品牌改名后数据目录最终为 `Qingyu/`。历史顺序：`Assistant/`（pre-v1.2）→ `Qingniao/`（v1.2 品牌名）→ `Qingyu/`（清羽）。Bundle ID 现为 `com.freeabyss.qingyu`，但 Application Support 子目录名与 Bundle ID 无强绑定，因此按品牌目录名迁移。
 
 **启动迁移流程**：
 
 ```text
 App 启动
-  ├─ 检测新目录 ~/Library/Application Support/Qingniao/ 是否存在
+  ├─ 检测新目录 ~/Library/Application Support/Qingyu/ 是否存在
   │   ├─ 存在：直接使用（已迁移或全新安装）
   │   └─ 不存在：
-  │       ├─ 检测旧目录 ~/Library/Application Support/Assistant/ 是否存在
-  │       │   ├─ 存在：move（重命名/移动，非 copy）整个目录 Assistant → Qingniao
-  │       │   │        将 Assistant.sqlite(-shm/-wal) 重命名为 Qingniao.sqlite(-shm/-wal)
-  │       │   └─ 不存在：全新安装，创建空 Qingniao/ 目录结构
+  │       ├─ 按新→旧顺序探测 legacy 目录：Qingniao/ → Assistant/
+  │       │   ├─ 命中：move（重命名/移动，非 copy）整个目录到 Qingyu/
+  │       │   │        并将对应 *.sqlite(-shm/-wal) 重命名为 Qingyu.sqlite(-shm/-wal)
+  │       │   └─ 均不存在：全新安装，创建空 Qingyu/ 目录结构
   ├─ 加载 Core Data store（lightweight migration：删除 ocrText 属性自动推断）
-  │   └─ 若 migration 失败：fallback —— 备份旧 store（重命名为 Qingniao.sqlite.bak-<timestamp>）
+  │   └─ 若 migration 失败：fallback —— 备份旧 store（重命名为 Qingyu.sqlite.bak-<timestamp>）
   │                          + 新建空库，保证 App 可启动，不阻塞用户
   └─ 迁移旧 onboarding.completed → onboarding.completedAt（若旧为 true 写非空时间戳）
 ```
@@ -297,14 +297,14 @@ App 启动
 
 ```text
 清空所有数据（二次确认，不可撤销）
-  ├─ 删除 Core Data sqlite（Qingniao.sqlite / -shm / -wal）
+  ├─ 删除 Core Data sqlite（Qingyu.sqlite / -shm / -wal）
   ├─ 删除文件资源目录（Clipboard/Images|Thumbnails|RichText）
   ├─ 清除 UserDefaults / AppSetting 全部键（回到默认）
   └─ 重启 App（或提示用户重启）
 ```
 
-- 失败抛 `QingniaoError.dataResetFailed`。
-- "打开数据目录"：Finder 打开 `~/Library/Application Support/Qingniao/`（不删数据）。
+- 失败抛 `QingyuError.dataResetFailed`。
+- "打开数据目录"：Finder 打开 `~/Library/Application Support/Qingyu/`（不删数据）。
 - 导出数据：v1.2 仅占位入口，本体列 V1.x（FR-DATA-EXPORT-BACKUP）。
 
 ---
@@ -333,7 +333,7 @@ App 启动
 
 ## 15. 备份与导出
 
-- 数据目录 `~/Library/Application Support/Qingniao/` 与 Time Machine 兼容，随系统备份，不设排除标志。
+- 数据目录 `~/Library/Application Support/Qingyu/` 与 Time Machine 兼容，随系统备份，不设排除标志。
 - v1.2 提供"打开数据目录"（Finder）；**主动导出/备份能力列 V1.x**（FR-DATA-EXPORT-BACKUP），v1.2 不实现，仅本章说明存储位置与迁移策略避免误解。
 - 后续导出应考虑：Core Data 结构化元数据 + 文件资源目录 + 隐私提示 + 压缩包。
 
@@ -358,4 +358,4 @@ App 启动
 | 日期 | 变更内容 |
 | :--- | :--- |
 | 2026-06-11 | v2：重写为 Core Data + 文件系统数据模型。 |
-| 2026-07-03 · **v3** | 数据目录 `Assistant/` → `Qingniao/`（启动时旧目录存在则 move；store 重命名 `Assistant.sqlite`→`Qingniao.sqlite`；lightweight migration 失败 fallback 新建空库 + 备份旧库）；**删除 `ClipboardRecord.ocrText` 及 OCR 相关索引/表/迁移**（读旧数据忽略）；`AppSetting` 默认值更新（新增 `onboarding.completedAt` 取代 `onboarding.completed`、`appearance.mode`、`data.folderBookmark`、三截图热键键、`search.source.file.enabled`；`clipboard.enabled=true` 保持）；`UsageStat` 保留用于概览页统计；新增"清空所有数据"（删 sqlite + 资源目录 + UserDefaults + 重启，失败 `dataResetFailed`）与"打开数据目录"；明确 Core Data 活动栈 / GRDB 遗留只读技术债；删除 `ContentRepository`/`ContentStore` schema（标注历史）；风险表新增迁移失败与双栈一致性。 |
+| 2026-07-03 · **v3** | 数据目录 `Assistant/` → `Qingyu/`（启动时旧目录存在则 move；store 重命名 `Assistant.sqlite`→`Qingyu.sqlite`；lightweight migration 失败 fallback 新建空库 + 备份旧库）；**删除 `ClipboardRecord.ocrText` 及 OCR 相关索引/表/迁移**（读旧数据忽略）；`AppSetting` 默认值更新（新增 `onboarding.completedAt` 取代 `onboarding.completed`、`appearance.mode`、`data.folderBookmark`、三截图热键键、`search.source.file.enabled`；`clipboard.enabled=true` 保持）；`UsageStat` 保留用于概览页统计；新增"清空所有数据"（删 sqlite + 资源目录 + UserDefaults + 重启，失败 `dataResetFailed`）与"打开数据目录"；明确 Core Data 活动栈 / GRDB 遗留只读技术债；删除 `ContentRepository`/`ContentStore` schema（标注历史）；风险表新增迁移失败与双栈一致性。 |

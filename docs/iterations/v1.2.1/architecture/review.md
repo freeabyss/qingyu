@@ -41,7 +41,7 @@
 
 - `swift build`：Build complete（含全部改动文件）。
 - `swift test`：**159/159 passed，0 failures**（与 v1.2.0 基线一致，无回归）。
-- `xcodebuild -scheme Qingniao -configuration Debug build`：EXIT=0，0 errors，产物 `Qingniao.app` 重新链接（二进制时间戳已更新）。仅有 2 个 pre-existing Swift 6 mode warning（`HotkeyConflictDetector` / `AppSetting`，与本次改动无关，v1.2.0 即存在）。
+- `xcodebuild -scheme Qingyu -configuration Debug build`：EXIT=0，0 errors，产物 `Qingyu.app` 重新链接（二进制时间戳已更新）。仅有 2 个 pre-existing Swift 6 mode warning（`HotkeyConflictDetector` / `AppSetting`，与本次改动无关，v1.2.0 即存在）。
 
 ## 风险与回归确认
 

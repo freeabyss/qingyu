@@ -1,6 +1,6 @@
-# PRD：青鸟 Qingniao
+# PRD：清羽 Qingyu
 
-> 中文名：青鸟 · 英文名：Qingniao · Bundle ID：`com.assistant.app`
+> 中文名：清羽 · 英文名：Qingyu · Bundle ID：`com.freeabyss.qingyu`
 
 ## 版本记录
 
@@ -9,19 +9,19 @@
 | v1.0.0 | 2026-07-02 | 首次上线，MVP（22 个用户故事）。当时产品暂定名为 Mac Super Assistant。 |
 | v1.0.1 | 2026-07-02 | Bug 修复：修复启动时"无法启动更新程序"弹窗（Issue #1、PR #2）。产品行为无变化：MVP 阶段"检查更新"继续跳转 GitHub Releases。 |
 | v1.1.0 | 2026-07-03 | Bug 修复 + 新功能（Issue #3、PR #4）：修复 onboarding 屏幕录制权限申请断点（PermissionService 新增 `requestScreenRecordingPrompt()` 触发 TCC 注册）+ 新增 onboarding "跳过设置"入口（skip 状态分支 + footer Skip 按钮 + 确认 Alert + 双语文案）。遗留：重启不重弹 onboarding、按需申请 Alert 端到端、设置页权限入口待本迭代验证（见 AC-6/AC-7）。 |
-| v1.2.0 | 2026-07-03 | 产品全面审视 + 品牌改名青鸟 Qingniao（Issue #5）。关键变更：① 品牌命名正式落地（中文青鸟、英文 Qingniao，Bundle ID 保留 `com.assistant.app`）；② 文件搜索接入（FileSearchSource 补齐接线，MVP 能力闭环）；③ 全屏截图补全全局快捷键（默认 `⌃⌥⌘3`，可重绑）；④ 版本号三源修正统一为 1.2.0（Xcode MARKETING_VERSION / Info.plist / CHANGELOG）；⑤ onboarding 辅助功能权限由强制改为按需申请；⑥ 关闭 App Sandbox，改为 Developer ID 签名 + notarytool 公证 + GitHub Releases 分发；⑦ 死代码清理（OCR / UnifiedSearch / UnitConverterSource 等）；⑧ 文档路径交叉引用修正（doc/test/cases.md、doc/architecture/design.md 等）。 |
+| v1.2.0 | 2026-07-03 | 产品全面审视 + 品牌改名清羽 Qingyu（Issue #5）。关键变更：① 品牌命名正式落地（中文清羽、英文 Qingyu，Bundle ID 保留 `com.freeabyss.qingyu`）；② 文件搜索接入（FileSearchSource 补齐接线，MVP 能力闭环）；③ 全屏截图补全全局快捷键（默认 `⌃⌥⌘3`，可重绑）；④ 版本号三源修正统一为 1.2.0（Xcode MARKETING_VERSION / Info.plist / CHANGELOG）；⑤ onboarding 辅助功能权限由强制改为按需申请；⑥ 关闭 App Sandbox，改为 Developer ID 签名 + notarytool 公证 + GitHub Releases 分发；⑦ 死代码清理（OCR / UnifiedSearch / UnitConverterSource 等）；⑧ 文档路径交叉引用修正（doc/test/cases.md、doc/architecture/design.md 等）。 |
 
 ---
 
 ## 1. 引言 / 概述
 
-青鸟（Qingniao）是一款 macOS 原生效率工具，定位为 **增强版 Spotlight + 常用效率工具集成中心**。
+清羽（Qingyu）是一款 macOS 原生效率工具，定位为 **增强版 Spotlight + 常用效率工具集成中心**。
 
 产品通过一个统一搜索入口，将应用启动、剪贴板历史、截图、内置命令、计算器、文件搜索、设置等高频能力聚合在一起。同时，对于需要更复杂交互的能力，提供轻量管理中心或专用面板承载。
 
 产品自 v1.0.0 起即以 **小范围公开测试级产品（public beta-ready）** 标准交付：功能深度保持克制，产品体验、权限引导、隐私说明、设置、稳定性和发布资料按公开产品方向设计。自 v1.2.0 起，发布分发正式升级为 **Developer ID 签名 + Apple Notarization 公证 + GitHub Releases 分发**（不上 Mac App Store），使系统控制类内置命令（重启 Finder/Dock、切换外观等）可靠工作。
 
-> 命名说明：本产品曾在 v1.0.0–v1.1.0 期间以"Mac Super Assistant"为暂定名、以"Assistant / SnapVault"为工程内部代号。自 v1.2.0 起正式定名青鸟 Qingniao；本文除历史决策语境外，一律使用当前正式名。
+> 命名说明：本产品曾在 v1.0.0–v1.1.0 期间以"Mac Super Assistant"为暂定名、以"Assistant / SnapVault"为工程内部代号。自 v1.2.0 起正式定名清羽 Qingyu；本文除历史决策语境外，一律使用当前正式名。
 
 ---
 
@@ -31,12 +31,12 @@
 
 命名于 v1.2.0 正式定案，不再有"暂定名""发布前再定"等悬而未决表述：
 
-- **中文名**：青鸟
-- **英文名**：Qingniao（首字母大写；正式对外文案统一使用此拼写）
-- **Bundle ID**：`com.assistant.app`（**保留不变**）
-  - 原因：Bundle ID 是 macOS TCC 权限（屏幕录制、辅助功能等）、Keychain、Application Support 数据目录、开机启动项的绑定键。若修改 Bundle ID，已授权用户会丢失全部权限、需重新授权，剪贴板/截图历史数据目录也会失联。因此显示名、工程 target 名、源码目录、对外文案全面改为青鸟 / Qingniao，但 Bundle ID 保持 `com.assistant.app` 不动（见决策 D-102）。
-- **反馈邮箱**：feedback@qingniao.app
-- **GitHub 仓库**：github.com/freeabyss/qingniao（仓库路径保留，不改 repo 名，避免既有链接、Release、Issue 失效）
+- **中文名**：清羽
+- **英文名**：Qingyu（首字母大写；正式对外文案统一使用此拼写）
+- **Bundle ID**：`com.freeabyss.qingyu`（**保留不变**）
+  - 原因：Bundle ID 是 macOS TCC 权限（屏幕录制、辅助功能等）、Keychain、Application Support 数据目录、开机启动项的绑定键。若修改 Bundle ID，已授权用户会丢失全部权限、需重新授权，剪贴板/截图历史数据目录也会失联。因此显示名、工程 target 名、源码目录、对外文案全面改为清羽 / Qingyu，但 Bundle ID 保持 `com.freeabyss.qingyu` 不动（见决策 D-102）。
+- **反馈邮箱**：qingyu_freeabyss@163.com
+- **GitHub 仓库**：github.com/freeabyss/qingyu（仓库路径保留，不改 repo 名，避免既有链接、Release、Issue 失效）
 
 ### 2.1 核心定位
 
@@ -527,7 +527,7 @@ PRD 记录完整愿景，但开发按版本分期。长期功能包括：
 - FR-UI-5：管理中心必须包含首页 / 概览、剪贴板历史、设置、权限。
 - FR-UI-6：App 完成首次 Onboarding 后必须默认启用开机启动。
 - FR-UI-7：设置页必须提供关闭开机启动的选项。
-- FR-UI-8：关于页必须按发布级产品设计，包含应用名称（青鸟 Qingniao）、版本号、构建号、官网/项目主页、隐私政策、检查更新、反馈入口、第三方许可和版权信息。
+- FR-UI-8：关于页必须按发布级产品设计，包含应用名称（清羽 Qingyu）、版本号、构建号、官网/项目主页、隐私政策、检查更新、反馈入口、第三方许可和版权信息。
 - **FR-UI-ABOUT-VERSION 🔧（v1.2 修）**：关于页显示的版本号必须与 Xcode `MARKETING_VERSION` 及 `Info.plist` 的 `CFBundleShortVersionString` 完全一致，v1.2 统一显示为 `1.2.0`。修复此前工程版本停留在 `0.1.0`、关于页/CHANGELOG 三源不一致的问题（见 FR-UI-36、D-108）。
 - FR-UI-9：MVP 必须提供"检查更新"能力。
 - FR-UI-10：MVP 的"检查更新"发现新版本后打开项目主页或下载页，由用户手动下载安装。
@@ -543,12 +543,12 @@ PRD 记录完整愿景，但开发按版本分期。长期功能包括：
 - FR-UI-19：隐私政策必须说明剪贴板数据仅本地保存、截图仅本地处理、不上传、不同步、不训练、如何关闭记录、如何清空数据。
 - FR-UI-20：关于页必须提供隐私政策入口。
 - FR-UI-21~24：错误/崩溃反馈必须由用户显式点击并确认后才可上报，展示数据范围并允许取消；隐私政策说明其数据范围与用户控制方式。
-- FR-UI-25：MVP 错误/崩溃反馈渠道必须优先使用邮件反馈，目标邮箱为 feedback@qingniao.app。
+- FR-UI-25：MVP 错误/崩溃反馈渠道必须优先使用邮件反馈，目标邮箱为 qingyu_freeabyss@163.com。
 - FR-UI-26：邮件反馈可预填应用版本、macOS 版本、错误摘要和用户补充说明。
 - FR-UI-27：MVP 不要求提供 GitHub Issue 反馈入口和内置反馈后端。
 - FR-UI-28：MVP 必须支持中文和英文两种界面语言。
 - FR-UI-29：默认语言必须跟随系统语言。
-- FR-UI-30：核心 UI、Onboarding、权限说明、隐私说明、错误提示和关于页必须完成中英文文案，且品牌名统一为青鸟 / Qingniao。
+- FR-UI-30：核心 UI、Onboarding、权限说明、隐私说明、错误提示和关于页必须完成中英文文案，且品牌名统一为清羽 / Qingyu。
 - FR-UI-30a：App 图标采用简洁抽象效率工具风格，不绑定单一功能。
 - FR-UI-30b：菜单栏图标必须使用单色 template 风格，适配深色/浅色模式。
 - FR-UI-31：设置页必须提供语言切换：跟随系统、简体中文、English。
@@ -609,14 +609,14 @@ PRD 记录完整愿景，但开发按版本分期。长期功能包括：
 
 ### 7.10 数据备份与迁移 ⏳（v1.2 不做导出，FR-DATA-EXPORT-BACKUP）
 
-- **FR-DATA-EXPORT-BACKUP-1**：数据存储位置必须明确——剪贴板结构化数据、设置、使用统计、黑名单存于 `~/Library/Application Support/Qingniao/`（沿用 `com.assistant.app` 容器路径，因 Bundle ID 不变），大对象（图片原图/缩略图/RTF）存于该目录下 `Clipboard/Images/`、`Clipboard/Thumbnails/`、`Clipboard/RichText/`。
+- **FR-DATA-EXPORT-BACKUP-1**：数据存储位置必须明确——剪贴板结构化数据、设置、使用统计、黑名单存于 `~/Library/Application Support/Qingyu/`（沿用 `com.freeabyss.qingyu` 容器路径，因 Bundle ID 不变），大对象（图片原图/缩略图/RTF）存于该目录下 `Clipboard/Images/`、`Clipboard/Thumbnails/`、`Clipboard/RichText/`。
 - **FR-DATA-EXPORT-BACKUP-2**：跨版本升级必须采用 Core Data lightweight migration，保证用户升级到 v1.2 后历史数据不丢失。
 - **FR-DATA-EXPORT-BACKUP-3**：数据目录必须与 Time Machine 兼容（不设置排除标志），随系统备份。
 - **FR-DATA-EXPORT-BACKUP-4**：主动导出/备份为用户操作的能力（导出剪贴板历史/设置）列入 V1.x，v1.2 不实现，但本章预留说明，避免用户误以为已支持。
 
 ### 7.11 快捷键体系
 
-统一说明青鸟的全局热键、面板内快捷键与用户可自定义范围。
+统一说明清羽的全局热键、面板内快捷键与用户可自定义范围。
 
 **全局热键（系统级，App 未激活时也生效）：**
 
@@ -671,7 +671,7 @@ PRD 记录完整愿景，但开发按版本分期。长期功能包括：
 
 ### 7.13 卸载与数据清理
 
-- FR-UNINSTALL-1：用户将青鸟拖入废纸篓后，App 主体被删除，但用户数据默认保留在 `~/Library/Application Support/Qingniao/`（Core Data store + 大对象目录）与偏好设置中。
+- FR-UNINSTALL-1：用户将清羽拖入废纸篓后，App 主体被删除，但用户数据默认保留在 `~/Library/Application Support/Qingyu/`（Core Data store + 大对象目录）与偏好设置中。
 - FR-UNINSTALL-2：设置页必须提供"清空所有数据"入口，一键删除剪贴板历史、使用统计、黑名单及大对象文件，并显示二次确认（不可撤销）。
 - FR-UNINSTALL-3：隐私政策/FAQ 必须说明数据目录位置及手动彻底清理方式（删除 App + 删除 Application Support 目录）。
 - FR-UNINSTALL-4：MVP 不内置"卸载器"，也不在卸载时自动清理数据（避免误删备份）。
@@ -717,14 +717,14 @@ MVP 明确不支持：关机、重启系统、注销、删除文件、杀进程�
 
 ## 9. 设计语言与交互
 
-> 本章定义青鸟 Qingniao v1.2 的视觉设计系统、交互范式、页面规范与通用组件，作为后续架构与开发的直接依据。所有 Design Token 以可被代码映射的形式给出；具体命名/枚举实现由架构文档承接（见 `doc/architecture/design.md`）。
+> 本章定义清羽 Qingyu v1.2 的视觉设计系统、交互范式、页面规范与通用组件，作为后续架构与开发的直接依据。所有 Design Token 以可被代码映射的形式给出；具体命名/枚举实现由架构文档承接（见 `doc/architecture/design.md`）。
 
 ### 9.1 设计哲学
 
 - **现代极简 Pro 工具风**：参考 Raycast / Arc 的克制美学，不拟物、不过度装饰；界面服务于效率，视觉退居其后。
 - **本地优先、隐私优先、键盘优先**：所有数据默认本地保存；所有主要功能都能仅靠键盘完成，鼠标操作作为补充。
 - **明暗双模式跟随系统**：默认跟随 macOS 外观（可在外观页覆盖），Light/Dark 双套 Token 一一对应。
-- **系统一致性**：优先使用系统语义色、系统材质、SF Symbols 与系统字体，让青鸟"像 macOS 原生的一部分"。
+- **系统一致性**：优先使用系统语义色、系统材质、SF Symbols 与系统字体，让清羽"像 macOS 原生的一部分"。
 
 ### 9.2 Design Tokens
 
@@ -826,7 +826,7 @@ MVP 明确不支持：关机、重启系统、注销、删除文件、杀进程�
 #### 9.2.9 图标（iconography）
 
 - 统一使用 **SF Symbols 5+**，weight 统一 `.medium`。
-- App Icon 与菜单栏 `statusItem` 使用青鸟 glyph（玉色鸟剪影）；菜单栏图标为单色 template，适配深浅色。
+- App Icon 与菜单栏 `statusItem` 使用清羽 glyph（玉色鸟剪影）；菜单栏图标为单色 template，适配深浅色。
 - 结果类型图标底色规则：透明度 15% 同色底 + 同色前景 glyph。
 
 | 结果类型 | 底色 |
@@ -916,7 +916,7 @@ MVP 明确不支持：关机、重启系统、注销、删除文件、杀进程�
 #### P-06 Onboarding（首次启动）
 
 - 单页 / 单屏，居中 720×520，24px 圆角（radius-xl），shadow-xl。
-- 顶部大图标（jade bird glyph 80×80，或 SF Symbol `bird` 大字号 jade 色）+ "欢迎使用青鸟 / Qingniao"（display 字号）+ 一句话 slogan："你的本地 Mac 效率中心"。
+- 顶部大图标（jade bird glyph 80×80，或 SF Symbol `bird` 大字号 jade 色）+ "欢迎使用清羽 / Qingyu"（display 字号）+ 一句话 slogan："你的本地 Mac 效率中心"。
 - 中段 3 个配置项（卡片式）：`⌥ Space` 命令栏热键录制、剪贴板历史默认开关、开机启动开关。
 - **屏幕录制权限段**：解释文案 + 主按钮"授予屏幕录制权限"（点击触发 TCC）。
 - **辅助功能段**：解释文案"辅助功能用于未来的快捷操作，你可以在用到时再授予" + 次按钮"稍后再说"（不强制，v1.2 核心变更，见 FR-ONBOARD-ACCESSIBILITY-ONDEMAND）。
@@ -1074,7 +1074,7 @@ MVP 明确不支持：关机、重启系统、注销、删除文件、杀进程�
 ### 10.5 分发模式（v1.2 更新）
 
 - **签名与公证**：Developer ID Application 证书签名 + Apple `notarytool` 公证 + `stapler` staple 票据。
-- **分发渠道**：GitHub Releases（github.com/freeabyss/qingniao/releases）。
+- **分发渠道**：GitHub Releases（github.com/freeabyss/qingyu/releases）。
 - **不上 Mac App Store**：因产品需关闭 Sandbox 以可靠执行 AppleEvents 系统命令，MAS 沙盒策略与之冲突。
 - **检查更新**："检查更新"发现新版本后跳转 GitHub Releases 页面，由用户手动下载安装。**不集成 Sparkle 自动更新**；此前文档中的 Sparkle 自动更新占位已删除，MVP 不做自动下载/安装/重启更新。
 - **Sandbox**：v1.2 关闭 App Sandbox（保留 Hardened Runtime 与必要 entitlements）。
@@ -1095,7 +1095,7 @@ MVP 明确不支持：关机、重启系统、注销、删除文件、杀进程�
 - `UnitConverterSource`（与 CalculatorSource 重复实现）。
 - `OCRService` + `ContentStore` + 相关 DB 迁移列 / UI 筛选（OCR 从未接线，MVP 不含 OCR）。
 - **FileSearchSource 不删除，改为接线启用**（见 FR-SEARCH-FILE）。
-- `build_and_run.sh` 中 `pgrep -x SnapVault` 改为匹配新进程名 `Qingniao`。
+- `build_and_run.sh` 中 `pgrep -x SnapVault` 改为匹配新进程名 `Qingyu`。
 
 ---
 ## 11. 非功能需求
@@ -1134,7 +1134,7 @@ MVP 明确不支持：关机、重启系统、注销、删除文件、杀进程�
 
 ### 11.5 卸载与备份兼容
 
-- 数据目录位于 `~/Library/Application Support/Qingniao/`，与 Time Machine 兼容，随系统备份，不设置排除标志。
+- 数据目录位于 `~/Library/Application Support/Qingyu/`，与 Time Machine 兼容，随系统备份，不设置排除标志。
 - 提供设置内"清空所有数据"入口；卸载不自动清理数据。
 
 ---
@@ -1259,10 +1259,10 @@ MVP 完全免费，不做任何付费限制，不接入支付、授权码、订�
 | D-050 | （已被 D-103 取代）原"MVP 暂不强制签名公证"；v1.2 起强制 Developer ID 签名 + 公证。 |
 | D-051 | MVP 必须提供隐私政策，从关于页进入。 |
 | D-052 | 错误/崩溃反馈须用户点击并确认后才可上报，不静默上传。 |
-| D-053 | 反馈渠道为邮件，反馈邮箱 feedback@qingniao.app。 |
+| D-053 | 反馈渠道为邮件，反馈邮箱 qingyu_freeabyss@163.com。 |
 | D-054 | 支持中文/英文界面，默认跟随系统语言。 |
 | D-055 | 设置提供语言切换：跟随系统/简体中文/English。 |
-| D-056 | （已被 D-101 取代）原暂定名 Mac Super Assistant / 内部代号 Assistant；v1.2 正式定名青鸟 Qingniao。 |
+| D-056 | （已被 D-101 取代）原暂定名 Mac Super Assistant / 内部代号 Assistant；v1.2 正式定名清羽 Qingyu。 |
 | D-057 | Onboarding 按功能逐项引导，权限请求出现在对应功能说明之后。 |
 | D-058 | （已被 D-104 取代）原强制辅助功能权限；v1.2 改为按需申请。 |
 | D-059 | 屏幕录制权限必须在 Onboarding 阶段完成，未授权不能进入完整体验。 |
@@ -1301,8 +1301,8 @@ MVP 完全免费，不做任何付费限制，不接入支付、授权码、订�
 | D-092 | MVP 不需要账号系统，也不预留复杂账号架构。 |
 | D-093 | MVP 最低支持 macOS 13 Ventura。 |
 | D-094 | MVP 需要明确测试策略并写入测试文档。 |
-| D-101 | **（v1.2.0，2026-07-03）品牌名正式定案：中文青鸟、英文 Qingniao（首字母大写）。取代 D-056。全文（除历史语境）统一使用此名。** |
-| D-102 | **（v1.2.0）Bundle ID 保留 `com.assistant.app` 不变，避免用户 TCC 权限、Keychain、数据目录、开机启动项失效；仅改显示名/target/源码目录/文案。** |
+| D-101 | **（v1.2.0，2026-07-03）品牌名正式定案：中文清羽、英文 Qingyu（首字母大写）。取代 D-056。全文（除历史语境）统一使用此名。** |
+| D-102 | **（v1.2.0）Bundle ID 保留 `com.freeabyss.qingyu` 不变，避免用户 TCC 权限、Keychain、数据目录、开机启动项失效；仅改显示名/target/源码目录/文案。** |
 | D-103 | **（v1.2.0）关闭 App Sandbox，采用 Developer ID 签名 + notarytool 公证 + staple + GitHub Releases 分发（非 MAS），保留 Hardened Runtime，使 AppleEvents 命令可靠工作。取代 D-050。** |
 | D-104 | **（v1.2.0）辅助功能权限改为按需申请，onboarding 不再强制；首次触发相关能力时才请求。取代 D-058。** |
 | D-105 | **（v1.2.0）v1.2 接入文件搜索（FileSearchSource 接线），默认索引范围限定 `~/Desktop`/`~/Documents`/`~/Downloads`，只做文件名/路径匹配，不做全文/OCR。** |
@@ -1311,9 +1311,9 @@ MVP 完全免费，不做任何付费限制，不接入支付、授权码、订�
 | D-108 | **（v1.2.0）版本号三源必须一致：Xcode MARKETING_VERSION=1.2.0、Info.plist CFBundleShortVersionString=1.2.0、CHANGELOG 补全 v1.0.0/v1.0.1/v1.1.0/v1.2.0；关于页显示与之一致。** |
 | D-109 | **（v1.2.0）确认当前 Core Data + GRDB 双栈为已知技术债，v1.2 不做存储重构；V1.x 统一到 SwiftData 或单 Core Data 栈，重点关注数据一致性。** |
 | D-110 | **（v1.2.0）确认 MVP 不含 OCR，OCR 列入 V2.x；相关死代码 v1.2 删除。** |
-| D-111 | **（v1.2.0）数据目录 `~/Library/Application Support/Qingniao/`，跨版本采用 Core Data lightweight migration，与 Time Machine 兼容；提供设置内"清空所有数据"入口；卸载不自动清理数据。** |
+| D-111 | **（v1.2.0）数据目录 `~/Library/Application Support/Qingyu/`，跨版本采用 Core Data lightweight migration，与 Time Machine 兼容；提供设置内"清空所有数据"入口；卸载不自动清理数据。** |
 | D-112 | **（v1.2.0）UI 设计语言定为"现代极简 Pro 工具风"（参考 Raycast / Arc），不拟物、不过度装饰，本地/隐私/键盘优先（见第 9 章）。** |
-| D-113 | **（v1.2.0）品牌色定为 Jade / Teal（Light `#0A9488` / Dark `#2DD4BF`），意象贴合"青鸟"；语义色直接走系统色。** |
+| D-113 | **（v1.2.0）品牌色定为 Jade / Teal（Light `#0A9488` / Dark `#2DD4BF`），意象贴合"清羽"；语义色直接走系统色。** |
 | D-114 | **（v1.2.0）命令栏形态为独立 command bar 浮层 + 独立管理窗口（剪贴板/设置），非菜单栏下拉。** |
 | D-115 | **（v1.2.0）明暗双模式跟随系统；浮层/工具条材质统一使用 `.ultraThinMaterial`。** |
 | D-116 | **（v1.2.0）Onboarding 改为单屏布局（720×520）；辅助功能改为按需申请（与 D-104 一致）。** |
@@ -1340,6 +1340,6 @@ MVP 完全免费，不做任何付费限制，不接入支付、授权码、订�
 6. 存储栈统一（Core Data + GRDB → SwiftData 或单栈）的迁移时机与数据迁移验收标准？
 7. 截图底层实现优先 ScreenCaptureKit 还是兼容性更强的 CGWindow/CGDisplay（影响 macOS 13 兼容分支）？
 8. AppIcon 最终设计：v1.2 内由开发用 SF Symbol 鸟 glyph（jade 色）占位，正式自定义 AppIcon 可后补——是否需要在上线前完成正式设计稿？
-9. 官网/项目主页 URL 与隐私政策 URL 是否最终确定（域名 qingniao.app 是否启用）？
+9. 官网/项目主页 URL 与隐私政策 URL 是否最终确定（域名 qingyu.app 是否启用）？
 10. 全屏/区域/窗口截图默认快捷键组合的最终取值是否需与常见第三方截图工具再做一次冲突排查？
 11. 是否需要自定义 dmg 安装背景（v1.2 可不做，上线前决定）？

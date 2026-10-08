@@ -1,4 +1,4 @@
-# 青鸟下一阶段执行计划
+# 清羽下一阶段执行计划
 
 > **For agentic workers:** 每个 Task 必须在独立会话中执行。只读取当前 Task、`AGENTS.md`、Task 指定的 PRD/架构章节和相关源码。完成测试与评审后再进入下一 Task。
 
@@ -15,9 +15,9 @@
 - 用户数据保存在当前 Mac；插件按需声明并请求权限。
 - App Sandbox 保持关闭；发布保留 Hardened Runtime、Developer ID 和 Apple Notarization。
 - 代码修改提交前运行 `./scripts/bump-version.sh --bump`；主版本保持 `0`，构建号同步递增。
-- 版本单一事实来源是 `Qingniao/Info.plist`；`MARKETING_VERSION`、`CURRENT_PROJECT_VERSION` 必须同步。
+- 版本单一事实来源是 `Qingyu/Info.plist`；`MARKETING_VERSION`、`CURRENT_PROJECT_VERSION` 必须同步。
 - “关于”、更新和反馈从 Bundle 读取版本与构建号。
-- 新 Swift 文件必须加入 `Qingniao.xcodeproj/project.pbxproj` 对应 target。
+- 新 Swift 文件必须加入 `Qingyu.xcodeproj/project.pbxproj` 对应 target。
 - 每个任务先写失败测试，再实现最小改动，最后运行 `./scripts/verify.sh`（全量单元测试 + `git diff --check`）并全部通过；截图会话生命周期回归用例见 `docs/test/cases.md` 第 12 节。
 - 现有工作区含未提交修改；执行者必须保留无关改动，禁止重置或覆盖整个文件。
 
@@ -78,3 +78,7 @@ flowchart TD
 - 单一截图入口进入统一截图状态；窗口悬停默认选中窗口，菜单栏悬停默认选中全屏，圈选区域后自动截图；跨显示器移动指针后在对应显示器判定目标。
 - 截图状态左下角显示当前可执行快捷键。
 - 自动化测试通过；真实多屏、TCC、快捷键、签名和公证有人工验收记录。
+
+## 界面重新设计
+
+- [Task 010：桌面界面重新设计](010-interface-refinement.md)：极简主义、轻质感、扁平化 + 轻拟物；独立视觉任务，保留当前业务行为。

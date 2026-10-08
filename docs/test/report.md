@@ -26,14 +26,14 @@
 ## 2026-08-22：当前产品基线完善
 
 - 修复 Xcode 测试 Target 未设置 `DEVELOPMENT_TEAM` 导致宿主 App 与测试 bundle Team ID 不一致、无法加载测试的问题；应用、单元测试和 UI 测试 Target 现统一使用 `454XB348PX`。
-- `xcodebuild test -only-testing:QingniaoTests/SystemCommandSourceTests`：通过。覆盖新增“打开剪贴板历史”白名单命令、中文/英文别名搜索及专用通知路由。
-- `xcodebuild test -only-testing:QingniaoTests/SearchPanelViewModelTests -only-testing:QingniaoTests/HotkeyConflictDetectorTests`：通过。覆盖命令栏有首页内容时自动展开，以及快捷键冲突检测。
-- `xcodebuild test -only-testing:QingniaoTests/SearchPanelViewModelTests`：通过。新增覆盖空输入首页的“打开剪贴板历史”、区域/窗口/全屏截图快捷操作。
-- `xcodebuild test -only-testing:QingniaoUITests/CommandBarUITests/testTCUI023SearchOpensClipboardHistory`：通过。覆盖命令栏英文别名搜索、回车路由到独立剪贴板历史窗口，以及命令栏关闭。
-- `xcodebuild test -only-testing:QingniaoUITests/CommandBarUITests`：通过。命令栏完整 UI 回归通过，确认新增首页快捷操作未破坏输入、回车、ESC 与空输入行为。
-- `xcodebuild test -project Qingniao.xcodeproj -scheme Qingniao -destination 'platform=macOS'`：完整 Xcode 测试套件通过。
+- `xcodebuild test -only-testing:QingyuTests/SystemCommandSourceTests`：通过。覆盖新增“打开剪贴板历史”白名单命令、中文/英文别名搜索及专用通知路由。
+- `xcodebuild test -only-testing:QingyuTests/SearchPanelViewModelTests -only-testing:QingyuTests/HotkeyConflictDetectorTests`：通过。覆盖命令栏有首页内容时自动展开，以及快捷键冲突检测。
+- `xcodebuild test -only-testing:QingyuTests/SearchPanelViewModelTests`：通过。新增覆盖空输入首页的“打开剪贴板历史”、区域/窗口/全屏截图快捷操作。
+- `xcodebuild test -only-testing:QingyuUITests/CommandBarUITests/testTCUI023SearchOpensClipboardHistory`：通过。覆盖命令栏英文别名搜索、回车路由到独立剪贴板历史窗口，以及命令栏关闭。
+- `xcodebuild test -only-testing:QingyuUITests/CommandBarUITests`：通过。命令栏完整 UI 回归通过，确认新增首页快捷操作未破坏输入、回车、ESC 与空输入行为。
+- `xcodebuild test -project Qingyu.xcodeproj -scheme Qingyu -destination 'platform=macOS'`：完整 Xcode 测试套件通过。
 - `xcodebuild build-for-testing`：通过。清理快捷键冲突检测和测试辅助代码中的 Swift 6 并发/弃用警告；仍有 Xcode 26 SDK 与项目 macOS 13 部署目标的 XCTest 链接警告，不影响编译和测试通过。
-- `xcodebuild test -only-testing:QingniaoTests/HotkeyConflictDetectorTests -only-testing:QingniaoTests/SystemCommandSourceTests`：通过。确认六个可重绑定快捷键的默认值、冲突检测与包含“打开剪贴板历史”的 15 条白名单命令目录；首次启动即注册全局入口，欢迎向导不会阻断搜索、剪贴板历史或截图快捷键。
+- `xcodebuild test -only-testing:QingyuTests/HotkeyConflictDetectorTests -only-testing:QingyuTests/SystemCommandSourceTests`：通过。确认六个可重绑定快捷键的默认值、冲突检测与包含“打开剪贴板历史”的 15 条白名单命令目录；首次启动即注册全局入口，欢迎向导不会阻断搜索、剪贴板历史或截图快捷键。
 
 ---
 
@@ -100,7 +100,7 @@
 
 ## v1.2.0（2026-07-03 定稿用例；开发完成，T-019 自动化回归全绿 2026-07-06；2026-07-07 上线，Issue #5、PR #6）
 
-> 品牌改名青鸟 Qingniao 迭代。v1.2 测试用例已在 `cases.md` 第 11 节定稿（新增 98 条 TC，P0=49/P1=42/P2=7，前缀 TOK/BRAND/DATA/DI/SEARCH-F/SEARCH-E/SHOT-FS/SHOT-UI/ONB-V2/PERM-OD/CODE/DIST/UPD/SHORTCUT/SETNEW/REG/BUILD/ROBUST/ACC/I18N），并对第 5 节受 UI 重设计影响的旧 TC 就地标注「v1.2 修订」。评审记录见 `doc/iterations/v1.2.0/test/review.md`（结论 APPROVED_WITH_MINOR_FIXES，阻塞级 0）。
+> 品牌改名清羽 Qingyu 迭代。v1.2 测试用例已在 `cases.md` 第 11 节定稿（新增 98 条 TC，P0=49/P1=42/P2=7，前缀 TOK/BRAND/DATA/DI/SEARCH-F/SEARCH-E/SHOT-FS/SHOT-UI/ONB-V2/PERM-OD/CODE/DIST/UPD/SHORTCUT/SETNEW/REG/BUILD/ROBUST/ACC/I18N），并对第 5 节受 UI 重设计影响的旧 TC 就地标注「v1.2 修订」。评审记录见 `doc/iterations/v1.2.0/test/review.md`（结论 APPROVED_WITH_MINOR_FIXES，阻塞级 0）。
 >
 > **T-019 执行结果已回填**——见本节「自动化回归实际执行结果」「静态校验结果」「手工验收清单」「已知遗留」。以下为原计划执行范围，保留供追溯。
 
@@ -112,8 +112,8 @@
   - 增补：`SearchServiceCoreTests`（文件权重 75）、`SearchPanelViewModelTests`（空态最近+收藏、⌘1-6、⌘K）、`OnboardingViewModelTests`（单屏、按需权限、completedAt 持久化）、`PermissionServiceProtocolConformanceTests`（onDemandAccessibilityCheck 三 conformer）、`CalculatorSourceTests`（换算并入回归）、`UpdateServiceTests`（无 Sparkle、跳 Releases）。
   - 删除：`UnitConverterSourceTests`、OCR 相关测试。
   - 基线：v1.1 为 swift 134；删旧增新后于开发完成时重新核定（预期净增，具体数回填）。
-- **`xcodebuild build` / `xcodebuild test`**：改名后 scheme/target/product 名 Qingniao 应能构建（BUILD-002）；Xcode target 测试基线 v1.1 为 125，回填实际数。
-- **脚本 / 静态校验（可入 CI）**：版本号三源一致（BRAND-007）、entitlements 关 Sandbox + apple-events（DIST-001/002）、无 Sparkle 残留（UPD-001）、死代码 grep（CODE-001~005）、强制解包 grep（ROBUST-001）、build_and_run.sh pgrep Qingniao（BUILD-001）。
+- **`xcodebuild build` / `xcodebuild test`**：改名后 scheme/target/product 名 Qingyu 应能构建（BUILD-002）；Xcode target 测试基线 v1.1 为 125，回填实际数。
+- **脚本 / 静态校验（可入 CI）**：版本号三源一致（BRAND-007）、entitlements 关 Sandbox + apple-events（DIST-001/002）、无 Sparkle 残留（UPD-001）、死代码 grep（CODE-001~005）、强制解包 grep（ROBUST-001）、build_and_run.sh pgrep Qingyu（BUILD-001）。
 - **手工验收清单范围**：
   - 品牌/图标：BRAND-005；关于页 1.2.0（BRAND-006）。
   - 文件搜索 E2E：AC-FILE（SEARCH-F-005）。
@@ -125,7 +125,7 @@
   - 无障碍：ACC-001~005（VoiceOver、键盘遍历、对比度、减弱动效）。
   - i18n：I18N-002（长英文不截断）。
   - 剪贴板/命令/截图/权限回归：REG-001~007。
-- **上线前专项校验**：反馈邮箱 feedback@qingniao.app 真实可收件（BRAND-004）；官网/隐私政策 URL（qingniao.app 域名）最终确定。
+- **上线前专项校验**：反馈邮箱 qingyu_freeabyss@163.com 真实可收件（BRAND-004）；官网/隐私政策 URL（qingyu.app 域名）最终确定。
 
 ### 自动化回归实际执行结果（T-019，2026-07-06）
 
@@ -134,7 +134,7 @@
 | 维度 | 计划 | 实际 |
 |------|------|------|
 | `swift test` | 全绿，基线重新核定 | **159 / 159 通过、0 失败**（v1.1 基线 134 → 159，净增 25） |
-| `xcodebuild build`（Debug clean build） | BUILD SUCCEEDED（target Qingniao） | **`** BUILD SUCCEEDED **`** |
+| `xcodebuild build`（Debug clean build） | BUILD SUCCEEDED（target Qingyu） | **`** BUILD SUCCEEDED **`** |
 | `xcodebuild build`（Release） | BUILD SUCCEEDED | **`** BUILD SUCCEEDED **`**（ad-hoc 签名，note: Disabling hardened runtime with ad-hoc codesigning） |
 | `xcodebuild test`（Debug） | 全绿 | **148 / 148 通过、0 失败，`** TEST SUCCEEDED **`** |
 | P0 TC（49 条） | 全过 | 自动化覆盖部分全绿；系统交互 P0 待上线前手工验证（清单见下） |
@@ -147,7 +147,7 @@
 | a | grep `Mac Super Assistant`（swift/plist/entitlements，排除 CHANGELOG/doc） | **无匹配** ✔ 品牌改名彻底 |
 | b | grep `try!` / `as! ` / `fatalError`（排除 init(coder)） | **仅 4 处 `fatalError("init(coder:) has not been implemented")`**（SettingsWindowController / ClipboardHistoryWindowController / AnnotationEditorWindow / ScreenshotOverlay），均为允许的 NSCoder 样板；无其他危险强解包 ✔ |
 | c | grep `SUPublicEDKey` / `SUFeedURL` / `SUEnableAutomaticChecks`（Info.plist） | **无匹配** ✔ Sparkle 残留已清 |
-| d | grep `com.apple.security.app-sandbox`（Qingniao.entitlements） | key 存在，值 **`<false/>`** ✔ Sandbox 已关 |
+| d | grep `com.apple.security.app-sandbox`（Qingyu.entitlements） | key 存在，值 **`<false/>`** ✔ Sandbox 已关 |
 | e | grep `TODO` / `FIXME` / `XXX`（swift，排除 #Preview/test） | **无匹配** ✔ 无剩余 TODO |
 | f | `codesign -d --entitlements`（Release build 产物） | `app-sandbox=false`、`automation.apple-events=true`、`files.user-selected.read-write=true`、`get-task-allow=true`、`screencapture=true` ✔ 与预期一致（DIST-001/002/003） |
 
@@ -157,7 +157,7 @@
 
 以下 P0 手工 TC 涉及真实系统权限弹窗、菜单栏交互、全局快捷键、真实截图捕获、Gatekeeper/公证等，后台 Agent 无法可靠执行,统一标注「**待上线前手工验证**」：
 
-- 品牌/图标：BRAND-005（菜单栏青鸟单色 template 图标）、BRAND-006（关于页显示 1.2.0）
+- 品牌/图标：BRAND-005（菜单栏清羽单色 template 图标）、BRAND-006（关于页显示 1.2.0）
 - 文件搜索 E2E：SEARCH-F-005（AC-FILE）
 - 全屏截图热键 E2E：SHOT-FS-002（AC-FULLSCREEN，⌃⌥⌘3）
 - Onboarding 单屏 + 屏幕录制 TCC + 辅助功能稍后 + 重启不重弹：ONB-V2-001 / ONB-V2-003 / ONB-V2-005 / ONB-V2-008、PERM-OD-002
@@ -167,7 +167,7 @@
 - 无障碍：ACC-001~005（VoiceOver、键盘遍历、对比度、减弱动效）
 - i18n：I18N-002（长英文不截断）
 - 剪贴板/命令/截图/权限回归：REG-001~007
-- 上线前专项：BRAND-004（反馈邮箱 feedback@qingniao.app 可收件）、qingniao.app 域名官网/隐私政策 URL 最终确定
+- 上线前专项：BRAND-004（反馈邮箱 qingyu_freeabyss@163.com 可收件）、qingyu.app 域名官网/隐私政策 URL 最终确定
 
 ### 已知遗留
 

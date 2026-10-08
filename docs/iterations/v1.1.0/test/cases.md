@@ -162,9 +162,9 @@ review §十 的 4 条 P2 死角以**手工步骤覆盖**为主，不新增严�
 
 - **编号**：TC-M-001 ｜ **关联**：AC-1 / P-1.1 ｜ **类型**：manual ｜ **优先级**：P0 ｜ **执行者**：人工
 - **观察窗口**：进入 `.screenRecording` 步骤后 **5 秒**内
-- **前置条件**：v1.1.0 修复已应用；执行 `tccutil reset ScreenCapture com.assistant.app` 重置权限；Clean 构建（`./build_and_run.sh run`）首启
+- **前置条件**：v1.1.0 修复已应用；执行 `tccutil reset ScreenCapture com.freeabyss.qingyu` 重置权限；Clean 构建（`./build_and_run.sh run`）首启
 - **执行步骤**：
-  1. 终端执行 `tccutil reset ScreenCapture com.assistant.app`
+  1. 终端执行 `tccutil reset ScreenCapture com.freeabyss.qingyu`
   2. Clean 构建并启动应用，走 onboarding 到 clipboardPrivacy 后点 Continue 进入 screenRecording 步骤（或在该步点主 CTA）
   3. 观察是否弹出系统屏幕录制授权弹窗
 - **预期结果**：`CGRequestScreenCaptureAccess()` 触发系统权限弹窗出现

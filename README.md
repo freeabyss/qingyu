@@ -1,15 +1,15 @@
-# Qingniao (青鸟)
+# Qingyu (清羽)
 
 **English** | [简体中文](README.zh-CN.md)
 
 > A local-first macOS productivity tool — lives in the menu bar, opens with `⌥ Space`.
 
-Qingniao collapses "launch an app, find a file, do the math, run a common system
+Qingyu collapses "launch an app, find a file, do the math, run a common system
 action" into one unified search entry, and keeps your clipboard history on your
 Mac. No accounts, no cloud sync, no analytics.
 
 ![Platform](https://img.shields.io/badge/platform-macOS%2013%2B-blue)
-![Version](https://img.shields.io/github/v/release/freeabyss/qingniao?label=version)
+![Version](https://img.shields.io/github/v/release/freeabyss/qingyu?label=version)
 ![License](https://img.shields.io/badge/license-Free%20personal%C2%B7No%20commercial-orange)
 ![Language](https://img.shields.io/badge/UI-Simplified%20Chinese%20%7C%20English-green)
 
@@ -17,10 +17,11 @@ Mac. No accounts, no cloud sync, no analytics.
 
 ## Download
 
-**[Get the latest release from GitHub Releases →](https://github.com/freeabyss/qingniao/releases)**
+**[Get the latest release from GitHub Releases →](https://github.com/freeabyss/qingyu/releases)**
 
 - Requires macOS 13 Ventura or later
 - Signed with Developer ID and notarized by Apple — drag into Applications and run
+- Distributed via **GitHub Releases only** — **not** the Mac App Store
 - No accounts, payments, subscriptions, or license keys
 - The in-app **About → Check for Updates** action opens the Releases page above;
   it never downloads or installs anything automatically
@@ -32,68 +33,70 @@ Mac. No accounts, no cloud sync, no analytics.
 
 ### `⌥ Space` Unified Search
 
-A centered command bar returning four result types concurrently, up to 12 rows:
+A centered command bar. Results come from **apps, commands, calculator, files,
+and settings** — clipboard history is **not** mixed into this search (use the
+clipboard window or the **Open Clipboard History** command instead).
 
 | Source | Behavior |
 | --- | --- |
 | **Apps** | Scans `/Applications`, `~/Applications`, `/System/Applications`; `⏎` launches |
-| **Files** | Searches Desktop, Documents, Downloads by default; `⏎` opens, `⌘Enter` reveals in Finder, `⌘C` copies the full path |
-| **Calculator** | Parses math expressions and unit conversions locally; results are copyable |
-| **Built-in commands** | 12 pre-registered safe actions, listed below |
+| **Files** | Searches Desktop, Documents, Downloads by default; `⏎` opens, `⌘C` copies the path |
+| **Calculator** | Parses math expressions and unit conversions locally |
+| **Commands** | Pre-registered built-in actions (see below) |
+| **Settings** | Jumps to the matching settings page |
 
-Search matches English and Chinese keywords, pinyin, and pinyin initials.
-With an empty query, the home screen shows **Frequent actions** and
-**Recently used**; the ordering data stays on your Mac.
-
-The command bar always appears on the display **where your pointer is** —
-on multi-monitor setups you never hunt for the window.
+- English / Chinese keywords, pinyin, and pinyin initials
+- Match quality: left-aligned (prefix) ranks above suffix, suffix above
+  middle-of-name contains; search input has **no** leading magnifying-glass icon
+- Empty query: **Recently used** and **Favorites** only (no duplicate quick-action block)
+- Opens on the display **under your pointer** on multi-monitor setups
 
 ### `⌥⌘C` Clipboard History
 
-- Records text, rich text, images, and Finder file references; one copy that
-  yields multiple representations becomes a single record
-- Duplicate content is merged by digest, updating its last-seen timestamp
-- Search, filter by type, pin, favorite, preview, copy, delete individually
-- Retention: 7 / 30 / 90 days or forever, defaulting to 30 days
-- Recording can be paused at any time; clearing everything requires confirmation
-- File records store paths and metadata only — **never file contents**;
-  records are marked unavailable when the source file disappears
+Chrome-free window: full-width search, type chips (**All / Text / Image / File**),
+history list on the left and a detail pane on the right.
 
-Clipboard search is a separate, window-local search. Unified search reaches the
-history window through a single built-in command, **Clipboard**.
+- Records text (including rich text, shown as **Text**), images, and Finder file references
+- List rows show the **source app icon** when known (e.g. Arc, Safari)
+- Row actions are always visible: pin, copy, delete; files also get **Reveal in Finder**
+- Missing original image files are dropped from the list; missing files get a toast
+  instead of a silent no-op when revealing in Finder
+- Duplicate content is merged by digest; retention 7 / 30 / 90 days or forever (default 30)
+- Recording can be paused; clearing everything requires confirmation
+- File records store paths and metadata only — **never file contents**
+
+Clipboard search stays inside this window. Command-bar search does not include
+clipboard history by default (可在设置中关闭/开启搜索源).
 
 ### Built-in Commands
 
 | Category | Commands |
 | --- | --- |
-| Navigation | Open System Settings, Open App Settings, Open Downloads, Open Applications, Open Desktop |
+| Navigation | Open System Settings, Open App Settings, Open Downloads, Open Applications, Open Desktop, Open Finder |
 | Clipboard | Open Clipboard History, Clear Clipboard History, Pause or Resume Clipboard Recording |
-| System | Check Permissions, Restart Finder, Restart Dock, Toggle Appearance |
+| System | Check Permissions, Restart Finder, Restart Dock, Toggle Appearance, Lock Screen, Sleep, Restart Mac, Shut Down |
 
-Only pre-registered fixed actions run — **arbitrary shell commands are never
-parsed or executed**. Clearing clipboard history, restarting Finder, and
-restarting Dock require a second confirmation.
+Only pre-registered actions run — **arbitrary shell commands are never parsed or
+executed**. Destructive / power actions require a second confirmation.
 
 ### `⌥⌘,` Settings
 
-Four pages: **General** (plugin management, appearance, language, storage usage,
-permission status), **Quick Launch** (file search directories and index state),
-**Clipboard** (recording toggle, retention, clear), and **About** (version,
-updates, feedback, privacy policy, open-source licenses).
+Pages: **General** (appearance, language,
+startup, permissions, data usage), **Quick Launch** (hotkey, search sources,
+file search directories), **Clipboard** (recording toggle, retention, clear),
+and **About**.
 
-Features plug in as first-party modules you can enable or disable individually
-under **General → Plugin management**. If one plugin fails to start, the rest
-keep running, and the failure reason plus a retry action stay in the list.
+- Appearance: Follow System / Light / Dark
+- Menu bar: Open Search, Clipboard History, Settings, Quit (About lives in Settings)
 
-Interface language offers **Follow System**, **Simplified Chinese**, and
-**English**, applied immediately.
+Interface language: **Follow System**, **Simplified Chinese**, **English**.
 
 ## Privacy
 
-Qingniao is local-first and offline by default:
+Qingyu is local-first and offline by default:
 
 - Clipboard content, usage frequency, and settings all stay on your Mac in
-  `~/Library/Application Support/Qingniao/`
+  `~/Library/Application Support/Qingyu/`
 - No account system, cloud sync, analytics backend, or payment channel
 - The file index is built locally; file names and paths are never uploaded
 - Feedback is user-initiated email only. The generated message contains the app
@@ -104,64 +107,41 @@ Read the full [Privacy Policy](PRIVACY.md).
 
 ### Permissions
 
-Qingniao requests only what it uses, and explains it before asking:
-
 | Permission | Purpose | When requested |
 | --- | --- | --- |
-| **Accessibility** | Keyboard/mouse simulation, auto-paste, window control | On demand, when a related feature is first used |
-| **Apple Events** | Built-in commands that control other apps | Before the first such command runs |
+| **Accessibility** | Keyboard/mouse simulation, window control | On demand, when a related feature is first used |
+| **Apple Events** | Built-in commands that control other apps (e.g. Sleep / Restart / Shut Down) | Before the first such command runs |
 | **Clipboard** | macOS shows no separate prompt for clipboard reads | On by default; pausable and clearable anytime |
 
-Declining any permission never blocks you from using the app. The affected
-feature stays unavailable and offers **Grant**, **Recheck**, and
-**Open System Settings**.
+Declining any permission never blocks you from using the app.
 
 ## Roadmap
 
-### Screenshots & Pinning (in development, not yet shipped)
+### Screenshots & Pinning (Snipaste-style, gated, not yet shipped)
 
-A single capture entry — one hotkey enters capture state, and your pointer
-position plus mouse behavior decide the mode automatically:
+Single capture entry, annotation tools, color picker, and pin-to-float windows.
+Code is implemented but held behind a feature gate until multi-display / TCC /
+signing acceptance.
 
-- Hover a window → window capture; hover the menu bar or empty desktop → full
-  display; press and drag → region selection
-- Region selection wins over the hover default, wherever the drag starts
-- Moving the pointer to another display moves target detection with it
-- Annotation: rectangle, arrow, line, polyline, text, mosaic
-- Color picker; copy, save (system panel, PNG / JPEG), quick save (fixed directory, PNG)
-- Overlay across all displays, with in-session hotkey hints
-- **Pinning**: turn a screenshot or clipboard content into a floating window
-  above everything else, with scaling, opacity, hide, close, restore queue, and destroy
+### Window Tiling / Window Pinning / Context Menu Extension (planned)
 
-A capture session is released when it ends. The product keeps no screenshot
-history and never deletes image files you saved.
-
-### Context Menu Extension (planned)
-
-Bring Qingniao actions into the system right-click menu so common operations are
-available in your current context, without invoking the command bar first.
+Not started. Plans, not commitments.
 
 ### Also considered
 
-- Automatic update checks (currently manual navigation to the Releases page; no
-  background networking)
-- Screenshot OCR text recognition
-
-> Roadmap items and timing are plans, not commitments. The screenshot code is
-> implemented and tested but held behind a feature gate; it opens after
-> multi-display, TCC, and signing acceptance is completed before release.
+- Automatic update checks (today: manual navigation to Releases)
+- Screenshot OCR
 
 ## Screenshots
 
-> ⚠️ Real-device screenshots pending. Capture them from a signed release build;
-> the list and size requirements live in
+> ⚠️ Real-device screenshots pending. See
 > [assets/product/README.md](assets/product/README.md).
 
-Product homepage: <https://freeabyss.github.io/qingniao/>
+Product homepage: <https://freeabyss.github.io/qingyu/>
 
 ## License
 
-Qingniao is **free for personal, non-commercial use**, but **commercial use is
+Qingyu is **free for personal, non-commercial use**, but **commercial use is
 prohibited**, and the project owner reserves the right to introduce paid
 features or commercial licensing in future versions.
 
@@ -169,7 +149,7 @@ Without prior written permission you may not use this software in any business
 operation, sell, redistribute, sublicense, or distribute modified versions.
 See [LICENSE](LICENSE).
 
-For commercial licensing: <feedback@qingniao.app>
+For commercial licensing: <qingyu_freeabyss@163.com>
 
 This software includes third-party open-source components, each under its own
 license. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
@@ -177,43 +157,10 @@ license. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 ## Version History
 
 See [CHANGELOG.md](CHANGELOG.md) and
-[GitHub Releases](https://github.com/freeabyss/qingniao/releases).
+[GitHub Releases](https://github.com/freeabyss/qingyu/releases).
 
 ## Feedback
 
-Bug reports, feature requests, commercial licensing: <feedback@qingniao.app>
+Bug reports, feature requests, commercial licensing: <qingyu_freeabyss@163.com>
 
-Or open an [Issue](https://github.com/freeabyss/qingniao/issues) directly.
-
-## FAQ
-
-**Is Qingniao free?**
-Free for personal, non-commercial use — no payments, subscriptions, license keys,
-or accounts. Commercial use requires a separate license.
-
-**Why can't I find the screenshot feature?**
-Screenshots are finishing acceptance and are not enabled in this release. Once
-enabled they appear in the menu bar, hotkeys, and Settings.
-
-**Does it upload my clipboard?**
-No. Clipboard history, settings, and usage frequency stay on your Mac — no
-networking, syncing, or uploading.
-
-**Can I turn off clipboard recording?**
-Yes. Pause it under **Settings → Clipboard**, or use the built-in command
-**Pause or Resume Clipboard Recording**.
-
-**Does it support arbitrary shell commands?**
-No. Only the 12 pre-registered built-in commands; user input is never executed.
-
-**Is it on the Mac App Store?**
-No. Distributed only through GitHub Releases, signed with Developer ID and
-notarized by Apple.
-
-**Does `⌥ Space` conflict with Spotlight?**
-Qingniao never changes your system shortcuts on its own. If a conflict is
-detected, Settings warns you and you can rebind Qingniao to another key.
-
-**Multi-monitor support?**
-The command bar appears on the display holding your pointer. Multi-display
-support for screenshots ships with the screenshot feature.
+Or open an [Issue](https://github.com/freeabyss/qingyu/issues) directly.

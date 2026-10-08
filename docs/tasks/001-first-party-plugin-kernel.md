@@ -14,13 +14,13 @@
 
 ## 文件
 
-- 新建：`Qingniao/Plugins/Core/PluginTypes.swift`
-- 新建：`Qingniao/Plugins/Core/PluginRegistry.swift`
-- 修改：`Qingniao/App/Controllers/AppContainer.swift`
-- 修改：`Qingniao.xcodeproj/project.pbxproj`
+- 新建：`Qingyu/Plugins/Core/PluginTypes.swift`
+- 新建：`Qingyu/Plugins/Core/PluginRegistry.swift`
+- 修改：`Qingyu/App/Controllers/AppContainer.swift`
+- 修改：`Qingyu.xcodeproj/project.pbxproj`
 - 新建：`docs/decisions/ADR-001-first-party-plugin-model.md`
 - 修改：`docs/architecture/design.md`、`docs/architecture/api.md`
-- 测试：`QingniaoTests/PluginRegistryTests.swift`
+- 测试：`QingyuTests/PluginRegistryTests.swift`
 
 ## 接口
 
@@ -58,7 +58,7 @@ struct PluginManifest {
     let requiredPermissions: Set<PermissionKind>
 }
 
-@MainActor protocol QingniaoPlugin: AnyObject {
+@MainActor protocol QingyuPlugin: AnyObject {
     var manifest: PluginManifest { get }
     func start() async throws
     func stop() async
@@ -77,7 +77,7 @@ struct UserDefaultsPluginEnablementStore: PluginEnablementStore {
 
 @MainActor final class PluginRegistry {
     init(enablementStore: PluginEnablementStore = UserDefaultsPluginEnablementStore())
-    func register(_ plugin: any QingniaoPlugin) throws
+    func register(_ plugin: any QingyuPlugin) throws
     func startAll() async
     func stopAll() async
     func setEnabled(_ enabled: Bool, for id: PluginID) async throws
@@ -101,11 +101,11 @@ XCTAssertEqual(registry.settingsPages.map(\.order), [10, 20])
 XCTAssertThrowsError(try registry.register(TestPlugin(id: PluginID(rawValue: "one"), settingsOrder: 30)))
 ```
 
-同文件定义 `TestPlugin: QingniaoPlugin`，并补充重复动作 ID、启动失败隔离和停用清理断言。
+同文件定义 `TestPlugin: QingyuPlugin`，并补充重复动作 ID、启动失败隔离和停用清理断言。
 - [ ] 运行：
 
 ```bash
-xcodebuild test -project Qingniao.xcodeproj -scheme Qingniao -only-testing:QingniaoTests/PluginRegistryTests
+xcodebuild test -project Qingyu.xcodeproj -scheme Qingyu -only-testing:QingyuTests/PluginRegistryTests
 ```
 
 预期：编译失败，提示 `PluginRegistry` 未定义。
@@ -114,5 +114,5 @@ xcodebuild test -project Qingniao.xcodeproj -scheme Qingniao -only-testing:Qingn
 - [ ] 在 `AppContainer` 创建空注册表，但继续保留现有硬编码功能接线，确保用户行为不变。
 - [ ] 写 ADR，明确插件为编译期第一方模块、同进程运行、随应用签名发布，以及未来改变模型必须重新评审权限和隔离。
 - [ ] 将新增文件加入 App 与 Tests target，重新运行定向测试，预期 PASS。
-- [ ] 运行 `./scripts/bump-version.sh --bump`、`plutil -lint Qingniao/Info.plist`，核对两处 Xcode 版本字段。
+- [ ] 运行 `./scripts/bump-version.sh --bump`、`plutil -lint Qingyu/Info.plist`，核对两处 Xcode 版本字段。
 - [ ] 运行 `git diff --check` 后提交：`feat(plugin): add first-party plugin registry`。

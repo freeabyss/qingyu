@@ -22,7 +22,7 @@
 --uitest-skip-shortcuts
 ```
 
-- `<临时目录绝对路径>`：`NSTemporaryDirectory() + "QingniaoUITest/<testMethodName>"`，每个用例独立子目录。
+- `<临时目录绝对路径>`：`NSTemporaryDirectory() + "QingyuUITest/<testMethodName>"`，每个用例独立子目录。
 - 临时目录在 `setUp` 创建，`tearDown` 删除，避免污染真实用户数据与跨用例残留。
 - 评审 C-4 已确认：`PersistenceController` 已支持外部 storeURL（`.persistent(storeURL: URL?)`），`AssistantFileSystem` 已有 `init(rootDirectory:)`，仅 `DatabaseManager.shared` 的 dbPath 硬编码需 ⑤ 改造为可注入。`--uitest-data-dir` 的实现风险低于设计文档原估。
 
@@ -144,12 +144,12 @@ Onboarding 完成/跳过后断言"app 驻留菜单栏"，设计文档用 `app.me
 **步骤**
 1. `app.launchArguments = ["--uitest-reset-onboarding", "--uitest-data-dir", tmpDir, "--uitest-skip-shortcuts"]`
 2. `app.launch()`；`app.activate()`
-3. `waitForExistence(timeout: 10)`：查 onboarding 窗口（`app.windows` 含标题或 `app.staticTexts["欢迎使用青鸟"]`）
-4. 查标题文案：`app.staticTexts["欢迎使用青鸟"]` 或 `app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "青鸟")).firstMatch`
+3. `waitForExistence(timeout: 10)`：查 onboarding 窗口（`app.windows` 含标题或 `app.staticTexts["欢迎使用清羽"]`）
+4. 查标题文案：`app.staticTexts["欢迎使用清羽"]` 或 `app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "清羽")).firstMatch`
 
 **关键断言**
 - onboarding 窗口 `exists == true`
-- 标题文案"欢迎使用青鸟"（或 slogan"你的本地 Mac 效率中心"）`exists == true`
+- 标题文案"欢迎使用清羽"（或 slogan"你的本地 Mac 效率中心"）`exists == true`
 
 **依赖 hook**：`--uitest-reset-onboarding`、`--uitest-data-dir`
 
@@ -598,11 +598,11 @@ Onboarding 完成/跳过后断言"app 驻留菜单栏"，设计文档用 `app.me
 
 **步骤**
 1. launch（mark-completed + trigger openAbout + 通用）
-2. `waitForExistence(timeout: 5)`：关于页内容（查 `app.staticTexts` 含"青鸟"或"Qingniao"，全局 PRD §9.4 P-03 关于页：图标 96×96 + 版本号 + 版权 + 反馈入口）
+2. `waitForExistence(timeout: 5)`：关于页内容（查 `app.staticTexts` 含"清羽"或"Qingyu"，全局 PRD §9.4 P-03 关于页：图标 96×96 + 版本号 + 版权 + 反馈入口）
 3. 断言关于页可见
 
 **关键断言**
-- 关于页内容 `exists == true`（"青鸟"/"Qingniao" staticText 可见）
+- 关于页内容 `exists == true`（"清羽"/"Qingyu" staticText 可见）
 
 **依赖 hook**：`--uitest-mark-onboarding-completed`、`--uitest-trigger openAbout`
 
@@ -722,7 +722,7 @@ Onboarding 完成/跳过后断言"app 驻留菜单栏"，设计文档用 `app.me
 5. 点击侧栏"快捷键"项：`app.staticTexts["快捷键"].click()`
 6. `waitForExistence`：主区域切换（查快捷键录制器 HotkeyRecorder 或"呼出统一搜索"staticText）
 7. 点击侧栏"关于"项：`app.staticTexts["关于"].click()`
-8. `waitForExistence`：关于页内容（"青鸟"/"Qingniao" staticText）
+8. `waitForExistence`：关于页内容（"清羽"/"Qingyu" staticText）
 
 **关键断言**
 - 每次点击侧栏项后，主区域内容切换（前一页内容消失、新页内容出现）

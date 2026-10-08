@@ -14,16 +14,16 @@
 
 | 模块 | 文件 | 改动性质 |
 |------|------|---------|
-| Onboarding 视图 | `Qingniao/Views/Onboarding/OnboardingView.swift` | 布局重构（Bug 2） |
-| App 生命周期 | `Qingniao/App/AppDelegate.swift` | 门禁移除 + 引用清理 + 服务幂等 + 菜单接线 |
-| DI 根 | `Qingniao/App/Controllers/AppContainer.swift` | 移除 `onboardingGate` / `ensureOnboardingReady()` 死接口 |
-| 命令栏 | `Qingniao/App/Controllers/CommandBarController.swift` | 移除门禁 guard（toggle/show） |
-| 剪贴板窗口 | `Qingniao/App/Controllers/ClipboardHistoryWindowController.swift` | 移除门禁 guard |
-| 设置窗口 | `Qingniao/App/Controllers/SettingsWindowController.swift` | 移除门禁 guard |
-| 截图窗口 | `Qingniao/App/Controllers/ScreenshotWindowController.swift` | 移除门禁 guard |
-| 全局快捷键 | `Qingniao/Services/Hotkey/GlobalShortcutManager.swift` | 移除门禁 guard（冗余） |
-| 菜单栏 | `Qingniao/App/Controllers/StatusItemController.swift` | 新增“欢迎向导”入口 |
-| 文案 | `Qingniao/Resources/Localizable.xcstrings` | 新增 `menubar.onboarding` |
+| Onboarding 视图 | `Qingyu/Views/Onboarding/OnboardingView.swift` | 布局重构（Bug 2） |
+| App 生命周期 | `Qingyu/App/AppDelegate.swift` | 门禁移除 + 引用清理 + 服务幂等 + 菜单接线 |
+| DI 根 | `Qingyu/App/Controllers/AppContainer.swift` | 移除 `onboardingGate` / `ensureOnboardingReady()` 死接口 |
+| 命令栏 | `Qingyu/App/Controllers/CommandBarController.swift` | 移除门禁 guard（toggle/show） |
+| 剪贴板窗口 | `Qingyu/App/Controllers/ClipboardHistoryWindowController.swift` | 移除门禁 guard |
+| 设置窗口 | `Qingyu/App/Controllers/SettingsWindowController.swift` | 移除门禁 guard |
+| 截图窗口 | `Qingyu/App/Controllers/ScreenshotWindowController.swift` | 移除门禁 guard |
+| 全局快捷键 | `Qingyu/Services/Hotkey/GlobalShortcutManager.swift` | 移除门禁 guard（冗余） |
+| 菜单栏 | `Qingyu/App/Controllers/StatusItemController.swift` | 新增“欢迎向导”入口 |
+| 文案 | `Qingyu/Resources/Localizable.xcstrings` | 新增 `menubar.onboarding` |
 
 无数据模型变更、无 Core Data migration、无新依赖、无接口签名变更（仅删除内部死接口）。
 

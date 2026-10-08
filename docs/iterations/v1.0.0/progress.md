@@ -2585,7 +2585,7 @@ US-025 从零构建了完整的截图标注编辑器，替换 US-024 的 Annotat
 1. **工程内部代号与运行产物对齐 Assistant**
    - `Package.swift` package 名称改为 `Assistant`，保留 SwiftPM/Xcode target/module `SnapVault` 以兼容现有测试 `@testable import SnapVault` 和物理目录结构。
    - Xcode app target 的构建产物改为 `Assistant.app`，`PRODUCT_MODULE_NAME` 固定为 `SnapVault`，避免破坏既有测试 target。
-   - `Info.plist` 中 `CFBundleName=Assistant`、`CFBundleDisplayName=Mac Super Assistant`、`CFBundleIdentifier=com.assistant.app`。
+   - `Info.plist` 中 `CFBundleName=Assistant`、`CFBundleDisplayName=Mac Super Assistant`、`CFBundleIdentifier=com.freeabyss.qingyu`。
    - Sparkle appcast 模板和 feed URL 从旧 SnapVault 占位迁移到 Assistant 占位。
 
 2. **macOS 13 Ventura+ 与菜单栏形态**
@@ -2605,8 +2605,8 @@ US-025 从零构建了完整的截图标注编辑器，替换 US-024 的 Annotat
 
 5. **生命周期、依赖注入入口和基础日志整理**
    - App 生命周期日志从 SnapVault 文案改为 Assistant 文案。
-   - OSLog subsystem 改为 `com.assistant.app`。
-   - 运行时 Notification 命名空间从旧 `com.snapvault.*`/`SnapVault.*` 改为 `com.assistant.*`/`Assistant.*`。
+   - OSLog subsystem 改为 `com.freeabyss.qingyu`。
+   - 运行时 Notification 命名空间从旧 `com.snapvault.*`/`SnapVault.*` 改为 `com.freeabyss.qingyu.*`/`Assistant.*`。
    - Application Support 目录和数据库路径迁移到 `~/Library/Application Support/Assistant/assistant.db`。
 
 6. **文档同步**

@@ -7,7 +7,7 @@
 
 ### Bug 1（P0 阻塞）：所有功能入口都跳到欢迎页
 - **复现步骤**：
-  1. 全新安装（或清除数据）后首次启动青鸟。
+  1. 全新安装（或清除数据）后首次启动清羽。
   2. 点击菜单栏图标，在弹出菜单中点击「打开搜索」/「剪贴板」/「截图」/「设置…」/「关于」任意一项。
 - **实际行为**：无论点哪一项，弹出的都是欢迎（Onboarding）页面，对应的搜索面板 / 剪贴板窗口 / 截图 / 设置窗口都打不开。
 - **预期行为**：各入口应各自打开对应面板/窗口；欢迎页仅在首次启动引导阶段出现，或用户主动触发时出现。
@@ -26,7 +26,7 @@ Bug 2 是根因、Bug 1 是可见症状：因为「开始使用」被裁剪到�
 
 真实根因是**门禁（gate）设计 + 无法完成引导**的叠加，而不是路由 mapping 写错。逐条追踪：
 
-1. `Qingniao/App/AppDelegate.swift:38-42`：启动时若 `isOnboardingCompleted == false`（首启）则 `showOnboardingWindow()`，并在 `:32` 安装门禁闭包
+1. `Qingyu/App/AppDelegate.swift:38-42`：启动时若 `isOnboardingCompleted == false`（首启）则 `showOnboardingWindow()`，并在 `:32` 安装门禁闭包
    `container.onboardingGate = { self.ensureOnboardingGate() }`。
 2. `AppContainer.swift:60` 定义 `var onboardingGate: () -> Bool`，`:69` `ensureOnboardingReady()` 转发调用。
 3. **每一个功能入口在动作开头都做门禁 guard**，未完成引导时直接 `return` 并转而弹回欢迎窗：

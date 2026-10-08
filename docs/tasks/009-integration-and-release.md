@@ -14,21 +14,21 @@
 
 ## 文件
 
-- 修改：`Qingniao/Plugins/Screenshot/ScreenshotPlugin.swift`
-- 修改：`Qingniao/Plugins/Screenshot/ScreenshotSettingsPage.swift`
-- 修改：`Qingniao/App/Controllers/AppContainer.swift`
-- 修改：`Qingniao/App/AppDelegate.swift`
-- 修改：`Qingniao/App/Controllers/StatusItemController.swift`
-- 修改：`Qingniao/Services/Hotkey/GlobalShortcutManager.swift`
-- 修改：`Qingniao/Services/Hotkey/HotkeyConflictDetector.swift`
-- 修改：`Qingniao/Utilities/KeyboardShortcuts+Names.swift`
-- 修改：`Qingniao/Services/SearchEngine/SystemCommandSource.swift`
-- 修改：`Qingniao/Services/SearchEngine/SearchCore.swift`
-- 修改：`Qingniao/Resources/Localizable.xcstrings`
-- 修改：`Qingniao.xcodeproj/project.pbxproj`
+- 修改：`Qingyu/Plugins/Screenshot/ScreenshotPlugin.swift`
+- 修改：`Qingyu/Plugins/Screenshot/ScreenshotSettingsPage.swift`
+- 修改：`Qingyu/App/Controllers/AppContainer.swift`
+- 修改：`Qingyu/App/AppDelegate.swift`
+- 修改：`Qingyu/App/Controllers/StatusItemController.swift`
+- 修改：`Qingyu/Services/Hotkey/GlobalShortcutManager.swift`
+- 修改：`Qingyu/Services/Hotkey/HotkeyConflictDetector.swift`
+- 修改：`Qingyu/Utilities/KeyboardShortcuts+Names.swift`
+- 修改：`Qingyu/Services/SearchEngine/SystemCommandSource.swift`
+- 修改：`Qingyu/Services/SearchEngine/SearchCore.swift`
+- 修改：`Qingyu/Resources/Localizable.xcstrings`
+- 修改：`Qingyu.xcodeproj/project.pbxproj`
 - 修改：`docs/test/cases.md`、`docs/test/report.md`、`docs/test/implementation-audit.md`
-- 测试：`QingniaoTests/ScreenshotPluginTests.swift`
-- UI 测试：`QingniaoUITests/MenuDispatchUITests.swift`、`CommandBarUITests.swift`、`SettingsWindowUITests.swift`、`ScreenshotOverlayUITests.swift`、`PinWindowUITests.swift`
+- 测试：`QingyuTests/ScreenshotPluginTests.swift`
+- UI 测试：`QingyuUITests/MenuDispatchUITests.swift`、`CommandBarUITests.swift`、`SettingsWindowUITests.swift`、`ScreenshotOverlayUITests.swift`、`PinWindowUITests.swift`
 
 ## 接口
 
@@ -60,16 +60,18 @@ XCTAssertEqual(plugin.manifest.shortcuts.map(\.actionID), [
 - [ ] 验证 14 项内置命令均已登记；统一搜索通过回车、鼠标点击或结果快捷键直接执行，重启系统/关机/注销显示风险图标，重启 Finder/重启 Dock 不显示风险图标；菜单栏、设置或其他专用入口执行系统控制命令时显示二次确认。
 - [ ] 验证新增系统控制命令的中英文名称、中文拼音和拼音首字母搜索；别名只参与匹配，不改变结果显示名称或执行动作。
 - [ ] 验证空查询“常用操作”将截图与系统控制命令置于同一列表，不按风险等级拆分分区；高风险命令仍显示风险图标。
+- [ ] 验证截图模式判定：窗口/菜单栏悬停默认值仅在单击时生效；从任意位置拖拽均优先进入区域圈选。
+- [ ] 验证指针位于桌面空白区域时默认全屏截图；从桌面拖拽仍优先区域圈选。
 - [ ] 实现 `ScreenshotPlugin`，让菜单、搜索、快捷键和 UITest trigger 都执行 `.startScreenshot`。
 - [ ] 从 `ScreenshotServiceProtocol`、`ScreenshotWindowController`、`SearchAction`、`SystemCommandSource`、通知和快捷键定义中删除 region/window/fullScreen 三套入口及兼容适配。
 - [ ] `AppDelegate` 启动时注册三个插件；完成或跳过欢迎向导后启动需要后台服务的插件；退出时调用 `pluginRegistry.stopAll()` 并注销全局快捷键。
 - [ ] 执行全量自动化：
 
 ```bash
-xcodebuild test -project Qingniao.xcodeproj -scheme Qingniao
+xcodebuild test -project Qingyu.xcodeproj -scheme Qingyu
 ```
 
-预期：QingniaoTests 与 QingniaoUITests 全部 PASS。
+预期：QingyuTests 与 QingyuUITests 全部 PASS。
 
 - [ ] 在至少两台显示器上人工验证：跨屏窗口高亮、拖拽区域、`⌘A` 当前屏全屏、左下角提示、Retina/负坐标、截图完成与取消。
 - [ ] 人工验证屏幕录制和辅助功能权限拒绝/授权/撤销；拒绝或暂不授权时仍可点击“开始使用”进入应用，受影响入口显示权限缺失并提供授权/重新检测/系统设置；验证 Apple Events 仅在首次执行相关内置命令前按需请求，拒绝后命令不可用；另验证 F1/F3/⇧F3 冲突与重录，贴图跨 Space 和全屏应用。
@@ -83,9 +85,9 @@ xcodebuild test -project Qingniao.xcodeproj -scheme Qingniao
 - [ ] 运行 `./scripts/bump-version.sh --bump` 与：
 
 ```bash
-plutil -lint Qingniao/Info.plist
-test "$(plutil -extract CFBundleShortVersionString raw Qingniao/Info.plist)" = \
-  "$(rg -o 'MARKETING_VERSION = [^;]+' Qingniao.xcodeproj/project.pbxproj | head -1 | awk '{print $3}')"
+plutil -lint Qingyu/Info.plist
+test "$(plutil -extract CFBundleShortVersionString raw Qingyu/Info.plist)" = \
+  "$(rg -o 'MARKETING_VERSION = [^;]+' Qingyu.xcodeproj/project.pbxproj | head -1 | awk '{print $3}')"
 ```
 
 - [ ] 构建 Release，完成 Developer ID 签名、公证和另一台 Mac 的 Gatekeeper 首次启动验证。

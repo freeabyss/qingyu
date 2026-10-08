@@ -1,10 +1,10 @@
-# Qingniao 构建与运行指南
+# Qingyu 构建与运行指南
 
 ## 快速开始
 
 ### 使用构建脚本（推荐）
 
-项目根目录下提供了 `build_and_run.sh` 脚本，用于编译和启动 Qingniao 应用。
+项目根目录下提供了 `build_and_run.sh` 脚本，用于编译和启动 Qingyu 应用。
 
 ```bash
 # 赋予脚本执行权限（首次使用）
@@ -37,7 +37,7 @@ chmod +x build_and_run.sh
 
 编译成功后，应用位于：
 ```
-DerivedData/Build/Products/Debug/Qingniao.app
+DerivedData/Build/Products/Debug/Qingyu.app
 ```
 
 ## 手动构建
@@ -46,7 +46,7 @@ DerivedData/Build/Products/Debug/Qingniao.app
 
 1. 打开项目文件：
    ```bash
-   open Qingniao.xcodeproj
+   open Qingyu.xcodeproj
    ```
 
 2. 在 Xcode 中选择 "My Mac" 作为目标设备
@@ -57,10 +57,10 @@ DerivedData/Build/Products/Debug/Qingniao.app
 
 ```bash
 # 编译项目
-xcodebuild -project Qingniao.xcodeproj -scheme Qingniao -configuration Debug
+xcodebuild -project Qingyu.xcodeproj -scheme Qingyu -configuration Debug
 
 # 清理构建
-xcodebuild -project Qingniao.xcodeproj -scheme Qingniao clean
+xcodebuild -project Qingyu.xcodeproj -scheme Qingyu clean
 ```
 
 ## 依赖项
@@ -109,7 +109,7 @@ xcodebuild -project Qingniao.xcodeproj -scheme Qingniao clean
    - 确认 macOS 版本符合要求
 
 2. **数据库错误**：
-   - 删除 `~/Library/Application Support/Qingniao/`
+   - 删除 `~/Library/Application Support/Qingyu/`
    - 重新启动应用
 
 ## 开发模式
@@ -138,35 +138,35 @@ git config core.hooksPath .githooks
 
 ```bash
 # 查看实时日志
-log stream --process Qingniao --level debug
+log stream --process Qingyu --level debug
 ```
 
 ### 重置应用数据
 
 ```bash
 # 删除应用数据（包括数据库和设置）
-rm -rf ~/Library/Application\ Support/Qingniao/
+rm -rf ~/Library/Application\ Support/Qingyu/
 
 # 删除应用偏好设置
-defaults delete com.assistant.app
+defaults delete com.freeabyss.qingyu
 ```
 
 ## 发布构建
 
-Qingniao 采用 Developer ID 签名 + 公证的方式分发（不再使用 App Sandbox）。
+Qingyu 采用 Developer ID 签名 + 公证的方式分发（不再使用 App Sandbox）。
 
 ### 生成 Release 版本
 
 ```bash
 # 使用 Release 配置编译
-xcodebuild -project Qingniao.xcodeproj -scheme Qingniao -configuration Release
+xcodebuild -project Qingyu.xcodeproj -scheme Qingyu -configuration Release
 
 # 归档
-xcodebuild -project Qingniao.xcodeproj -scheme Qingniao -configuration Release archivePath=./build/Qingniao.xcarchive archive
+xcodebuild -project Qingyu.xcodeproj -scheme Qingyu -configuration Release archivePath=./build/Qingyu.xcarchive archive
 ```
 
 `build_and_run.sh` 中的 `build_for_release` 函数封装了 codesign + notarytool + staple 流程
-（使用环境变量中的 Developer ID 证书），签名后可用 `spctl --assess -vvv Qingniao.app` 验证。
+（使用环境变量中的 Developer ID 证书），签名后可用 `spctl --assess -vvv Qingyu.app` 验证。
 
 ### 代码签名
 

@@ -56,7 +56,7 @@
 
 ### TC-M-001（首启触发系统授权弹窗）
 - 结论：通过
-- 意见：`tccutil reset ScreenCapture com.assistant.app` 命令完整，bundle id **已核实与项目一致**（`project.pbxproj` `PRODUCT_BUNDLE_IDENTIFIER = com.assistant.app`）。弹窗文案"'Mac Super Assistant'想要录制…"中的 app 名 **已核实**（`Info.plist` `CFBundleDisplayName = Mac Super Assistant`）。判定明确（5 秒窗口 + 截图留证）。
+- 意见：`tccutil reset ScreenCapture com.freeabyss.qingyu` 命令完整，bundle id **已核实与项目一致**（`project.pbxproj` `PRODUCT_BUNDLE_IDENTIFIER = com.freeabyss.qingyu`）。弹窗文案"'Mac Super Assistant'想要录制…"中的 app 名 **已核实**（`Info.plist` `CFBundleDisplayName = Mac Super Assistant`）。判定明确（5 秒窗口 + 截图留证）。
 
 ### TC-M-002（app 出现在系统设置列表）
 - 结论：通过

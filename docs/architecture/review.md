@@ -43,9 +43,9 @@ v1.0.0 迭代事实上**未按 leader 规范执行独立架构评审环节**（�
 
 ### v1.2.0（2026-07-03）
 
-- **评审对象**：architecture/design.md v17、api.md v3、db.md v3（对照青鸟 v1.2 PRD + 现网代码）
+- **评审对象**：architecture/design.md v17、api.md v3、db.md v3（对照清羽 v1.2 PRD + 现网代码）
 - **结论**：APPROVED_WITH_MINOR_FIXES（阻塞级 0、改善级 6）；详见 `doc/iterations/v1.2.0/architecture/review.md`
-- **关键决策**：① AppDelegate（955 行 god object）拆分为 AppContainer(DI 根)+StatusItemController+5 类窗口控制器+GlobalShortcutManager（6 层不变，职责归位）；② 死代码收敛（删 UnifiedSearch*/MenuBarView/UnitConverterSource/OCRService/ContentStore/ContentRepository/GRDB ClipboardRepository，三套 Toast→JadeToast），FileSearchSource 例外为"接线启用"；③ 补齐 FileSearchSource 接入（默认三目录、Spotlight/FileManager、权重 75、FileSearchResult）+ 全屏截图全局热键 `⌃⌥⌘3`；④ 关闭 Sandbox + Developer ID 签名 + notarytool 公证 + 移除 Sparkle（仅跳 GitHub Releases），entitlements 清单明确；⑤ 建立 JadeToken 层 + 统一组件，Onboarding 改单屏 + 辅助功能按需申请（onboardingCompletedAt 判定，重启不重弹）；数据目录 Assistant/→Qingniao/ move 迁移 + lightweight migration + fallback，删除 ocrText 字段。
+- **关键决策**：① AppDelegate（955 行 god object）拆分为 AppContainer(DI 根)+StatusItemController+5 类窗口控制器+GlobalShortcutManager（6 层不变，职责归位）；② 死代码收敛（删 UnifiedSearch*/MenuBarView/UnitConverterSource/OCRService/ContentStore/ContentRepository/GRDB ClipboardRepository，三套 Toast→JadeToast），FileSearchSource 例外为"接线启用"；③ 补齐 FileSearchSource 接入（默认三目录、Spotlight/FileManager、权重 75、FileSearchResult）+ 全屏截图全局热键 `⌃⌥⌘3`；④ 关闭 Sandbox + Developer ID 签名 + notarytool 公证 + 移除 Sparkle（仅跳 GitHub Releases），entitlements 清单明确；⑤ 建立 JadeToken 层 + 统一组件，Onboarding 改单屏 + 辅助功能按需申请（onboardingCompletedAt 判定，重启不重弹）；数据目录 Assistant/→Qingyu/ move 迁移 + lightweight migration + fallback，删除 ocrText 字段。
 - **阻塞级已在评审中直接修订**：conformer 完整性（onDemandAccessibilityCheck 需补 Mock/Static）、仓库改名冲突（ClipboardRepository 名回收）、onboardingCompletedAt 迁移、数据目录迁移策略、文件权重取值。
 - **遗留（V1.x/V2.x）**：存储栈统一（Core Data+GRDB→SwiftData/单栈）、blur(v1.3)、导出备份、文件索引可配置、无障碍深度优化；OCR/AI/云同步/插件/Pro 留 V2.x。
 - **对 PRD 反馈**：FR-SEARCH-11"文件优先级 60"与 §9.3"75"冲突，架构取 75，建议 PRD 校准（唯一需改字点）；FR-SEARCH-14/15 与 D-120 空态语义演进建议加交叉引用。

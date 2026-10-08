@@ -6,7 +6,7 @@
 
 **相关模块：** `ScreenshotToolbarController`、`AnnotationCanvas`、`AnnotationShape`、Task 005–006 的截图会话。
 
-**业务规则：** 复制、保存、快捷保存或贴图只结束当前截图会话，不产生截图历史记录；快捷保存目录默认是系统图片目录，用户可通过仅允许选目录的文件夹选择器修改；修改目录只影响后续保存，不迁移旧截图；“打开保存截图文件夹”在目录不存在时先自动创建，再由 Finder 打开该目录，定位目录本身；若已有该目录窗口则激活并复用；创建或打开失败时仅在操作按钮旁以内联文字显示本地化的“无法打开保存截图文件夹：{系统原因}”错误并保留当前目录配置，成功后不额外显示 Toast；按钮不显示处理中或禁用状态，重复触发只执行一次；青鸟不自动删除用户保存的截图文件；“保存”打开以该目录为初始位置的系统保存面板，默认填入可修改且不含扩展名的 `Screenshot-YYYYMMDD-HHmmss` 文件名，只输入不含扩展名的文件名，默认 PNG 并可选 JPEG 或 PNG，JPEG 固定 90% 质量、透明区域铺白且扩展名为 `.jpg`，PNG 保留透明度且扩展名为 `.png`，保存前校验文件名符合 macOS 系统命名要求，同名覆盖确认保持 macOS 保存面板原生行为；“快捷保存”始终以 PNG 写入同一目录并在成功后显示 2 秒“图片已保存到 {完整目录路径}”提示；快捷保存使用固定英文前缀 `Screenshot` 和用户当前系统本地时间生成的 `Screenshot-YYYYMMDD-HHmmss.png` 文件名，不随界面语言切换；冲突时禁止覆盖并自动追加递增序号；已配置目录但不可用时直接失败，不静默回退；失败和取消保留会话；导出只含已完成标注。
+**业务规则：** 复制、保存、快捷保存或贴图只结束当前截图会话，不产生截图历史记录；快捷保存目录默认是系统图片目录，用户可通过仅允许选目录的文件夹选择器修改；修改目录只影响后续保存，不迁移旧截图；“打开保存截图文件夹”在目录不存在时先自动创建，再由 Finder 打开该目录，定位目录本身；若已有该目录窗口则激活并复用；创建或打开失败时仅在操作按钮旁以内联文字显示本地化的“无法打开保存截图文件夹：{系统原因}”错误并保留当前目录配置，成功后不额外显示 Toast；按钮不显示处理中或禁用状态，重复触发只执行一次；清羽不自动删除用户保存的截图文件；“保存”打开以该目录为初始位置的系统保存面板，默认填入可修改且不含扩展名的 `Screenshot-YYYYMMDD-HHmmss` 文件名，只输入不含扩展名的文件名，默认 PNG 并可选 JPEG 或 PNG，JPEG 固定 90% 质量、透明区域铺白且扩展名为 `.jpg`，PNG 保留透明度且扩展名为 `.png`，保存前校验文件名符合 macOS 系统命名要求，同名覆盖确认保持 macOS 保存面板原生行为；“快捷保存”始终以 PNG 写入同一目录并在成功后显示 2 秒“图片已保存到 {完整目录路径}”提示；快捷保存使用固定英文前缀 `Screenshot` 和用户当前系统本地时间生成的 `Screenshot-YYYYMMDD-HHmmss.png` 文件名，不随界面语言切换；冲突时禁止覆盖并自动追加递增序号；已配置目录但不可用时直接失败，不静默回退；失败和取消保留会话；导出只含已完成标注。
 
 **技术约束：** 所有终局经过一个完成协调器；颜色采样使用捕获图像像素；截图会话状态不写 Core Data。
 
@@ -14,17 +14,17 @@
 
 ## 文件
 
-- 新建：`Qingniao/Services/ScreenshotService/CaptureCompletionCoordinator.swift`
-- 新建：`Qingniao/Services/ScreenshotService/ColorSampler.swift`
-- 修改：`Qingniao/Models/AppSetting.swift`
-- 修改：`Qingniao/Views/Components/ScreenshotToolbarController.swift`
-- 修改：`Qingniao/Views/Annotation/AnnotationShape.swift`
-- 修改：`Qingniao/Views/Annotation/AnnotationCanvas.swift`
-- 修改：`Qingniao/Views/Annotation/AnnotationEditorWindow.swift`
-- 修改：`Qingniao/Views/Annotation/AnnotationToolbar.swift`
-- 修改：`Qingniao.xcodeproj/project.pbxproj`
-- 测试：`QingniaoTests/CaptureCompletionTests.swift`、`QingniaoTests/ColorSamplerTests.swift`
-- 回归：`QingniaoTests/AnnotationTests.swift`、`SettingsServiceTests.swift`
+- 新建：`Qingyu/Services/ScreenshotService/CaptureCompletionCoordinator.swift`
+- 新建：`Qingyu/Services/ScreenshotService/ColorSampler.swift`
+- 修改：`Qingyu/Models/AppSetting.swift`
+- 修改：`Qingyu/Views/Components/ScreenshotToolbarController.swift`
+- 修改：`Qingyu/Views/Annotation/AnnotationShape.swift`
+- 修改：`Qingyu/Views/Annotation/AnnotationCanvas.swift`
+- 修改：`Qingyu/Views/Annotation/AnnotationEditorWindow.swift`
+- 修改：`Qingyu/Views/Annotation/AnnotationToolbar.swift`
+- 修改：`Qingyu.xcodeproj/project.pbxproj`
+- 测试：`QingyuTests/CaptureCompletionTests.swift`、`QingyuTests/ColorSamplerTests.swift`
+- 回归：`QingyuTests/AnnotationTests.swift`、`SettingsServiceTests.swift`
 
 ## 接口
 
@@ -77,11 +77,11 @@ AnnotationTests 增加折线完成、清空后不可重做、文字旋转和 `�
 - [ ] 运行：
 
 ```bash
-xcodebuild test -project Qingniao.xcodeproj -scheme Qingniao \
-  -only-testing:QingniaoTests/CaptureCompletionTests \
-  -only-testing:QingniaoTests/ColorSamplerTests \
-  -only-testing:QingniaoTests/AnnotationTests \
-  -only-testing:QingniaoTests/SettingsServiceTests
+xcodebuild test -project Qingyu.xcodeproj -scheme Qingyu \
+  -only-testing:QingyuTests/CaptureCompletionTests \
+  -only-testing:QingyuTests/ColorSamplerTests \
+  -only-testing:QingyuTests/AnnotationTests \
+  -only-testing:QingyuTests/SettingsServiceTests
 ```
 
 - [ ] 递增版本、校验版本字段、运行 `git diff --check`。

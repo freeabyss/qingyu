@@ -1,6 +1,6 @@
-# 青鸟 Qingniao 内部接口设计详细方案
+# 清羽 Qingyu 内部接口设计详细方案
 
-> 版本：**v3** · 关联：`doc/architecture/design.md`（v17）、`doc/architecture/db.md`（v3）、`doc/prd.md`（青鸟 v1.2）
+> 版本：**v3** · 关联：`doc/architecture/design.md`（v17）、`doc/architecture/db.md`（v3）、`doc/prd.md`（清羽 v1.2）
 
 ## 版本记录
 
@@ -8,17 +8,17 @@
 |------|---------|------|
 | v1.0.0 | 2026-07-02 | 首次上线，MVP（22 个用户故事） |
 | v1.1.0 | 2026-07-03 | Onboarding 修复相关接口（`requestScreenRecordingPrompt()`、`skipOnboarding()`） |
-| v1.2.0 | 2026-07-03 | 品牌改名 Qingniao；DesignTokens/统一组件；FileSearchSource/FileSearchResult；AppContainer + 窗口控制器；按需辅助功能；全屏截图热键；HotkeyConflictDetector；QingniaoError；删除 UnifiedSearch*/UnitConverterSource/OCR/GRDB 双路径接口 |
+| v1.2.0 | 2026-07-03 | 品牌改名 Qingyu；DesignTokens/统一组件；FileSearchSource/FileSearchResult；AppContainer + 窗口控制器；按需辅助功能；全屏截图热键；HotkeyConflictDetector；QingyuError；删除 UnifiedSearch*/UnitConverterSource/OCR/GRDB 双路径接口 |
 
 ## 修订记录
 
 | 日期 | 修改人 | 备注 |
 | :--- | :--- | :--- |
 | 2026-06-05 → 2026-06-11 | Claude | v1–v2：SnapVault → Assistant MVP 内部接口设计 |
-| 2026-07-03 | arch subagent | **v3：品牌前缀由 Assistant 改为 Qingniao（module 名 Qingniao、测试模块 QingniaoTests）；`AssistantError`→`QingniaoError` 并新增 case；新增 DesignTokens/JadeButton/JadeTextField/JadeToast、FileSearchSource/FileSearchResult、AppContainer、CommandBarController/ClipboardHistoryWindowController/SettingsWindowController/AnnotationWindowController/ScreenshotOverlayController/StatusItemController、GlobalShortcutManager.registerFullscreenCapture()、HotkeyConflictDetector、PermissionService.onDemandAccessibilityCheck()、OnboardingViewModel 单屏化；列出 Deprecated/Removed in v1.2；依赖图更新。** |
-| 2026-09-06 | Claude | Task 001：新增 §22 Plugin 接口（`QingniaoPlugin`/`PluginRegistry`/`PluginManifest` 等，ADR-001），`AppContainer` 增加空 `pluginRegistry`。 |
+| 2026-07-03 | arch subagent | **v3：品牌前缀由 Assistant 改为 Qingyu（module 名 Qingyu、测试模块 QingyuTests）；`AssistantError`→`QingyuError` 并新增 case；新增 DesignTokens/JadeButton/JadeTextField/JadeToast、FileSearchSource/FileSearchResult、AppContainer、CommandBarController/ClipboardHistoryWindowController/SettingsWindowController/AnnotationWindowController/ScreenshotOverlayController/StatusItemController、GlobalShortcutManager.registerFullscreenCapture()、HotkeyConflictDetector、PermissionService.onDemandAccessibilityCheck()、OnboardingViewModel 单屏化；列出 Deprecated/Removed in v1.2；依赖图更新。** |
+| 2026-09-06 | Claude | Task 001：新增 §22 Plugin 接口（`QingyuPlugin`/`PluginRegistry`/`PluginManifest` 等，ADR-001），`AppContainer` 增加空 `pluginRegistry`。 |
 
-> 本文件定义青鸟 Qingniao 各模块间的 Swift Protocol / Model 契约（讲契约，不讲具体实现行），以 `doc/prd.md` 与 `doc/architecture/design.md` 当前决策为准。
+> 本文件定义清羽 Qingyu 各模块间的 Swift Protocol / Model 契约（讲契约，不讲具体实现行），以 `doc/prd.md` 与 `doc/architecture/design.md` 当前决策为准。
 
 ---
 
@@ -36,22 +36,22 @@
 
 ### 2.1 命名（v1.2 品牌决策）
 
-- 中文名青鸟、英文名 Qingniao；Bundle ID 保留 `com.assistant.app`。
-- **Swift module 名改为 `Qingniao`，测试模块 `QingniaoTests`**。
-- 公开类型前缀由 `Assistant` 改为 `Qingniao`；无品牌前缀的领域类型名保持不变。
+- 中文名清羽、英文名 Qingyu；Bundle ID 保留 `com.freeabyss.qingyu`。
+- **Swift module 名改为 `Qingyu`，测试模块 `QingyuTests`**。
+- 公开类型前缀由 `Assistant` 改为 `Qingyu`；无品牌前缀的领域类型名保持不变。
 
 **类型改名清单（v1.2）：**
 
 | 旧 | 新 | 说明 |
 | :--- | :--- | :--- |
-| `AssistantError` | `QingniaoError` | 统一错误模型（并新增 case，见 §2.3） |
-| `AssistantClipboardRepository` | `ClipboardRepository`（Qingniao 模块下，Core Data 实现，唯一仓库） | 原 GRDB 版 `ClipboardRepository` 已删除，名字回收给活动仓库 |
-| module `SnapVault`/`Assistant` | module `Qingniao` | 工程/target/module |
-| `AssistantClipboardSource` | `ClipboardSource`（Qingniao 模块下） | 保持协议契约 |
+| `AssistantError` | `QingyuError` | 统一错误模型（并新增 case，见 §2.3） |
+| `AssistantClipboardRepository` | `ClipboardRepository`（Qingyu 模块下，Core Data 实现，唯一仓库） | 原 GRDB 版 `ClipboardRepository` 已删除，名字回收给活动仓库 |
+| module `SnapVault`/`Assistant` | module `Qingyu` | 工程/target/module |
+| `AssistantClipboardSource` | `ClipboardSource`（Qingyu 模块下） | 保持协议契约 |
 | `ClipboardRecord` / `ClipboardRecordSnapshot` | 保持 | 领域模型名不带品牌前缀，不改 |
 | `SearchResult` / `SearchAction` / `SearchSource` | 保持 | 领域契约名不改 |
 
-> 命名总原则：品牌前缀类型改 `Qingniao`；`Clipboard*` / `Search*` / `Screenshot*` / `Annotation*` 等领域名保持稳定，避免大范围无谓改名扩大回归面。
+> 命名总原则：品牌前缀类型改 `Qingyu`；`Clipboard*` / `Search*` / `Screenshot*` / `Annotation*` 等领域名保持稳定，避免大范围无谓改名扩大回归面。
 
 ### 2.2 并发
 
@@ -60,10 +60,10 @@
 - 事件流：`AsyncStream` 或 Combine（同模块内一致）。
 - Core Data 写后台 context；读经 Repository 封装，不暴露 `NSManagedObject`。
 
-### 2.3 错误模型（QingniaoError）
+### 2.3 错误模型（QingyuError）
 
 ```swift
-enum QingniaoError: LocalizedError, Equatable {
+enum QingyuError: LocalizedError, Equatable {
     case permissionDenied(PermissionKind)
     case hotkeyConflict                    // 见新增 HotkeyConflictDetector
     case clipboardUnavailable
@@ -197,7 +197,7 @@ struct SearchResponse {
 }
 ```
 
-- 空输入返回 `recentAndFavorites()`（最近使用 + 收藏，D-120），非旧"完全空"。
+- 空输入不返回任何结果；命令栏此时只有输入框，不展示内容区。
 - 合并排序后最多 12 条，不分组，黑名单最终不展示。
 
 ### 3.5 SearchScoring
@@ -241,7 +241,7 @@ protocol FileSearchSourceProtocol: SearchSource {
 - 只做文件名/路径匹配，不做内容全文检索。
 - 检索优先 Spotlight metadata（`NSMetadataQuery`/`MDQuery`），降级 `FileManager` enumerator。
 - 主动作 `openFile(url)`，次级动作 `revealInFinder(url)`。
-- 失败抛 `QingniaoError.fileSearchIndexFailed`。
+- 失败抛 `QingyuError.fileSearchIndexFailed`。
 
 ---
 
@@ -252,7 +252,7 @@ protocol FileSearchSourceProtocol: SearchSource {
 **唯一仓库**（v1.2）：
 
 ```swift
-/// Core Data 实现的唯一活动仓库（原 AssistantClipboardRepository 在 Qingniao 模块下即 ClipboardRepository）。
+/// Core Data 实现的唯一活动仓库（原 AssistantClipboardRepository 在 Qingyu 模块下即 ClipboardRepository）。
 protocol ClipboardRepositoryProtocol {
     func upsert(event: ClipboardEvent, resources: [ClipboardResourceDraft]) async throws -> ClipboardRecordSnapshot
     func fetch(id: UUID) async throws -> ClipboardRecordSnapshot?
@@ -430,7 +430,7 @@ protocol LaunchAtLoginServiceProtocol {
 
 ```swift
 protocol FeedbackServiceProtocol {
-    func makeFeedbackEmail(context: FeedbackContext) throws -> URL   // 目标 feedback@qingniao.app
+    func makeFeedbackEmail(context: FeedbackContext) throws -> URL   // 目标 qingyu_freeabyss@163.com
 }
 
 /// v1.2：更新只跳 GitHub Releases（Sparkle 已彻底移除）。保留 ReleaseInfoService 语义。
@@ -441,7 +441,7 @@ protocol ReleaseInfoServiceProtocol {
 }
 
 protocol AboutInfoProviderProtocol {
-    var appName: String { get }             // "青鸟 Qingniao"
+    var appName: String { get }             // "清羽 Qingyu"
     var version: String { get }             // 必须 == MARKETING_VERSION == 1.2.0
     var buildNumber: String { get }
     var homepageURL: URL { get }
@@ -607,7 +607,7 @@ struct PermissionGate: View { /* 权限未授予占位 + 引导按钮 */ }
 
 ```mermaid
 graph TD
-    App[QingniaoApp/AppDelegate] --> Container[AppContainer 依赖注入根]
+    App[QingyuApp/AppDelegate] --> Container[AppContainer 依赖注入根]
     Container --> Status[StatusItemController]
     Container --> Shortcut[GlobalShortcutManager]
     Container --> CmdBar[CommandBarController]
@@ -697,13 +697,13 @@ graph TD
 | 独立 Toast（`ScreenshotToolbar` 内联 `Text`、`RecentContentView` overlay、旧 `ToastView`+modifier） | **删除/收敛** | 统一为 `JadeToast` |
 | `OnboardingStep` 枚举（7 步向导） | **删除** | Onboarding 单屏化 |
 | Sparkle 相关接口/配置（`SUFeedURL`/`SUPublicEDKey`/`appcast.xml`/updater 装配） | **删除** | 仅保留 `ReleaseInfoService` 跳 GitHub Releases |
-| `AssistantError` | **改名** → `QingniaoError`（+新增 case） | 品牌 + 新错误语义 |
+| `AssistantError` | **改名** → `QingyuError`（+新增 case） | 品牌 + 新错误语义 |
 
 ---
 
 ## 22. Plugin 接口（v0.2 阶段，Task 001）
 
-> 决策依据：`docs/decisions/ADR-001-first-party-plugin-model.md`；架构位置见 `design.md` §23。实现位于 `Qingniao/Plugins/Core/`。
+> 决策依据：`docs/decisions/ADR-001-first-party-plugin-model.md`；架构位置见 `design.md` §23。实现位于 `Qingyu/Plugins/Core/`。
 
 ### 22.1 标识与描述类型
 
@@ -758,7 +758,7 @@ struct PluginManifest {
 ### 22.2 插件协议与启停存储
 
 ```swift
-@MainActor protocol QingniaoPlugin: AnyObject {
+@MainActor protocol QingyuPlugin: AnyObject {
     var manifest: PluginManifest { get }
     func start() async throws   // 抛错 → 注册表记录失败并隔离
     func stop() async
@@ -783,7 +783,7 @@ struct UserDefaultsPluginEnablementStore: PluginEnablementStore
     enum PluginState: Equatable { case registered, started, failed, stopped }
     struct PluginContributions { let searchSources: [any SearchSource]; let settingsPage: PluginSettingsPageDescriptor?; let menuItems: [PluginMenuItemDescriptor]; let shortcuts: [PluginShortcutDescriptor] }
 
-    func register(_ plugin: QingniaoPlugin) throws          // 重复插件 ID / 跨插件重复动作 ID 抛错
+    func register(_ plugin: QingyuPlugin) throws          // 重复插件 ID / 跨插件重复动作 ID 抛错
     func startAll() async                                   // 失败隔离：单插件 start() 抛错不阻断其他插件
     func stopAll() async
     func setEnabled(_ enabled: Bool, for id: PluginID) async // 持久化 + 启动/停止
@@ -811,5 +811,5 @@ struct UserDefaultsPluginEnablementStore: PluginEnablementStore
 | 日期 | 变更内容 |
 | :--- | :--- |
 | 2026-06-11 | v2：重写 Assistant MVP 内部接口设计。 |
-| 2026-07-03 · **v3** | 品牌改名 Qingniao（module/测试模块/类型前缀，含改名清单）；`QingniaoError` 新增 `fileSearchIndexFailed`/`hotkeyConflictDetected`/`sandboxIncompatible`/`dataResetFailed`；新增 `FileSearchSource`/`FileSearchResult` + `SearchAction.openFile/revealInFinder` + 文件权重 75；新增 `AppContainer` + `StatusItemController` + 5 类窗口控制器 + `GlobalShortcutManagerProtocol`(含 `registerFullscreenCapture()`) + `HotkeyConflictDetectorProtocol`；`PermissionService.onDemandAccessibilityCheck()`；`OnboardingViewModel` 单屏化（删 `OnboardingStep`）；`SettingKey`/`SettingsRoute` 新增（appearance/data/feedback/fileSource/各截图热键/onboardingCompletedAt）；新增 DesignTokens（Jade*）与统一组件（JadeButton/JadeTextField/HotkeyRecorder/ListRow/JadeToast/…）；`ReleaseInfoService` 取代 Sparkle；依赖图更新；列出 Deprecated/Removed（UnifiedSearch*/MenuBarView/UnitConverterSource/OCRService/ContentStore/ContentRepository/GRDB ClipboardRepository/OCR 字段/三套 Toast/Sparkle）。 |
-| 2026-09-06 · Task 001 | 新增 §22 Plugin 接口：第一方插件内核（ADR-001）——`PluginID`/`PluginActionID` 稳定标识、`PluginManifest` 贡献清单、`QingniaoPlugin` 生命周期、`PluginEnablementStore`（UserDefaults `plugin.<id>.enabled`）、`PluginRegistry`（重复 ID 拒绝、失败隔离、动作所有权路由、贡献聚合与可见性规则）；`AppContainer.pluginRegistry` 空表接入，行为不变。 |
+| 2026-07-03 · **v3** | 品牌改名 Qingyu（module/测试模块/类型前缀，含改名清单）；`QingyuError` 新增 `fileSearchIndexFailed`/`hotkeyConflictDetected`/`sandboxIncompatible`/`dataResetFailed`；新增 `FileSearchSource`/`FileSearchResult` + `SearchAction.openFile/revealInFinder` + 文件权重 75；新增 `AppContainer` + `StatusItemController` + 5 类窗口控制器 + `GlobalShortcutManagerProtocol`(含 `registerFullscreenCapture()`) + `HotkeyConflictDetectorProtocol`；`PermissionService.onDemandAccessibilityCheck()`；`OnboardingViewModel` 单屏化（删 `OnboardingStep`）；`SettingKey`/`SettingsRoute` 新增（appearance/data/feedback/fileSource/各截图热键/onboardingCompletedAt）；新增 DesignTokens（Jade*）与统一组件（JadeButton/JadeTextField/HotkeyRecorder/ListRow/JadeToast/…）；`ReleaseInfoService` 取代 Sparkle；依赖图更新；列出 Deprecated/Removed（UnifiedSearch*/MenuBarView/UnitConverterSource/OCRService/ContentStore/ContentRepository/GRDB ClipboardRepository/OCR 字段/三套 Toast/Sparkle）。 |
+| 2026-09-06 · Task 001 | 新增 §22 Plugin 接口：第一方插件内核（ADR-001）——`PluginID`/`PluginActionID` 稳定标识、`PluginManifest` 贡献清单、`QingyuPlugin` 生命周期、`PluginEnablementStore`（UserDefaults `plugin.<id>.enabled`）、`PluginRegistry`（重复 ID 拒绝、失败隔离、动作所有权路由、贡献聚合与可见性规则）；`AppContainer.pluginRegistry` 空表接入，行为不变。 |

@@ -55,7 +55,7 @@ Onboarding 流程存在两个互相叠加、最终形成**死锁**的问题，�
 
 ## 四、验收标准（对齐 issue #3 AC-1~AC-8）
 
-- **AC-1**（P-1.1）：Clean 构建首启（`tccutil reset ScreenCapture com.assistant.app` 后），进入屏幕录制步骤能触发系统授权弹窗。
+- **AC-1**（P-1.1）：Clean 构建首启（`tccutil reset ScreenCapture com.freeabyss.qingyu` 后），进入屏幕录制步骤能触发系统授权弹窗。
 - **AC-2**（P-1.1）：打开系统设置"隐私与安全 → 屏幕录制"页，本 App 出现在列表中。
 - **AC-3**（P-1.3）：授权后 `CGPreflightScreenCaptureAccess()` 返回 true，屏幕录制步骤 Continue 按钮 enabled，可继续。
 - **AC-4**（P-2.1）：Onboarding footer 在 welcome / searchHotkey / clipboardPrivacy / screenRecording / accessibility / launchAtLogin / done 7 步中每一步都有"跳过设置"按钮。

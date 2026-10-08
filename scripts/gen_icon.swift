@@ -1,21 +1,17 @@
 #!/usr/bin/env swift
 
-// gen_icon.swift — 青鸟 Qingniao v1.2 占位图标生成脚本
+// gen_icon.swift — 清羽 Qingyu 占位图标生成脚本
 //
-// 用途：把 SF Symbol `bird` 渲染成 jade 色，生成 AppIcon 全尺寸 PNG
-// 以及菜单栏模板图标（MenuBarIcon）。正式 icon 后补。
+// 用途：把 SF Symbol `feather`（羽毛）渲染成 jade 色，生成 AppIcon 全尺寸 PNG
+// 以及菜单栏模板图标（MenuBarIcon）。
 //
 // 运行：
 //   swift scripts/gen_icon.swift
 //
 // 依赖：macOS + AppKit（无需 SF Symbols.app / sfsymbols CLI）。
 // 输出：
-//   Qingniao/Resources/Assets.xcassets/AppIcon.appiconset/icon_<px>.png
-//   Qingniao/Resources/Assets.xcassets/MenuBarIcon.imageset/menubar_<px>.png
-//
-// 说明：SF Symbol 不能直接做 AppIcon（Apple 要求 .iconset 为 PNG），
-// 因此这里用 NSImage(systemSymbolName:) 渲染 bird 符号，叠加 jade 圆角底
-// 生成位图，再逐尺寸写出 PNG。
+//   Qingyu/Resources/Assets.xcassets/AppIcon.appiconset/icon_<px>.png
+//   Qingyu/Resources/Assets.xcassets/MenuBarIcon.imageset/menubar_<px>.png
 
 import AppKit
 import Foundation
@@ -33,7 +29,7 @@ let fm = FileManager.default
 let scriptURL = URL(fileURLWithPath: CommandLine.arguments.first ?? "scripts/gen_icon.swift")
 let repoRoot = scriptURL.deletingLastPathComponent().deletingLastPathComponent()
 let assetsRoot = repoRoot
-    .appendingPathComponent("Qingniao/Resources/Assets.xcassets")
+    .appendingPathComponent("Qingyu/Resources/Assets.xcassets")
 let appIconDir = assetsRoot.appendingPathComponent("AppIcon.appiconset")
 let menuBarDir = assetsRoot.appendingPathComponent("MenuBarIcon.imageset")
 
@@ -70,11 +66,11 @@ func writePNG(size: Int, to url: URL, draw: (NSRect) -> Void) {
 }
 
 /// 把 SF Symbol 渲染成指定 point size / 颜色的 NSImage。
-func birdSymbol(pointSize: CGFloat, weight: NSFont.Weight, color: NSColor) -> NSImage {
+func symbolImage(named name: String, pointSize: CGFloat, weight: NSFont.Weight, color: NSColor) -> NSImage {
     let config = NSImage.SymbolConfiguration(pointSize: pointSize, weight: weight)
-    guard let base = NSImage(systemSymbolName: "bird", accessibilityDescription: "Qingniao")?
+    guard let base = NSImage(systemSymbolName: name, accessibilityDescription: "Qingyu")?
         .withSymbolConfiguration(config) else {
-        fatalError("系统无 SF Symbol `bird`")
+        return featherImage(size: NSSize(width: pointSize * 1.2, height: pointSize * 1.2), color: color)
     }
     // 以 tint 方式着色。
     let tinted = NSImage(size: base.size)
@@ -88,9 +84,65 @@ func birdSymbol(pointSize: CGFloat, weight: NSFont.Weight, color: NSColor) -> NS
     return tinted
 }
 
+/// Hand-drawn feather (system may lack SF Symbol `feather`).
+func featherImage(size: NSSize, color: NSColor) -> NSImage {
+    let image = NSImage(size: size)
+    image.lockFocus()
+    defer { image.unlockFocus() }
+    color.set()
+
+    let w = size.width
+    let h = size.height
+    // Quill shaft (slightly curved).
+    let shaft = NSBezierPath()
+    shaft.lineWidth = max(1, w * 0.045)
+    shaft.lineCapStyle = .round
+    shaft.move(to: NSPoint(x: w * 0.22, y: h * 0.86))
+    shaft.curve(
+        to: NSPoint(x: w * 0.72, y: h * 0.22),
+        controlPoint1: NSPoint(x: w * 0.42, y: h * 0.70),
+        controlPoint2: NSPoint(x: w * 0.60, y: h * 0.42)
+    )
+    shaft.stroke()
+
+    // Vane — elongated teardrop along the shaft.
+    let vane = NSBezierPath()
+    vane.move(to: NSPoint(x: w * 0.26, y: h * 0.88))
+    vane.curve(
+        to: NSPoint(x: w * 0.78, y: h * 0.18),
+        controlPoint1: NSPoint(x: w * 0.78, y: h * 0.78),
+        controlPoint2: NSPoint(x: w * 0.88, y: h * 0.48)
+    )
+    vane.curve(
+        to: NSPoint(x: w * 0.26, y: h * 0.88),
+        controlPoint1: NSPoint(x: w * 0.62, y: h * 0.28),
+        controlPoint2: NSPoint(x: w * 0.42, y: h * 0.58)
+    )
+    vane.close()
+    vane.fill()
+
+    // Fine barbs — a few notches on the outer edge.
+    let barbs = NSBezierPath()
+    barbs.lineWidth = max(0.8, w * 0.018)
+    barbs.lineCapStyle = .round
+    let samples: [(CGFloat, CGFloat, CGFloat, CGFloat)] = [
+        (0.42, 0.72, 0.58, 0.66),
+        (0.50, 0.60, 0.68, 0.54),
+        (0.58, 0.48, 0.74, 0.42),
+        (0.64, 0.36, 0.76, 0.32)
+    ]
+    for s in samples {
+        barbs.move(to: NSPoint(x: w * s.0, y: h * s.1))
+        barbs.line(to: NSPoint(x: w * s.2, y: h * s.3))
+    }
+    barbs.stroke()
+
+    return image
+}
+
 // MARK: - AppIcon 绘制
 
-/// 绘制单个尺寸的 AppIcon：jade 渐变圆角底 + 白色 bird。
+/// 绘制单个尺寸的 AppIcon：jade 渐变圆角底 + 白色羽毛。
 func drawAppIcon(rect: NSRect) {
     let size = rect.width
     // macOS 图标留白：squircle 约占画布 ~82%，四周留边。
@@ -105,31 +157,31 @@ func drawAppIcon(rect: NSRect) {
     path.addClip()
     gradient.draw(in: iconRect, angle: -90)
 
-    // 重置裁剪后画白色 bird，居中，占内框约 56%。
+    // 重置裁剪后画白色羽毛，居中，占内框约 56%。
     NSGraphicsContext.current?.saveGraphicsState()
     let glyphSize = iconRect.width * 0.56
-    let bird = birdSymbol(pointSize: glyphSize, weight: .semibold, color: .white)
-    let b = bird.size
+    let feather = symbolImage(named: "feather", pointSize: glyphSize, weight: .semibold, color: .white)
+    let b = feather.size
     let origin = NSPoint(
         x: iconRect.midX - b.width / 2,
         y: iconRect.midY - b.height / 2
     )
-    bird.draw(at: origin, from: .zero, operation: .sourceOver, fraction: 1)
+    feather.draw(at: origin, from: .zero, operation: .sourceOver, fraction: 1)
     NSGraphicsContext.current?.restoreGraphicsState()
 }
 
 // MARK: - MenuBar 模板图标绘制
 
-/// 绘制菜单栏模板图标：纯黑 bird（isTemplate 由资源目录 template-rendering 控制）。
+/// 绘制菜单栏模板图标：纯黑羽毛（isTemplate 由资源目录 template-rendering 控制）。
 func drawMenuBar(rect: NSRect) {
     let glyphSize = rect.width * 0.86
-    let bird = birdSymbol(pointSize: glyphSize, weight: .regular, color: .black)
-    let b = bird.size
+    let feather = symbolImage(named: "feather", pointSize: glyphSize, weight: .regular, color: .black)
+    let b = feather.size
     let origin = NSPoint(
         x: rect.midX - b.width / 2,
         y: rect.midY - b.height / 2
     )
-    bird.draw(at: origin, from: .zero, operation: .sourceOver, fraction: 1)
+    feather.draw(at: origin, from: .zero, operation: .sourceOver, fraction: 1)
 }
 
 // MARK: - 执行

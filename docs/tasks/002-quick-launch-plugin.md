@@ -6,7 +6,7 @@
 
 **相关模块：** `AppSearchSource`、`FileSearchSource`、`CalculatorSource`、`SystemCommandSource`、`SettingsSource`、`SearchService`。
 
-**业务规则：** 搜索排序与 12 条上限保持不变；空查询常用操作根据当前 macOS 环境和用户历史操作频率动态选取；操作频率记录仅保存在本机，不上传、不跨设备同步、不进入剪贴板历史，也不保存截图内容；不提供清除或重置频率记录入口；文件范围保持 Desktop/Documents/Downloads；统一搜索执行命令不二次确认，其他专用入口执行系统控制命令时显示确认。
+**业务规则：** 搜索排序与 12 条上限保持不变；空查询常用操作根据当前 macOS 环境和用户历史操作频率动态选取，无记录时使用“截图”“剪贴板”“系统设置”作为固定 macOS 基础操作；操作频率记录仅保存在本机，不上传、不跨设备同步、不进入剪贴板历史，也不保存截图内容；不提供清除或重置频率记录入口；文件范围保持 Desktop/Documents/Downloads；统一搜索执行命令不二次确认，其他专用入口执行系统控制命令时显示确认。
 
 **技术约束：** `AppContainer` 只负责注入依赖；快速启动插件负责构造自身搜索源和动作；跨功能动作通过 `PluginActionID` 路由。
 
@@ -20,15 +20,15 @@
 
 ## 文件
 
-- 新建：`Qingniao/Plugins/QuickLaunch/QuickLaunchPlugin.swift`
-- 新建：`Qingniao/Plugins/QuickLaunch/QuickLaunchSettingsPage.swift`
-- 修改：`Qingniao/Services/SearchEngine/SearchCore.swift`
-- 修改：`Qingniao/Services/SearchEngine/SystemCommandSource.swift`
-- 修改：`Qingniao/App/Controllers/AppContainer.swift`
-- 修改：`Qingniao/ViewModels/SearchPanelViewModel.swift`
-- 修改：`Qingniao.xcodeproj/project.pbxproj`
-- 测试：`QingniaoTests/QuickLaunchPluginTests.swift`
-- 回归：`QingniaoTests/SearchServiceCoreTests.swift`、`SystemCommandSourceTests.swift`、`AppSearchSourceTests.swift`、`FileSearchSourceTests.swift`、`CalculatorSourceTests.swift`
+- 新建：`Qingyu/Plugins/QuickLaunch/QuickLaunchPlugin.swift`
+- 新建：`Qingyu/Plugins/QuickLaunch/QuickLaunchSettingsPage.swift`
+- 修改：`Qingyu/Services/SearchEngine/SearchCore.swift`
+- 修改：`Qingyu/Services/SearchEngine/SystemCommandSource.swift`
+- 修改：`Qingyu/App/Controllers/AppContainer.swift`
+- 修改：`Qingyu/ViewModels/SearchPanelViewModel.swift`
+- 修改：`Qingyu.xcodeproj/project.pbxproj`
+- 测试：`QingyuTests/QuickLaunchPluginTests.swift`
+- 回归：`QingyuTests/SearchServiceCoreTests.swift`、`SystemCommandSourceTests.swift`、`AppSearchSourceTests.swift`、`FileSearchSourceTests.swift`、`CalculatorSourceTests.swift`
 
 ## 接口
 
@@ -40,7 +40,7 @@ extension PluginActionID {
     }
 }
 
-@MainActor final class QuickLaunchPlugin: QingniaoPlugin {
+@MainActor final class QuickLaunchPlugin: QingyuPlugin {
     let manifest: PluginManifest
     func start() async throws {}
     func stop() async {}
@@ -65,7 +65,7 @@ XCTAssertEqual(plugin.manifest.settingsPage?.id, .quickLaunch)
 - [ ] 运行：
 
 ```bash
-xcodebuild test -project Qingniao.xcodeproj -scheme Qingniao -only-testing:QingniaoTests/QuickLaunchPluginTests
+xcodebuild test -project Qingyu.xcodeproj -scheme Qingyu -only-testing:QingyuTests/QuickLaunchPluginTests
 ```
 
 预期：`QuickLaunchPlugin` 尚不存在，测试编译失败。
@@ -75,13 +75,13 @@ xcodebuild test -project Qingniao.xcodeproj -scheme Qingniao -only-testing:Qingn
 - [ ] 运行：
 
 ```bash
-xcodebuild test -project Qingniao.xcodeproj -scheme Qingniao \
-  -only-testing:QingniaoTests/QuickLaunchPluginTests \
-  -only-testing:QingniaoTests/SearchServiceCoreTests \
-  -only-testing:QingniaoTests/SystemCommandSourceTests \
-  -only-testing:QingniaoTests/AppSearchSourceTests \
-  -only-testing:QingniaoTests/FileSearchSourceTests \
-  -only-testing:QingniaoTests/CalculatorSourceTests
+xcodebuild test -project Qingyu.xcodeproj -scheme Qingyu \
+  -only-testing:QingyuTests/QuickLaunchPluginTests \
+  -only-testing:QingyuTests/SearchServiceCoreTests \
+  -only-testing:QingyuTests/SystemCommandSourceTests \
+  -only-testing:QingyuTests/AppSearchSourceTests \
+  -only-testing:QingyuTests/FileSearchSourceTests \
+  -only-testing:QingyuTests/CalculatorSourceTests
 ```
 
 - [ ] 加入工程 target，执行版本递增和 plist 校验，运行 `git diff --check`。

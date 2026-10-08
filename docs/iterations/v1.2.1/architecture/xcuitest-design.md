@@ -2,7 +2,7 @@
 
 > 关联 PRD：`doc/iterations/v1.2.1/prd.md`（AC-01~AC-12）　全局 PRD：`doc/prd.md`（§5 MVP 功能集、§7 功能需求、§9 设计语言）
 > 基线：v1.2.1（d55c439）　Issue：#7
-> 范围：为青鸟 Qingniao 补充 XCUITest UI 自动化测试能力，覆盖全产品主流程。发布版本号届时 bump 到 v1.2.2。
+> 范围：为清羽 Qingyu 补充 XCUITest UI 自动化测试能力，覆盖全产品主流程。发布版本号届时 bump 到 v1.2.2。
 > 本设计只输出架构方案与用例边界（编号 + 可测性等级 + 前置 + 断言），不写完整用例步骤（那是 ⑤ 用例生成阶段的事）。
 
 ---
@@ -13,15 +13,15 @@
 
 | 维度 | 现状 |
 |------|------|
-| 单元/集成测试 | 159 个 XCTest 用例，在 `QingniaoTests/` target（`com.apple.product-type.bundle.unit-test`），经 SPM `swift test` 运行 |
+| 单元/集成测试 | 159 个 XCTest 用例，在 `QingyuTests/` target（`com.apple.product-type.bundle.unit-test`），经 SPM `swift test` 运行 |
 | UI 测试 | **无**。无 XCUITest target，无 UI 自动化覆盖 |
-| 测试 target 结构 | Xcode 项目内 2 个 target：`Qingniao`（app）+ `QingniaoTests`（unit-test bundle，`TEST_HOST` 指向 `Qingniao.app`） |
-| SPM | `Package.swift` 有 `Qingniao`（library）+ `QingniaoTests`（testTarget）两个 target |
+| 测试 target 结构 | Xcode 项目内 2 个 target：`Qingyu`（app）+ `QingyuTests`（unit-test bundle，`TEST_HOST` 指向 `Qingyu.app`） |
+| SPM | `Package.swift` 有 `Qingyu`（library）+ `QingyuTests`（testTarget）两个 target |
 | 已覆盖逻辑 | 搜索排序/拼音/去重、OnboardingViewModel（canStart/start/skip）、权限服务逻辑、剪贴板监听、数据库迁移、热键冲突检测等 |
 
 ### 1.2 目标
 
-- 新增 `QingniaoUITests` XCUITest target，在 Xcode 项目内搭建 UI Testing Bundle。
+- 新增 `QingyuUITests` XCUITest target，在 Xcode 项目内搭建 UI Testing Bundle。
 - 首期覆盖"全产品主流程"的 UI 行为验证：Onboarding 呈现与完成/跳过、菜单栏各入口分发、命令栏搜索基本交互、设置/剪贴板窗口基本导航。
 - 诚实标注可测性边界：菜单栏 app（`LSUIElement=true`）+ 全局快捷键 + TCC 权限带来的限制，明确哪些可自动化、哪些需辅助手段、哪些退回手动。
 
@@ -38,7 +38,7 @@
 
 ### 2.1 产品形态对 XCUITest 的影响
 
-青鸟是 **菜单栏 app**（`Info.plist` `LSUIElement=true`），无 Dock 图标、无主窗口。启动后仅驻留 `NSStatusItem`，窗口按需创建（Onboarding 窗口、Command Bar 浮层、剪贴板窗口、设置窗口、截图预览）。这意味着：
+清羽是 **菜单栏 app**（`Info.plist` `LSUIElement=true`），无 Dock 图标、无主窗口。启动后仅驻留 `NSStatusItem`，窗口按需创建（Onboarding 窗口、Command Bar 浮层、剪贴板窗口、设置窗口、截图预览）。这意味着：
 
 1. **无标准主窗口**：`XCUIApplication().windows.firstMatch` 不保证指向业务窗口。
 2. **`NSStatusItem` 点击**：XCUITest 对系统菜单栏的 `NSStatusBarButton` 访问能力有限且 flaky（macOS 已知问题），不能作为稳定测试入口。
@@ -99,18 +99,18 @@
 
 ### 3.1 Target 新增
 
-在 `Qingniao.xcodeproj` 新增 `QingniaoUITests` target：
+在 `Qingyu.xcodeproj` 新增 `QingyuUITests` target：
 
 | 属性 | 值 |
 |------|-----|
 | Product Type | `com.apple.product-type.bundle.ui-testing`（UI Testing Bundle） |
-| Product Name | `QingniaoUITests` |
-| Bundle ID | `com.assistant.app.uitests` |
+| Product Name | `QingyuUITests` |
+| Bundle ID | `com.freeabyss.qingyu.uitests` |
 | Deployment Target | macOS 13.0（与 app target 对齐，`MACOSX_DEPLOYMENT_TARGET = 13.0`） |
-| Test Target Name | `Qingniao`（`TEST_TARGET_NAME = Qingniao`） |
+| Test Target Name | `Qingyu`（`TEST_TARGET_NAME = Qingyu`） |
 | Bundle Loader | 不需要（UI test bundle 不使用 `BUNDLE_LOADER` / `TEST_HOST`，它通过 `XCUIApplication` 启动 app） |
 | 代码签名 | `CODE_SIGN_STYLE = Automatic`；UI test bundle 通常 ad-hoc 签名即可，无需 Developer ID |
-| 源码目录 | `QingniaoUITests/`（项目根下新建，与 `QingniaoTests/` 平级） |
+| 源码目录 | `QingyuUITests/`（项目根下新建，与 `QingyuTests/` 平级） |
 
 ### 3.2 为什么不纳入 SPM（Package.swift）
 
@@ -118,40 +118,40 @@
 
 1. **SPM 不支持 UI test target**：`PackageDescription` 的 `TestTarget`（`.testTarget`）生成的是 unit-test bundle（`com.apple.product-type.bundle.unit-test`），无法生成 UI Testing Bundle（`.ui-testing`）。XCUITest 需要 `XCTestCase` + `XCUIApplication`，这些在 SPM 纯命令行环境下不可用。
 2. **`XCUIApplication` 依赖 Xcode 运行时**：UI test 需要 Xcode 的 test runner 注入 `XCTestUIBootstrap`，SPM `swift test` 不提供此环境。
-3. **现有 SPM 结构不变**：`Package.swift` 继续托管 `Qingniao`（library）+ `QingniaoTests`（unit-test），`swift test` 继续跑 159 个单元/集成测试。XCUITest 只在 `xcodebuild` 下运行。
+3. **现有 SPM 结构不变**：`Package.swift` 继续托管 `Qingyu`（library）+ `QingyuTests`（unit-test），`swift test` 继续跑 159 个单元/集成测试。XCUITest 只在 `xcodebuild` 下运行。
 
 ### 3.3 构建与运行命令
 
 ```bash
 # 构建 app + UITest bundle
-xcodebuild -project Qingniao.xcodeproj \
-  -scheme Qingniao \
+xcodebuild -project Qingyu.xcodeproj \
+  -scheme Qingyu \
   -configuration Debug \
   -destination 'platform=macOS' \
   build-for-testing
 
 # 运行 UITest
-xcodebuild -project Qingniao.xcodeproj \
-  -scheme Qingniao \
+xcodebuild -project Qingyu.xcodeproj \
+  -scheme Qingyu \
   -configuration Debug \
   -destination 'platform=macOS' \
-  -only-testing:QingniaoUITests \
+  -only-testing:QingyuUITests \
   test-without-building
 ```
 
-> Scheme 需在 `Qingniao.xcodeproj/xcshareddata/xcschemes/` 中勾选 `QingniaoUITests` 的 Test action。
+> Scheme 需在 `Qingyu.xcodeproj/xcshareddata/xcschemes/` 中勾选 `QingyuUITests` 的 Test action。
 
 ### 3.4 Target 依赖与签名
 
-- `QingniaoUITests` 依赖 `Qingniao` target（作为 `TEST_TARGET_NAME`）。
-- App target 的 entitlements（`Qingniao.entitlements`）不变：Sandbox 关闭、Hardened Runtime、AppleEvents、Screen Capture。
+- `QingyuUITests` 依赖 `Qingyu` target（作为 `TEST_TARGET_NAME`）。
+- App target 的 entitlements（`Qingyu.entitlements`）不变：Sandbox 关闭、Hardened Runtime、AppleEvents、Screen Capture。
 - UITest bundle 不需要独立 entitlements 文件；macOS UI test bundle 在本地开发机以 ad-hoc 签名运行。
 - CI 环境（如 GitHub Actions macOS runner）需确保 `xcodebuild` 有 GUI 会话（`xvfb` 或 `--destination platform=macOS,arch=arm64`）；headless 模式下 XCUITest 可能受限（见 §六风险）。
 
 ### 3.5 目录结构
 
 ```
-QingniaoUITests/
+QingyuUITests/
 ├── OnboardingUITests.swift          // Onboarding 呈现与完成/跳过
 ├── CommandBarUITests.swift           // 命令栏搜索基本交互
 ├── SettingsWindowUITests.swift       // 设置窗口导航
@@ -270,14 +270,14 @@ func resetOnboardingState() {
 
 ### 5.4 数据隔离（避免污染真实用户数据）
 
-**方案**：`--uitest-data-dir <path>` 将 Core Data store 和大对象目录重定向到临时路径（如 `NSTemporaryDirectory()` + `QingniaoUITest/`）。
+**方案**：`--uitest-data-dir <path>` 将 Core Data store 和大对象目录重定向到临时路径（如 `NSTemporaryDirectory()` + `QingyuUITest/`）。
 
 - `PersistenceController` 的 `NSPersistentContainer` 的 store URL 需支持外部注入。
 - `DatabaseManager`（GRDB）的 dbPath 需支持外部注入。
 - `AssistantFileSystem` 的 directoryName 或 baseDirectory 需支持外部注入。
 - 测试 teardown 时清理临时目录。
 
-> 当前实现中 `PersistenceController.shared` 是单例，store URL 硬编码到 Application Support。实现阶段需评估是否加一个 `init(storeURL:)` 或 static 配置入口。若改动过大，备选方案是让 UI test 使用独立 Bundle ID（`com.assistant.app.uitest`）使系统分配不同的 Application Support 容器 -- 但这会影响 TCC 权限绑定，不推荐。优先选 `--uitest-data-dir` 方案。
+> 当前实现中 `PersistenceController.shared` 是单例，store URL 硬编码到 Application Support。实现阶段需评估是否加一个 `init(storeURL:)` 或 static 配置入口。若改动过大，备选方案是让 UI test 使用独立 Bundle ID（`com.freeabyss.qingyu.uitest`）使系统分配不同的 Application Support 容器 -- 但这会影响 TCC 权限绑定，不推荐。优先选 `--uitest-data-dir` 方案。
 
 ### 5.5 菜单分发绕过（解决 status item 不可点击）
 
@@ -306,7 +306,7 @@ func resetOnboardingState() {
 
 | 编号 | 覆盖 AC | 可测性 | 前置条件 | 关键断言 |
 |------|---------|--------|---------|---------|
-| TC-UI-001 | AC-01 | B | `--uitest-reset-onboarding` | onboarding 窗口存在；标题文案"欢迎使用青鸟"可见 |
+| TC-UI-001 | AC-01 | B | `--uitest-reset-onboarding` | onboarding 窗口存在；标题文案"欢迎使用清羽"可见 |
 | TC-UI-002 | AC-06 | A | TC-UI-001 前置 | 「开始使用」button `exists && hittable` |
 | TC-UI-003 | AC-07 | A | TC-UI-001 前置 | 「跳过设置」button `exists && hittable` |
 | TC-UI-004 | AC-07 | A | TC-UI-001 前置 | 点「跳过设置」-> 二次确认 dialog 出现；点确认 -> onboarding 窗口消失 |
@@ -466,7 +466,7 @@ func resetOnboardingState() {
 | 步骤 | 内容 | 负责阶段 |
 |------|------|---------|
 | 1 | Gate 2 审阅本设计 | leader |
-| 2 | 在 Xcode 项目新增 `QingniaoUITests` target | ⑤ 开发 |
+| 2 | 在 Xcode 项目新增 `QingyuUITests` target | ⑤ 开发 |
 | 3 | 在 `AppDelegate` / `AppContainer` 加 launch argument 测试 hook | ⑤ 开发 |
 | 4 | 为关键控件补 `accessibilityIdentifier` | ⑤ 开发 |
 | 5 | 实现 22 个 UI test 用例 | ⑤ 开发 |

@@ -6,21 +6,25 @@
 
 **相关模块：** `ClipboardMonitor`、`ClipboardService`、`AssistantClipboardSource`、`ClipboardHistoryWindowController`、`AppContainer`。
 
-**业务规则：** 剪贴板记录默认开启，默认保留 30 天，记录文件引用；用户可在欢迎向导或剪贴板设置页暂停/恢复；删除和清空行为保持不变；插件停用时停止监听但保留历史与设置。
+**业务规则：** 剪贴板记录默认开启，默认保留 30 天，记录文件引用；用户可在欢迎向导或剪贴板设置页暂停/恢复；统一搜索、菜单栏或快捷键打开“剪贴板”时激活窗口、清空上次搜索关键词并聚焦搜索框；删除和清空行为保持不变；插件停用时停止监听但保留历史与设置。
 
 **技术约束：** `start()` 和 `stop()` 幂等；监控 Task 由插件持有并取消；数据栈仍由应用核心初始化。
+
+## 已知实现不一致（待后续修复）
+
+- 当前剪贴板窗口可激活但未保证通过统一搜索、菜单栏或快捷键打开时清空上次搜索关键词并自动聚焦搜索框；需按 PRD 补齐打开行为。
 
 **验收标准：** 启用时只创建一个监听 Task；停用后不接收新事件；历史窗口和搜索动作仍使用同一仓库。
 
 ## 文件
 
-- 新建：`Qingniao/Plugins/Clipboard/ClipboardPlugin.swift`
-- 新建：`Qingniao/Plugins/Clipboard/ClipboardSettingsPage.swift`
-- 修改：`Qingniao/App/Controllers/AppContainer.swift`
-- 修改：`Qingniao/App/AppDelegate.swift`
-- 修改：`Qingniao.xcodeproj/project.pbxproj`
-- 测试：`QingniaoTests/ClipboardPluginTests.swift`
-- 回归：`QingniaoTests/ClipboardMonitorTests.swift`、`AssistantClipboardRepositoryTests.swift`、`ClipboardListViewModelTests.swift`
+- 新建：`Qingyu/Plugins/Clipboard/ClipboardPlugin.swift`
+- 新建：`Qingyu/Plugins/Clipboard/ClipboardSettingsPage.swift`
+- 修改：`Qingyu/App/Controllers/AppContainer.swift`
+- 修改：`Qingyu/App/AppDelegate.swift`
+- 修改：`Qingyu.xcodeproj/project.pbxproj`
+- 测试：`QingyuTests/ClipboardPluginTests.swift`
+- 回归：`QingyuTests/ClipboardMonitorTests.swift`、`AssistantClipboardRepositoryTests.swift`、`ClipboardListViewModelTests.swift`
 
 ## 接口
 
@@ -32,7 +36,7 @@ extension PluginActionID {
     static let clearClipboardHistory = PluginActionID(rawValue: "clipboard.clear-history")
 }
 
-@MainActor final class ClipboardPlugin: QingniaoPlugin {
+@MainActor final class ClipboardPlugin: QingyuPlugin {
     let manifest: PluginManifest
     private var monitorTask: Task<Void, Never>?
     func start() async throws
@@ -57,7 +61,7 @@ XCTAssertEqual(monitor.stopCallCount, 1)
 - [ ] 运行：
 
 ```bash
-xcodebuild test -project Qingniao.xcodeproj -scheme Qingniao -only-testing:QingniaoTests/ClipboardPluginTests
+xcodebuild test -project Qingyu.xcodeproj -scheme Qingyu -only-testing:QingyuTests/ClipboardPluginTests
 ```
 
 预期：`ClipboardPlugin` 尚不存在，测试编译失败。
@@ -68,11 +72,11 @@ xcodebuild test -project Qingniao.xcodeproj -scheme Qingniao -only-testing:Qingn
 - [ ] 运行：
 
 ```bash
-xcodebuild test -project Qingniao.xcodeproj -scheme Qingniao \
-  -only-testing:QingniaoTests/ClipboardPluginTests \
-  -only-testing:QingniaoTests/ClipboardMonitorTests \
-  -only-testing:QingniaoTests/AssistantClipboardRepositoryTests \
-  -only-testing:QingniaoTests/ClipboardListViewModelTests
+xcodebuild test -project Qingyu.xcodeproj -scheme Qingyu \
+  -only-testing:QingyuTests/ClipboardPluginTests \
+  -only-testing:QingyuTests/ClipboardMonitorTests \
+  -only-testing:QingyuTests/AssistantClipboardRepositoryTests \
+  -only-testing:QingyuTests/ClipboardListViewModelTests
 ```
 
 - [ ] 加入工程 target，递增版本并校验，运行 `git diff --check`。

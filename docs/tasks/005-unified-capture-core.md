@@ -6,7 +6,7 @@
 
 **相关模块：** `ScreenshotService`、`ScreenshotWindowController`、`ScreenshotGeometry`。
 
-**业务规则：** 初始状态默认选中指针所在窗口；指针位于最上方菜单栏时默认选中当前显示器全屏；左键圈选后自动截取区域；`⌘A` 选择当前显示器；选区最小 `5×5` 像素。
+**业务规则：** 初始状态默认选中指针所在窗口；指针位于最上方菜单栏或桌面空白区域时默认选中当前显示器全屏；只要左键发生拖拽，区域圈选优先于悬停默认值并自动截取区域；`⌘A` 选择当前显示器；选区最小 `5×5` 像素。
 
 **技术约束：** 状态机不依赖 `NSWindow`；坐标统一保存为全局 AppKit point，捕获前再转换为显示器像素；捕获后端不管理 UI 生命周期。
 
@@ -14,13 +14,13 @@
 
 ## 文件
 
-- 新建：`Qingniao/Services/ScreenshotService/CaptureSessionState.swift`
-- 新建：`Qingniao/Services/ScreenshotService/CaptureTarget.swift`
-- 新建：`Qingniao/Services/ScreenshotService/ScreenCaptureBackend.swift`
-- 修改：`Qingniao/Services/ScreenshotService/ScreenshotService.swift`
-- 修改：`Qingniao.xcodeproj/project.pbxproj`
-- 测试：`QingniaoTests/CaptureSessionStateTests.swift`
-- 回归：`QingniaoTests/AnnotationTests.swift`
+- 新建：`Qingyu/Services/ScreenshotService/CaptureSessionState.swift`
+- 新建：`Qingyu/Services/ScreenshotService/CaptureTarget.swift`
+- 新建：`Qingyu/Services/ScreenshotService/ScreenCaptureBackend.swift`
+- 修改：`Qingyu/Services/ScreenshotService/ScreenshotService.swift`
+- 修改：`Qingyu.xcodeproj/project.pbxproj`
+- 测试：`QingyuTests/CaptureSessionStateTests.swift`
+- 回归：`QingyuTests/AnnotationTests.swift`
 
 ## 接口
 
@@ -91,7 +91,7 @@ XCTAssertEqual(state.phase, .locked(.region(display: rightDisplay, globalRect: C
 - [ ] 运行：
 
 ```bash
-xcodebuild test -project Qingniao.xcodeproj -scheme Qingniao -only-testing:QingniaoTests/CaptureSessionStateTests
+xcodebuild test -project Qingyu.xcodeproj -scheme Qingyu -only-testing:QingyuTests/CaptureSessionStateTests
 ```
 
 预期：新类型尚不存在，测试编译失败。

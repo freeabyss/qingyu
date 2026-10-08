@@ -1,16 +1,16 @@
 #!/bin/bash
 
-# Qingniao 构建并启动脚本
-# 用法: ./build_and_run.sh [clean|build|run|all]
+# Qingyu 构建并启动脚本
+# 用法: ./start.sh [clean|build|run|all|release|help]
 
-set -e  # 遇到错误立即退出
+set -euo pipefail  # 遇到错误立即退出；管道中任一命令失败即失败
 
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_NAME="Qingniao"
-SCHEME_NAME="Qingniao"
+PROJECT_NAME="Qingyu"
+SCHEME_NAME="Qingyu"
 DERIVED_DATA_PATH="${PROJECT_DIR}/DerivedData"
-APP_PATH="${DERIVED_DATA_PATH}/Build/Products/Debug/Qingniao.app"
-BUNDLE_IDENTIFIER="com.assistant.app"
+APP_PATH="${DERIVED_DATA_PATH}/Build/Products/Debug/Qingyu.app"
+BUNDLE_IDENTIFIER="com.freeabyss.qingyu"
 
 # 颜色输出
 RED='\033[0;31m'
@@ -92,36 +92,42 @@ build_project() {
         log_warn "Xcode 许可证可能未接受，尝试编译..."
     fi
 
-    # 使用 xcodebuild 编译
+    local log_file
+    log_file="$(mktemp -t qingyu-xcodebuild.XXXXXX)"
+
+    local status=0
+    # 明确 macOS destination，避免 arm64/x86_64 多匹配告警；
+    # 日志写入临时文件后过滤展示，便于用 xcodebuild 退出码判定成败
+    # （管道 + while 会吞掉 xcodebuild 的退出码）。
     xcodebuild \
         -project "${PROJECT_DIR}/${PROJECT_NAME}.xcodeproj" \
         -scheme "${SCHEME_NAME}" \
         -configuration Debug \
+        -destination 'platform=macOS,arch=arm64' \
         -derivedDataPath "${DERIVED_DATA_PATH}" \
         -quiet \
-        2>&1 | while IFS= read -r line; do
-            # 过滤并高亮重要信息
-            if [[ "$line" == *"error:"* ]]; then
-                echo -e "${RED}$line${NC}"
-            elif [[ "$line" == *"warning:"* ]]; then
-                echo -e "${YELLOW}$line${NC}"
-            elif [[ "$line" == *"BUILD SUCCEEDED"* ]]; then
-                echo -e "${GREEN}$line${NC}"
-            elif [[ "$line" == *"BUILD FAILED"* ]]; then
-                echo -e "${RED}$line${NC}"
-            else
-                echo "$line"
-            fi
-        done
+        >"${log_file}" 2>&1 || status=$?
 
-    # 检查编译结果
-    if [ $? -eq 0 ]; then
-        log_success "编译成功完成"
-        return 0
-    else
-        log_error "编译失败"
+    # 过滤并高亮重要信息（忽略 Xcode 插件/CoreSimulator 环境噪声与
+    # Xcode 27 的「exit code 0 but produced no further output」空输出提示）
+    grep -v -E 'DVTPlugIn|DVTDevice|CoreDevice|CoreSimulator|iOSSimulator|DVTErrorPresenter|DVTAssertions|Please file a bug|knownDeviceLocators|Recovery Suggestion|Failure Reason|^Method:|^Thread:|^Object:|Domain: DVT|the following command failed with exit code 0|SwiftCompile normal arm64|^Code:|^--$|^$' \
+        "${log_file}" || true
+
+    if [ "${status}" -ne 0 ]; then
+        log_error "编译失败（xcodebuild 退出码 ${status}）"
+        log_info "完整日志: ${log_file}"
+        return "${status}"
+    fi
+
+    if [ ! -d "${APP_PATH}" ]; then
+        log_error "xcodebuild 报告成功但未找到产物: ${APP_PATH}"
+        log_info "完整日志: ${log_file}"
         return 1
     fi
+
+    rm -f "${log_file}"
+    log_success "编译成功完成: ${APP_PATH}"
+    return 0
 }
 
 # 启动应用
@@ -166,8 +172,10 @@ build_for_release() {
     local release_derived="${PROJECT_DIR}/DerivedData"
     local release_app="${RELEASE_APP_PATH:-${release_derived}/Build/Products/Release/${PROJECT_NAME}.app}"
     local entitlements="${PROJECT_DIR}/${PROJECT_NAME}/${PROJECT_NAME}.entitlements"
+    local developer_id="${DEVELOPER_ID_APP:-}"
+    local notary_profile="${AC_NOTARY_PROFILE:-}"
 
-    if [ -z "${DEVELOPER_ID_APP}" ]; then
+    if [ -z "${developer_id}" ]; then
         log_error "缺少环境变量 DEVELOPER_ID_APP（Developer ID Application 证书名）"
         log_info "示例: export DEVELOPER_ID_APP=\"Developer ID Application: Your Name (TEAMID)\""
         return 1
@@ -178,10 +186,11 @@ build_for_release() {
         -project "${PROJECT_DIR}/${PROJECT_NAME}.xcodeproj" \
         -scheme "${SCHEME_NAME}" \
         -configuration Release \
+        -destination 'platform=macOS,arch=arm64' \
         -derivedDataPath "${release_derived}" \
         clean build \
         CODE_SIGN_STYLE=Manual \
-        CODE_SIGN_IDENTITY="${DEVELOPER_ID_APP}" \
+        CODE_SIGN_IDENTITY="${developer_id}" \
         || { log_error "Release 编译失败"; return 1; }
 
     if [ ! -d "${release_app}" ]; then
@@ -193,7 +202,7 @@ build_for_release() {
     log_info "使用 Developer ID 签名并启用 Hardened Runtime..."
     codesign --force --deep --options runtime --timestamp \
         --entitlements "${entitlements}" \
-        --sign "${DEVELOPER_ID_APP}" \
+        --sign "${developer_id}" \
         "${release_app}" \
         || { log_error "codesign 失败"; return 1; }
 
@@ -202,7 +211,7 @@ build_for_release() {
     log_success "签名完成"
 
     # 公证（需 notarytool profile）
-    if [ -z "${AC_NOTARY_PROFILE}" ]; then
+    if [ -z "${notary_profile}" ]; then
         log_warn "未设置 AC_NOTARY_PROFILE，跳过公证与装订（仅完成签名）"
         log_info "配置方法: xcrun notarytool store-credentials <profile> --apple-id <id> --team-id <TEAMID> --password <app-specific-pwd>"
         return 0
@@ -214,7 +223,7 @@ build_for_release() {
         || { log_error "打包 zip 失败"; return 1; }
 
     xcrun notarytool submit "${zip_path}" \
-        --keychain-profile "${AC_NOTARY_PROFILE}" \
+        --keychain-profile "${notary_profile}" \
         --wait \
         || { log_error "notarytool 公证失败"; return 1; }
 
@@ -232,7 +241,7 @@ build_for_release() {
 
 # 显示帮助信息
 show_help() {
-    echo "Qingniao 构建并启动脚本"
+    echo "Qingyu 构建并启动脚本"
     echo ""
     echo "用法: $0 [命令]"
     echo ""
