@@ -218,7 +218,7 @@ if [[ "${SKIP_NOTARIZE}" -eq 0 ]] && resolve_notary; then
         log_warn "spctl 评估未通过，请检查签名/公证"
 fi
 
-shasum -a 256 "${DMG_PATH}" | tee "${DMG_PATH}.sha256"
+( cd "${OUTPUT_DIR}" && shasum -a 256 "${DMG_NAME}" | tee "${DMG_NAME}.sha256" )
 log_ok "安装包已生成: ${DMG_PATH}（${SIGN_DESCRIPTION}）"
 
 # 上传到 GitHub Release（可选）
