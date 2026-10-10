@@ -92,3 +92,39 @@ private final class RecordingURLOpener: ReleaseURLOpening {
         return true
     }
 }
+
+final class InstallerCleanupTests: XCTestCase {
+    func testRecognizesOnlyQingyuDMGNames() {
+        XCTAssertTrue(InstallerCleanup.isOwnInstallerName("Qingyu-0.3.40.dmg"))
+        XCTAssertTrue(InstallerCleanup.isOwnInstallerName("Qingyu-0.3.40-universal.dmg"))
+        XCTAssertTrue(InstallerCleanup.isOwnInstallerName("qingyu-1.0.dmg"))
+        XCTAssertFalse(InstallerCleanup.isOwnInstallerName("Qingyu.zip"))
+        XCTAssertFalse(InstallerCleanup.isOwnInstallerName("Other-1.0.dmg"))
+        XCTAssertFalse(InstallerCleanup.isOwnInstallerName(".dmg"))
+    }
+
+    func testRemoveDownloadedInstallersRecyclesMatchingFilesAndSkipsMissingDirectories() throws {
+        let fileManager = FileManager.default
+        let root = fileManager.temporaryDirectory
+            .appendingPathComponent("QingyuInstallerCleanupTests-\(UUID().uuidString)")
+        let downloads = root.appendingPathComponent("Downloads")
+        try fileManager.createDirectory(at: downloads, withIntermediateDirectories: true)
+        defer { try? fileManager.removeItem(at: root) }
+
+        let installer = downloads.appendingPathComponent("Qingyu-0.3.40.dmg")
+        let untouched = downloads.appendingPathComponent("Notes.dmg")
+        try Data().write(to: installer)
+        try Data().write(to: untouched)
+
+        var recycled: [URL] = []
+        let removed = InstallerCleanup.removeDownloadedInstallers(
+            in: [root.appendingPathComponent("Desktop"), downloads],
+            fileManager: fileManager,
+            recycle: { recycled.append($0) }
+        )
+
+        XCTAssertEqual(removed.map(\.lastPathComponent), ["Qingyu-0.3.40.dmg"])
+        XCTAssertEqual(recycled.map(\.lastPathComponent), ["Qingyu-0.3.40.dmg"])
+        XCTAssertTrue(fileManager.fileExists(atPath: untouched.path))
+    }
+}

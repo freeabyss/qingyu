@@ -74,7 +74,7 @@ xcodebuild -project Qingyu.xcodeproj -scheme Qingyu clean
 
 ## 系统要求
 
-- macOS 13.0+
+- macOS 12.0+
 - Xcode 15.0+
 - Swift 5.9+
 
@@ -154,19 +154,38 @@ defaults delete com.freeabyss.qingyu
 ## 发布构建
 
 Qingyu 采用 Developer ID 签名 + 公证的方式分发（不再使用 App Sandbox）。
+发行包为**通用二进制**（`arm64` + `x86_64`），以 `.dmg` 形式提供，最低支持
+macOS 12 Monterey。
 
-### 生成 Release 版本
+### 生成 DMG 安装包（推荐）
 
 ```bash
-# 使用 Release 配置编译
-xcodebuild -project Qingyu.xcodeproj -scheme Qingyu -configuration Release
+export DEVELOPER_ID_APP="Developer ID Application: Your Name (TEAMID)"
+# 公证凭据二选一：
+export AC_NOTARY_PROFILE="qingyu-notary"   # xcrun notarytool store-credentials 保存的 profile
+# 或：export APPLE_ID=... APPLE_TEAM_ID=... APPLE_APP_PASSWORD=...
 
-# 归档
-xcodebuild -project Qingyu.xcodeproj -scheme Qingyu -configuration Release archivePath=./build/Qingyu.xcarchive archive
+./scripts/package-release.sh              # 编译（通用）+ 签名 + 公证 + 生成 dist/Qingyu-<版本>.dmg
+./scripts/package-release.sh --upload     # 生成后上传到 GitHub Release
+./scripts/package-release.sh --skip-notarize   # 仅签名并生成 DMG（本地联调）
 ```
 
-`build_and_run.sh` 中的 `build_for_release` 函数封装了 codesign + notarytool + staple 流程
-（使用环境变量中的 Developer ID 证书），签名后可用 `spctl --assess -vvv Qingyu.app` 验证。
+脚本会用 `lipo` 确认产物同时包含 `arm64` 与 `x86_64`，并对 App 与 DMG 分别签名、
+公证、装订票据（`codesign` / `notarytool` / `stapler`）。
+
+### 自动发布（GitHub Actions）
+
+推送形如 `v0.3.40` 的 tag，或在 Actions 中手动触发 `Release` workflow，即会
+构建通用二进制、签名、公证并创建 GitHub Release。所需 Secrets 见
+[`.github/workflows/release.yml`](.github/workflows/release.yml) 顶部注释。
+
+### 手动签名与校验
+
+```bash
+codesign --verify --deep --strict --verbose=2 dist/Qingyu.app
+spctl --assess -vvv --type execute dist/Qingyu.app
+xcrun stapler validate dist/Qingyu-<版本>.dmg
+```
 
 ### 代码签名
 

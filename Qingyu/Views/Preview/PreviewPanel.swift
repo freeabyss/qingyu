@@ -73,8 +73,7 @@ struct PreviewPanel: View {
                 .foregroundStyle(typeColor)
 
             Text(typeLabel)
-                .font(JadeFont.body)
-                .fontWeight(.semibold)
+                .font(JadeFont.body.weight(.semibold))
                 .foregroundStyle(JadeColor.textPrimary)
 
             Spacer()
@@ -310,8 +309,7 @@ struct PreviewPanel: View {
     private func fileInfoRow(label: String, value: String) -> some View {
         HStack(alignment: .top) {
             Text(label)
-                .font(JadeFont.callout)
-                .fontWeight(.medium)
+                .font(JadeFont.callout.weight(.medium))
                 .foregroundStyle(JadeColor.textSecondary)
                 .frame(width: 80, alignment: .trailing)
             Text(value)

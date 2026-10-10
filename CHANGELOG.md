@@ -7,6 +7,30 @@ All notable changes to Qingyu (清羽) are documented here. The format is based 
 
 ## [Unreleased]
 
+### Added
+
+- **Automated release pipeline.** `.github/workflows/release.yml` builds a
+  universal binary, signs and notarizes it, packages a `.dmg`, and uploads it to
+  a GitHub Release when a `v*` tag is pushed (or via manual dispatch).
+- **Local packaging script.** `scripts/package-release.sh` (also exposed as
+  `./start.sh package`) produces a notarized universal `.dmg` and can upload it
+  with `gh`.
+- **Installer self-cleanup.** After the app is installed under `/Applications`,
+  the first launch moves a downloaded `Qingyu-*.dmg` from `~/Downloads` /
+  `~/Desktop` to the Trash (recoverable), at most once per version.
+- **First real-device screenshot.** `assets/product/command-bar.png` (the
+  `⌥ Space` command bar) is wired into the READMEs and the product page.
+
+### Changed
+
+- **Distribution is now a universal-binary `.dmg`.** The minimum system
+  requirement is lowered from macOS 13 Ventura to **macOS 12 Monterey**, and the
+  release binary now contains both `arm64` (Apple Silicon) and `x86_64` (Intel)
+  slices. `LaunchAtLoginService` degrades gracefully on macOS 12, where
+  `SMAppService` is unavailable.
+- **Marketing copy.** The "没有账号，没有云同步，没有埋点" slogan is replaced by
+  the simpler "无需账号" / "No account required" across the README and website.
+
 ### Fixed
 
 - **Clipboard "Show in Finder" no longer fails silently.** When a file or folder

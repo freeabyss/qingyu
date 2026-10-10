@@ -1966,6 +1966,23 @@
         }
       }
     },
+    "clipboard.action.copyPath" : {
+      "comment" : "Copy a file clipboard item's absolute path as text",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy Absolute Path"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "复制绝对路径"
+          }
+        }
+      }
+    },
     "clipboard.clearAll.action" : {
       "comment" : "US-013 clipboard history page",
       "localizations" : {
@@ -8644,13 +8661,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "清羽 Qingyu does not upload, sync, or use your clipboard history, screenshots, settings, usage records, or feedback text to train models. There is no account system or cloud sync in the MVP."
+            "value" : "清羽 Qingyu does not upload, sync, or use your clipboard history, screenshots, settings, usage records, or feedback text to train models. No account is required."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "清羽 Qingyu 不会上传、同步剪贴板历史、截图、设置、使用记录或反馈文本，也不会用这些数据训练模型。MVP 不包含账号系统或云同步。"
+            "value" : "清羽 Qingyu 不会上传、同步剪贴板历史、截图、设置、使用记录或反馈文本，也不会用这些数据训练模型。无需账号。"
           }
         }
       }

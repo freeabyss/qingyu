@@ -274,7 +274,7 @@ final class AppSearchSource: AppSourceProtocol {
     private let fileManager: FileManager
     private let usageRepository: UsageStatRepositoryProtocol
     private let allowedSearchDirectories: [URL]
-    private let lock = OSAllocatedUnfairLock()
+    private let lock = UnfairLock()
 
     private var apps: [ApplicationIndexItem] = []
     private var isReady = false

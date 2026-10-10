@@ -70,6 +70,16 @@ struct ManagementCenterView: View {
 
     // MARK: Sidebar
 
+    /// macOS 12 only offers the optional-selection `List(selection:)` overload;
+    /// the non-optional one was added in macOS 13. Bridge the model's non-optional
+    /// page value so the sidebar keeps working on both.
+    private var sidebarSelection: Binding<SettingsPageID?> {
+        Binding(
+            get: { viewModel.selectedPage },
+            set: { if let newValue = $0 { viewModel.selectedPage = newValue } }
+        )
+    }
+
     private var sidebar: some View {
         VStack(spacing: 0) {
             SettingsBrandHeader()
@@ -77,7 +87,7 @@ struct ManagementCenterView: View {
                 .padding(.vertical, JadeSpace.x3.value)
             Divider()
                 .overlay(JadeColor.border)
-            List(selection: $viewModel.selectedPage) {
+            List(selection: sidebarSelection) {
                 generalRow
                 if !pluginPageIDs.isEmpty {
                     Section(L10n.localized("settings.section.features")) {

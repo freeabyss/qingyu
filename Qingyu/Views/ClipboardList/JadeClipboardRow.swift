@@ -14,6 +14,8 @@ struct JadeClipboardRow: View {
     var onDelete: () -> Void
     /// File clipboard items only: reveal the file’s folder in Finder.
     var onRevealInFinder: (() -> Void)? = nil
+    /// File clipboard items only: copy the recorded absolute path as text.
+    var onCopyPath: (() -> Void)? = nil
 
     @State private var thumbnail: NSImage?
     @State private var sourceAppIcon: NSImage?
@@ -25,6 +27,15 @@ struct JadeClipboardRow: View {
                           action: onPin),
             JadeRowAction(systemImage: "doc.on.doc", label: "clipboard.action.copy", action: onCopy)
         ]
+        if item.contentType == .file, let onCopyPath, item.filePath != nil {
+            items.append(
+                JadeRowAction(
+                    systemImage: "link",
+                    label: "clipboard.action.copyPath",
+                    action: onCopyPath
+                )
+            )
+        }
         if item.contentType == .file, let onRevealInFinder, item.filePath != nil {
             items.append(
                 JadeRowAction(
@@ -53,8 +64,7 @@ struct JadeClipboardRow: View {
                 VStack(alignment: .leading, spacing: JadeSpace.x1.value) {
                     HStack(spacing: JadeSpace.x1.value) {
                         Text(primaryText)
-                            .font(JadeFont.body)
-                            .fontWeight(.medium)
+                            .font(JadeFont.body.weight(.medium))
                             .foregroundStyle(JadeColor.textPrimary)
                             .lineLimit(1)
 
@@ -108,40 +118,47 @@ struct JadeClipboardRow: View {
 
     // MARK: - Thumbnail
 
-    /// Prefer the **source application** icon (Arc / Safari / …). Fall back to
-    /// image thumbnail, then content-type glyph.
+    /// Images preview their own thumbnail (FR-CLIP-21) so the list shows what was
+    /// copied. Everything else prefers the **source application** icon (Arc /
+    /// Safari / …), falling back to the image thumbnail, then the type glyph.
     @ViewBuilder
     private var thumbnailView: some View {
-        if let sourceAppIcon {
-            Image(nsImage: sourceAppIcon)
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-                .frame(width: 36, height: 36)
-                .jadeRadius(.sm)
+        if item.contentType == .image, let thumbnail {
+            thumbnailImage(thumbnail)
+        } else if let sourceAppIcon {
+            thumbnailImage(sourceAppIcon)
         } else if let thumbnail {
-            Image(nsImage: thumbnail)
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-                .frame(width: 36, height: 36)
-                .jadeRadius(.sm)
+            thumbnailImage(thumbnail)
         } else {
-            ZStack {
-                JadeRadius.sm.shape
-                    .fill(selected ? JadeColor.primaryFill : JadeColor.surface2)
-                    .frame(width: 36, height: 36)
-                if item.contentType == .text || item.contentType == .richText, let ch = firstCharacter {
-                    Text(ch)
-                        .font(JadeFont.body)
-                        .foregroundStyle(selected ? JadeColor.primary : JadeColor.textSecondary)
-                } else if item.contentType == .image && item.failureReason != nil {
-                    Image(systemName: "photo.badge.exclamationmark")
-                        .font(JadeFont.body)
-                        .foregroundStyle(JadeColor.warning)
-                } else {
-                    Image(systemName: iconName)
-                        .font(JadeFont.body)
-                        .foregroundStyle(selected ? JadeColor.primary : JadeColor.textSecondary)
-                }
+            placeholderThumbnail
+        }
+    }
+
+    private func thumbnailImage(_ image: NSImage) -> some View {
+        Image(nsImage: image)
+            .resizable()
+            .aspectRatio(contentMode: .fill)
+            .frame(width: 36, height: 36)
+            .jadeRadius(.sm)
+    }
+
+    private var placeholderThumbnail: some View {
+        ZStack {
+            JadeRadius.sm.shape
+                .fill(selected ? JadeColor.primaryFill : JadeColor.surface2)
+                .frame(width: 36, height: 36)
+            if item.contentType == .text || item.contentType == .richText, let ch = firstCharacter {
+                Text(ch)
+                    .font(JadeFont.body)
+                    .foregroundStyle(selected ? JadeColor.primary : JadeColor.textSecondary)
+            } else if item.contentType == .image && item.failureReason != nil {
+                Image(systemName: "photo.badge.exclamationmark")
+                    .font(JadeFont.body)
+                    .foregroundStyle(JadeColor.warning)
+            } else {
+                Image(systemName: iconName)
+                    .font(JadeFont.body)
+                    .foregroundStyle(selected ? JadeColor.primary : JadeColor.textSecondary)
             }
         }
     }

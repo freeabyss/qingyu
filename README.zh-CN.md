@@ -5,9 +5,9 @@
 > 本地优先的 macOS 效率工具 —— 常驻菜单栏，`⌥ Space` 唤起。
 
 清羽把「找应用、找文件、算数、执行常用系统动作」收进一个统一搜索入口，
-并在本机保存剪贴板历史。没有账号，没有云同步，没有埋点。
+并在本机保存剪贴板历史。无需账号，开箱即用。
 
-![平台](https://img.shields.io/badge/platform-macOS%2013%2B-blue)
+![平台](https://img.shields.io/badge/platform-macOS%2012%2B-blue)
 ![版本](https://img.shields.io/github/v/release/freeabyss/qingyu?label=version)
 ![许可](https://img.shields.io/badge/license-个人免费%C2%B7禁止商用-orange)
 ![语言](https://img.shields.io/badge/UI-简体中文%20%7C%20English-green)
@@ -18,10 +18,11 @@
 
 **[前往 GitHub Releases 下载最新版本 →](https://github.com/freeabyss/qingyu/releases)**
 
-- 系统要求：macOS 13 Ventura 或更高版本
-- 分发方式：Developer ID 签名 + Apple 公证，下载后直接拖入「应用程序」即可
+- 系统要求：macOS 12 Monterey 或更高版本（同时支持 Apple 芯片与 Intel 芯片）
+- 分发方式：Developer ID 签名 + Apple 公证，下载的是 `.dmg` 安装包，双击打开后将「清羽」拖入「应用程序」即可
+- 安装完成后，清羽会在首次启动时自动把下载目录里的安装包移入废纸篓
 - 仅通过 **GitHub Releases** 分发，**不在 Mac App Store** 上架
-- 不含账号、支付、订阅或许可证密钥
+- 无需账号，不含支付、订阅或许可证密钥
 - 应用内「关于 → 检查更新」会打开上述 Releases 页面，不会自动下载或安装
 
 > 首次打开若提示无法验证开发者，请在「系统设置 → 隐私与安全性」中点击「仍要打开」。
@@ -88,7 +89,7 @@
 
 - 剪贴板内容、使用频率、设置全部保存在本机
   `~/Library/Application Support/Qingyu/`
-- 无账号系统、无云同步、无埋点后端、无支付通道
+- 无需账号；不接入云同步、埋点或支付服务
 - 文件索引在本地建立，不上传文件名或路径
 - 反馈仅由你主动发邮件触发；应用生成的邮件包含版本号、构建号、macOS 版本
   和你的备注，**不附带**剪贴板历史、截图、文件或崩溃日志
@@ -123,7 +124,23 @@
 
 ## 界面截图
 
-> ⚠️ 真机截图素材待补。见 [assets/product/README.md](assets/product/README.md)。
+<img src="assets/product/command-bar.png" alt="清羽 ⌥ Space 命令栏" width="720">
+
+`⌥ Space` 命令栏（输入态）。
+
+其余真机截图在干净桌面上用签名构建截取，统一存放在
+[assets/product/](assets/product/README.md)：
+
+| 素材 | 内容 |
+| --- | --- |
+| `command-bar-results.png` | 命令栏展开态，展示应用、文件、计算与内置命令四类结果 |
+| `command-bar-home.png` | 空查询态，展示「常用操作」与「最近使用」 |
+| `clipboard-history.png` | `⌥⌘C` 剪贴板历史窗口，含筛选、列表与详情 |
+| `settings-general.png` | 设置 · 通用（插件、外观、语言、数据与权限） |
+| `onboarding.png` | 首次启动欢迎向导 |
+
+> ⚠️ 目前仅入库命令栏截图，其余待补，截取流程见
+> [assets/product/README.md](assets/product/README.md)。
 
 产品主页：<https://freeabyss.github.io/qingyu/>
 

@@ -122,8 +122,7 @@ struct ClipboardHistoryView: View {
             viewModel.selection = filter
         } label: {
             Text(filter.title)
-                .font(JadeFont.caption)
-                .fontWeight(isSelected ? .semibold : .regular)
+                .font(JadeFont.caption.weight(isSelected ? .semibold : .regular))
                 .foregroundStyle(isSelected ? JadeColor.primary : JadeColor.textSecondary)
                 .padding(.vertical, JadeSpace.x1.value)
                 .overlay(alignment: .bottom) {
@@ -156,7 +155,7 @@ struct ClipboardHistoryView: View {
                     item: viewModel.selectedItem,
                     imageProvider: { await viewModel.originalImageData(for: $0) },
                     richTextProvider: { await viewModel.richTextAttributed(for: $0) },
-                    onRevealInFinder: { viewModel.revealInFinder($0) }
+                    fileImageProvider: { await viewModel.fileImageData(for: $0) }
                 )
                 .frame(width: 360)
                 .frame(maxHeight: .infinity)
@@ -200,7 +199,8 @@ struct ClipboardHistoryView: View {
                 }
             },
             onDelete: { Task { await viewModel.delete(item) } },
-            onRevealInFinder: { viewModel.revealInFinder(item) }
+            onRevealInFinder: { viewModel.revealInFinder(item) },
+            onCopyPath: { Task { await viewModel.copyAbsolutePath(item) } }
         )
         .contentShape(Rectangle())
         .onTapGesture {
@@ -218,6 +218,9 @@ struct ClipboardHistoryView: View {
                 Task { await viewModel.copyToPasteboard(item) }
             }
             if item.contentType == .file, item.filePath != nil {
+                Button(L10n.localized("clipboard.action.copyPath")) {
+                    Task { await viewModel.copyAbsolutePath(item) }
+                }
                 Button(L10n.localized("preview.showInFinder")) {
                     viewModel.revealInFinder(item)
                 }

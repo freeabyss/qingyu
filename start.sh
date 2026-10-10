@@ -87,9 +87,28 @@ build_project() {
         exit 1
     fi
 
+    # xcodebuild 的 shim 即使只有 Command Line Tools 也存在，必须确认
+    # developer 目录指向完整 Xcode，否则会报 “requires Xcode” 而非许可证问题。
+    local developer_dir
+    developer_dir="$(xcode-select -p 2>/dev/null || true)"
+    if [[ "${developer_dir}" != *"Xcode.app/Contents/Developer"* ]]; then
+        log_error "当前 developer 目录不是完整 Xcode: ${developer_dir:-<未设置>}"
+        log_info "请安装 Xcode 后执行: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer"
+        exit 1
+    fi
+
     # 检查 Xcode 许可证状态
     if ! xcodebuild -license check &> /dev/null; then
         log_warn "Xcode 许可证可能未接受，尝试编译..."
+    fi
+
+    # 纯命令行构建机可能未安装 Mac Development 证书；此时退回 ad-hoc 本地
+    # 签名，让 Debug 构建/运行仍可用。有证书的机器行为保持不变。
+    local sign_args=""
+    if [ -z "$(security find-identity -v -p codesigning 2>/dev/null \
+        | sed -n 's/.*\([0-9][0-9]*\) valid identities found.*/\1/p' | grep -v '^0$')" ]; then
+        log_warn "未发现可用签名身份，Debug 构建使用 ad-hoc 本地签名"
+        sign_args="CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO"
     fi
 
     local log_file
@@ -105,6 +124,7 @@ build_project() {
         -configuration Debug \
         -destination 'platform=macOS,arch=arm64' \
         -derivedDataPath "${DERIVED_DATA_PATH}" \
+        ${sign_args} \
         -quiet \
         >"${log_file}" 2>&1 || status=$?
 
@@ -181,12 +201,14 @@ build_for_release() {
         return 1
     fi
 
-    log_info "编译 Release 配置..."
+    log_info "编译 Release 配置（通用二进制：arm64 + x86_64）..."
     xcodebuild \
         -project "${PROJECT_DIR}/${PROJECT_NAME}.xcodeproj" \
         -scheme "${SCHEME_NAME}" \
         -configuration Release \
-        -destination 'platform=macOS,arch=arm64' \
+        -destination 'generic/platform=macOS' \
+        ARCHS="arm64 x86_64" \
+        ONLY_ACTIVE_ARCH=NO \
         -derivedDataPath "${release_derived}" \
         clean build \
         CODE_SIGN_STYLE=Manual \
@@ -251,6 +273,7 @@ show_help() {
     echo "  run      启动应用（需要先编译）"
     echo "  all      清理、编译并启动（默认）"
     echo "  release  Release 编译 + Developer ID 签名 + 公证 + 装订"
+    echo "  package  Release 签名 + 公证 + 生成通用二进制 DMG（scripts/package-release.sh）"
     echo "  help     显示此帮助信息"
     echo ""
     echo "示例:"
@@ -277,6 +300,9 @@ main() {
             ;;
         release)
             build_for_release
+            ;;
+        package)
+            "${PROJECT_DIR}/scripts/package-release.sh"
             ;;
         all)
             clean_build

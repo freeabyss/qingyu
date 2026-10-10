@@ -56,8 +56,14 @@ final class ScreenshotWindowController {
             container.commandBarController.hide()
         }
 
+        #if DEBUG
+        let forcedDisplayCount = Self.forcedDisplayCountForUITest()
+        #else
+        let forcedDisplayCount: Int? = nil
+        #endif
+
         let session = CaptureSessionController(
-            displayProvider: NSScreenDisplayProvider(forcedDisplayCount: Self.forcedDisplayCountForUITest()),
+            displayProvider: NSScreenDisplayProvider(forcedDisplayCount: forcedDisplayCount),
             windowProvider: WindowCandidateProvider(),
             overlayFactory: ConcreteCaptureOverlayWindowFactory()
         )

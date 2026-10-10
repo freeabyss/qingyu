@@ -41,8 +41,7 @@ private struct JadeButtonBody: View {
 
     var body: some View {
         configuration.label
-            .font(JadeFont.callout)
-            .fontWeight(.medium)
+            .font(JadeFont.callout.weight(.medium))
             .foregroundStyle(foreground)
             .jadePadding(.horizontal, .x3)
             .jadePadding(.vertical, .x2)

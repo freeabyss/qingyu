@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import UniformTypeIdentifiers
 
 /// Right-hand clipboard detail pane — content only (no action buttons).
 ///
@@ -9,9 +10,9 @@ struct ClipboardDetailPane: View {
     let item: ClipboardRecordSnapshot?
     var imageProvider: (ClipboardRecordSnapshot) async -> Data?
     var richTextProvider: (ClipboardRecordSnapshot) async -> NSAttributedString?
-    /// File items only: reveal the recorded path in Finder. The owner is
-    /// responsible for surfacing a toast when the path is gone.
-    var onRevealInFinder: (ClipboardRecordSnapshot) -> Void = { _ in }
+    /// File items only: when the referenced file is an image, load its bytes so
+    /// the detail pane can preview the picture itself (not just its icon/name).
+    var fileImageProvider: (ClipboardRecordSnapshot) async -> Data? = { _ in nil }
     /// Show the maximize control (disabled inside the maximized sheet itself).
     var allowsMaximize: Bool = true
 
@@ -19,6 +20,9 @@ struct ClipboardDetailPane: View {
     @State private var rtfAttributed: NSAttributedString?
     @State private var isRichTextLoading = false
     @State private var imageLoadFinished = false
+    @State private var fileIsImage = false
+    @State private var fileImage: NSImage?
+    @State private var fileImageLoadFinished = false
     @State private var isMaximized = false
 
     var body: some View {
@@ -49,8 +53,7 @@ struct ClipboardDetailPane: View {
                         .font(JadeFont.body)
                         .foregroundStyle(JadeColor.textSecondary)
                     Text(typeLabel(for: item.contentType))
-                        .font(JadeFont.body)
-                        .fontWeight(.semibold)
+                        .font(JadeFont.body.weight(.semibold))
                         .foregroundStyle(JadeColor.textPrimary)
                     Spacer()
                     Text(L10n.relativeTime(from: item.updatedAt))
@@ -125,6 +128,9 @@ struct ClipboardDetailPane: View {
             rtfAttributed = nil
             isRichTextLoading = false
             imageLoadFinished = false
+            fileIsImage = false
+            fileImage = nil
+            fileImageLoadFinished = false
             if item.contentType == .image {
                 if let data = await imageProvider(item) {
                     image = NSImage(data: data)
@@ -134,6 +140,12 @@ struct ClipboardDetailPane: View {
                 isRichTextLoading = true
                 rtfAttributed = await richTextProvider(item)
                 isRichTextLoading = false
+            } else if item.contentType == .file, Self.isImageFile(item) {
+                fileIsImage = true
+                if let data = await fileImageProvider(item) {
+                    fileImage = NSImage(data: data)
+                }
+                fileImageLoadFinished = true
             }
         }
     }
@@ -144,8 +156,7 @@ struct ClipboardDetailPane: View {
                 .font(JadeFont.body)
                 .foregroundStyle(JadeColor.textSecondary)
             Text(typeLabel(for: item.contentType))
-                .font(JadeFont.callout)
-                .fontWeight(.semibold)
+                .font(JadeFont.callout.weight(.semibold))
                 .foregroundStyle(JadeColor.textPrimary)
             Spacer()
             Text(L10n.relativeTime(from: item.updatedAt))
@@ -245,6 +256,10 @@ struct ClipboardDetailPane: View {
 
     private func fileContent(for item: ClipboardRecordSnapshot) -> some View {
         VStack(alignment: .leading, spacing: JadeSpace.x3.value) {
+            if fileIsImage {
+                fileImagePreview
+            }
+
             if let fileURL = item.filePath {
                 let path = fileURL.path
                 let displayName = item.fileDisplayName ?? fileURL.lastPathComponent
@@ -257,8 +272,7 @@ struct ClipboardDetailPane: View {
 
                     VStack(alignment: .leading, spacing: JadeSpace.x1.value) {
                         Text(displayName)
-                            .font(JadeFont.body)
-                            .fontWeight(.semibold)
+                            .font(JadeFont.body.weight(.semibold))
                             .foregroundStyle(JadeColor.textPrimary)
                             .lineLimit(2)
                         Text(path)
@@ -270,14 +284,6 @@ struct ClipboardDetailPane: View {
                     }
                     Spacer(minLength: 0)
                 }
-
-                Button {
-                    onRevealInFinder(item)
-                } label: {
-                    Label(L10n.localized("preview.showInFinder"), systemImage: "folder")
-                }
-                .buttonStyle(.jadeSecondary)
-                .accessibilityIdentifier("clipboard.detail.showInFinder")
             } else {
                 Image(systemName: "doc")
                     .font(.system(size: 40))
@@ -293,6 +299,38 @@ struct ClipboardDetailPane: View {
         .background(JadeColor.surface2)
         .overlay(JadeRadius.md.shape.strokeBorder(JadeColor.border, lineWidth: 1))
         .jadeRadius(.md)
+    }
+
+    /// Image preview for file clipboard items whose referenced file is an image.
+    @ViewBuilder
+    private var fileImagePreview: some View {
+        if let fileImage {
+            Image(nsImage: fileImage)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(maxWidth: .infinity)
+                .frame(minHeight: 120)
+                .jadeRadius(.md)
+        } else if fileImageLoadFinished {
+            missingImagePlaceholder
+        } else {
+            ProgressView()
+                .frame(maxWidth: .infinity, minHeight: 120)
+        }
+    }
+
+    /// True when a `.file` item points at a file that is an image (by on-disk
+    /// content type first, then the recorded UTI).
+    static func isImageFile(_ item: ClipboardRecordSnapshot) -> Bool {
+        guard item.contentType == .file, let url = item.filePath else { return false }
+        if let values = try? url.resourceValues(forKeys: [.contentTypeKey]),
+           let type = values.contentType {
+            return type.conforms(to: .image)
+        }
+        if let uti = item.fileUTI, let type = UTType(uti) {
+            return type.conforms(to: .image)
+        }
+        return false
     }
 
     private func iconName(for type: ClipboardContentType) -> String {

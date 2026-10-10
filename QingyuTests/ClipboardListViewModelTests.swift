@@ -138,6 +138,89 @@ final class ClipboardListViewModelTests: XCTestCase {
         XCTAssertTrue(viewModel.showToast)
         XCTAssertEqual(viewModel.toastMessage, L10n.localized("toast.fileMissing"))
     }
+
+    func testCopyAbsolutePathCopiesRecordedPathAsText() async {
+        let fixtures = ClipboardHistoryFixtures()
+        let queryService = MockClipboardIndexQueryService(items: fixtures.indexItems, snapshots: fixtures.snapshotsByID)
+        let repository = MockClipboardRepository()
+        let executor = MockClipboardActionExecutor()
+        let viewModel = ClipboardListViewModel(
+            queryService: queryService,
+            repository: repository,
+            historyService: MockClipboardHistoryService(repository: repository),
+            actionExecutor: executor,
+            resourceStore: MockFileResourceStore(),
+            settingsService: MockSettingsService()
+        )
+
+        await viewModel.copyAbsolutePath(fixtures.file)
+
+        XCTAssertEqual(executor.executedActions, [.copyText("/tmp/fixture.txt")])
+        XCTAssertTrue(viewModel.showToast)
+        XCTAssertEqual(viewModel.toastMessage, L10n.localized("toast.copied"))
+    }
+
+    func testCopyAbsolutePathRejectsItemsWithoutFilePath() async {
+        let fixtures = ClipboardHistoryFixtures()
+        let queryService = MockClipboardIndexQueryService(items: fixtures.indexItems, snapshots: fixtures.snapshotsByID)
+        let repository = MockClipboardRepository()
+        let executor = MockClipboardActionExecutor()
+        let viewModel = ClipboardListViewModel(
+            queryService: queryService,
+            repository: repository,
+            historyService: MockClipboardHistoryService(repository: repository),
+            actionExecutor: executor,
+            resourceStore: MockFileResourceStore(),
+            settingsService: MockSettingsService()
+        )
+
+        await viewModel.copyAbsolutePath(fixtures.text)
+
+        XCTAssertTrue(executor.executedActions.isEmpty, "A non-file item must not copy a path.")
+        XCTAssertEqual(viewModel.toastMessage, L10n.localized("toast.fileMissing"))
+        XCTAssertEqual(viewModel.toastVariant, .error)
+    }
+
+    func testFileImageDataReadsReferencedFileFromDisk() async throws {
+        let tmpURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("qingyu-file-image-\(UUID().uuidString).png")
+        let bytes = Data([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A])
+        try bytes.write(to: tmpURL)
+        defer { try? FileManager.default.removeItem(at: tmpURL) }
+
+        let fixtures = ClipboardHistoryFixtures()
+        let snapshot = fixtures.fileSnapshot(path: tmpURL)
+        let queryService = MockClipboardIndexQueryService(items: [], snapshots: [:])
+        let repository = MockClipboardRepository()
+        let viewModel = ClipboardListViewModel(
+            queryService: queryService,
+            repository: repository,
+            historyService: MockClipboardHistoryService(repository: repository),
+            actionExecutor: MockClipboardActionExecutor(),
+            resourceStore: MockFileResourceStore(),
+            settingsService: MockSettingsService()
+        )
+
+        let data = await viewModel.fileImageData(for: snapshot)
+        XCTAssertEqual(data, bytes, "A file item's image bytes should be read from its path.")
+    }
+
+    func testFileImageDataReturnsNilForNonFileItems() async {
+        let fixtures = ClipboardHistoryFixtures()
+        let queryService = MockClipboardIndexQueryService(items: fixtures.indexItems, snapshots: fixtures.snapshotsByID)
+        let repository = MockClipboardRepository()
+        let viewModel = ClipboardListViewModel(
+            queryService: queryService,
+            repository: repository,
+            historyService: MockClipboardHistoryService(repository: repository),
+            actionExecutor: MockClipboardActionExecutor(),
+            resourceStore: MockFileResourceStore(),
+            settingsService: MockSettingsService()
+        )
+
+        let data = await viewModel.fileImageData(for: fixtures.text)
+        XCTAssertNil(data)
+    }
 }
 
 private final class ClipboardHistoryFixtures {
@@ -150,6 +233,28 @@ private final class ClipboardHistoryFixtures {
     lazy var snapshots = [text, richText, image, file]
     lazy var snapshotsByID = Dictionary(uniqueKeysWithValues: snapshots.map { ($0.id, $0) })
     lazy var indexItems = snapshots.map(SearchIndexItem.init(clipboard:))
+
+    func fileSnapshot(path: URL) -> ClipboardRecordSnapshot {
+        ClipboardRecordSnapshot(
+            id: UUID(),
+            contentType: .file,
+            plainText: path.lastPathComponent,
+            summary: path.lastPathComponent,
+            contentHash: "hash-\(path.lastPathComponent)",
+            isPinned: false,
+            isFavorite: false,
+            createdAt: baseDate,
+            updatedAt: baseDate,
+            filePath: path,
+            fileDisplayName: path.lastPathComponent,
+            fileUTI: "public.png",
+            fileSize: 6,
+            resources: [],
+            resourceStatus: .available,
+            sourceAppBundleID: nil,
+            sourceAppName: nil
+        )
+    }
 
     private func makeSnapshot(id: UUID, type: ClipboardContentType, summary: String, updatedAt: Date, pinned: Bool = false) -> ClipboardRecordSnapshot {
         let resources: [ClipboardResourceSnapshot]

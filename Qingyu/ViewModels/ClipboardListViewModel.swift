@@ -308,6 +308,23 @@ final class ClipboardListViewModel: ObservableObject {
         }
     }
 
+    /// Copies a file item's recorded **absolute path** to the general pasteboard
+    /// as plain text. Works even when the file itself no longer exists — the user
+    /// may just want the path.
+    func copyAbsolutePath(_ item: ClipboardRecordSnapshot) async {
+        guard item.contentType == .file, let path = item.filePath?.path, !path.isEmpty else {
+            setToast(message: L10n.localized("toast.fileMissing"), variant: .error)
+            return
+        }
+        do {
+            try await actionExecutor.execute(.copyText(path))
+            showToast(message: L10n.localized("toast.copied"))
+        } catch {
+            logger.error("Failed to copy clipboard file path: \(error.localizedDescription, privacy: .public)")
+            showToast(message: error.localizedDescription)
+        }
+    }
+
     func togglePin(_ item: ClipboardRecordSnapshot) async {
         do {
             _ = try await repository.togglePin(id: item.id)
@@ -428,6 +445,16 @@ final class ClipboardListViewModel: ObservableObject {
             return data
         }
         return await thumbnailData(for: item)
+    }
+
+    /// Reads a **file** clipboard item's bytes from disk. File items store only a
+    /// path reference (no managed resource), so the detail pane previews image
+    /// files straight from the file system. Returns nil when unreadable.
+    func fileImageData(for item: ClipboardRecordSnapshot) async -> Data? {
+        guard item.contentType == .file, let url = item.filePath else { return nil }
+        return await Task.detached(priority: .userInitiated) {
+            try? Data(contentsOf: url)
+        }.value
     }
 
     /// True when an image clipboard item has no readable original/thumbnail on disk.

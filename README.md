@@ -6,9 +6,9 @@
 
 Qingyu collapses "launch an app, find a file, do the math, run a common system
 action" into one unified search entry, and keeps your clipboard history on your
-Mac. No accounts, no cloud sync, no analytics.
+Mac. No account required — just download and run.
 
-![Platform](https://img.shields.io/badge/platform-macOS%2013%2B-blue)
+![Platform](https://img.shields.io/badge/platform-macOS%2012%2B-blue)
 ![Version](https://img.shields.io/github/v/release/freeabyss/qingyu?label=version)
 ![License](https://img.shields.io/badge/license-Free%20personal%C2%B7No%20commercial-orange)
 ![Language](https://img.shields.io/badge/UI-Simplified%20Chinese%20%7C%20English-green)
@@ -19,10 +19,11 @@ Mac. No accounts, no cloud sync, no analytics.
 
 **[Get the latest release from GitHub Releases →](https://github.com/freeabyss/qingyu/releases)**
 
-- Requires macOS 13 Ventura or later
-- Signed with Developer ID and notarized by Apple — drag into Applications and run
+- Requires macOS 12 Monterey or later (universal: Apple Silicon and Intel)
+- Distributed as a `.dmg` signed with Developer ID and notarized by Apple — double-click, then drag Qingyu into Applications
+- After installation, Qingyu moves the downloaded installer to the Trash on first launch
 - Distributed via **GitHub Releases only** — **not** the Mac App Store
-- No accounts, payments, subscriptions, or license keys
+- No account required; no payments, subscriptions, or license keys
 - The in-app **About → Check for Updates** action opens the Releases page above;
   it never downloads or installs anything automatically
 
@@ -97,7 +98,7 @@ Qingyu is local-first and offline by default:
 
 - Clipboard content, usage frequency, and settings all stay on your Mac in
   `~/Library/Application Support/Qingyu/`
-- No account system, cloud sync, analytics backend, or payment channel
+- No account required; no cloud sync, analytics, or payment services
 - The file index is built locally; file names and paths are never uploaded
 - Feedback is user-initiated email only. The generated message contains the app
   version, build number, macOS version, and your notes — it **never attaches**
@@ -134,8 +135,23 @@ Not started. Plans, not commitments.
 
 ## Screenshots
 
-> ⚠️ Real-device screenshots pending. See
-> [assets/product/README.md](assets/product/README.md).
+<img src="assets/product/command-bar.png" alt="Qingyu command bar" width="720">
+
+The `⌥ Space` command bar (input state).
+
+Planned shots — captured from a signed build on a clean desktop and stored in
+[assets/product/](assets/product/README.md):
+
+| Shot | Shows |
+| --- | --- |
+| `command-bar-results.png` | Command bar with apps, files, calculator and commands |
+| `command-bar-home.png` | Empty-query state — frequent actions and recent use |
+| `clipboard-history.png` | `⌥⌘C` clipboard window — filters, list and detail pane |
+| `settings-general.png` | Settings · General (plugins, appearance, language, data) |
+| `onboarding.png` | First-run welcome guide |
+
+> ⚠️ Only the command bar shot is committed so far; the rest are pending. See the
+> capture procedure in [assets/product/README.md](assets/product/README.md).
 
 Product homepage: <https://freeabyss.github.io/qingyu/>
 

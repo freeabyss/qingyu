@@ -67,7 +67,7 @@ final class FileSearchSource: FileSearchSourceProtocol {
     /// Per-source result cap.
     private let resultLimit: Int
 
-    private let lock = OSAllocatedUnfairLock()
+    private let lock = UnfairLock()
     private var items: [FileIndexItem] = []
     private var isReady = false
 

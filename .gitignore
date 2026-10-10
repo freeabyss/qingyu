@@ -6,6 +6,7 @@
 *.moved-aside
 DerivedData/
 build/
+dist/
 *.hmap
 *.ipa
 *.dSYM.zip

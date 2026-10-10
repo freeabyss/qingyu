@@ -10,6 +10,16 @@ echo "==> git diff --check"
 git diff --check
 echo "    OK"
 
+# 纯命令行构建机可能未安装 Mac Development 证书；此时退回 ad-hoc 本地签名，
+# 让单元测试仍能运行（含 TEST_HOST 宿主应用）。有证书的机器行为完全不变，
+# Release 分发签名不受影响。
+sign_args=""
+if [ -z "$(security find-identity -v -p codesigning 2>/dev/null \
+  | sed -n 's/.*\([0-9][0-9]*\) valid identities found.*/\1/p' | grep -v '^0$')" ]; then
+  echo "    [i] 未发现可用签名身份，使用 ad-hoc 本地签名"
+  sign_args="CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO"
+fi
+
 log="/tmp/qingyu-verify-$$.log"
 echo "==> xcodebuild test (QingyuTests)，日志：$log"
 set +e
@@ -18,6 +28,7 @@ xcodebuild test \
   -scheme Qingyu \
   -destination 'platform=macOS' \
   -only-testing:QingyuTests \
+  ${sign_args} \
   >"$log" 2>&1
 build_status=$?
 set -e

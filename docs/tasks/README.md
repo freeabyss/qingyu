@@ -10,7 +10,7 @@
 
 ## Global Constraints
 
-- 支持 macOS 13+；应用以 `LSUIElement=true` 的菜单栏 Agent App 运行。
+- 支持 macOS 12+；发行包为通用二进制（Apple 芯片 + Intel）；应用以 `LSUIElement=true` 的菜单栏 Agent App 运行。
 - 插件仅由项目所有者开发，随主应用编译、签名和发布。
 - 用户数据保存在当前 Mac；插件按需声明并请求权限。
 - App Sandbox 保持关闭；发布保留 Hardened Runtime、Developer ID 和 Apple Notarization。

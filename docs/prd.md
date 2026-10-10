@@ -554,8 +554,8 @@ PRD 记录完整愿景，但开发按版本分期。长期功能包括：
 - FR-UI-31：设置页必须提供语言切换：跟随系统、简体中文、English。
 - FR-UI-32：语言默认选项必须为"跟随系统"。
 - FR-UI-33：如果运行时切换语言实现复杂，MVP 可以提示用户重启后生效。
-- FR-UI-34：MVP 最低支持系统版本必须为 macOS 13 Ventura。
-- FR-UI-35：如果某些功能在 macOS 13 上 API 受限，必须提供兼容分支或明确降级提示。
+- FR-UI-34：MVP 最低支持系统版本必须为 macOS 12 Monterey；发行包必须为通用二进制，同时支持 Apple 芯片与 Intel 芯片。
+- FR-UI-35：如果某些功能在 macOS 12 上 API 受限（例如 macOS 13 起可用的 `SMAppService`），必须提供兼容分支或明确降级提示。
 - **FR-UI-36 🔧（v1.2 修）**：版本号必须三源一致——Xcode `MARKETING_VERSION=1.2.0`、`Info.plist` `CFBundleShortVersionString=1.2.0`、`CHANGELOG.md` 补全 v1.0.0 / v1.0.1 / v1.1.0 / v1.2.0 条目。任何一处不一致视为发布阻塞（见 D-108）。
 - **FR-UI-37 🔧（v1.2 改，PERM-APPLE-EVENTS）**：见 §7.9。
 
@@ -1299,7 +1299,7 @@ MVP 完全免费，不做任何付费限制，不接入支付、授权码、订�
 | D-090 | 官网/项目主页采用标准产品页结构。 |
 | D-091 | MVP 完全免费，不接入支付/订阅/账号。 |
 | D-092 | MVP 不需要账号系统，也不预留复杂账号架构。 |
-| D-093 | MVP 最低支持 macOS 13 Ventura。 |
+| D-093 | MVP 最低支持 macOS 12 Monterey；发行包为通用二进制，同时支持 Apple 芯片与 Intel 芯片。 |
 | D-094 | MVP 需要明确测试策略并写入测试文档。 |
 | D-101 | **（v1.2.0，2026-07-03）品牌名正式定案：中文清羽、英文 Qingyu（首字母大写）。取代 D-056。全文（除历史语境）统一使用此名。** |
 | D-102 | **（v1.2.0）Bundle ID 保留 `com.freeabyss.qingyu` 不变，避免用户 TCC 权限、Keychain、数据目录、开机启动项失效；仅改显示名/target/源码目录/文案。** |

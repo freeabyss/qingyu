@@ -69,8 +69,7 @@ public struct JadePill: View {
 
     public var body: some View {
         Text(text)
-            .font(font)
-            .fontWeight(.medium)
+            .font(font.weight(.medium))
             .foregroundStyle(style.foreground)
             .padding(.horizontal, hPadding)
             .padding(.vertical, vPadding)

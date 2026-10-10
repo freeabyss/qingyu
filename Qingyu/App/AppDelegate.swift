@@ -26,6 +26,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     /// optional clipboard-monitoring lifecycle has started after onboarding.
     private var hasRegisteredGlobalShortcuts = false
 
+    /// Records the app version whose downloaded `.dmg` was already cleaned up,
+    /// so the cleanup runs at most once per installed version.
+    private static let installerCleanupVersionKey = "installerCleanup.lastVersion"
+
     #if DEBUG
     /// Parsed UITest launch arguments. Non-nil only when at least one
     /// `--uitest-*` argument is present (review C-1).
@@ -86,6 +90,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
         container.updateService.setup()
         container.registerCommandObservers()
+        cleanupDownloadedInstallersIfNeeded()
 
         #if DEBUG
         if let uitest = uitestSupport, let action = uitest.validatedTriggerAction {
@@ -283,5 +288,68 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         } else {
             NSApp.activate(ignoringOtherApps: true)
         }
+    }
+
+    // MARK: - Installer cleanup
+
+    /// Moves our own downloaded installer (`.dmg`) to the Trash once the app is
+    /// installed under `/Applications`. This implements the "安装完毕后自动删除
+    /// 安装包" promise without ever hard-deleting user files: the archive is
+    /// recycled, so it stays recoverable from the Trash.
+    ///
+    /// Guard rails: it only runs when the running bundle lives in
+    /// `/Applications`, only touches files named `Qingyu-*.dmg`, and runs at
+    /// most once per installed version.
+    @MainActor
+    private func cleanupDownloadedInstallersIfNeeded() {
+        let appPath = Bundle.main.bundleURL.standardizedFileURL.path
+        guard appPath.hasPrefix("/Applications/") else { return }
+
+        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "unknown"
+        guard UserDefaults.standard.string(forKey: Self.installerCleanupVersionKey) != version else { return }
+
+        let home = FileManager.default.homeDirectoryForCurrentUser
+        let searchDirectories = ["Downloads", "Desktop"].map { home.appendingPathComponent($0, isDirectory: true) }
+        let removed = InstallerCleanup.removeDownloadedInstallers(in: searchDirectories) { url in
+            NSWorkspace.shared.recycle([url], completionHandler: nil)
+        }
+        if !removed.isEmpty {
+            logger.info("Installer cleanup recycled \(removed.count) archive(s): \(removed.map(\.lastPathComponent).joined(separator: ", "), privacy: .public)")
+        }
+        UserDefaults.standard.set(version, forKey: Self.installerCleanupVersionKey)
+    }
+}
+
+/// Pure helpers for the post-install cleanup of the downloaded `.dmg`.
+/// `AppDelegate` wires them to `NSWorkspace.recycle`; tests inject a recorder.
+enum InstallerCleanup {
+    /// Matches the installer file names produced by `scripts/package-release.sh`
+    /// (`Qingyu-<version>.dmg`, `Qingyu-<version>-universal.dmg`, …).
+    static func isOwnInstallerName(_ name: String) -> Bool {
+        let lowercased = name.lowercased()
+        return lowercased.hasPrefix("qingyu-") && lowercased.hasSuffix(".dmg")
+    }
+
+    /// Recycles every matching installer found in `searchDirectories` and
+    /// returns the files handed to `recycle`. Missing directories are ignored.
+    @discardableResult
+    static func removeDownloadedInstallers(
+        in searchDirectories: [URL],
+        fileManager: FileManager = .default,
+        recycle: (URL) -> Void
+    ) -> [URL] {
+        var removed: [URL] = []
+        for directory in searchDirectories {
+            guard let entries = try? fileManager.contentsOfDirectory(
+                at: directory,
+                includingPropertiesForKeys: [.isRegularFileKey],
+                options: [.skipsHiddenFiles]
+            ) else { continue }
+            for url in entries where isOwnInstallerName(url.lastPathComponent) {
+                recycle(url)
+                removed.append(url)
+            }
+        }
+        return removed
     }
 }
