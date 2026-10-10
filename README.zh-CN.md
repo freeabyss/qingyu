@@ -19,7 +19,7 @@
 **[前往 GitHub Releases 下载最新版本 →](https://github.com/freeabyss/qingyu/releases)**
 
 - 系统要求：macOS 12 Monterey 或更高版本（同时支持 Apple 芯片与 Intel 芯片）
-- 分发方式：Developer ID 签名 + Apple 公证，下载的是 `.dmg` 安装包，双击打开后将「清羽」拖入「应用程序」即可
+- 分发方式：`.dmg` 安装包（通用二进制，**ad-hoc 免签名、未公证**）；双击打开后将「清羽」拖入「应用程序」，首次打开需按下方提示手动放行
 - 安装完成后，清羽会在首次启动时自动把下载目录里的安装包移入废纸篓
 - 仅通过 **GitHub Releases** 分发，**不在 Mac App Store** 上架
 - 无需账号，不含支付、订阅或许可证密钥

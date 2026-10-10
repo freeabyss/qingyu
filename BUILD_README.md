@@ -168,7 +168,13 @@ export AC_NOTARY_PROFILE="qingyu-notary"   # xcrun notarytool store-credentials 
 ./scripts/package-release.sh              # 编译（通用）+ 签名 + 公证 + 生成 dist/Qingyu-<版本>.dmg
 ./scripts/package-release.sh --upload     # 生成后上传到 GitHub Release
 ./scripts/package-release.sh --skip-notarize   # 仅签名并生成 DMG（本地联调）
+./scripts/package-release.sh --adhoc      # 无证书：ad-hoc 签名 + DMG（不公证，标记预发布）
+./scripts/package-release.sh --adhoc --upload  # 无证书直接出包并上传（预发布）
 ```
+
+`--adhoc` 模式不需要任何证书：用 `codesign -s -` 签名，Apple 芯片可运行，但**未公证**，
+其他 Mac 首次打开需在「系统设置 → 隐私与安全性」点「仍要打开」。具备 Developer ID
+证书后去掉 `--adhoc` 即为正式签名 + 公证流程。
 
 脚本会用 `lipo` 确认产物同时包含 `arm64` 与 `x86_64`，并对 App 与 DMG 分别签名、
 公证、装订票据（`codesign` / `notarytool` / `stapler`）。

@@ -27,7 +27,10 @@ All notable changes to Qingyu (清羽) are documented here. The format is based 
   requirement is lowered from macOS 13 Ventura to **macOS 12 Monterey**, and the
   release binary now contains both `arm64` (Apple Silicon) and `x86_64` (Intel)
   slices. `LaunchAtLoginService` degrades gracefully on macOS 12, where
-  `SMAppService` is unavailable.
+  `SMAppService` is unavailable. Until Developer ID credentials are available,
+  releases are **ad-hoc signed and not notarized** (built with
+  `./scripts/package-release.sh --adhoc`); the first launch must be approved
+  under **System Settings → Privacy & Security**.
 - **Marketing copy.** The "没有账号，没有云同步，没有埋点" slogan is replaced by
   the simpler "无需账号" / "No account required" across the README and website.
 

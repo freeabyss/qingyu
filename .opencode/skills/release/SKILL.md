@@ -110,6 +110,18 @@ export AC_NOTARY_PROFILE="qingyu-notary"        # 或 APPLE_ID / APPLE_TEAM_ID /
 产物：`dist/Qingyu-<版本>.dmg` 与 `dist/Qingyu-<版本>.dmg.sha256`。脚本会用 `lipo` 校验
 同时含 `arm64` 与 `x86_64`。
 
+**方式 C（无证书，ad-hoc 预发布）**：没有 Developer ID 证书时可走这条路，产物用
+`codesign -s -` 免签名、**不公证**，Apple 芯片可运行：
+
+```bash
+./scripts/package-release.sh --adhoc --upload
+```
+
+- 上传时会自动标记为 **pre-release**，并在 Release notes 说明「ad-hoc 免签名 · 未公证」。
+- 其他 Mac 首次打开会被 Gatekeeper 拦截，需在「系统设置 → 隐私与安全性」点「仍要打开」。
+- 走这条路时，README / 网站必须同步改为「ad-hoc 免签名、未公证」口径，不得再写
+  「Developer ID 签名 + Apple 公证」。拿到证书后去掉 `--adhoc` 即恢复正式流程。
+
 ### 6. 校验发布结果
 
 ```bash

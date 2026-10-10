@@ -20,7 +20,7 @@ Mac. No account required — just download and run.
 **[Get the latest release from GitHub Releases →](https://github.com/freeabyss/qingyu/releases)**
 
 - Requires macOS 12 Monterey or later (universal: Apple Silicon and Intel)
-- Distributed as a `.dmg` signed with Developer ID and notarized by Apple — double-click, then drag Qingyu into Applications
+- Distributed as a `.dmg` (universal, **ad-hoc signed — not notarized yet**) — double-click, drag Qingyu into Applications, then approve it once under **System Settings → Privacy & Security**
 - After installation, Qingyu moves the downloaded installer to the Trash on first launch
 - Distributed via **GitHub Releases only** — **not** the Mac App Store
 - No account required; no payments, subscriptions, or license keys
