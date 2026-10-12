@@ -153,11 +153,34 @@ defaults delete com.freeabyss.qingyu
 
 ## 发布构建
 
-Qingyu 采用 Developer ID 签名 + 公证的方式分发（不再使用 App Sandbox）。
-发行包为**通用二进制**（`arm64` + `x86_64`），以 `.dmg` 形式提供，最低支持
-macOS 12 Monterey。
+发行包为**通用二进制**（`arm64` + `x86_64`）`.dmg`，最低支持 macOS 12 Monterey；
+App Sandbox 关闭（非 Mac App Store 分发）。签名有两种模式：
 
-### 生成 DMG 安装包（推荐）
+| 模式 | 用途 | 需要证书 | 产物 |
+| --- | --- | --- | --- |
+| **ad-hoc（当前默认）** | 无证书发布 | 否 | 免签名、**未公证**；首次打开需手动放行 |
+| Developer ID（正式） | 取得证书后 | 是 | Developer ID 签名 + Apple 公证 |
+
+### 当前默认：无证书（ad-hoc）发版
+
+```bash
+# 一次性：让提交自动递增版本（首次克隆后执行）
+git config core.hooksPath .githooks
+
+# 提交改动（pre-commit 钩子自动递增版本与构建号）并推送
+git add -A && git commit -m "..." && git push
+
+# 出通用 DMG 并发布为正式 GitHub Release（不需要任何证书）
+./scripts/package-release.sh --adhoc --upload
+#   仅出包不上传：去掉 --upload
+#   标记为预发布：额外加 --prerelease
+```
+
+产物：`dist/Qingyu-<版本>.dmg` 与 `dist/Qingyu-<版本>.dmg.sha256`。脚本用 `lipo`
+确认同时包含 `arm64` 与 `x86_64`。ad-hoc 版本未公证，其他 Mac 首次打开会被
+Gatekeeper 拦截，需在「系统设置 → 隐私与安全性」点「仍要打开」。
+
+### 正式签名 + 公证（取得 Developer ID 证书后）
 
 ```bash
 export DEVELOPER_ID_APP="Developer ID Application: Your Name (TEAMID)"
@@ -165,41 +188,31 @@ export DEVELOPER_ID_APP="Developer ID Application: Your Name (TEAMID)"
 export AC_NOTARY_PROFILE="qingyu-notary"   # xcrun notarytool store-credentials 保存的 profile
 # 或：export APPLE_ID=... APPLE_TEAM_ID=... APPLE_APP_PASSWORD=...
 
-./scripts/package-release.sh              # 编译（通用）+ 签名 + 公证 + 生成 dist/Qingyu-<版本>.dmg
+./scripts/package-release.sh              # 编译（通用）+ 签名 + 公证 + 生成 DMG
 ./scripts/package-release.sh --upload     # 生成后上传到 GitHub Release
 ./scripts/package-release.sh --skip-notarize   # 仅签名并生成 DMG（本地联调）
-./scripts/package-release.sh --adhoc      # 无证书：ad-hoc 签名 + DMG（不公证，标记预发布）
-./scripts/package-release.sh --adhoc --upload  # 无证书直接出包并上传（预发布）
 ```
 
-`--adhoc` 模式不需要任何证书：用 `codesign -s -` 签名，Apple 芯片可运行，但**未公证**，
-其他 Mac 首次打开需在「系统设置 → 隐私与安全性」点「仍要打开」。具备 Developer ID
-证书后去掉 `--adhoc` 即为正式签名 + 公证流程。
+脚本会对 App 与 DMG 分别签名、公证、装订票据（`codesign` / `notarytool` / `stapler`）。
 
-脚本会用 `lipo` 确认产物同时包含 `arm64` 与 `x86_64`，并对 App 与 DMG 分别签名、
-公证、装订票据（`codesign` / `notarytool` / `stapler`）。
+### 自动发布（GitHub Actions，需 Secrets）
 
-### 自动发布（GitHub Actions）
-
-推送形如 `v0.3.40` 的 tag，或在 Actions 中手动触发 `Release` workflow，即会
+推送形如 `v0.3.41` 的 tag，或在 Actions 中手动触发 `Release` workflow，即会
 构建通用二进制、签名、公证并创建 GitHub Release。所需 Secrets 见
 [`.github/workflows/release.yml`](.github/workflows/release.yml) 顶部注释。
 
-### 手动签名与校验
+### 手动校验
 
 ```bash
+# ad-hoc
+codesign -dv --verbose=2 dist/Qingyu.app          # Signature=adhoc
+lipo -info dist/Qingyu.app/Contents/MacOS/Qingyu  # x86_64 arm64
+
+# Developer ID
 codesign --verify --deep --strict --verbose=2 dist/Qingyu.app
 spctl --assess -vvv --type execute dist/Qingyu.app
 xcrun stapler validate dist/Qingyu-<版本>.dmg
 ```
-
-### 代码签名
-
-发布前需要配置代码签名：
-
-1. 在 Xcode 中打开项目设置
-2. 选择 "Signing & Capabilities"
-3. 配置 Developer ID 证书，启用 Hardened Runtime
 
 ## 脚本自定义
 

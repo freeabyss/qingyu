@@ -175,6 +175,11 @@ license. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 See [CHANGELOG.md](CHANGELOG.md) and
 [GitHub Releases](https://github.com/freeabyss/qingyu/releases).
 
+> **Maintainers:** the release process (version bump, test gate, universal
+> `.dmg`, GitHub Release) is in [BUILD_README.md](BUILD_README.md) and the
+> `release` skill under `.opencode/skills/release/`. Current builds are
+> **ad-hoc signed and not notarized**.
+
 ## Feedback
 
 Bug reports, feature requests, commercial licensing: <qingyu_freeabyss@163.com>

@@ -161,6 +161,10 @@
 
 见 [CHANGELOG.md](CHANGELOG.md) 与 [GitHub Releases](https://github.com/freeabyss/qingyu/releases)。
 
+> **维护者：** 发版流程（版本递增、测试门禁、通用 `.dmg`、GitHub Release）见
+> [BUILD_README.md](BUILD_README.md) 与 `.opencode/skills/release/` 下的 `release` skill；
+> 当前构建为 **ad-hoc 免签名、未公证**，首次打开需手动放行。
+
 ## 反馈
 
 Bug 报告、功能建议与商业授权咨询：<qingyu_freeabyss@163.com>
