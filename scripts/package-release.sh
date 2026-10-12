@@ -23,7 +23,8 @@
 # 用法：
 #   ./scripts/package-release.sh                      # Developer ID 签名 + 公证 + DMG
 #   ./scripts/package-release.sh --adhoc              # 无证书：ad-hoc 签名 + DMG（不公证）
-#   ./scripts/package-release.sh --adhoc --upload     # 生成后上传 GitHub Release（标记为预发布）
+#   ./scripts/package-release.sh --adhoc --upload     # 无证书出包并上传 GitHub Release（默认正式发布）
+#   ./scripts/package-release.sh --adhoc --upload --prerelease  # 同上，但标记为预发布
 #   ./scripts/package-release.sh --skip-notarize      # 签名但不公证
 #   ./scripts/package-release.sh --upload             # 生成后上传 GitHub Release
 #   ./scripts/package-release.sh --help
@@ -41,6 +42,7 @@ SKIP_NOTARIZE=0
 UPLOAD=0
 REQUIRE_NOTARIZE=0
 ADHOC=0
+PRERELEASE=0
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; BLUE='\033[0;34m'; NC='\033[0m'
 log_info()  { echo -e "${BLUE}[INFO]${NC} $1"; }
@@ -57,6 +59,7 @@ for arg in "$@"; do
         --adhoc)          ADHOC=1; SKIP_NOTARIZE=1 ;;
         --skip-notarize)  SKIP_NOTARIZE=1 ;;
         --upload)         UPLOAD=1 ;;
+        --prerelease)     PRERELEASE=1 ;;
         --require-notarize) REQUIRE_NOTARIZE=1 ;;
         --help|-h)        usage; exit 0 ;;
         *) log_error "未知参数: $arg"; usage; exit 2 ;;
@@ -229,16 +232,19 @@ if [[ "${UPLOAD}" -eq 1 ]]; then
         exit 1
     fi
     if [[ "${ADHOC}" -eq 1 ]]; then
-        release_notes="ad-hoc 签名、**未公证**的测试版本。首次打开可能被 macOS 拦截，请在「系统设置 → 隐私与安全性」点「仍要打开」。正式分发请使用 Developer ID 签名 + 公证版本。"
+        release_notes="ad-hoc 免签名、**未公证**版本。首次打开可能被 macOS 拦截，请在「系统设置 → 隐私与安全性」点「仍要打开」。"
     else
         release_notes="见 [CHANGELOG.md](https://github.com/freeabyss/qingyu/blob/main/CHANGELOG.md)。"
     fi
     if gh release view "${TAG}" >/dev/null 2>&1; then
         gh release upload "${TAG}" "${DMG_PATH}" "${DMG_PATH}.sha256" --clobber
         if [[ "${ADHOC}" -eq 1 ]]; then
-            gh release edit "${TAG}" --prerelease --notes "${release_notes}"
+            gh release edit "${TAG}" --notes "${release_notes}"
         fi
-    elif [[ "${ADHOC}" -eq 1 ]]; then
+        if [[ "${PRERELEASE}" -eq 1 ]]; then
+            gh release edit "${TAG}" --prerelease
+        fi
+    elif [[ "${PRERELEASE}" -eq 1 ]]; then
         gh release create "${TAG}" \
             "${DMG_PATH}" "${DMG_PATH}.sha256" \
             --title "清羽 Qingyu ${VERSION}" \
