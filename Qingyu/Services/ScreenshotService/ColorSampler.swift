@@ -5,9 +5,12 @@ import Foundation
 // MARK: - Color sampling (Task 007)
 
 /// 取色结果格式：`#RRGGBB` 与 `R, G, B`。
+///
+/// Task 014/04：十六进制格式化统一走 `ColorValueFormatter`（默认选项与既有呈现一致），
+/// 后续「截图期取色」入口只需传入不同的 `ColorValueOptions`。
 enum ColorString {
     static func hex(red: UInt8, green: UInt8, blue: UInt8) -> String {
-        String(format: "#%02X%02X%02X", red, green, blue)
+        ColorValueFormatter.hex(red: red, green: green, blue: blue, options: .default)
     }
 
     static func rgb(red: UInt8, green: UInt8, blue: UInt8) -> String {

@@ -169,6 +169,42 @@ final class AnnotationCanvasNSView: NSView {
         context.restoreGState()
     }
 
+    // MARK: - Keyboard
+
+    override func keyDown(with event: NSEvent) {
+        // Task 013/014/02：标注模式下用 `[` `]` 与滚轮调笔宽。
+        // 数字键留给 SwiftUI 的工具条分组快捷键，这里不占用。
+        guard state != nil, !event.modifierFlags.contains(.command),
+              let characters = event.charactersIgnoringModifiers, !characters.isEmpty else {
+            super.keyDown(with: event)
+            return
+        }
+        switch characters {
+        case "[":
+            applyLineWidthStep(direction: -1)
+        case "]":
+            applyLineWidthStep(direction: 1)
+        default:
+            super.keyDown(with: event)
+        }
+    }
+
+    override func scrollWheel(with event: NSEvent) {
+        guard state != nil, !event.modifierFlags.contains(.command) else {
+            super.scrollWheel(with: event)
+            return
+        }
+        applyLineWidthStep(direction: event.scrollingDeltaY > 0 ? 1 : -1)
+    }
+
+    private func applyLineWidthStep(direction: Int) {
+        guard let state else { return }
+        let next = AnnotationLineWidthStepper.step(state.style.lineWidth, direction: direction)
+        guard next != state.style.lineWidth else { return }
+        state.style.lineWidth = next
+        needsDisplay = true
+    }
+
     // MARK: - Mouse
 
     override func mouseDown(with event: NSEvent) {

@@ -132,6 +132,9 @@ final class CaptureOverlayContentView: NSView {
 
     fileprivate private(set) var hintsView: ScreenshotShortcutHintsView?
     private var isMouseDown = false
+    /// Task 014/06：本次拖拽的起点与锁定的长宽比。
+    private var dragStartPoint: CGPoint?
+    private var lockedAspectRatio: CGFloat?
 
     // Task 011：放大镜。取样在叠层下方进行，因此关闭时不会拍到自己的暗幕。
     private let magnifierConfiguration: MagnifierConfiguration
@@ -285,12 +288,32 @@ final class CaptureOverlayContentView: NSView {
 
     override func mouseDown(with event: NSEvent) {
         isMouseDown = true
-        onEvent?(.mouseDown(globalPoint(convert(event.locationInWindow, from: nil))))
+        let global = globalPoint(convert(event.locationInWindow, from: nil))
+        // Task 014/06：每次拖拽重新捕获长宽比。
+        dragStartPoint = global
+        lockedAspectRatio = nil
+        onEvent?(.mouseDown(global))
     }
 
     override func mouseDragged(with event: NSEvent) {
         guard isMouseDown else { return }
-        let global = globalPoint(convert(event.locationInWindow, from: nil))
+        var global = globalPoint(convert(event.locationInWindow, from: nil))
+
+        // Task 014/06：按住 ⇧ 锁定长宽比 —— 首次按下时以"当时的选区比例"为准，
+        // 之后沿该比例投影；松开 ⇧ 立即恢复自由拖拽。
+        if event.modifierFlags.contains(.shift), let start = dragStartPoint {
+            if lockedAspectRatio == nil {
+                lockedAspectRatio = SelectionAspectLock.ratio(
+                    of: Self.regionRect(from: start, to: global)
+                )
+            }
+            if let ratio = lockedAspectRatio {
+                global = SelectionAspectLock.project(start: start, current: global, ratio: ratio)
+            }
+        } else {
+            lockedAspectRatio = nil
+        }
+
         onEvent?(.mouseDragged(global))
         // 拖拽过程不产生 mouseMoved；放大镜必须跟随，否则圈选时画面会停住。
         requestMagnifierSample(at: global)
@@ -299,7 +322,19 @@ final class CaptureOverlayContentView: NSView {
     override func mouseUp(with event: NSEvent) {
         guard isMouseDown else { return }
         isMouseDown = false
+        dragStartPoint = nil
+        lockedAspectRatio = nil
         onEvent?(.mouseUp(globalPoint(convert(event.locationInWindow, from: nil))))
+    }
+
+    /// 两点构成的标准化矩形（与控制器里的选区推导一致）。
+    private static func regionRect(from start: CGPoint, to current: CGPoint) -> CGRect {
+        CGRect(
+            x: min(start.x, current.x),
+            y: min(start.y, current.y),
+            width: abs(current.x - start.x),
+            height: abs(current.y - start.y)
+        )
     }
 
     override func keyDown(with event: NSEvent) {
