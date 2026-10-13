@@ -50,6 +50,13 @@ final class CaptureSessionControllerTests: XCTestCase {
             lastHighlight = window
         }
 
+        /// Task 012：记录控件级高亮，供「控件优先于窗口」的集成断言使用。
+        private(set) var lastElementHighlight: CGRect?
+
+        func updateElementHighlight(frame: CGRect?) {
+            lastElementHighlight = frame
+        }
+
         func updateRegion(rect: CGRect?) {}
 
         func updateHints(_ hintKeys: [String]) {
@@ -102,9 +109,26 @@ final class CaptureSessionControllerTests: XCTestCase {
 
     private final class FakeWindowProvider: WindowCandidateProviding {
         var candidates: [CGPoint: CaptureWindowCandidate] = [:]
+        var windowRegions: [CandidateRegion] = []
 
         func candidate(at point: CGPoint, on display: CaptureDisplay) -> CaptureWindowCandidate? {
             candidates[point]
+        }
+
+        func regions(on display: CaptureDisplay) -> [CandidateRegion] {
+            windowRegions
+        }
+    }
+
+    /// Task 012：记录型控件探测替身；可注入固定命中矩形与调用计数。
+    /// 测试内单线程使用，故 `@unchecked Sendable` 是安全的。
+    private final class FakeElementProvider: ElementCandidateProviding, @unchecked Sendable {
+        var frame: CGRect?
+        private(set) var calls = 0
+
+        func elementFrame(at point: CGPoint, on display: CaptureDisplay, options: ElementProbeOptions) -> CGRect? {
+            calls += 1
+            return frame
         }
     }
 

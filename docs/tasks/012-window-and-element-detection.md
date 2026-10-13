@@ -98,3 +98,27 @@ struct ProbeOptions: Equatable {
 
 - 不做 Snipaste 的「按程序切换检测算法」这种分程序自定义（只保留忽略清单），除非真机验证出现必须分类处理的程序。
 - 不做 OCR / 视觉元素分割；控件级识别完全依赖辅助功能接口。
+- **真实辅助功能权限下的行为未做自动化验收**：控件级高亮、忽略清单生效、吸附手感需实机确认（对应 SHOT-LIFE-006 手工冒烟）。
+- 吸附候选为「该显示器上的全部可见窗口 + 当前悬停控件」，不做全屏控件预扫描 —— 与「进入会话不做全量预扫描」的规则一致。
+
+## 验证记录
+
+- `./scripts/verify.sh`：**400 项单元测试、0 失败**；`git diff --check` 通过。
+- 新增用例：
+  - `CandidateHitTestTests`（13 项）：命中优先级 element > window > nil、同类取面积最小、空/零尺寸候选、吸附阈值与边界、吸附后最小尺寸保护、点吸附双轴独立、忽略清单匹配。
+  - `ElementCandidateProviderTests`（9 项）：关闭态零调用、Quartz→AppKit 坐标换算、`AXValue` 类型守卫（类型不符返回 nil 而非崩溃）。
+  - `CandidateProbeSchedulerTests`（4 项）：关闭开关零调用、结果投递到主线程、取消后不回调、在途请求合并。
+- 回归：`CaptureSessionControllerTests`（含新增 `FakeElementProvider`）与 `CaptureSessionStateTests` 保持通过；`docs/test/cases.md` 第 12 节新增 SHOT-LIFE-005（控件探测生命周期），原手工冒烟顺延为 SHOT-LIFE-006。
+- 工程：6 个新文件加入 `Qingyu.xcodeproj/project.pbxproj`（app target 3 个、test target 3 个）。
+
+### 顺手修复的一处既有脆弱性（与本任务无关，但门禁要求修复）
+
+验证过程中 `PinWindowControllerTests.testScreenshotPinWithoutSelectionFallsBackToDefaultImageSize`
+稳定失败：窗口尺寸为 **80×61** 而非 80×60。
+
+- **根因**：`visibleFrame.height` 为奇数时（本机实测 865），`PinWindowLayout.cascadeOrigin`
+  算出的中心 y 为 `402.5`；`NSWindow` 把窗口矩形整数化时 maxY 由 `462.5` 向上取整，
+  高度被撑大 1pt。是否出现取决于菜单栏/Dock 造成的可见高度奇偶，因此同一台机器上时通时挂。
+- **处置**：不放松断言，而是让 `cascadeOrigin` 的原点取整（`rounded()`），使窗口几何与
+  `defaultSize` 严格一致且不随屏幕奇偶变化；新增
+  `testCascadeOriginIsIntegralForOddVisibleHeight`，用 `NSIntegralRect` 钉住「整数化不得改变窗口尺寸」。

@@ -42,8 +42,11 @@ enum PinWindowLayout {
     /// 剪贴板贴图位置（PRD 规则 15）：可见区中央；`index` 每增加 1 向右下偏移 24pt；
     /// 到达可见区边缘后从中央重新开始（按可用步数取模回卷）。
     static func cascadeOrigin(index: Int, size: NSSize, visibleFrame: NSRect) -> NSPoint {
-        let centerX = visibleFrame.minX + (visibleFrame.width - size.width) / 2
-        let centerY = visibleFrame.minY + (visibleFrame.height - size.height) / 2
+        // 取整：可见高度为奇数时 (height - size.height)/2 会出现 .5，
+        // 而 `NSWindow` 会把窗口矩形整数化，导致高度被撑大 1pt（80×60 → 80×61）。
+        // 原点取整后窗口尺寸与 `defaultSize` 严格一致，且不随屏幕奇偶变化。
+        let centerX = (visibleFrame.minX + (visibleFrame.width - size.width) / 2).rounded()
+        let centerY = (visibleFrame.minY + (visibleFrame.height - size.height) / 2).rounded()
 
         // 右移不越过可见区右缘、下移不越过下缘的可容纳步数。
         let stepsX = ((visibleFrame.maxX - (centerX + size.width)) / cascadeOffset).rounded(.down)

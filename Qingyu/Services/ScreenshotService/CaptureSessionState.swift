@@ -26,6 +26,12 @@ struct CaptureSessionState {
     /// targeting 阶段最近一次指针命中的窗口候选；单击锁定窗口时使用。
     private var lastWindowCandidate: CaptureWindowCandidate?
 
+    /// targeting 阶段最近一次控件级探测命中（AppKit 全局坐标）；单击时优先于窗口。
+    private var lastElementFrame: CGRect?
+
+    /// targeting 阶段最近一次指针所在显示器；把控件命中锁定为区域目标时需要。
+    private var lastDisplay: CaptureDisplay?
+
     init() {
         self.phase = .targetingWindow(nil)
     }
@@ -34,8 +40,30 @@ struct CaptureSessionState {
     mutating func pointerMoved(to point: CGPoint, display: CaptureDisplay, window: CaptureWindowCandidate?) {
         guard case .targetingWindow = phase else { return }
         lastWindowCandidate = window
+        lastDisplay = display
+        lastElementFrame = nil
         phase = .targetingWindow(window)
     }
+
+    /// 控件级探测结果到达（异步）：只在 targeting 阶段、且指针仍在同一显示器时生效。
+    ///
+    /// 返回是否发生了变化，调用方据此决定要不要刷新叠层。
+    @discardableResult
+    mutating func elementHovered(_ frame: CGRect?) -> Bool {
+        guard case .targetingWindow = phase else { return false }
+        guard lastElementFrame != frame else { return false }
+        lastElementFrame = frame
+        return true
+    }
+
+    /// 当前悬停的控件矩形（AppKit 全局坐标）；无控件候选时为 nil。
+    var hoveredElementFrame: CGRect? {
+        guard case .targetingWindow = phase else { return nil }
+        return lastElementFrame
+    }
+
+    /// 当前指针所在显示器（用于把控件命中锁定为区域目标）。
+    var currentDisplay: CaptureDisplay? { lastDisplay }
 
     /// 左键按下：targeting 阶段进入区域拖拽；其余阶段忽略。
     mutating func mouseDown(at point: CGPoint, display: CaptureDisplay) {
@@ -48,6 +76,8 @@ struct CaptureSessionState {
     mutating func mouseDragged(to point: CGPoint) {
         guard case .draggingRegion(let start, _, let display) = phase else { return }
         dragMoved = true
+        // 一旦真的开始拖拽，用户就是在自己圈区域；控件命中不再参与本次锁定。
+        lastElementFrame = nil
         phase = .draggingRegion(start: start, current: point, display: display)
     }
 
@@ -60,7 +90,11 @@ struct CaptureSessionState {
         guard case .draggingRegion(let start, let current, let display) = phase else { return }
 
         if !dragMoved {
-            if let window = lastWindowCandidate {
+            // 锁定优先级与 `CandidateHitTest.hit` 一致：控件 > 窗口 > 整屏。
+            // 控件命中（已有）时把该矩形锁定为区域目标，与高亮所见一致。
+            if let element = lastElementFrame {
+                phase = .locked(.region(display: display, globalRect: element))
+            } else if let window = lastWindowCandidate {
                 phase = .locked(.window(window))
             } else {
                 phase = .locked(.display(display))
@@ -85,6 +119,8 @@ struct CaptureSessionState {
     mutating func selectFullDisplay(_ display: CaptureDisplay) {
         switch phase {
         case .targetingWindow, .draggingRegion:
+            // 整屏锁定不受控件命中影响。
+            lastElementFrame = nil
             phase = .locked(.display(display))
         case .locked, .cancelled:
             return

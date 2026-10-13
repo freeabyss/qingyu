@@ -78,6 +78,12 @@ final class CaptureOverlayWindowController: CaptureOverlayWindow {
         contentView.needsDisplay = true
     }
 
+    /// Task 012：控件级高亮。
+    func updateElementHighlight(frame: CGRect?) {
+        contentView.elementFrame = frame
+        contentView.needsDisplay = true
+    }
+
     func updateRegion(rect: CGRect?) {
         contentView.regionFrame = rect
         contentView.needsDisplay = true
@@ -115,6 +121,10 @@ final class CaptureOverlayContentView: NSView {
         didSet { updateHintsVisibility() }
     }
     var highlightFrame: NSRect?
+    /// Task 012：控件级高亮（AppKit 全局坐标）。
+    var elementFrame: NSRect? {
+        didSet { needsDisplay = true }
+    }
     var regionFrame: NSRect? {
         didSet { updateMagnifierMask() }
     }
@@ -320,6 +330,21 @@ final class CaptureOverlayContentView: NSView {
             let border = NSBezierPath(rect: local)
             border.lineWidth = 2
             border.stroke()
+        }
+
+        // Task 012：控件高亮。用更细的边框与更淡的填充与窗口高亮区分，
+        // 两者嵌套时仍能看清「控件落在哪个窗口里」。
+        if isActiveDisplay, let element = elementFrame {
+            let local = element.offsetBy(dx: -display.frame.minX, dy: -display.frame.minY)
+            NSColor.clear.set()
+            local.fill(using: .copy)
+
+            JadeColor.primaryNS.withAlphaComponent(0.12).setFill()
+            NSBezierPath(rect: local).fill()
+            JadeColor.primaryNS.set()
+            let elementBorder = NSBezierPath(rect: local)
+            elementBorder.lineWidth = 1
+            elementBorder.stroke()
         }
 
         // 区域选框（拖拽中或已锁定）。

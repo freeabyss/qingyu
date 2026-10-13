@@ -31,6 +31,9 @@ protocol CaptureOverlayWindow: AnyObject {
     /// 只有活动显示器展示窗口高亮与快捷键提示。
     func setActive(_ active: Bool)
     func updateHighlight(window: CaptureWindowCandidate?)
+    /// Task 012：控件级高亮（AppKit 全局坐标）。窗口高亮与控件高亮可同时存在，
+    /// 控件优先级更高（见 `CandidateHitTest.hit`）。
+    func updateElementHighlight(frame: CGRect?)
     func updateRegion(rect: CGRect?)
     func updateHints(_ hintKeys: [String])
     func orderFront()
@@ -59,6 +62,15 @@ final class CaptureSessionController {
     private let displayProvider: DisplayProviding
     private let windowProvider: WindowCandidateProviding
     private let overlayFactory: CaptureOverlayWindowFactory
+    private let elementProvider: ElementCandidateProviding
+
+    /// Task 012：控件级探测选项与吸附阈值。由 `AppContainer.syncRuntimeSettings()` 同步。
+    var elementProbeOptions: ElementProbeOptions = .default
+    /// 选区边缘吸附阈值（逻辑点）；<= 0 表示关闭吸附。
+    var snapThreshold: CGFloat = 0
+
+    /// 控件级探测调度器；未启用控件探测时它不会产生任何系统调用。
+    private let probeScheduler: CandidateProbeScheduler
 
     private var overlayWindows: [CGDirectDisplayID: CaptureOverlayWindow] = [:]
     private var screenChangeObserver: NSObjectProtocol?
@@ -76,11 +88,21 @@ final class CaptureSessionController {
     init(
         displayProvider: DisplayProviding,
         windowProvider: WindowCandidateProviding,
-        overlayFactory: CaptureOverlayWindowFactory
+        overlayFactory: CaptureOverlayWindowFactory,
+        elementProvider: ElementCandidateProviding = DisabledElementCandidateProvider()
     ) {
         self.displayProvider = displayProvider
         self.windowProvider = windowProvider
         self.overlayFactory = overlayFactory
+        self.elementProvider = elementProvider
+        self.probeScheduler = CandidateProbeScheduler(provider: elementProvider)
+        // 探测结果到达后先写入会话状态，状态确有变化才刷新叠层，避免无谓重绘。
+        self.probeScheduler.onResult = { [weak self] frame in
+            guard let self else { return }
+            if self.state.elementHovered(frame) {
+                self.syncOverlays()
+            }
+        }
     }
 
     deinit {
@@ -123,6 +145,7 @@ final class CaptureSessionController {
     /// 注意：清除自持有必须是最后一步——它可能立即触发 deinit。
     func finish() {
         isSessionActive = false
+        cancelElementProbe()
         closeAllWindows()
         removeScreenObserver()
         removeKeyboardMonitor()
@@ -134,6 +157,7 @@ final class CaptureSessionController {
         guard isSessionActive else { return }
         state.cancel()
         isSessionActive = false
+        cancelElementProbe()
         closeAllWindows()
         removeScreenObserver()
         removeKeyboardMonitor()
@@ -151,6 +175,7 @@ final class CaptureSessionController {
         switch event {
         case .pointerMoved(let point):
             switchActiveDisplay(to: point, notifyState: true)
+            scheduleElementProbe(at: point)
 
         case .mouseDown(let point):
             let display = displayProvider.display(containing: point)
@@ -161,7 +186,9 @@ final class CaptureSessionController {
             syncOverlays()
 
         case .mouseDragged(let point):
-            state.mouseDragged(to: point)
+            // 开始拖拽即放弃控件命中与在途探测：用户在自行圈区域。
+            probeScheduler.cancel()
+            state.mouseDragged(to: snapDragPoint(point))
             syncOverlays()
 
         case .mouseUp(let point):
@@ -296,17 +323,22 @@ final class CaptureSessionController {
             switch state.phase {
             case .targetingWindow(let candidate):
                 window.updateHighlight(window: isActive ? candidate : nil)
+                // Task 012：控件高亮与窗口高亮可并存，控件优先级更高。
+                window.updateElementHighlight(frame: isActive ? state.hoveredElementFrame : nil)
                 // PRD「截图与贴图」规则 2/5：候选为空（菜单栏/桌面空白悬停）时，
                 // 活动屏按整屏范围复用区域选框绘制路径，让“默认选中当前显示器全屏”可见。
                 window.updateRegion(rect: isActive && candidate == nil ? window.display.frame : nil)
             case .draggingRegion(let start, let current, _):
                 window.updateHighlight(window: nil)
+                window.updateElementHighlight(frame: nil)
                 window.updateRegion(rect: isActive ? Self.regionRect(start: start, current: current) : nil)
             case .locked(let target):
                 window.updateHighlight(window: nil)
+                window.updateElementHighlight(frame: nil)
                 window.updateRegion(rect: isActive ? Self.lockedRect(for: target, displayID: displayID) : nil)
             case .cancelled:
                 window.updateHighlight(window: nil)
+                window.updateElementHighlight(frame: nil)
                 window.updateRegion(rect: nil)
             }
         }
@@ -321,8 +353,7 @@ final class CaptureSessionController {
         )
     }
 
-    private static func lockedRect(for target: CaptureTarget, displayID: CGDirectDisplayID) -> CGRect? {
-        switch target {
+    private static func lockedRect(for target: CaptureTarget, displayID: CGDirectDisplayID) -> CGRect? {        switch target {
         case .window(let candidate):
             return candidate.displayID == displayID ? candidate.frame : nil
         case .region(_, let globalRect):
@@ -330,6 +361,41 @@ final class CaptureSessionController {
         case .display:
             return nil
         }
+    }
+
+    // MARK: - Element probe and snapping (Task 012)
+
+    /// 惰性触发一次控件级探测；关闭时立即返回，不产生任何调用。
+    private func scheduleElementProbe(at point: CGPoint) {
+        guard elementProbeOptions.isElementProbingEnabled else { return }
+        guard let display = displayProvider.display(containing: point) else { return }
+        probeScheduler.schedule(point: point, display: display, options: elementProbeOptions)
+    }
+
+    /// 取消在途探测：会话结束、开始拖拽、跨屏切换时调用。
+    private func cancelElementProbe() {
+        probeScheduler.cancel()
+    }
+
+    /// 拖拽中的点吸附到最近的候选边；吸附关闭或没有候选时原样返回。
+    private func snapDragPoint(_ point: CGPoint) -> CGPoint {
+        guard snapThreshold > 0, let display = displayProvider.display(containing: point) else {
+            return point
+        }
+        return CandidateHitTest.snap(
+            point: point,
+            candidates: candidateRegions(on: display),
+            threshold: snapThreshold
+        )
+    }
+
+    /// 吸附候选：该显示器上全部可见窗口 + 当前悬停控件。
+    private func candidateRegions(on display: CaptureDisplay) -> [CandidateRegion] {
+        var regions = windowProvider.regions(on: display)
+        if let element = state.hoveredElementFrame {
+            regions.append(CandidateRegion(kind: .element, frame: element))
+        }
+        return regions
     }
 
     private func observeScreenChanges() {

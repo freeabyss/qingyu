@@ -62,6 +62,14 @@ enum SettingKey: String, CaseIterable, Codable {
     case magnifierZoom = "screenshot.magnifier.zoom"
     /// 逗号分隔的显示项集合（`MagnifierDisplayOption.rawValue`）。
     case magnifierOptions = "screenshot.magnifier.options"
+    // Task 012: element (控件) detection and selection snapping.
+    /// 是否启用控件级探测（需辅助功能权限；关闭时只做窗口级）。
+    /// 键名刻意不带 `.enabled` 后缀，避免与「功能性开关只有剪贴板与登录启动」的既有规则冲突。
+    case elementDetection = "screenshot.elementDetection"
+    /// 选区边缘吸附阈值（逻辑点）；0 表示关闭吸附。
+    case snapThreshold = "screenshot.snapThreshold"
+    /// 不做控件级探测的应用 Bundle ID 列表（例如 `["com.apple.Safari"]`）。
+    case elementIgnoredApps = "screenshot.elementIgnoredApps"
     // Task 008: pin (贴图) settings.
     case pinFilePathToImage = "pin.filePathToImage"
     case pinRestoreCapacity = "pin.restoreCapacity"

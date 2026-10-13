@@ -17,6 +17,15 @@ final class ScreenshotWindowController {
     /// 默认值与 `MagnifierConfiguration.default` 一致，未改设置时行为不变。
     var magnifierConfiguration: MagnifierConfiguration = .default
 
+    /// Task 012：控件级探测与选区吸附配置，同样由 `syncRuntimeSettings()` 同步。
+    /// 默认关闭吸附（阈值 0）且控件探测需显式开启，避免改变既有手感。
+    var elementDetectionOptions: ElementProbeOptions = ElementProbeOptions(
+        isElementProbingEnabled: false,
+        ignoredBundleIDs: [],
+        timeout: ElementProbeOptions.default.timeout
+    )
+    var snapThreshold: CGFloat = 0
+
     /// Created lazily so the toolbar controller is only built on first capture.
     /// Task 008: the pin terminal action converts the capture into a pin window.
     private lazy var toolbar = ScreenshotToolbarController(pinHandler: { [weak self] result in
@@ -71,8 +80,14 @@ final class ScreenshotWindowController {
             windowProvider: WindowCandidateProvider(),
             overlayFactory: ConcreteCaptureOverlayWindowFactory(
                 magnifierConfiguration: magnifierConfiguration
-            )
+            ),
+            // 控件级探测只在开启时构造真实实现；关闭时不触碰辅助功能接口。
+            elementProvider: elementDetectionOptions.isElementProbingEnabled
+                ? AXElementCandidateProvider()
+                : DisabledElementCandidateProvider()
         )
+        session.elementProbeOptions = elementDetectionOptions
+        session.snapThreshold = snapThreshold
 
         session.onLocked = { [weak self, weak session] target in
             guard let self, let session else { return }

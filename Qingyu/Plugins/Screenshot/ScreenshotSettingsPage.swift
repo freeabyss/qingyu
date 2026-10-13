@@ -21,6 +21,9 @@ struct ScreenshotPluginSettingsPage: View {
     @State private var magnifierEnabled = MagnifierConfiguration.default.isEnabled
     @State private var magnifierZoom = MagnifierConfiguration.default.zoom
     @State private var magnifierOptions = MagnifierConfiguration.default.options
+    @State private var elementDetectionEnabled = false
+    @State private var snapThreshold: Double = 0
+    @State private var ignoredAppsText = ""
     @State private var saveDirectory: URL = URL(fileURLWithPath: ("~/Desktop" as NSString).expandingTildeInPath)
     @State private var showDirectoryImporter = false
 
@@ -129,6 +132,58 @@ struct ScreenshotPluginSettingsPage: View {
             }
             .disabled(!magnifierEnabled)
 
+            // Task 012：窗口与控件自动识别。
+            SettingsSection("settings.elementDetection.section") {
+                JadeSwitchRow(
+                    L10n.localized("settings.elementDetection.enabled"),
+                    isOn: $elementDetectionEnabled
+                )
+                .onChange(of: elementDetectionEnabled) { newValue in
+                    Task { try? await viewModel.set(newValue, for: .elementDetection) }
+                }
+                Text(L10n.localized("settings.elementDetection.note"))
+                    .font(JadeFont.caption)
+                    .foregroundStyle(JadeColor.textTertiary)
+                JadeSettingsDivider()
+                VStack(alignment: .leading, spacing: JadeSpace.x2.value) {
+                    HStack {
+                        Text(L10n.localized("settings.snapThreshold"))
+                            .font(JadeFont.body)
+                            .foregroundStyle(JadeColor.textPrimary)
+                        Spacer()
+                        Text(snapThreshold <= 0
+                             ? L10n.localized("settings.snapThreshold.off")
+                             : "\(Int(snapThreshold)) pt")
+                            .font(JadeFont.callout)
+                            .foregroundStyle(JadeColor.textSecondary)
+                    }
+                    Slider(value: $snapThreshold, in: 0...30, step: 1)
+                        .onChange(of: snapThreshold) { newValue in
+                            Task { try? await viewModel.set(newValue, for: .snapThreshold) }
+                        }
+                }
+                JadeSettingsDivider()
+                VStack(alignment: .leading, spacing: JadeSpace.x2.value) {
+                    Text(L10n.localized("settings.elementIgnoredApps"))
+                        .font(JadeFont.body)
+                        .foregroundStyle(JadeColor.textPrimary)
+                    TextEditor(text: $ignoredAppsText)
+                        .font(JadeFont.caption)
+                        .frame(height: 60)
+                        .onChange(of: ignoredAppsText) { newValue in
+                            let ids = newValue
+                                .split(whereSeparator: \.isNewline)
+                                .map { $0.trimmingCharacters(in: .whitespaces) }
+                                .filter { !$0.isEmpty }
+                            Task { try? await viewModel.set(ids, for: .elementIgnoredApps) }
+                        }
+                    Text(L10n.localized("settings.elementIgnoredApps.note"))
+                        .font(JadeFont.caption)
+                        .foregroundStyle(JadeColor.textTertiary)
+                }
+                .disabled(!elementDetectionEnabled)
+            }
+
             SettingsSection("settings.pin.section") {                JadeSwitchRow(
                     L10n.localized("settings.pin.filePathToImage"),
                     isOn: $pinFilePathToImage
@@ -206,6 +261,11 @@ private func recorderRow(_ row: RecorderRow) -> some View {
         let optionRaws = (try? await viewModel.value(for: .magnifierOptions, as: [String].self))
             ?? magnifierDefaults.options.map(\.rawValue).sorted()
         magnifierOptions = Set(optionRaws.compactMap(MagnifierDisplayOption.init(rawValue:)))
+
+        elementDetectionEnabled = (try? await viewModel.value(for: .elementDetection, as: Bool.self)) ?? false
+        snapThreshold = (try? await viewModel.value(for: .snapThreshold, as: Double.self)) ?? 0
+        let ignoredApps = (try? await viewModel.value(for: .elementIgnoredApps, as: [String].self)) ?? []
+        ignoredAppsText = ignoredApps.joined(separator: "\n")
     }
 
     /// 显示项开关：读写都走设置，避免「视图上有勾但重启后丢失」。

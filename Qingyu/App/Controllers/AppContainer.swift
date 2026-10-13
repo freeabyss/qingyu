@@ -297,6 +297,24 @@ final class AppContainer: NSObject {
         }
         logger.info("Runtime settings synced: clipboardEnabled=\(enabled)")
         await syncMagnifierSettings(settingsService)
+        await syncElementDetectionSettings(settingsService)
+    }
+
+    /// Task 012：把控件级探测与选区吸附设置同步到截图会话工厂。
+    private func syncElementDetectionSettings(_ settingsService: SettingsService) async {
+        let detection = (try? await settingsService.value(for: .elementDetection, as: Bool.self)) ?? false
+        let threshold = (try? await settingsService.value(for: .snapThreshold, as: Double.self)) ?? 0
+        let ignored = (try? await settingsService.value(for: .elementIgnoredApps, as: [String].self)) ?? []
+
+        screenshotWindowController.elementDetectionOptions = ElementProbeOptions(
+            isElementProbingEnabled: detection,
+            ignoredBundleIDs: Set(ignored),
+            timeout: ElementProbeOptions.default.timeout
+        )
+        // 负值/NaN 一律按关闭处理，避免不可预期的吸附行为。
+        screenshotWindowController.snapThreshold = threshold.isFinite && threshold > 0
+            ? CGFloat(threshold)
+            : 0
     }
 
     /// Task 011：把放大镜设置同步到截图会话工厂。

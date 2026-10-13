@@ -477,8 +477,27 @@ final class PinWindowControllerTests: XCTestCase {
         XCTAssertEqual(PinWindowLayout.cascadeOrigin(index: 17, size: size, visibleFrame: visible), center, "到达边缘后回到中央重新开始")
     }
 
-    func testCascadeOriginStaysCenteredWhenWindowDoesNotFit() {
-        let visible = NSRect(x: 0, y: 0, width: 300, height: 200)
+    /// 可见高度为奇数时原点必须取整。
+    ///
+    /// 否则 `(height - size.height) / 2` 会得到 .5，而 `NSWindow` 会把窗口矩形整数化，
+    /// 把 80×60 撑成 80×61（实测：`visibleFrame.height = 865` 时 `y = 402.5`）。
+    func testCascadeOriginIsIntegralForOddVisibleHeight() {
+        let visible = NSRect(x: 0, y: 84, width: 1512, height: 865)
+        let size = PinWindowLayout.minimumSize
+        let origin = PinWindowLayout.cascadeOrigin(index: 0, size: size, visibleFrame: visible)
+
+        XCTAssertEqual(origin.x, origin.x.rounded(), "原点 x 必须为整数点")
+        XCTAssertEqual(origin.y, origin.y.rounded(), "原点 y 必须为整数点")
+
+        let rect = NSRect(origin: origin, size: size)
+        XCTAssertEqual(
+            NSIntegralRect(rect).size,
+            size,
+            "窗口矩形整数化后尺寸不得变化（否则贴图窗口会比预期高 1pt）"
+        )
+    }
+
+    func testCascadeOriginStaysCenteredWhenWindowDoesNotFit() {        let visible = NSRect(x: 0, y: 0, width: 300, height: 200)
         XCTAssertEqual(
             PinWindowLayout.cascadeOrigin(index: 5, size: PinWindowLayout.textPinSize, visibleFrame: visible),
             NSPoint(x: -60, y: -40),

@@ -181,6 +181,132 @@
         }
       }
     },
+    "settings.elementDetection.section" : {
+      "comment" : "Screenshot settings: window and element detection section header",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Window & element detection"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "窗口与控件识别"
+          }
+        }
+      }
+    },
+    "settings.elementDetection.enabled" : {
+      "comment" : "Element detection setting: master switch",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detect interface elements"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "识别界面元素（控件）"
+          }
+        }
+      }
+    },
+    "settings.elementDetection.note" : {
+      "comment" : "Element detection setting: permission note",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Requires Accessibility permission. Without it, detection silently falls back to windows only."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "需要「辅助功能」权限；未授权时自动降级为只识别窗口，不会打断截图。"
+          }
+        }
+      }
+    },
+    "settings.snapThreshold" : {
+      "comment" : "Selection setting: edge snapping threshold",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edge snapping"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选区边缘吸附"
+          }
+        }
+      }
+    },
+    "settings.snapThreshold.off" : {
+      "comment" : "Selection setting: snapping disabled",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Off"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关闭"
+          }
+        }
+      }
+    },
+    "settings.elementIgnoredApps" : {
+      "comment" : "Element detection setting: excluded apps",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apps excluded from element detection"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不做元素识别的应用"
+          }
+        }
+      }
+    },
+    "settings.elementIgnoredApps.note" : {
+      "comment" : "Element detection setting: excluded apps help",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "One bundle ID per line, e.g. com.apple.Safari"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每行一个 Bundle ID，例如 com.apple.Safari"
+          }
+        }
+      }
+    },
     "settings.magnifier.section" : {
       "comment" : "Screenshot settings: magnifier section header",
       "extractionState" : "manual",

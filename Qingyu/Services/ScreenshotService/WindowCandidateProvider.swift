@@ -10,6 +10,10 @@ import Foundation
 /// （`.excludeDesktopElements`）都被排除。
 protocol WindowCandidateProviding {
     func candidate(at point: CGPoint, on display: CaptureDisplay) -> CaptureWindowCandidate?
+
+    /// Task 012：该显示器上全部可见窗口区域（用于选区边缘吸附）。
+    /// 只要求集合完整，顺序不参与语义。
+    func regions(on display: CaptureDisplay) -> [CandidateRegion]
 }
 
 final class WindowCandidateProvider: WindowCandidateProviding {
@@ -40,6 +44,39 @@ final class WindowCandidateProvider: WindowCandidateProviding {
     }
 
     // MARK: - Pure helpers (unit-testable)
+
+    /// Task 012：全部可见窗口区域（供吸附使用）。
+    func regions(on display: CaptureDisplay) -> [CandidateRegion] {
+        let list = CGWindowListCopyWindowInfo(
+            [.optionOnScreenOnly, .excludeDesktopElements],
+            kCGNullWindowID
+        ) as? [[String: Any]] ?? []
+
+        return Self.regions(
+            in: Self.parse(windowList: list),
+            on: display,
+            ownPID: ProcessInfo.processInfo.processIdentifier,
+            primaryScreenHeight: NSScreen.screens.first?.frame.height ?? 0
+        )
+    }
+
+    /// 全部命中规则的窗口区域（不含控件级），供边缘吸附。
+    static func regions(
+        in windows: [WindowInfo],
+        on display: CaptureDisplay,
+        ownPID: pid_t,
+        primaryScreenHeight: CGFloat
+    ) -> [CandidateRegion] {
+        windows.compactMap { info in
+            guard info.layer == 0 else { return nil }
+            guard info.ownerPID != ownPID else { return nil }
+            guard info.alpha > 0.01 else { return nil }
+            guard info.cgBounds.width > 0, info.cgBounds.height > 0 else { return nil }
+            let frame = appKitFrame(cgBounds: info.cgBounds, primaryScreenHeight: primaryScreenHeight)
+            guard display.frame.intersects(frame) else { return nil }
+            return CandidateRegion(kind: .window, frame: frame)
+        }
+    }
 
     /// 解析 CGWindowListCopyWindowInfo 的原始字典；无效条目被跳过，顺序保留。
     static func parse(windowList: [[String: Any]]) -> [WindowInfo] {
