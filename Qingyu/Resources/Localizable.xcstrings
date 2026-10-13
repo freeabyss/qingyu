@@ -2057,6 +2057,150 @@
         }
       }
     },
+    "annotation.tool.pencil" : {
+      "comment" : "Annotation tool: free-hand pencil",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pencil"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "铅笔"
+          }
+        }
+      }
+    },
+    "annotation.tool.ellipse" : {
+      "comment" : "Annotation tool: ellipse",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ellipse"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "椭圆"
+          }
+        }
+      }
+    },
+    "annotation.tool.highlighter" : {
+      "comment" : "Annotation tool: translucent highlighter",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Highlighter"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "荧光笔"
+          }
+        }
+      }
+    },
+    "annotation.tool.gaussianBlur" : {
+      "comment" : "Annotation tool: gaussian blur",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blur"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "高斯模糊"
+          }
+        }
+      }
+    },
+    "annotation.tool.eraser" : {
+      "comment" : "Annotation tool: eraser (removes whole annotations)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eraser"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "橡皮擦"
+          }
+        }
+      }
+    },
+    "annotation.tool.number" : {
+      "comment" : "Annotation tool: auto-incrementing number badge",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Number"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "序号"
+          }
+        }
+      }
+    },
+    "annotation.tool.tooltip" : {
+      "comment" : "Annotation tool: multi-line callout bubble",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tooltip"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "提示框"
+          }
+        }
+      }
+    },
+    "annotation.tool.cycleHint" : {
+      "comment" : "Annotation toolbar: merged button cycle hint",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "click again to switch"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "再次点击切换"
+          }
+        }
+      }
+    },
     "annotation.tool.arrow" : {
       "comment" : "Arrow annotation tool name",
       "extractionState" : "stale",

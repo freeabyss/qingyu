@@ -44,6 +44,8 @@
 		B012000000000000000000A8 /* CandidateHitTestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B012000000000000000000A7 /* CandidateHitTestTests.swift */; };
 		B012000000000000000000AA /* ElementCandidateProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B012000000000000000000A9 /* ElementCandidateProviderTests.swift */; };
 		B012000000000000000000AC /* CandidateProbeSchedulerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B012000000000000000000AB /* CandidateProbeSchedulerTests.swift */; };
+		B013000000000000000000A4 /* StrokeSmootherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B013000000000000000000A3 /* StrokeSmootherTests.swift */; };
+		B013000000000000000000A6 /* AnnotationHitTestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B013000000000000000000A5 /* AnnotationHitTestTests.swift */; };
 		AB0100000000000000000080 /* Qingyu/Models/PinItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0100000000000000000079 /* Qingyu/Models/PinItem.swift */; };
 		AB0100000000000000000082 /* Qingyu/Services/Pinning/PinPayloadFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0100000000000000000081 /* Qingyu/Services/Pinning/PinPayloadFactory.swift */; };
 		AB0100000000000000000084 /* Qingyu/Services/Pinning/PinStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0100000000000000000083 /* Qingyu/Services/Pinning/PinStore.swift */; };
@@ -97,6 +99,7 @@
 		A10001000000000000000034 /* AnnotationShape.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000034 /* AnnotationShape.swift */; };
 		A10001000000000000000035 /* AnnotationCanvas.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000035 /* AnnotationCanvas.swift */; };
 		A10001000000000000000036 /* AnnotationToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000036 /* AnnotationToolbar.swift */; };
+		A100010000000000000000E1 /* StrokeSmoother.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000E1 /* StrokeSmoother.swift */; };
 		A10001000000000000000037 /* AnnotationEditorWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000037 /* AnnotationEditorWindow.swift */; };
 		A10001000000000000000038 /* CalculatorSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000038 /* CalculatorSourceTests.swift */; };
 		A10001000000000000000039 /* SystemCommandSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000039 /* SystemCommandSourceTests.swift */; };
@@ -229,6 +232,8 @@
 		B012000000000000000000A7 /* QingyuTests/CandidateHitTestTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QingyuTests/CandidateHitTestTests.swift; sourceTree = SOURCE_ROOT; };
 		B012000000000000000000A9 /* QingyuTests/ElementCandidateProviderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QingyuTests/ElementCandidateProviderTests.swift; sourceTree = SOURCE_ROOT; };
 		B012000000000000000000AB /* QingyuTests/CandidateProbeSchedulerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QingyuTests/CandidateProbeSchedulerTests.swift; sourceTree = SOURCE_ROOT; };
+		B013000000000000000000A3 /* QingyuTests/StrokeSmootherTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QingyuTests/StrokeSmootherTests.swift; sourceTree = SOURCE_ROOT; };
+		B013000000000000000000A5 /* QingyuTests/AnnotationHitTestTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QingyuTests/AnnotationHitTestTests.swift; sourceTree = SOURCE_ROOT; };
 		AB0100000000000000000079 /* Qingyu/Models/PinItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingyu/Models/PinItem.swift; sourceTree = SOURCE_ROOT; };
 		AB0100000000000000000081 /* Qingyu/Services/Pinning/PinPayloadFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingyu/Services/Pinning/PinPayloadFactory.swift; sourceTree = SOURCE_ROOT; };
 		AB0100000000000000000083 /* Qingyu/Services/Pinning/PinStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingyu/Services/Pinning/PinStore.swift; sourceTree = SOURCE_ROOT; };
@@ -284,6 +289,7 @@
 		A10000000000000000000034 /* AnnotationShape.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnnotationShape.swift; sourceTree = "<group>"; };
 		A10000000000000000000035 /* AnnotationCanvas.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnnotationCanvas.swift; sourceTree = "<group>"; };
 		A10000000000000000000036 /* AnnotationToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnnotationToolbar.swift; sourceTree = "<group>"; };
+		A100000000000000000000E1 /* StrokeSmoother.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrokeSmoother.swift; sourceTree = "<group>"; };
 		A10000000000000000000037 /* AnnotationEditorWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnnotationEditorWindow.swift; sourceTree = "<group>"; };
 		A10000000000000000000038 /* CalculatorSourceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalculatorSourceTests.swift; sourceTree = "<group>"; };
 		A10000000000000000000039 /* SystemCommandSourceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemCommandSourceTests.swift; sourceTree = "<group>"; };
@@ -587,6 +593,8 @@
 				B012000000000000000000A7 /* CandidateHitTestTests.swift */,
 				B012000000000000000000A9 /* ElementCandidateProviderTests.swift */,
 				B012000000000000000000AB /* CandidateProbeSchedulerTests.swift */,
+				B013000000000000000000A3 /* StrokeSmootherTests.swift */,
+				B013000000000000000000A5 /* AnnotationHitTestTests.swift */,
 				AB0100000000000000000089 /* PinPayloadFactoryTests.swift */,
 				AB0100000000000000000091 /* PinStoreTests.swift */,
 				AB0100000000000000000093 /* PinWindowControllerTests.swift */,
@@ -777,6 +785,7 @@
 				A10000000000000000000034 /* AnnotationShape.swift */,
 				A10000000000000000000035 /* AnnotationCanvas.swift */,
 				A10000000000000000000036 /* AnnotationToolbar.swift */,
+				A100000000000000000000E1 /* StrokeSmoother.swift */,
 				A10000000000000000000037 /* AnnotationEditorWindow.swift */,
 			);
 			path = Annotation;
@@ -1127,6 +1136,7 @@
 				A10001000000000000000034 /* AnnotationShape.swift in Sources */,
 				A10001000000000000000035 /* AnnotationCanvas.swift in Sources */,
 				A10001000000000000000036 /* AnnotationToolbar.swift in Sources */,
+				A100010000000000000000E1 /* StrokeSmoother.swift in Sources */,
 				A10001000000000000000037 /* AnnotationEditorWindow.swift in Sources */,
 				B01100000000000000000001 /* SearchPanelViewModel.swift in Sources */,
 				B01100000000000000000003 /* CommandBarView.swift in Sources */,
@@ -1184,6 +1194,8 @@
 				B012000000000000000000A8 /* CandidateHitTestTests.swift in Sources */,
 				B012000000000000000000AA /* ElementCandidateProviderTests.swift in Sources */,
 				B012000000000000000000AC /* CandidateProbeSchedulerTests.swift in Sources */,
+				B013000000000000000000A4 /* StrokeSmootherTests.swift in Sources */,
+				B013000000000000000000A6 /* AnnotationHitTestTests.swift in Sources */,
 				AB0100000000000000000090 /* PinPayloadFactoryTests.swift in Sources */,
 				AB0100000000000000000092 /* PinStoreTests.swift in Sources */,
 				AB0100000000000000000094 /* PinWindowControllerTests.swift in Sources */,
@@ -1351,7 +1363,7 @@
 				CODE_SIGN_ENTITLEMENTS = Qingyu/Qingyu.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 344;
+				CURRENT_PROJECT_VERSION = 345;
 				DEVELOPMENT_TEAM = 454XB348PX;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -1360,7 +1372,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.3.44;
+				MARKETING_VERSION = 0.3.45;
 				PRODUCT_BUNDLE_IDENTIFIER = com.freeabyss.qingyu;
 				PRODUCT_MODULE_NAME = Qingyu;
 				PRODUCT_NAME = Qingyu;
@@ -1376,7 +1388,7 @@
 				CODE_SIGN_ENTITLEMENTS = Qingyu/Qingyu.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 344;
+				CURRENT_PROJECT_VERSION = 345;
 				DEVELOPMENT_TEAM = 454XB348PX;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -1385,7 +1397,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.3.44;
+				MARKETING_VERSION = 0.3.45;
 				PRODUCT_BUNDLE_IDENTIFIER = com.freeabyss.qingyu;
 				PRODUCT_MODULE_NAME = Qingyu;
 				PRODUCT_NAME = Qingyu;

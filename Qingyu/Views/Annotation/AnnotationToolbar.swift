@@ -9,25 +9,26 @@ struct AnnotationTopToolbar: View {
 
     var body: some View {
         HStack(spacing: JadeSpace.x1.value) {
-            ForEach(AnnotationTool.allCases) { tool in
-                ToolPill(tool: tool, selected: state.tool == tool) {
-                    state.tool = tool
+            // 一个按钮对应一组工具：矩形/椭圆、马赛克/高斯模糊共用按钮，重复点击在组内切换。
+            ForEach(Array(AnnotationTool.toolbarGroups.enumerated()), id: \.offset) { _, group in
+                ToolPill(
+                    tool: displayedTool(in: group),
+                    selected: group.contains(state.tool),
+                    showsCycleHint: group.count > 1
+                ) {
+                    state.tool = AnnotationTool.next(in: group, after: state.tool)
                 }
             }
-
-            Divider().frame(height: 24)
-
-            // blur 工具：v1.3 支持，本版禁用（opacity 0.4 + tooltip）。
-            DisabledToolPill(
-                systemImage: "drop.fill",
-                label: L10n.localized("annotation.tool.blur"),
-                tooltip: L10n.localized("annotation.tool.blur.soon")
-            )
         }
         .padding(JadeSpace.x2.value)
         .background(JadeMaterial.pill.material, in: Capsule(style: .continuous))
         .overlay(Capsule(style: .continuous).strokeBorder(JadeColor.border, lineWidth: 1))
         .jadeShadow(.md, radius: .xl)
+    }
+
+    /// 按钮展示的图标与名称：组内当前选中的工具优先，否则展示组内第一个。
+    private func displayedTool(in group: [AnnotationTool]) -> AnnotationTool {
+        group.contains(state.tool) ? state.tool : (group.first ?? state.tool)
     }
 }
 
@@ -85,8 +86,15 @@ struct AnnotationBottomToolbar: View {
 private struct ToolPill: View {
     let tool: AnnotationTool
     let selected: Bool
+    var showsCycleHint: Bool = false
     let action: () -> Void
     @State private var hovering = false
+
+    private var tooltip: String {
+        showsCycleHint
+            ? "\(tool.displayName) · \(L10n.localized("annotation.tool.cycleHint"))"
+            : tool.displayName
+    }
 
     var body: some View {
         Button(action: action) {
@@ -106,34 +114,10 @@ private struct ToolPill: View {
             )
         }
         .buttonStyle(.plain)
-        .help(tool.displayName)
+        .help(tooltip)
         .accessibilityLabel(Text(tool.displayName))
         .accessibilityAddTraits(selected ? [.isButton, .isSelected] : .isButton)
         .onHover { hovering = $0 }
-    }
-}
-
-private struct DisabledToolPill: View {
-    let systemImage: String
-    let label: String
-    let tooltip: String
-
-    var body: some View {
-        HStack(spacing: JadeSpace.x1.value) {
-            Image(systemName: systemImage)
-                .font(.system(size: 12, weight: .semibold))
-                .accessibilityHidden(true)
-            Text(label)
-                .font(JadeFont.subhead)
-        }
-        .foregroundColor(JadeColor.textPrimary)
-        .padding(.horizontal, JadeSpace.x2.value)
-        .padding(.vertical, JadeSpace.x1.value + 1)
-        .opacity(0.4)
-        .help(tooltip)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text(label))
-        .accessibilityHint(Text(tooltip))
     }
 }
 

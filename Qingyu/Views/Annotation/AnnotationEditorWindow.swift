@@ -215,9 +215,9 @@ private struct AnnotationEditorRootView: View {
                 .keyboardShortcut("z", modifiers: .command)
             Button(action: onRedo) { EmptyView() }
                 .keyboardShortcut("z", modifiers: [.command, .shift])
-            // 1-4 select rectangle / arrow / text / mosaic.
-            ForEach(Array(AnnotationTool.allCases.enumerated()), id: \.element) { index, tool in
-                Button { state.tool = tool } label: { EmptyView() }
+            // 1-9 选择工具条分组（组内循环）；第 10/11 组（序号、提示框）无数字快捷键。
+            ForEach(Array(AnnotationTool.toolbarGroups.enumerated().prefix(9)), id: \.offset) { index, group in
+                Button { state.tool = AnnotationTool.next(in: group, after: state.tool) } label: { EmptyView() }
                     .keyboardShortcut(KeyEquivalent(Character("\(index + 1)")), modifiers: [])
             }
         }

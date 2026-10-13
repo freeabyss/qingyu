@@ -3,36 +3,80 @@ import CoreImage
 
 // MARK: - Annotation Model
 
-/// Screenshot annotation tool set for Assistant MVP US-017.
+/// 截图标注工具集（Task 007 六种 → Task 013 十三种）。
+///
+/// 工具数多于按钮数：`toolbarGroups` 把「矩形/椭圆」「马赛克/高斯模糊」合并为一个按钮，
+/// 重复点击在同一组内循环（对应 Snipaste 的合并按钮语义）。
 enum AnnotationTool: String, Codable, CaseIterable, Identifiable {
-    case rectangle
+    case pencil
     case arrow
     case line
     case polyline
-    case text
+    case rectangle
+    case ellipse
+    case highlighter
     case mosaic
+    case gaussianBlur
+    case eraser
+    case text
+    case number
+    case tooltip
 
     var id: String { rawValue }
 
-    var displayName: String {
-        switch self {
-        case .rectangle: return L10n.localized("annotation.tool.rectangle")
-        case .arrow: return L10n.localized("annotation.tool.arrow")
-        case .line: return L10n.localized("annotation.tool.line")
-        case .polyline: return L10n.localized("annotation.tool.polyline")
-        case .text: return L10n.localized("annotation.tool.text")
-        case .mosaic: return L10n.localized("annotation.tool.mosaic")
+    /// 工具条分组：一个按钮对应一组工具，重复点击在同一组内循环。
+    static let toolbarGroups: [[AnnotationTool]] = [
+        [.pencil],
+        [.arrow],
+        [.line],
+        [.polyline],
+        [.rectangle, .ellipse],
+        [.highlighter],
+        [.mosaic, .gaussianBlur],
+        [.eraser],
+        [.text],
+        [.number],
+        [.tooltip]
+    ]
+
+    /// 组内下一个工具；当前工具不在组内时选组内第一个。
+    static func next(in group: [AnnotationTool], after tool: AnnotationTool) -> AnnotationTool {
+        guard let index = group.firstIndex(of: tool), group.count > 1 else {
+            return group.first ?? tool
         }
+        return group[(index + 1) % group.count]
+    }
+
+    /// 自由手绘：拖拽过程累积采样点，落笔时做平滑。
+    var isFreehand: Bool { self == .pencil || self == .highlighter }
+
+    /// 点击即完成的工具（不依赖拖拽距离）。
+    var isClickPlaced: Bool {
+        switch self {
+        case .text, .number, .tooltip, .eraser: return true
+        default: return false
+        }
+    }
+
+    var displayName: String {
+        L10n.localized("annotation.tool.\(rawValue)")
     }
 
     var systemImage: String {
         switch self {
-        case .rectangle: return "rectangle"
+        case .pencil: return "pencil.tip"
         case .arrow: return "arrow.up.right"
         case .line: return "line.diagonal"
         case .polyline: return "point.topleft.down.curvedto.point.bottomright.up"
-        case .text: return "textformat"
+        case .rectangle: return "rectangle"
+        case .ellipse: return "circle"
+        case .highlighter: return "highlighter"
         case .mosaic: return "square.grid.3x3.square"
+        case .gaussianBlur: return "drop.fill"
+        case .eraser: return "eraser"
+        case .text: return "textformat"
+        case .number: return "number.circle"
+        case .tooltip: return "bubble.left"
         }
     }
 }
@@ -151,6 +195,11 @@ struct AnnotationShape: Identifiable, Hashable, Codable {
     mutating func resetRotation() {
         rotationRadians = 0
     }
+
+    /// 序号徽标半径（由文字大小派生）；序号以 `startPoint` 为圆心。
+    var numberBadgeRadius: CGFloat {
+        style.textSize.points * 0.75
+    }
 }
 
 // MARK: - Rendering
@@ -163,18 +212,32 @@ enum AnnotationRenderer {
     static func draw(_ shapes: [AnnotationShape], sourceImage: NSImage?) {
         for shape in shapes {
             switch shape.tool {
-            case .rectangle:
-                drawRectangle(shape)
+            case .pencil:
+                drawFreehand(shape, isHighlighter: false)
             case .arrow:
                 drawArrow(shape)
             case .line:
                 drawLine(shape)
             case .polyline:
                 drawPolyline(shape)
+            case .rectangle:
+                drawRectangle(shape)
+            case .ellipse:
+                drawEllipse(shape)
+            case .highlighter:
+                drawFreehand(shape, isHighlighter: true)
+            case .mosaic:
+                drawMosaic(shape, sourceImage: sourceImage, style: .pixellate)
+            case .gaussianBlur:
+                drawMosaic(shape, sourceImage: sourceImage, style: .gaussianBlur)
+            case .eraser:
+                break  // 橡皮擦不产生图形，只删除
             case .text:
                 drawText(shape)
-            case .mosaic:
-                drawMosaic(shape, sourceImage: sourceImage)
+            case .number:
+                drawNumber(shape)
+            case .tooltip:
+                drawTooltip(shape)
             }
         }
     }
@@ -184,6 +247,90 @@ enum AnnotationRenderer {
         path.lineWidth = shape.style.lineWidth.points
         shape.style.color.nsColor.setStroke()
         path.stroke()
+    }
+
+    /// 椭圆：复用矩形的拖拽范围（Task 013 与矩形合并为一个按钮，形状由当前工具决定）。
+    private static func drawEllipse(_ shape: AnnotationShape) {
+        let path = NSBezierPath(ovalIn: shape.rect)
+        path.lineWidth = shape.style.lineWidth.points
+        shape.style.color.nsColor.setStroke()
+        path.stroke()
+    }
+
+    /// 铅笔与荧光笔共用一条自由手绘路径。
+    ///
+    /// - 铅笔：不透明、按所选笔宽。
+    /// - 荧光笔：半透明、约 3 倍笔宽，覆盖内容仍可辨识。
+    private static func drawFreehand(_ shape: AnnotationShape, isHighlighter: Bool) {
+        guard shape.points.count >= 2 else { return }
+        let path = NSBezierPath()
+        path.lineWidth = isHighlighter ? shape.style.lineWidth.points * 3 : shape.style.lineWidth.points
+        path.lineCapStyle = isHighlighter ? .square : .round
+        path.lineJoinStyle = .round
+        let color = shape.style.color.nsColor
+        (isHighlighter ? color.withAlphaComponent(0.35) : color).setStroke()
+        path.move(to: shape.points[0])
+        for point in shape.points.dropFirst() {
+            path.line(to: point)
+        }
+        path.stroke()
+    }
+
+    /// 序号徽标：实心圆 + 居中数字。
+    private static func drawNumber(_ shape: AnnotationShape) {
+        guard let text = shape.text, let value = Int(text) else { return }
+        let radius = shape.numberBadgeRadius
+        let center = shape.startPoint
+        let circle = CGRect(
+            x: center.x - radius,
+            y: center.y - radius,
+            width: radius * 2,
+            height: radius * 2
+        )
+        shape.style.color.nsColor.setFill()
+        NSBezierPath(ovalIn: circle).fill()
+
+        let attributes: [NSAttributedString.Key: Any] = [
+            .font: NSFont.systemFont(ofSize: radius * 1.1, weight: .bold),
+            .foregroundColor: NSColor.white
+        ]
+        let value_ = "\(value)" as NSString
+        let size = value_.size(withAttributes: attributes)
+        value_.draw(
+            at: CGPoint(x: center.x - size.width / 2, y: center.y - size.height / 2),
+            withAttributes: attributes
+        )
+    }
+
+    /// 提示框：多行文字气泡 + 指向 `startPoint` 的小三角。
+    private static func drawTooltip(_ shape: AnnotationShape) {
+        guard let text = shape.text, !text.isEmpty else { return }
+        let bodyFont = NSFont.systemFont(ofSize: shape.style.textSize.points, weight: .medium)
+        let padding: CGFloat = 10
+        // 气泡几何与命中测试共用同一份推导，避免「看得见却点不中」。
+        let body = AnnotationHitTest.tooltipBody(for: shape)
+
+        let fill = shape.style.color.nsColor
+        fill.setFill()
+        NSBezierPath(roundedRect: body, xRadius: 8, yRadius: 8).fill()
+
+        // 指向锚点的等腰三角。
+        let tailPath = NSBezierPath()
+        tailPath.move(to: shape.startPoint)
+        tailPath.line(to: CGPoint(x: body.minX + 14, y: body.minY))
+        tailPath.line(to: CGPoint(x: body.minX + 24, y: body.minY))
+        tailPath.close()
+        tailPath.fill()
+
+        let textAttributes: [NSAttributedString.Key: Any] = [
+            .font: bodyFont,
+            .foregroundColor: NSColor.white
+        ]
+        (text as NSString).draw(
+            with: body.insetBy(dx: padding, dy: padding),
+            options: [.usesLineFragmentOrigin, .usesFontLeading],
+            attributes: textAttributes
+        )
     }
 
     private static func drawArrow(_ shape: AnnotationShape) {
@@ -265,7 +412,16 @@ enum AnnotationRenderer {
         context.restoreGState()
     }
 
-    private static func drawMosaic(_ shape: AnnotationShape, sourceImage: NSImage?) {
+    /// 马赛克与高斯模糊共用的底图取样。
+    ///
+    /// 两者都从**原始截图**取样（不含已画上的标注），因此同一区域先画标注再打码时，
+    /// 被码掉的是原图内容而不是标注 —— 与 Snipaste 行为一致。
+    enum BlurStyle {
+        case pixellate
+        case gaussianBlur
+    }
+
+    private static func drawMosaic(_ shape: AnnotationShape, sourceImage: NSImage?, style: BlurStyle) {
         let target = shape.rect
         guard target.width > 1, target.height > 1 else { return }
         guard let image = sourceImage else {
@@ -281,11 +437,22 @@ enum AnnotationRenderer {
         }
 
         let input = CIImage(cgImage: cgImage)
-        guard let filter = CIFilter(name: "CIPixellate") else { return }
-        filter.setValue(input, forKey: kCIInputImageKey)
-        filter.setValue(mosaicScale, forKey: kCIInputScaleKey)
-        filter.setValue(CIVector(x: target.midX, y: target.midY), forKey: kCIInputCenterKey)
-        guard let output = filter.outputImage else { return }
+        let output: CIImage?
+        switch style {
+        case .pixellate:
+            let filter = CIFilter(name: "CIPixellate")
+            filter?.setValue(input, forKey: kCIInputImageKey)
+            // 马赛克块大小与模糊半径都由笔宽派生，保证两种模式覆盖范围一致。
+            filter?.setValue(mosaicScale + shape.style.lineWidth.points, forKey: kCIInputScaleKey)
+            filter?.setValue(CIVector(x: target.midX, y: target.midY), forKey: kCIInputCenterKey)
+            output = filter?.outputImage
+        case .gaussianBlur:
+            let filter = CIFilter(name: "CIGaussianBlur")
+            filter?.setValue(input, forKey: kCIInputImageKey)
+            filter?.setValue(shape.style.lineWidth.points * 2, forKey: kCIInputRadiusKey)
+            output = filter?.outputImage
+        }
+        guard let output else { return }
         let context = CIContext(options: nil)
         guard let cgOutput = context.createCGImage(output, from: target),
               let graphics = NSGraphicsContext.current?.cgContext else { return }
