@@ -296,6 +296,28 @@ final class AppContainer: NSObject {
             clipboardPlugin.clipboardService.pauseRecording()
         }
         logger.info("Runtime settings synced: clipboardEnabled=\(enabled)")
+        await syncMagnifierSettings(settingsService)
+    }
+
+    /// Task 011：把放大镜设置同步到截图会话工厂。
+    ///
+    /// 显示项以 JSON 字符串数组持久化 —— 空数组表示「全部关闭」，
+    /// 与「键不存在」区分开，避免用户关掉全部显示项后又被默认值覆盖。
+    private func syncMagnifierSettings(_ settingsService: SettingsService) async {
+        let defaults = MagnifierConfiguration.default
+        let enabled = (try? await settingsService.value(for: .magnifierShown, as: Bool.self))
+            ?? defaults.isEnabled
+        let zoom = (try? await settingsService.value(for: .magnifierZoom, as: Int.self))
+            ?? defaults.zoom
+        let rawOptions = (try? await settingsService.value(for: .magnifierOptions, as: [String].self))
+            ?? defaults.options.map(\.rawValue).sorted()
+        let options = Set(rawOptions.compactMap(MagnifierDisplayOption.init(rawValue:)))
+
+        screenshotWindowController.magnifierConfiguration = MagnifierConfiguration(
+            isEnabled: enabled,
+            zoom: zoom,
+            options: options
+        ).sanitized()
     }
 
     /// Reads the stored launch-at-login preference (default true) and aligns the

@@ -33,6 +33,11 @@
 		AB0100000000000000000074 /* Qingyu/Services/ScreenshotService/ColorSampler.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0100000000000000000073 /* Qingyu/Services/ScreenshotService/ColorSampler.swift */; };
 		AB0100000000000000000076 /* CaptureCompletionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0100000000000000000075 /* CaptureCompletionTests.swift */; };
 		AB0100000000000000000078 /* ColorSamplerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0100000000000000000077 /* ColorSamplerTests.swift */; };
+		B011000000000000000000A2 /* Qingyu/Services/ScreenshotService/MagnifierGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = B011000000000000000000A1 /* Qingyu/Services/ScreenshotService/MagnifierGeometry.swift */; };
+		B011000000000000000000A4 /* Qingyu/Services/ScreenshotService/MagnifierSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = B011000000000000000000A3 /* Qingyu/Services/ScreenshotService/MagnifierSource.swift */; };
+		B011000000000000000000A6 /* Qingyu/Views/Components/MagnifierOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B011000000000000000000A5 /* Qingyu/Views/Components/MagnifierOverlayView.swift */; };
+		B011000000000000000000A8 /* MagnifierGeometryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B011000000000000000000A7 /* MagnifierGeometryTests.swift */; };
+		B011000000000000000000AA /* MagnifierStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B011000000000000000000A9 /* MagnifierStateTests.swift */; };
 		AB0100000000000000000080 /* Qingyu/Models/PinItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0100000000000000000079 /* Qingyu/Models/PinItem.swift */; };
 		AB0100000000000000000082 /* Qingyu/Services/Pinning/PinPayloadFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0100000000000000000081 /* Qingyu/Services/Pinning/PinPayloadFactory.swift */; };
 		AB0100000000000000000084 /* Qingyu/Services/Pinning/PinStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0100000000000000000083 /* Qingyu/Services/Pinning/PinStore.swift */; };
@@ -207,6 +212,11 @@
 		AB0100000000000000000073 /* Qingyu/Services/ScreenshotService/ColorSampler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingyu/Services/ScreenshotService/ColorSampler.swift; sourceTree = SOURCE_ROOT; };
 		AB0100000000000000000075 /* CaptureCompletionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QingyuTests/CaptureCompletionTests.swift; sourceTree = SOURCE_ROOT; };
 		AB0100000000000000000077 /* ColorSamplerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QingyuTests/ColorSamplerTests.swift; sourceTree = SOURCE_ROOT; };
+		B011000000000000000000A1 /* Qingyu/Services/ScreenshotService/MagnifierGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingyu/Services/ScreenshotService/MagnifierGeometry.swift; sourceTree = SOURCE_ROOT; };
+		B011000000000000000000A3 /* Qingyu/Services/ScreenshotService/MagnifierSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingyu/Services/ScreenshotService/MagnifierSource.swift; sourceTree = SOURCE_ROOT; };
+		B011000000000000000000A5 /* Qingyu/Views/Components/MagnifierOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingyu/Views/Components/MagnifierOverlayView.swift; sourceTree = SOURCE_ROOT; };
+		B011000000000000000000A7 /* MagnifierGeometryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QingyuTests/MagnifierGeometryTests.swift; sourceTree = SOURCE_ROOT; };
+		B011000000000000000000A9 /* MagnifierStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QingyuTests/MagnifierStateTests.swift; sourceTree = SOURCE_ROOT; };
 		AB0100000000000000000079 /* Qingyu/Models/PinItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingyu/Models/PinItem.swift; sourceTree = SOURCE_ROOT; };
 		AB0100000000000000000081 /* Qingyu/Services/Pinning/PinPayloadFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingyu/Services/Pinning/PinPayloadFactory.swift; sourceTree = SOURCE_ROOT; };
 		AB0100000000000000000083 /* Qingyu/Services/Pinning/PinStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingyu/Services/Pinning/PinStore.swift; sourceTree = SOURCE_ROOT; };
@@ -560,6 +570,8 @@
 				AB0100000000000000000067 /* CaptureSessionControllerTests.swift */,
 				AB0100000000000000000075 /* CaptureCompletionTests.swift */,
 				AB0100000000000000000077 /* ColorSamplerTests.swift */,
+				B011000000000000000000A7 /* MagnifierGeometryTests.swift */,
+				B011000000000000000000A9 /* MagnifierStateTests.swift */,
 				AB0100000000000000000089 /* PinPayloadFactoryTests.swift */,
 				AB0100000000000000000091 /* PinStoreTests.swift */,
 				AB0100000000000000000093 /* PinWindowControllerTests.swift */,
@@ -680,6 +692,7 @@
 				A1000000000000000000001C /* ToastView.swift */,
 				A10000000000000000000027 /* ScreenshotOverlay.swift */,
 				AB0100000000000000000065 /* Qingyu/Views/Components/ScreenshotShortcutHintsView.swift */,
+				B011000000000000000000A5 /* Qingyu/Views/Components/MagnifierOverlayView.swift */,
 				A1000000000000000000002C /* KeyEventHandler.swift */,
 				A100000000000000000000A1 /* AutoFocusTextField.swift */,
 				A10000000000000000000033 /* ScreenshotToolbarController.swift */,
@@ -720,6 +733,8 @@
 				AB0100000000000000000061 /* Qingyu/Services/ScreenshotService/WindowCandidateProvider.swift */,
 				AB0100000000000000000071 /* Qingyu/Services/ScreenshotService/CaptureCompletionCoordinator.swift */,
 				AB0100000000000000000073 /* Qingyu/Services/ScreenshotService/ColorSampler.swift */,
+				B011000000000000000000A1 /* Qingyu/Services/ScreenshotService/MagnifierGeometry.swift */,
+				B011000000000000000000A3 /* Qingyu/Services/ScreenshotService/MagnifierSource.swift */,
 			);
 			path = ScreenshotService;
 			sourceTree = "<group>";
@@ -1073,6 +1088,9 @@
 				AB0100000000000000000066 /* Qingyu/Views/Components/ScreenshotShortcutHintsView.swift in Sources */,
 				AB0100000000000000000072 /* Qingyu/Services/ScreenshotService/CaptureCompletionCoordinator.swift in Sources */,
 				AB0100000000000000000074 /* Qingyu/Services/ScreenshotService/ColorSampler.swift in Sources */,
+				B011000000000000000000A2 /* Qingyu/Services/ScreenshotService/MagnifierGeometry.swift in Sources */,
+				B011000000000000000000A4 /* Qingyu/Services/ScreenshotService/MagnifierSource.swift in Sources */,
+				B011000000000000000000A6 /* Qingyu/Views/Components/MagnifierOverlayView.swift in Sources */,
 				AB0100000000000000000080 /* Qingyu/Models/PinItem.swift in Sources */,
 				AB0100000000000000000082 /* Qingyu/Services/Pinning/PinPayloadFactory.swift in Sources */,
 				AB0100000000000000000084 /* Qingyu/Services/Pinning/PinStore.swift in Sources */,
@@ -1140,6 +1158,8 @@
 				AB0100000000000000000068 /* CaptureSessionControllerTests.swift in Sources */,
 				AB0100000000000000000076 /* CaptureCompletionTests.swift in Sources */,
 				AB0100000000000000000078 /* ColorSamplerTests.swift in Sources */,
+				B011000000000000000000A8 /* MagnifierGeometryTests.swift in Sources */,
+				B011000000000000000000AA /* MagnifierStateTests.swift in Sources */,
 				AB0100000000000000000090 /* PinPayloadFactoryTests.swift in Sources */,
 				AB0100000000000000000092 /* PinStoreTests.swift in Sources */,
 				AB0100000000000000000094 /* PinWindowControllerTests.swift in Sources */,
@@ -1307,7 +1327,7 @@
 				CODE_SIGN_ENTITLEMENTS = Qingyu/Qingyu.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 341;
+				CURRENT_PROJECT_VERSION = 343;
 				DEVELOPMENT_TEAM = 454XB348PX;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -1316,7 +1336,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.3.41;
+				MARKETING_VERSION = 0.3.43;
 				PRODUCT_BUNDLE_IDENTIFIER = com.freeabyss.qingyu;
 				PRODUCT_MODULE_NAME = Qingyu;
 				PRODUCT_NAME = Qingyu;
@@ -1332,7 +1352,7 @@
 				CODE_SIGN_ENTITLEMENTS = Qingyu/Qingyu.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 341;
+				CURRENT_PROJECT_VERSION = 343;
 				DEVELOPMENT_TEAM = 454XB348PX;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -1341,7 +1361,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.3.41;
+				MARKETING_VERSION = 0.3.43;
 				PRODUCT_BUNDLE_IDENTIFIER = com.freeabyss.qingyu;
 				PRODUCT_MODULE_NAME = Qingyu;
 				PRODUCT_NAME = Qingyu;

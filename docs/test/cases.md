@@ -21,6 +21,7 @@
 | 2026-07-03 | Claude | v1.2.0：新增第 11 节「清羽 Qingyu v1.2 测试用例」，按模块新增 TC（TOK/BRAND/DATA/DI/SEARCH-F/SEARCH-E/SHOT-FS/SHOT-UI/ONB-V2/PERM-OD/CODE/DIST/UPD/SHORTCUT/SETNEW/REG/BUILD/ROBUST/ACC/I18N 前缀）；对第 5 节因 UI 重设计受影响的旧 TC 就地标注「v1.2 修订」并给出新步骤/预期；开发尚未开始，report.md v1.2.0 节仅为计划占位。 |
 | 2026-09-13 | Claude | 下一阶段：新增第 12 节「截图会话生命周期回归」——针对反复复发的截图叠层「僵尸暗幕」缺陷（会话 ARC 提前释放 + borderless 窗口不可为 key）建立 SHOT-LIFE 用例组（3 自动化 + 1 手工）；新增 `scripts/verify.sh` 必跑门禁并写入 AGENTS.md「测试门禁」。 |
 | 2026-09-13 | Claude | 1.0.0 隐藏截图入口（`FeatureGate.screenshotEnabled = false`：菜单项、搜索命令与空查询快捷操作、全局快捷键 F1、设置页截图插件、欢迎向导屏幕录制段均不暴露，代码保留），相关 TC（五页侧栏、F1、向导屏幕录制等截图入口类用例）暂缓执行，开关恢复后回归。 |
+| 2026-10-13 | Claude | Task 011 放大镜：第 12 节新增 1 条自动化用例 SHOT-LIFE-004（取样取消后不回调 + 在途请求合并），原手工冒烟由 SHOT-LIFE-004 顺延为 SHOT-LIFE-005。放大镜取样在叠层窗口下方按需抓屏，涉及叠层生命周期，故纳入本节。 |
 
 ---
 
@@ -293,6 +294,7 @@ P0/P1 手动用例执行时，应记录：执行日期、macOS 版本、构建�
 | CLIP-010 | 重复复制去重 | 重复复制相同内容 | 不新增记录，只更新时间并重新排序 | P0 |
 | CLIP-011 | 存储占用 | 打开设置或剪贴板页面 | 显示剪贴板历史存储占用，并提供清空入口 | P1 |
 | CLIP-012 | 清空确认 | 点击清空全部 | 显示二次确认，提示不可撤销 | P0 |
+| CLIP-013 | Esc 关闭窗口 | 剪贴板历史窗口内按 `Esc` | 窗口关闭，应用保持运行，不执行复制 | P0 |
 
 > **v1.2 修订（P-02 剪贴板窗口重设计）**：剪贴板历史改为**独立 NSWindow + 两栏 NavigationSplitView**（64px 行、hover 操作、预览 Sheet、swipe action、底部状态栏，见 §9.4 P-02）。CLIP-001~012 功能语义**全部保留有效**，但界面断言（行高、hover 4 按钮、预览 Sheet、swipe 收藏/删除）走新布局；数据链路（去重/置顶/保留/存储占用）不变。数据目录由 `Assistant/` 迁移到 `Qingyu/`，迁移后历史数据必须仍在（见 **DATA** 系列）。
 
@@ -609,7 +611,7 @@ MVP 暂不覆盖：
 
 #### BRAND-007：版本号三源一致（MARKETING_VERSION / Info.plist / CHANGELOG）
 - **关联**：FR-UI-36、AC-VERSION、D-108 ｜ **优先级**：P0 ｜ **类型**：脚本 ｜ **文件**：待建脚本（可入 CI）
-- **步骤**：解析 pbxproj `MARKETING_VERSION`、Info.plist `CFBundleShortVersionString`、`CHANGELOG.md` 顶部版本；三者比对。
+- **步骤**：解析 pbxproj `MARKETING_VERSION`、Info.plist `CFBundleShortVersionString`、`docs/guides/changelog.md` 顶部版本；三者比对。
 - **预期结果**：三源均为 `1.2.0`；CHANGELOG 补全 v1.0.0/v1.0.1/v1.1.0/v1.2.0 条目；任一不一致视为发布阻塞。
 
 ### 11.4 DATA —— 数据目录迁移
@@ -1157,9 +1159,14 @@ MVP 暂不覆盖：
 - **关联**：键盘事件可达性 ｜ **优先级**：P0 ｜ **类型**：XCTest ｜ **文件**：同上（`testOverlayWindowCanBecomeKeyAndMain`）
 - **预期结果**：`CaptureOverlayNSWindow.canBecomeKey` / `canBecomeMain` 均为 true，保证 Esc/⌘A 可达叠层视图。
 
+#### SHOT-LIFE-004：放大镜取样在会话结束后不再回调
+- **关联**：Task 011 放大镜 ｜ **优先级**：P0 ｜ **类型**：XCTest ｜ **文件**：`QingyuTests/MagnifierStateTests.swift`（`testCancelledSourceDropsInFlightSample` / `testInFlightRequestsAreCoalescedToLatest`）
+- **步骤**：注入可控的抓屏替身（阻塞第一次调用）→ 请求取样 → 立即 `cancel()` → 放行 → 等待 → 断言无回调；另在途期间连发三次请求，断言只保留首末两次。
+- **预期结果**：取消后迟到的取样结果被丢弃，不回调到已关闭的叠层视图；快速移动指针时请求合并、不积压。放大镜取样跑在后台队列，取消不得依赖主线程时序。
+
 ### 12.2 手工验收用例（真实屏幕录制环境）
 
-#### SHOT-LIFE-004：真实交互冒烟
+#### SHOT-LIFE-005：真实交互冒烟
 - **优先级**：P0 ｜ **类型**：手工
 - **时机**：发版前，以及任何截图链路（叠层、会话、完成协调器）改动之后。
 - **步骤**：F1 或菜单「截图」进入截图状态，依次验证：屏幕压暗；悬停窗口出现高亮框；单击截取窗口；拖拽圈选自动截取区域；`⌘A` 截当前屏；悬停菜单栏/桌面空白出现整屏提示框且单击截全屏；`Esc` 随时退出；连续多次触发后取消不残留暗幕。

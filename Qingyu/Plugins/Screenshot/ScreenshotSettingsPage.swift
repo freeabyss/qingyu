@@ -18,6 +18,9 @@ struct ScreenshotPluginSettingsPage: View {
 
     @State private var pinFilePathToImage = true
     @State private var pinRestoreCapacity = PinStore.defaultRestoreCapacity
+    @State private var magnifierEnabled = MagnifierConfiguration.default.isEnabled
+    @State private var magnifierZoom = MagnifierConfiguration.default.zoom
+    @State private var magnifierOptions = MagnifierConfiguration.default.options
     @State private var saveDirectory: URL = URL(fileURLWithPath: ("~/Desktop" as NSString).expandingTildeInPath)
     @State private var showDirectoryImporter = false
 
@@ -90,8 +93,43 @@ struct ScreenshotPluginSettingsPage: View {
                 JadeSwitchRow(L10n.localized("management.screenshot.includeShadow"), isOn: $includeShadow)
             }
 
-            SettingsSection("settings.pin.section") {
+            // Task 011：放大镜。关闭时整个分区置灰但保留当前取值，便于对照。
+            SettingsSection("settings.magnifier.section") {
                 JadeSwitchRow(
+                    L10n.localized("settings.magnifier.enabled"),
+                    isOn: $magnifierEnabled
+                )
+                .onChange(of: magnifierEnabled) { newValue in
+                    Task { try? await viewModel.set(newValue, for: .magnifierShown) }
+                }
+                JadeSettingsDivider()
+                VStack(alignment: .leading, spacing: JadeSpace.x2.value) {
+                    Text(L10n.localized("settings.magnifier.zoom"))
+                        .font(JadeFont.body)
+                    Picker("", selection: $magnifierZoom) {
+                        ForEach(MagnifierConfiguration.availableZooms, id: \.self) { zoom in
+                            Text("\(zoom)×").tag(zoom)
+                        }
+                    }
+                    .labelsHidden()
+                    .pickerStyle(.segmented)
+                    .onChange(of: magnifierZoom) { newValue in
+                        Task { try? await viewModel.set(newValue, for: .magnifierZoom) }
+                    }
+                }
+                .disabled(!magnifierEnabled)
+                JadeSettingsDivider()
+                JadeSwitchRow(L10n.localized("settings.magnifier.grid"), isOn: magnifierOptionBinding(.grid))
+                JadeSettingsDivider()
+                JadeSwitchRow(L10n.localized("settings.magnifier.coordinate"), isOn: magnifierOptionBinding(.coordinate))
+                JadeSettingsDivider()
+                JadeSwitchRow(L10n.localized("settings.magnifier.zoomLabel"), isOn: magnifierOptionBinding(.zoomLabel))
+                JadeSettingsDivider()
+                JadeSwitchRow(L10n.localized("settings.magnifier.mask"), isOn: magnifierOptionBinding(.mask))
+            }
+            .disabled(!magnifierEnabled)
+
+            SettingsSection("settings.pin.section") {                JadeSwitchRow(
                     L10n.localized("settings.pin.filePathToImage"),
                     isOn: $pinFilePathToImage
                 )
@@ -158,5 +196,31 @@ private func recorderRow(_ row: RecorderRow) -> some View {
             ?? URL(fileURLWithPath: ("~/Desktop" as NSString).expandingTildeInPath)
         pinFilePathToImage = (try? await viewModel.value(for: .pinFilePathToImage, as: Bool.self)) ?? true
         pinRestoreCapacity = (try? await viewModel.value(for: .pinRestoreCapacity, as: Int.self)) ?? PinStore.defaultRestoreCapacity
+
+        let magnifierDefaults = MagnifierConfiguration.default
+        magnifierEnabled = (try? await viewModel.value(for: .magnifierShown, as: Bool.self))
+            ?? magnifierDefaults.isEnabled
+        magnifierZoom = MagnifierConfiguration.clampZoom(
+            (try? await viewModel.value(for: .magnifierZoom, as: Int.self)) ?? magnifierDefaults.zoom
+        )
+        let optionRaws = (try? await viewModel.value(for: .magnifierOptions, as: [String].self))
+            ?? magnifierDefaults.options.map(\.rawValue).sorted()
+        magnifierOptions = Set(optionRaws.compactMap(MagnifierDisplayOption.init(rawValue:)))
+    }
+
+    /// 显示项开关：读写都走设置，避免「视图上有勾但重启后丢失」。
+    private func magnifierOptionBinding(_ option: MagnifierDisplayOption) -> Binding<Bool> {
+        Binding(
+            get: { magnifierOptions.contains(option) },
+            set: { isOn in
+                if isOn {
+                    magnifierOptions.insert(option)
+                } else {
+                    magnifierOptions.remove(option)
+                }
+                let raw = magnifierOptions.map(\.rawValue).sorted()
+                Task { try? await viewModel.set(raw, for: .magnifierOptions) }
+            }
+        )
     }
 }

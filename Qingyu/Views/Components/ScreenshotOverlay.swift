@@ -29,7 +29,7 @@ final class CaptureOverlayWindowController: CaptureOverlayWindow {
     private let contentView: CaptureOverlayContentView
     private var closed = false
 
-    init(display: CaptureDisplay) {
+    init(display: CaptureDisplay, magnifierConfiguration: MagnifierConfiguration = .default) {
         self.display = display
 
         let window = CaptureOverlayNSWindow(
@@ -46,7 +46,11 @@ final class CaptureOverlayWindowController: CaptureOverlayWindow {
         window.isReleasedWhenClosed = false
         window.acceptsMouseMovedEvents = true
 
-        let view = CaptureOverlayContentView(frame: NSRect(origin: .zero, size: display.frame.size), display: display)
+        let view = CaptureOverlayContentView(
+            frame: NSRect(origin: .zero, size: display.frame.size),
+            display: display,
+            magnifierConfiguration: magnifierConfiguration
+        )
         window.contentView = view
 
         self.window = window
@@ -95,6 +99,7 @@ final class CaptureOverlayWindowController: CaptureOverlayWindow {
     func close() {
         guard !closed else { return }
         closed = true
+        contentView.cancelMagnifier()
         window.orderOut(nil)
         window.contentView = nil
     }
@@ -110,14 +115,29 @@ final class CaptureOverlayContentView: NSView {
         didSet { updateHintsVisibility() }
     }
     var highlightFrame: NSRect?
-    var regionFrame: NSRect?
+    var regionFrame: NSRect? {
+        didSet { updateMagnifierMask() }
+    }
     var onEvent: ((CaptureInputEvent) -> Void)?
 
     fileprivate private(set) var hintsView: ScreenshotShortcutHintsView?
     private var isMouseDown = false
 
-    init(frame frameRect: NSRect, display: CaptureDisplay) {
+    // Task 011：放大镜。取样在叠层下方进行，因此关闭时不会拍到自己的暗幕。
+    private let magnifierConfiguration: MagnifierConfiguration
+    private let magnifierSource: MagnifierSourcing?
+    private let magnifierView = MagnifierOverlayView(frame: .zero)
+    private var lastPointerGlobal: CGPoint?
+
+    init(
+        frame frameRect: NSRect,
+        display: CaptureDisplay,
+        magnifierConfiguration: MagnifierConfiguration = .default
+    ) {
         self.display = display
+        let configuration = magnifierConfiguration.sanitized()
+        self.magnifierConfiguration = configuration
+        self.magnifierSource = configuration.isEnabled ? BelowWindowMagnifierSource() : nil
         super.init(frame: frameRect)
         commonInit()
     }
@@ -138,6 +158,13 @@ final class CaptureOverlayContentView: NSView {
         addSubview(hints)
         hintsView = hints
         hints.isHidden = !isActiveDisplay
+
+        magnifierView.configuration = magnifierConfiguration
+        magnifierView.isHidden = true
+        addSubview(magnifierView)
+        magnifierSource?.onSample = { [weak self] sample in
+            self?.applyMagnifierSample(sample)
+        }
     }
 
     func updateHints(_ hintKeys: [String]) {
@@ -146,6 +173,86 @@ final class CaptureOverlayContentView: NSView {
 
     private func updateHintsVisibility() {
         hintsView?.isHidden = !isActiveDisplay
+        if !isActiveDisplay {
+            hideMagnifier()
+        }
+    }
+
+    // MARK: - Magnifier (Task 011)
+
+    /// 请求一次放大镜取样。放大镜关闭或窗口号不可用时直接返回，不产生系统调用。
+    private func requestMagnifierSample(at global: CGPoint) {
+        guard let magnifierSource, magnifierConfiguration.isEnabled else { return }
+        guard let windowNumber = window?.windowNumber, windowNumber > 0 else { return }
+        lastPointerGlobal = global
+        magnifierSource.request(MagnifierRequest(
+            displayID: display.id,
+            appKitSamplePoint: global,
+            pixelCount: magnifierConfiguration.pixelCount,
+            screenFrame: display.frame,
+            displayPixelSize: display.pixelSize,
+            mainDisplayHeight: Self.mainDisplayHeight,
+            belowWindowNumber: CGWindowID(windowNumber)
+        ))
+    }
+
+    /// 取样到达：更新画面并按当前指针定位放大镜框。
+    private func applyMagnifierSample(_ sample: MagnifierSample) {
+        guard isActiveDisplay, magnifierConfiguration.isEnabled, let anchor = lastPointerGlobal else { return }
+        magnifierView.update(sample: sample)
+        let size = CGSize(
+            width: MagnifierConfiguration.viewSize,
+            height: MagnifierConfiguration.viewSize
+        )
+        let globalFrame = MagnifierGeometry.magnifierFrame(
+            anchor: anchor,
+            size: size,
+            visibleFrame: display.frame,
+            gap: MagnifierConfiguration.anchorGap
+        )
+        magnifierView.frame = globalFrame.offsetBy(
+            dx: -display.frame.minX,
+            dy: -display.frame.minY
+        )
+        updateMagnifierMask()
+        magnifierView.isHidden = false
+    }
+
+    /// 把当前选区换算到显示器像素坐标，供放大镜内的遮罩使用。
+    private func updateMagnifierMask() {
+        guard let region = regionFrame else {
+            magnifierView.maskRectInPixels = nil
+            return
+        }
+        let scale = MagnifierGeometry.displayScale(frame: display.frame, pixelSize: display.pixelSize)
+        let topLeft = MagnifierGeometry.samplePoint(
+            logicalPoint: CGPoint(x: region.minX, y: region.maxY),
+            screenFrame: display.frame,
+            scale: scale
+        )
+        magnifierView.maskRectInPixels = CGRect(
+            x: topLeft.x,
+            y: topLeft.y,
+            width: region.width * scale,
+            height: region.height * scale
+        )
+    }
+
+    private func hideMagnifier() {
+        magnifierSource?.cancel()
+        magnifierView.clearSample()
+        magnifierView.isHidden = true
+    }
+
+    /// 会话结束时调用：取消在途取样并断开回调，避免结果打到已关闭的视图。
+    func cancelMagnifier() {
+        hideMagnifier()
+        magnifierSource?.onSample = nil
+    }
+
+    /// AppKit 原点所在显示器的逻辑高度，用于换算 `CGWindowListCreateImage` 的屏幕坐标。
+    private static var mainDisplayHeight: CGFloat {
+        NSScreen.screens.first?.frame.height ?? 0
     }
 
     override var acceptsFirstResponder: Bool { true }
@@ -161,7 +268,9 @@ final class CaptureOverlayContentView: NSView {
 
     override func mouseMoved(with event: NSEvent) {
         guard isActiveDisplay else { return }
-        onEvent?(.pointerMoved(globalPoint(convert(event.locationInWindow, from: nil))))
+        let global = globalPoint(convert(event.locationInWindow, from: nil))
+        onEvent?(.pointerMoved(global))
+        requestMagnifierSample(at: global)
     }
 
     override func mouseDown(with event: NSEvent) {
@@ -171,7 +280,10 @@ final class CaptureOverlayContentView: NSView {
 
     override func mouseDragged(with event: NSEvent) {
         guard isMouseDown else { return }
-        onEvent?(.mouseDragged(globalPoint(convert(event.locationInWindow, from: nil))))
+        let global = globalPoint(convert(event.locationInWindow, from: nil))
+        onEvent?(.mouseDragged(global))
+        // 拖拽过程不产生 mouseMoved；放大镜必须跟随，否则圈选时画面会停住。
+        requestMagnifierSample(at: global)
     }
 
     override func mouseUp(with event: NSEvent) {
@@ -258,8 +370,17 @@ final class CaptureOverlayContentView: NSView {
 /// 生产用叠层窗口工厂。
 @MainActor
 final class ConcreteCaptureOverlayWindowFactory: CaptureOverlayWindowFactory {
+    private let magnifierConfiguration: MagnifierConfiguration
+
+    init(magnifierConfiguration: MagnifierConfiguration = .default) {
+        self.magnifierConfiguration = magnifierConfiguration
+    }
+
     func makeWindow(for display: CaptureDisplay) -> CaptureOverlayWindow {
-        CaptureOverlayWindowController(display: display)
+        CaptureOverlayWindowController(
+            display: display,
+            magnifierConfiguration: magnifierConfiguration
+        )
     }
 }
 

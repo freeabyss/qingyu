@@ -181,6 +181,132 @@
         }
       }
     },
+    "settings.magnifier.section" : {
+      "comment" : "Screenshot settings: magnifier section header",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Magnifier"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "放大镜"
+          }
+        }
+      }
+    },
+    "settings.magnifier.enabled" : {
+      "comment" : "Magnifier setting: master switch",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show magnifier while snipping"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "截图时显示放大镜"
+          }
+        }
+      }
+    },
+    "settings.magnifier.zoom" : {
+      "comment" : "Magnifier setting: zoom factor label",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zoom"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "放大倍数"
+          }
+        }
+      }
+    },
+    "settings.magnifier.grid" : {
+      "comment" : "Magnifier setting: pixel grid overlay",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pixel grid"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "像素网格线"
+          }
+        }
+      }
+    },
+    "settings.magnifier.coordinate" : {
+      "comment" : "Magnifier setting: screen coordinate label",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screen coordinate"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "屏幕坐标"
+          }
+        }
+      }
+    },
+    "settings.magnifier.zoomLabel" : {
+      "comment" : "Magnifier setting: zoom badge",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zoom badge"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "放大倍数标签"
+          }
+        }
+      }
+    },
+    "settings.magnifier.mask" : {
+      "comment" : "Magnifier setting: dim area outside the selection",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selection mask"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选中区遮罩"
+          }
+        }
+      }
+    },
     "settings.pin.section" : {
       "comment" : "Screenshot settings: pin section header",
       "extractionState" : "manual",

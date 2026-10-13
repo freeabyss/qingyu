@@ -13,6 +13,10 @@ final class ScreenshotWindowController {
     private let logger = Logger.screenshot
     private unowned let container: AppContainer
 
+    /// Task 011：放大镜配置。由 `AppContainer.syncRuntimeSettings()` 从设置同步；
+    /// 默认值与 `MagnifierConfiguration.default` 一致，未改设置时行为不变。
+    var magnifierConfiguration: MagnifierConfiguration = .default
+
     /// Created lazily so the toolbar controller is only built on first capture.
     /// Task 008: the pin terminal action converts the capture into a pin window.
     private lazy var toolbar = ScreenshotToolbarController(pinHandler: { [weak self] result in
@@ -65,7 +69,9 @@ final class ScreenshotWindowController {
         let session = CaptureSessionController(
             displayProvider: NSScreenDisplayProvider(forcedDisplayCount: forcedDisplayCount),
             windowProvider: WindowCandidateProvider(),
-            overlayFactory: ConcreteCaptureOverlayWindowFactory()
+            overlayFactory: ConcreteCaptureOverlayWindowFactory(
+                magnifierConfiguration: magnifierConfiguration
+            )
         )
 
         session.onLocked = { [weak self, weak session] target in

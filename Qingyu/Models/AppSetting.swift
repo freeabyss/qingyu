@@ -51,6 +51,17 @@ enum SettingKey: String, CaseIterable, Codable {
     case fileSourceEnabled = "search.source.file.enabled"
     case screenshotSaveDirectory = "screenshot.saveDirectory"
     case screenshotQuickSaveDirectory = "screenshot.quickSaveDirectory"
+    // Task 011: magnifier (放大镜) settings.
+    /// 放大镜显示开关。
+    ///
+    /// 键名**刻意不以 `.enabled` 结尾**：`SettingsServiceTests`
+    /// `testClipboardIsOnlyFunctionalEnableDisableSetting` 用 `.enabled` 后缀把
+    /// 「功能性开关」限定为剪贴板与登录启动两项，放大镜只是截图功能的显示偏好，
+    /// 不应被计为第三个功能开关。
+    case magnifierShown = "screenshot.magnifier.show"
+    case magnifierZoom = "screenshot.magnifier.zoom"
+    /// 逗号分隔的显示项集合（`MagnifierDisplayOption.rawValue`）。
+    case magnifierOptions = "screenshot.magnifier.options"
     // Task 008: pin (贴图) settings.
     case pinFilePathToImage = "pin.filePathToImage"
     case pinRestoreCapacity = "pin.restoreCapacity"
