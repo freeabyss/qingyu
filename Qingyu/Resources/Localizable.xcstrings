@@ -523,6 +523,42 @@
         }
       }
     },
+    "screenshot.hint.nudgeRegion" : {
+      "comment" : "Screenshot hint: adjust the selection with the keyboard",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arrows=nudge  Shift+Arrows=resize  Tab=guides"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "方向键微调  ⇧+方向键伸缩  Tab 辅助线"
+          }
+        }
+      }
+    },
+    "screenshot.hint.confirmRegion" : {
+      "comment" : "Screenshot hint: confirm the adjusted selection",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter to capture"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter 截图"
+          }
+        }
+      }
+    },
     "screenshot.hint.dragRegion" : {
       "comment" : "Screenshot overlay hint: drag to select region",
       "extractionState" : "manual",

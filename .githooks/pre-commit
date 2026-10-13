@@ -1,9 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# A source or Xcode project change gets a new patch version in the same commit.
+# 版本递增的唯一入口：源码 / Xcode 工程变更在**同一个提交**里带上新的 patch 版本。
+# `scripts/bump-version.sh --set` 仍供发布流程显式设定版本使用。
+#
+# 幂等：若本次已暂存了 Info.plist 的改动（例如有人手动 bump 过），
+# 说明版本已经递增，钩子不再重复递增 —— 避免一次提交跳号。
+
 if ! git diff --cached --name-only --diff-filter=ACMR | \
     grep -Eq '^(Qingyu|QingyuTests|QingyuUITests)/.*\.(swift|xcstrings)$|^Qingyu\.xcodeproj/project\.pbxproj$|^Package\.swift$'; then
+    exit 0
+fi
+
+if ! git diff --cached --quiet -- Qingyu/Info.plist; then
+    echo "[pre-commit] 已检测到暂存的版本变更，跳过自动递增（避免双重递增）"
     exit 0
 fi
 

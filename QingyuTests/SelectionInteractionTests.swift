@@ -147,3 +147,55 @@ final class ColorValueFormatterTests: XCTestCase {
         XCTAssertEqual(try JSONDecoder().decode(ColorValueOptions.self, from: data), options)
     }
 }
+
+/// Task 014 / 01：选区方向键微调的纯函数契约。
+final class SelectionNudgeTests: XCTestCase {
+
+    private let bounds = CGRect(x: 0, y: 0, width: 1000, height: 800)
+
+    func testMoveShiftsByDelta() {
+        let rect = CGRect(x: 100, y: 100, width: 200, height: 150)
+        XCTAssertEqual(
+            SelectionNudge.move(rect, axis: .horizontal, delta: 3, bounds: bounds),
+            CGRect(x: 103, y: 100, width: 200, height: 150)
+        )
+        XCTAssertEqual(
+            SelectionNudge.move(rect, axis: .vertical, delta: -7, bounds: bounds),
+            CGRect(x: 100, y: 93, width: 200, height: 150)
+        )
+    }
+
+    /// 平移必须完整停在可用区内，不能只钳制原点导致溢出。
+    func testMoveClampsInsideBounds() {
+        let rect = CGRect(x: 5, y: 5, width: 200, height: 150)
+        XCTAssertEqual(
+            SelectionNudge.move(rect, axis: .horizontal, delta: -500, bounds: bounds).minX,
+            bounds.minX
+        )
+        XCTAssertEqual(
+            SelectionNudge.move(rect, axis: .vertical, delta: 5000, bounds: bounds).maxY,
+            bounds.maxY
+        )
+    }
+
+    /// 对称伸缩：中心不变，且不低于最小边长、不越出可用区。
+    func testResizeIsSymmetricAndClamped() {
+        let rect = CGRect(x: 400, y: 300, width: 200, height: 150)
+        let grown = SelectionNudge.resize(rect, axis: .horizontal, delta: 10, bounds: bounds, minimum: 5)
+        XCTAssertEqual(grown.width, 220)
+        XCTAssertEqual(grown.midX, rect.midX, accuracy: 0.001)
+
+        let shrunk = SelectionNudge.resize(rect, axis: .vertical, delta: -1000, bounds: bounds, minimum: 5)
+        XCTAssertEqual(shrunk.height, 5)
+        XCTAssertEqual(shrunk.midY, rect.midY, accuracy: 0.001)
+    }
+
+    func testMoveAndResizeAreNoOpForZeroDelta() {
+        let rect = CGRect(x: 10, y: 10, width: 20, height: 20)
+        XCTAssertEqual(SelectionNudge.move(rect, axis: .horizontal, delta: 0, bounds: bounds), rect)
+        XCTAssertEqual(
+            SelectionNudge.resize(rect, axis: .vertical, delta: 0, bounds: bounds, minimum: 5),
+            rect
+        )
+    }
+}

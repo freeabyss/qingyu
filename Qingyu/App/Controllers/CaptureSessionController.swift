@@ -11,6 +11,10 @@ enum CaptureInputEvent {
     case mouseDragged(CGPoint)
     case mouseUp(CGPoint)
     case selectFullDisplay
+    /// Task 014/01：可微调态下的方向键微调（步长已由叠层按显示器缩放换算为逻辑点）。
+    case nudgeSelection(axis: SelectionNudge.Axis, delta: CGFloat, resize: Bool)
+    /// Task 014/01：确认微调后的选区（Enter）。
+    case confirmSelection
     case cancel
 }
 
@@ -209,6 +213,20 @@ final class CaptureSessionController {
                 onLocked?(target)
             }
 
+        case .nudgeSelection(let axis, let delta, let resize):
+            // Task 014/01：仅在可微调态生效；无变化时不重绘。
+            if state.nudgeRegion(axis: axis, delta: delta, resize: resize) {
+                syncOverlays()
+            }
+
+        case .confirmSelection:
+            state.confirmRegion()
+            syncOverlays()
+            if case .locked(let target) = state.phase {
+                isSessionActive = false
+                onLocked?(target)
+            }
+
         case .cancel:
             cancel()
         }
@@ -332,6 +350,11 @@ final class CaptureSessionController {
                 window.updateHighlight(window: nil)
                 window.updateElementHighlight(frame: nil)
                 window.updateRegion(rect: isActive ? Self.regionRect(start: start, current: current) : nil)
+            case .adjustingRegion(_, let globalRect):
+                // Task 014/01：可微调态下持续显示选区，等待 Enter 确认。
+                window.updateHighlight(window: nil)
+                window.updateElementHighlight(frame: nil)
+                window.updateRegion(rect: isActive ? globalRect : nil)
             case .locked(let target):
                 window.updateHighlight(window: nil)
                 window.updateElementHighlight(frame: nil)

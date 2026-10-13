@@ -76,15 +76,24 @@ final class CaptureSessionStateTests: XCTestCase {
 
     // MARK: - Region drag flow
 
-    func testRegionDragFlowLocksRegion() {
+    /// Task 014/01：拖拽松开后进入**可微调态**（方向键可调整），`confirmRegion()`（Enter）才锁定。
+    func testRegionDragEntersAdjustingThenConfirmLocks() {
         var state = CaptureSessionState()
         state.mouseDown(at: CGPoint(x: 10, y: 10), display: rightDisplay)
         state.mouseDragged(to: CGPoint(x: 110, y: 80))
         state.mouseUp(at: CGPoint(x: 110, y: 80))
 
+        let expected = CGRect(x: 10, y: 10, width: 100, height: 70)
         XCTAssertEqual(
             state.phase,
-            .locked(.region(display: rightDisplay, globalRect: CGRect(x: 10, y: 10, width: 100, height: 70)))
+            .adjustingRegion(display: rightDisplay, globalRect: expected),
+            "松开后应先进入可微调态，而不是立即锁定"
+        )
+
+        state.confirmRegion()
+        XCTAssertEqual(
+            state.phase,
+            .locked(.region(display: rightDisplay, globalRect: expected))
         )
     }
 
@@ -96,7 +105,7 @@ final class CaptureSessionStateTests: XCTestCase {
 
         XCTAssertEqual(
             state.phase,
-            .locked(.region(display: rightDisplay, globalRect: CGRect(x: 10, y: 10, width: 100, height: 70)))
+            .adjustingRegion(display: rightDisplay, globalRect: CGRect(x: 10, y: 10, width: 100, height: 70))
         )
     }
 
@@ -130,8 +139,13 @@ final class CaptureSessionStateTests: XCTestCase {
 
         XCTAssertEqual(
             state.phase,
-            .locked(.region(display: leftDisplay, globalRect: CGRect(x: 100, y: 100, width: 110, height: 80))),
-            "从窗口候选上拖拽应锁定区域，而非窗口"
+            .adjustingRegion(display: leftDisplay, globalRect: CGRect(x: 100, y: 100, width: 110, height: 80)),
+            "从窗口候选上拖拽应进入区域可微调态，而非锁定窗口"
+        )
+        state.confirmRegion()
+        XCTAssertEqual(
+            state.phase,
+            .locked(.region(display: leftDisplay, globalRect: CGRect(x: 100, y: 100, width: 110, height: 80)))
         )
     }
 
@@ -145,7 +159,7 @@ final class CaptureSessionStateTests: XCTestCase {
 
         XCTAssertEqual(
             state.phase,
-            .locked(.region(display: leftDisplay, globalRect: CGRect(x: 1900, y: 60, width: 10, height: 70)))
+            .adjustingRegion(display: leftDisplay, globalRect: CGRect(x: 1900, y: 60, width: 10, height: 70))
         )
     }
 
@@ -157,7 +171,7 @@ final class CaptureSessionStateTests: XCTestCase {
 
         XCTAssertEqual(
             state.phase,
-            .locked(.region(display: leftDisplay, globalRect: CGRect(x: 10, y: 10, width: 5, height: 5)))
+            .adjustingRegion(display: leftDisplay, globalRect: CGRect(x: 10, y: 10, width: 5, height: 5))
         )
     }
 
@@ -168,11 +182,17 @@ final class CaptureSessionStateTests: XCTestCase {
         state.mouseDragged(to: CGPoint(x: 110, y: 110))
         state.mouseUp(at: CGPoint(x: 110, y: 110))
 
-        guard case .locked(.region(let display, let rect)) = state.phase else {
-            return XCTFail("Expected locked region, got \(state.phase)")
+        guard case .adjustingRegion(let display, let rect) = state.phase else {
+            return XCTFail("Expected adjusting region, got \(state.phase)")
         }
         XCTAssertEqual(display.id, leftDisplay.id)
         XCTAssertEqual(rect, CGRect(x: 10, y: 10, width: 100, height: 100))
+
+        state.confirmRegion()
+        guard case .locked(.region(_, let lockedRect)) = state.phase else {
+            return XCTFail("Expected locked region after confirm, got \(state.phase)")
+        }
+        XCTAssertEqual(lockedRect, CGRect(x: 10, y: 10, width: 100, height: 100))
     }
 
     func testMouseUpWithoutMouseDownIsIgnored() {
@@ -395,5 +415,79 @@ final class CaptureSessionStateTests: XCTestCase {
         let second = try await backend.capture(.display(display))
 
         XCTAssertNotEqual(first.id, second.id, "每次捕获应产生新的稳定 id")
+    }
+    // MARK: - Region nudging (Task 014/01)
+
+    /// 方向键微调：步长由调用方换算（叠层按显示器缩放给出 1 物理像素对应的逻辑点）。
+    func testNudgeMovesRegionInsideDisplay() {
+        var state = CaptureSessionState()
+        state.mouseDown(at: CGPoint(x: 100, y: 100), display: leftDisplay)
+        state.mouseDragged(to: CGPoint(x: 200, y: 180))
+        state.mouseUp(at: CGPoint(x: 200, y: 180))
+
+        XCTAssertTrue(state.nudgeRegion(axis: .horizontal, delta: 2, resize: false))
+        XCTAssertTrue(state.nudgeRegion(axis: .vertical, delta: -3, resize: false))
+        XCTAssertEqual(
+            state.phase,
+            .adjustingRegion(display: leftDisplay, globalRect: CGRect(x: 102, y: 97, width: 100, height: 80))
+        )
+    }
+
+    /// `⇧` + 方向键沿该轴对称伸缩，中心保持不变。
+    func testNudgeWithResizeGrowsSymmetrically() {
+        var state = CaptureSessionState()
+        state.mouseDown(at: CGPoint(x: 100, y: 100), display: leftDisplay)
+        state.mouseDragged(to: CGPoint(x: 200, y: 180))
+        state.mouseUp(at: CGPoint(x: 200, y: 180))
+
+        XCTAssertTrue(state.nudgeRegion(axis: .horizontal, delta: 5, resize: true))
+        XCTAssertEqual(
+            state.phase,
+            .adjustingRegion(display: leftDisplay, globalRect: CGRect(x: 95, y: 100, width: 110, height: 80)),
+            "两侧各扩 5pt，中心不变"
+        )
+    }
+
+    /// 微调不得把选区推出显示器，也不得缩到最小尺寸以下。
+    func testNudgeClampsAtDisplayBoundsAndMinimumSize() {
+        var state = CaptureSessionState()
+        state.mouseDown(at: CGPoint(x: 5, y: 5), display: leftDisplay)
+        state.mouseDragged(to: CGPoint(x: 45, y: 35))
+        state.mouseUp(at: CGPoint(x: 45, y: 35))
+
+        state.nudgeRegion(axis: .horizontal, delta: -100, resize: false)
+        guard case .adjustingRegion(_, let movedRect) = state.phase else {
+            return XCTFail("Expected adjusting region")
+        }
+        XCTAssertEqual(movedRect.minX, leftDisplay.frame.minX, "向左微调应贴到屏幕左缘")
+
+        for _ in 0..<20 {
+            state.nudgeRegion(axis: .horizontal, delta: -10, resize: true)
+        }
+        guard case .adjustingRegion(_, let shrunk) = state.phase else {
+            return XCTFail("Expected adjusting region")
+        }
+        XCTAssertEqual(shrunk.width, CaptureSessionState.minimumRegionSize, "收缩到最小尺寸即停住")
+    }
+
+    /// 非可微调态下方向键不产生任何变化。
+    func testNudgeIsIgnoredOutsideAdjustingPhase() {
+        var state = CaptureSessionState()
+        XCTAssertFalse(state.nudgeRegion(axis: .horizontal, delta: 1, resize: false))
+
+        state.mouseDown(at: CGPoint(x: 10, y: 10), display: leftDisplay)
+        state.mouseDragged(to: CGPoint(x: 110, y: 80))
+        XCTAssertFalse(state.nudgeRegion(axis: .horizontal, delta: 1, resize: false), "拖拽中不处理微调")
+    }
+
+    /// 可微调态下 `⌘A` 仍可切到整屏。
+    func testSelectFullDisplayWorksFromAdjustingPhase() {
+        var state = CaptureSessionState()
+        state.mouseDown(at: CGPoint(x: 10, y: 10), display: leftDisplay)
+        state.mouseDragged(to: CGPoint(x: 110, y: 80))
+        state.mouseUp(at: CGPoint(x: 110, y: 80))
+        state.selectFullDisplay(leftDisplay)
+
+        XCTAssertEqual(state.phase, .locked(.display(leftDisplay)))
     }
 }

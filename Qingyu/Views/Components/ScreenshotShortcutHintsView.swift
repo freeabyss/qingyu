@@ -16,6 +16,12 @@ enum ScreenshotShortcutHints {
         "screenshot.hint.releaseRegion",
         "screenshot.hint.cancel"
     ]
+    /// 可微调阶段（Task 014/01）：方向键调整、`⇧`+方向键伸缩、`Tab` 辅助线、`Enter` 确认。
+    static let regionAdjustingKeys = [
+        "screenshot.hint.nudgeRegion",
+        "screenshot.hint.confirmRegion",
+        "screenshot.hint.cancel"
+    ]
     /// 选区/目标锁定阶段。
     static let lockedKeys = [
         "screenshot.hint.enterCopy",
@@ -37,6 +43,8 @@ enum ScreenshotShortcutHints {
             return windowSelectionKeys.map { L10n.localized($0) }
         case .draggingRegion:
             return regionDraggingKeys.map { L10n.localized($0) }
+        case .adjustingRegion:
+            return regionAdjustingKeys.map { L10n.localized($0) }
         case .locked:
             return lockedKeys.map { L10n.localized($0) }
         case .cancelled:

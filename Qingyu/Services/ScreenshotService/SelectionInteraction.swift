@@ -1,6 +1,66 @@
 import CoreGraphics
 import Foundation
 
+// MARK: - Selection nudging (Task 014 / 01)
+
+/// 选区方向键微调。全部为纯函数，可在无窗口环境下单测。
+///
+/// 步长由调用方按显示器缩放换算成**物理像素 1px**（逻辑点 = 1 / scale），
+/// 因此 1×/2× 屏上"一格"都恰好是一个物理像素。
+enum SelectionNudge {
+
+    enum Axis: Equatable {
+        case horizontal
+        case vertical
+    }
+
+    /// 整体平移 `delta` 点，并保证结果仍完整落在 `bounds` 内。
+    static func move(
+        _ rect: CGRect,
+        axis: Axis,
+        delta: CGFloat,
+        bounds: CGRect
+    ) -> CGRect {
+        guard !rect.isNull, delta != 0 else { return rect }
+        var moved = rect
+        switch axis {
+        case .horizontal:
+            moved.origin.x += delta
+            moved.origin.x = min(max(moved.origin.x, bounds.minX), max(bounds.minX, bounds.maxX - moved.width))
+        case .vertical:
+            moved.origin.y += delta
+            moved.origin.y = min(max(moved.origin.y, bounds.minY), max(bounds.minY, bounds.maxY - moved.height))
+        }
+        return moved
+    }
+
+    /// 沿轴**对称**收缩 / 扩张（`delta > 0` 为扩张），中心不变。
+    ///
+    /// 受最小边长与 `bounds` 双重约束：不会把选区缩成空，也不会越出屏幕。
+    static func resize(
+        _ rect: CGRect,
+        axis: Axis,
+        delta: CGFloat,
+        bounds: CGRect,
+        minimum: CGFloat
+    ) -> CGRect {
+        guard !rect.isNull, delta != 0 else { return rect }
+        switch axis {
+        case .horizontal:
+            // 两侧各扩/缩 delta，因此总宽变化 2 * delta。
+            let width = min(max(minimum, rect.width + 2 * delta), bounds.width)
+            let center = rect.midX
+            let originX = min(max(center - width / 2, bounds.minX), max(bounds.minX, bounds.maxX - width))
+            return CGRect(x: originX, y: rect.minY, width: width, height: rect.height)
+        case .vertical:
+            let height = min(max(minimum, rect.height + 2 * delta), bounds.height)
+            let center = rect.midY
+            let originY = min(max(center - height / 2, bounds.minY), max(bounds.minY, bounds.maxY - height))
+            return CGRect(x: rect.minX, y: originY, width: rect.width, height: height)
+        }
+    }
+}
+
 // MARK: - Aspect ratio lock (Task 014 / 06)
 
 /// 拖拽时按 `⇧` 锁定长宽比：把当前点投影到"以起点为锚、按给定比例"的矩形顶点上。

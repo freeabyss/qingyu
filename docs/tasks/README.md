@@ -14,7 +14,8 @@
 - 插件仅由项目所有者开发，随主应用编译、签名和发布。
 - 用户数据保存在当前 Mac；插件按需声明并请求权限。
 - App Sandbox 保持关闭；发布保留 Hardened Runtime、Developer ID 和 Apple Notarization。
-- 代码修改提交前运行 `./scripts/bump-version.sh --bump`；主版本保持 `0`，构建号同步递增。
+- 版本由 `.githooks/pre-commit` 在提交时**自动递增**（主版本保持 `0`，构建号同步递增）；钩子幂等，已手动 bump 则跳过，不会双重递增。
+- 发布流程用 `./scripts/bump-version.sh --set 0.MINOR.PATCH BUILD` 显式设定版本。
 - 版本单一事实来源是 `Qingyu/Info.plist`；`MARKETING_VERSION`、`CURRENT_PROJECT_VERSION` 必须同步。
 - “关于”、更新和反馈从 Bundle 读取版本与构建号。
 - 新 Swift 文件必须加入 `Qingyu.xcodeproj/project.pbxproj` 对应 target。
@@ -75,7 +76,7 @@ flowchart TD
 
 - 三个内置功能以插件注册：快速启动、剪贴板、截图。
 - 设置侧栏只显示通用、功能列表下的三个功能页、关于。
-- 单一截图入口进入统一截图状态；窗口悬停默认选中窗口，菜单栏悬停默认选中全屏，圈选区域后自动截图；跨显示器移动指针后在对应显示器判定目标。
+- 单一截图入口进入统一截图状态；窗口悬停默认选中窗口，菜单栏悬停默认选中全屏；圈选区域松开后进入可微调态（方向键微调 / `⇧`+方向键伸缩 / `Tab` 辅助线），`Enter` 确认截图；跨显示器移动指针后在对应显示器判定目标。
 - 截图状态左下角显示当前可执行快捷键。
 - 自动化测试通过；真实多屏、TCC、快捷键、签名和公证有人工验收记录。
 

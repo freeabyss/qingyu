@@ -256,11 +256,14 @@ final class CaptureSessionControllerTests: XCTestCase {
         overlay?.onEvent?(.mouseDown(CGPoint(x: 10, y: 10)))
         overlay?.onEvent?(.mouseDragged(CGPoint(x: 110, y: 80)))
         overlay?.onEvent?(.mouseUp(CGPoint(x: 110, y: 80)))
+        XCTAssertNil(lockedTarget, "松开后先进入可微调态，不立即交付")
 
+        // Task 014/01：Enter（confirmSelection）是区域选区的确认动作。
+        overlay?.onEvent?(.confirmSelection)
         XCTAssertEqual(
             lockedTarget,
             .region(display: leftDisplay, globalRect: CGRect(x: 10, y: 10, width: 100, height: 70)),
-            "调用方释放引用后，叠层事件仍应驱动会话锁定区域目标"
+            "调用方释放引用后，叠层事件仍应驱动会话确认并交付区域目标"
         )
 
         weakSession?.finish()
@@ -299,7 +302,8 @@ final class CaptureSessionControllerTests: XCTestCase {
         controller.cancel()
     }
 
-    func testDraggedLocksRegionAndDeliversTarget() {
+    /// Task 014/01：拖拽松开进入可微调态，`Enter`（`confirmSelection`）才交付目标。
+    func testDraggedEntersAdjustingThenConfirmDeliversRegionTarget() {
         let (controller, _) = makeController()
         var lockedTarget: CaptureTarget?
         controller.onLocked = { lockedTarget = $0 }
@@ -309,10 +313,33 @@ final class CaptureSessionControllerTests: XCTestCase {
         controller.handle(.mouseDragged(CGPoint(x: 110, y: 80)))
         controller.handle(.mouseUp(CGPoint(x: 110, y: 80)))
 
+        XCTAssertNil(lockedTarget, "松开后不应立即交付目标")
+        guard case .adjustingRegion = controller.state.phase else {
+            return XCTFail("Expected adjusting region, got \(controller.state.phase)")
+        }
+
+        controller.handle(.confirmSelection)
         XCTAssertEqual(
             lockedTarget,
             .region(display: leftDisplay, globalRect: CGRect(x: 10, y: 10, width: 100, height: 70))
         )
+    }
+
+    /// 可微调态下方向键事件驱动状态变化，并保持会话仍存活。
+    func testNudgeSelectionEventAdjustsRegion() {
+        let (controller, _) = makeController()
+        controller.start()
+
+        controller.handle(.mouseDown(CGPoint(x: 100, y: 100)))
+        controller.handle(.mouseDragged(CGPoint(x: 200, y: 180)))
+        controller.handle(.mouseUp(CGPoint(x: 200, y: 180)))
+        controller.handle(.nudgeSelection(axis: .horizontal, delta: 2, resize: false))
+
+        guard case .adjustingRegion(_, let rect) = controller.state.phase else {
+            return XCTFail("Expected adjusting region, got \(controller.state.phase)")
+        }
+        XCTAssertEqual(rect.origin.x, 102)
+        controller.cancel()
     }
 
     /// PRD「截图与贴图」规则 2/5：菜单栏/桌面空白悬停时单击 = 当前显示器全屏截图。
@@ -355,6 +382,16 @@ final class CaptureSessionControllerTests: XCTestCase {
         XCTAssertEqual(leftWindowView?.lastHints, ScreenshotShortcutHints.hints(for: .draggingRegion(start: .zero, current: .zero, display: leftDisplay)))
 
         controller.handle(.mouseUp(CGPoint(x: 110, y: 80)))
+        guard case .adjustingRegion = controller.state.phase else {
+            return XCTFail("Expected adjusting region phase")
+        }
+        XCTAssertEqual(
+            leftWindowView?.lastHints,
+            ScreenshotShortcutHints.hints(for: .adjustingRegion(display: leftDisplay, globalRect: .zero)),
+            "可微调态应展示方向键/Enter 提示"
+        )
+
+        controller.handle(.confirmSelection)
         guard case .locked = controller.state.phase else {
             return XCTFail("Expected locked phase")
         }

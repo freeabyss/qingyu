@@ -23,6 +23,7 @@
 | 2026-09-13 | Claude | 1.0.0 隐藏截图入口（`FeatureGate.screenshotEnabled = false`：菜单项、搜索命令与空查询快捷操作、全局快捷键 F1、设置页截图插件、欢迎向导屏幕录制段均不暴露，代码保留），相关 TC（五页侧栏、F1、向导屏幕录制等截图入口类用例）暂缓执行，开关恢复后回归。 |
 | 2026-10-13 | Claude | Task 011 放大镜：第 12 节新增 1 条自动化用例 SHOT-LIFE-004（取样取消后不回调 + 在途请求合并），原手工冒烟由 SHOT-LIFE-004 顺延为 SHOT-LIFE-005。放大镜取样在叠层窗口下方按需抓屏，涉及叠层生命周期，故纳入本节。 |
 | 2026-10-13 | Claude | Task 012 窗口与控件识别：第 12 节新增 1 条自动化用例 SHOT-LIFE-005（控件探测取消后不回调 + 在途请求合并 + 关闭时零调用），手工冒烟顺延为 SHOT-LIFE-006。控件探测跑在后台队列且随会话取消，涉及叠层生命周期，故纳入本节。 |
+| 2026-10-13 | Claude | Task 014/01 选区微调：第 12 节新增 1 条自动化用例 SHOT-LIFE-006（区域选区改为「松开进入可微调态 + Enter 确认」），手工冒烟顺延为 SHOT-LIFE-007。该改动改变截图会话状态机，涉及叠层与会话生命周期，故纳入本节。 |
 
 ---
 
@@ -1169,9 +1170,14 @@ MVP 暂不覆盖：
 - **步骤**：注入可控控件探测替身（阻塞第一次调用）→ 请求探测 → 立即 `cancel()` → 放行 → 等待 → 断言无回调；另在途期间连发三次请求，断言只保留首末两次；关闭开关时断言零调用。
 - **预期结果**：取消后迟到的探测结果被丢弃，不回调到已关闭的叠层；快速移动指针时请求合并、不积压；控件探测关闭时不触碰辅助功能接口（未授权亦不弹窗、不阻断截图）。
 
+#### SHOT-LIFE-006：区域选区「可微调态」进入与确认
+- **关联**：Task 014/01 选区微调 ｜ **优先级**：P0 ｜ **类型**：XCTest ｜ **文件**：`QingyuTests/CaptureSessionStateTests.swift`（`testRegionDragEntersAdjustingThenConfirmLocks` / `testNudgeMovesRegionInsideDisplay` / `testNudgeWithResizeGrowsSymmetrically` / `testNudgeClampsAtDisplayBoundsAndMinimumSize` / `testNudgeIsIgnoredOutsideAdjustingPhase` / `testSelectFullDisplayWorksFromAdjustingPhase`）、`QingyuTests/CaptureSessionControllerTests.swift`（`testDraggedEntersAdjustingThenConfirmDeliversRegionTarget` / `testNudgeSelectionEventAdjustsRegion`）
+- **步骤**：拖拽圈选 → 松开 → 断言进入 `adjustingRegion` 且**未**交付目标 → 方向键 / `⇧`+方向键调整 → `Enter` → 断言交付区域目标。
+- **预期结果**：松开不再自动截取；方向键每次移动 1 物理像素，`⇧` 沿轴对称伸缩且中心不变；越界贴屏幕边缘、缩到最小尺寸即停住；非可微调态忽略方向键；可微调态下 `⌘A` 仍可切整屏。窗口/整屏单击仍即时锁定。
+
 ### 12.2 手工验收用例（真实屏幕录制环境）
 
-#### SHOT-LIFE-006：真实交互冒烟
+#### SHOT-LIFE-007：真实交互冒烟
 - **优先级**：P0 ｜ **类型**：手工
 - **时机**：发版前，以及任何截图链路（叠层、会话、完成协调器）改动之后。
 - **步骤**：F1 或菜单「截图」进入截图状态，依次验证：屏幕压暗；悬停窗口出现高亮框；单击截取窗口；拖拽圈选自动截取区域；`⌘A` 截当前屏；悬停菜单栏/桌面空白出现整屏提示框且单击截全屏；`Esc` 随时退出；连续多次触发后取消不残留暗幕。

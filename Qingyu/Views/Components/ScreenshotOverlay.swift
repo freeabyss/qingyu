@@ -135,6 +135,8 @@ final class CaptureOverlayContentView: NSView {
     /// Task 014/06：本次拖拽的起点与锁定的长宽比。
     private var dragStartPoint: CGPoint?
     private var lockedAspectRatio: CGFloat?
+    /// Task 014/01：`Tab` 是否按下（按下期间显示对齐辅助线）。
+    private var showsAlignmentGuides = false
 
     // Task 011：放大镜。取样在叠层下方进行，因此关闭时不会拍到自己的暗幕。
     private let magnifierConfiguration: MagnifierConfiguration
@@ -338,11 +340,52 @@ final class CaptureOverlayContentView: NSView {
     }
 
     override func keyDown(with event: NSEvent) {
+        // Task 014/01：`Tab` 按住显示对齐辅助线。
+        if event.keyCode == 48 {
+            showsAlignmentGuides = true
+            needsDisplay = true
+            return
+        }
+        // Task 014/01：方向键微调 1 物理像素；`⇧` + 方向键沿该轴对称伸缩。
+        if let axis = Self.nudgeAxis(for: event.keyCode) {
+            let direction: CGFloat = (event.keyCode == 123 || event.keyCode == 125) ? -1 : 1
+            onEvent?(.nudgeSelection(
+                axis: axis,
+                delta: nudgeStep * direction,
+                resize: event.modifierFlags.contains(.shift)
+            ))
+            return
+        }
         switch event.keyCode {
+        case 36, 76: onEvent?(.confirmSelection)         // Return / 小键盘 Enter
         case 53: onEvent?(.cancel)                       // Esc
         case 0 where event.modifierFlags.contains(.command): onEvent?(.selectFullDisplay) // ⌘A
         default: super.keyDown(with: event)
         }
+    }
+
+    override func keyUp(with event: NSEvent) {
+        if event.keyCode == 48 {
+            showsAlignmentGuides = false
+            needsDisplay = true
+            return
+        }
+        super.keyUp(with: event)
+    }
+
+    /// 方向键 → 轴：左右为水平，上下为垂直。
+    private static func nudgeAxis(for keyCode: UInt16) -> SelectionNudge.Axis? {
+        switch keyCode {
+        case 123, 124: return .horizontal
+        case 125, 126: return .vertical
+        default: return nil
+        }
+    }
+
+    /// 1 个**物理像素**换算成逻辑点；1×/2× 屏上「一格」都是 1px。
+    private var nudgeStep: CGFloat {
+        let scale = MagnifierGeometry.displayScale(frame: display.frame, pixelSize: display.pixelSize)
+        return 1 / max(scale, 0.0001)
     }
 
     // MARK: Drawing
@@ -394,7 +437,41 @@ final class CaptureOverlayContentView: NSView {
             border.stroke()
 
             drawDimensions(for: local)
+
+            // Task 014/01：`Tab` 按住时显示对齐辅助线。
+            if showsAlignmentGuides {
+                drawAlignmentGuides(for: local)
+            }
         }
+    }
+
+    /// 对齐辅助线：把选区四边与中线延伸到整屏，并叠一层屏幕中心十字。
+    private func drawAlignmentGuides(for rect: NSRect) {
+        let dash: [CGFloat] = [4, 3]
+
+        let regionPath = NSBezierPath()
+        regionPath.setLineDash(dash, count: dash.count, phase: 0)
+        regionPath.lineWidth = 1
+        for x in [rect.minX, rect.midX, rect.maxX] {
+            regionPath.move(to: NSPoint(x: x, y: bounds.minY))
+            regionPath.line(to: NSPoint(x: x, y: bounds.maxY))
+        }
+        for y in [rect.minY, rect.midY, rect.maxY] {
+            regionPath.move(to: NSPoint(x: bounds.minX, y: y))
+            regionPath.line(to: NSPoint(x: bounds.maxX, y: y))
+        }
+        JadeColor.primaryNS.withAlphaComponent(0.65).setStroke()
+        regionPath.stroke()
+
+        let centerPath = NSBezierPath()
+        centerPath.setLineDash(dash, count: dash.count, phase: 0)
+        centerPath.lineWidth = 1
+        centerPath.move(to: NSPoint(x: bounds.midX, y: bounds.minY))
+        centerPath.line(to: NSPoint(x: bounds.midX, y: bounds.maxY))
+        centerPath.move(to: NSPoint(x: bounds.minX, y: bounds.midY))
+        centerPath.line(to: NSPoint(x: bounds.maxX, y: bounds.midY))
+        NSColor.white.withAlphaComponent(0.35).setStroke()
+        centerPath.stroke()
     }
 
     private func drawDimensions(for rect: NSRect) {

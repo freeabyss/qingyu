@@ -11,6 +11,9 @@ import Foundation
 enum CaptureSessionPhase: Equatable {
     case targetingWindow(CaptureWindowCandidate?)
     case draggingRegion(start: CGPoint, current: CGPoint, display: CaptureDisplay)
+    /// Task 014/01：拖拽结束后进入**可微调态** —— 方向键调整选区，`Enter` 确认后才捕获。
+    /// 窗口/整屏的单击仍即时锁定（它们本身不需要像素级微调）。
+    case adjustingRegion(display: CaptureDisplay, globalRect: CGRect)
     case locked(CaptureTarget)
     case cancelled
 }
@@ -109,16 +112,42 @@ struct CaptureSessionState {
             height: abs(current.y - start.y)
         )
         if rect.width >= Self.minimumRegionSize, rect.height >= Self.minimumRegionSize {
-            phase = .locked(.region(display: display, globalRect: rect))
+            // Task 014/01：不再"松开即捕获"，先进入可微调态，由 `confirmRegion()`（Enter）确认。
+            phase = .adjustingRegion(display: display, globalRect: rect)
         } else {
             phase = .targetingWindow(lastWindowCandidate)
         }
     }
 
-    /// `⌘A`：锁定整个当前显示器；targeting 与拖拽阶段均可用。
+    /// 方向键微调（Task 014/01）：仅在可微调态生效。
+    /// `resize == false` 平移，`resize == true` 沿该轴对称缩放；返回是否发生变化。
+    @discardableResult
+    mutating func nudgeRegion(axis: SelectionNudge.Axis, delta: CGFloat, resize: Bool) -> Bool {
+        guard case .adjustingRegion(let display, let rect) = phase else { return false }
+        let adjusted = resize
+            ? SelectionNudge.resize(
+                rect,
+                axis: axis,
+                delta: delta,
+                bounds: display.frame,
+                minimum: Self.minimumRegionSize
+            )
+            : SelectionNudge.move(rect, axis: axis, delta: delta, bounds: display.frame)
+        guard adjusted != rect else { return false }
+        phase = .adjustingRegion(display: display, globalRect: adjusted)
+        return true
+    }
+
+    /// 确认微调后的选区（Enter）：进入锁定态，由调用方开始捕获。
+    mutating func confirmRegion() {
+        guard case .adjustingRegion(let display, let rect) = phase else { return }
+        phase = .locked(.region(display: display, globalRect: rect))
+    }
+
+    /// `⌘A`：锁定整个当前显示器；targeting、拖拽与可微调阶段均可用。
     mutating func selectFullDisplay(_ display: CaptureDisplay) {
         switch phase {
-        case .targetingWindow, .draggingRegion:
+        case .targetingWindow, .draggingRegion, .adjustingRegion:
             // 整屏锁定不受控件命中影响。
             lastElementFrame = nil
             phase = .locked(.display(display))
