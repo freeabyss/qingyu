@@ -431,6 +431,11 @@ final class AppContainer: NSObject {
         // Task 016：白板配置（底图 / 颜色 / 目标屏）。
         whiteboardSession = (try? await settingsService.value(for: .whiteboardSession, as: WhiteboardSession.self))
             ?? WhiteboardSession()
+        // Task 014/04：取色输出格式（标注窗口与白板共用）。
+        let colorOptions = (try? await settingsService.value(for: .colorValueOptions, as: ColorValueOptions.self))
+            ?? .default
+        whiteboardWindowController.colorValueOptions = colorOptions
+        screenshotWindowController.colorValueOptions = colorOptions
     }
 
     /// Task 012：把控件级探测与选区吸附设置同步到截图会话工厂。

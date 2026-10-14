@@ -134,8 +134,39 @@ struct ColorValueOptions: Equatable, Codable, Sendable {
     static let `default` = ColorValueOptions()
 }
 
+/// Task 014/04：PRD 键位表规定的两种复制形式。
+enum ColorCopyStyle: Equatable {
+    /// `C`：十六进制（受 `uppercaseHex` / `omitHash` 影响）。
+    case hex
+    /// `⇧C`：分量值（RGB 空间下为 `R, G, B`；HSV/HSL 空间下为对应分量）。
+    case components
+}
+
 /// 取色文本格式化。纯函数，可在无屏幕环境下单测。
 enum ColorValueFormatter {
+
+    /// 按复制形式生成文本。
+    static func string(
+        red: UInt8,
+        green: UInt8,
+        blue: UInt8,
+        style: ColorCopyStyle,
+        options: ColorValueOptions
+    ) -> String {
+        switch style {
+        case .hex:
+            return hex(red: red, green: green, blue: blue, options: options)
+        case .components:
+            switch options.space {
+            case .rgb:
+                // RGB 空间下十六进制是主格式（见 `string(...options:)`），
+                // 分量形式因此单独由 `ColorString.rgb` 承担。
+                return ColorString.rgb(red: red, green: green, blue: blue)
+            case .hsv, .hsl:
+                return string(red: red, green: green, blue: blue, options: options)
+            }
+        }
+    }
 
     /// 单像素颜色 + 选项 → 复制到剪贴板的文本。
     static func string(

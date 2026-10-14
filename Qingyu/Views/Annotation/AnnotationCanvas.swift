@@ -20,6 +20,11 @@ final class AnnotationCanvasState: ObservableObject {
     @Published var style = AnnotationStyle()
     /// Task 013：悬停命中的标注（用于高亮与橡皮擦提示）。
     @Published var hoveredShapeID: AnnotationShape.ID?
+    /// Task 014/04：指针最后一次落在图像上的位置（图像点坐标）。
+    ///
+    /// 取色快捷键由 SwiftUI 的隐藏按钮触发（任何焦点下都可用），因此需要状态
+    /// 记住指针位置，而不是从画布的键盘事件里取。
+    @Published var lastHoveredImagePoint: CGPoint?
 
     /// Task 013：序号工具的计数器，从 1 开始；清空或新建会话时重置。
     @Published private(set) var nextNumber: Int = 1
@@ -85,6 +90,41 @@ final class AnnotationCanvasState: ObservableObject {
         hoveredShapeID = nil
         nextNumber = 1
         objectWillChange.send()
+    }
+
+    // MARK: - Color sampling (Task 014/04)
+
+    /// 源图的**像素**尺寸（Retina 截图为点尺寸的 2 倍）。
+    var sourcePixelSize: CGSize {
+        if let rep = sourceImage.representations.first, rep.pixelsWide > 0, rep.pixelsHigh > 0 {
+            return CGSize(width: rep.pixelsWide, height: rep.pixelsHigh)
+        }
+        return imageSize
+    }
+
+    /// 把画布上的图像点（点坐标，**左下**原点）换算成源图**像素**坐标（**左上**原点）。
+    ///
+    /// 标注画布不是 flipped 视图，因此 y 需要翻转 —— 否则取色会取到上下镜像的像素。
+    /// 越界返回 nil，由调用方按「不响应」处理。
+    func sourcePixel(atImagePoint point: CGPoint) -> CGPoint? {
+        let pixels = sourcePixelSize
+        guard pixels.width > 0, pixels.height > 0, imageSize.width > 0, imageSize.height > 0 else { return nil }
+        let scaleX = pixels.width / imageSize.width
+        let scaleY = pixels.height / imageSize.height
+
+        let x = Int((point.x * scaleX).rounded(.down))
+        let y = Int(((imageSize.height - point.y) * scaleY).rounded(.down))
+        guard x >= 0, y >= 0, x < Int(pixels.width), y < Int(pixels.height) else { return nil }
+        return CGPoint(x: x, y: y)
+    }
+
+    /// 采样该图像点处的源图像素；越界或取不到位图时返回 nil。
+    func sampledColor(atImagePoint point: CGPoint) -> (red: UInt8, green: UInt8, blue: UInt8)? {
+        guard let pixel = sourcePixel(atImagePoint: point),
+              let cgImage = sourceImage.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
+            return nil
+        }
+        return ColorSampler.samplePixel(at: pixel, in: cgImage)
     }
 
     func renderedPNGData() throws -> Data {
@@ -189,6 +229,12 @@ final class AnnotationCanvasNSView: NSView {
         }
     }
 
+    /// 记录指针在图像上的位置（取色用）；移出图像时清空。
+    private func recordHoveredImagePoint(_ point: CGPoint?) {
+        guard let state, state.lastHoveredImagePoint != point else { return }
+        state.lastHoveredImagePoint = point
+    }
+
     override func scrollWheel(with event: NSEvent) {
         guard state != nil, !event.modifierFlags.contains(.command) else {
             super.scrollWheel(with: event)
@@ -210,6 +256,7 @@ final class AnnotationCanvasNSView: NSView {
     override func mouseDown(with event: NSEvent) {
         window?.makeFirstResponder(self)
         guard let state, let point = imagePoint(from: convert(event.locationInWindow, from: nil)) else { return }
+        recordHoveredImagePoint(point)
 
         // 橡皮擦：整条删除，可撤销。
         if state.tool == .eraser {
@@ -317,6 +364,7 @@ final class AnnotationCanvasNSView: NSView {
     override func mouseMoved(with event: NSEvent) {
         guard let state else { return }
         let point = imagePoint(from: convert(event.locationInWindow, from: nil))
+        recordHoveredImagePoint(point)
         let hovered = point.flatMap {
             AnnotationHitTest.hit(point: $0, shapes: state.shapes, tolerance: Self.hitTolerance)
         }

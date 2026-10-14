@@ -2561,6 +2561,132 @@
         }
       }
     },
+    "annotation.colorSample.unavailable" : {
+      "comment" : "Toast: color sampling needs a pointer position over the image",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Point at a pixel on the image first."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请先把指针移到画面上的像素上。"
+          }
+        }
+      }
+    },
+    "settings.colorValue.section" : {
+      "comment" : "Section: color value output format",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Color value format"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "取色格式"
+          }
+        }
+      }
+    },
+    "settings.colorValue.space" : {
+      "comment" : "Picker: color space for component output",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Color space"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "色彩空间"
+          }
+        }
+      }
+    },
+    "settings.colorValue.uppercaseHex" : {
+      "comment" : "Switch: uppercase hexadecimal digits",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uppercase hex"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "大写十六进制"
+          }
+        }
+      }
+    },
+    "settings.colorValue.omitHash" : {
+      "comment" : "Switch: omit the leading hash",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Omit the # prefix"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "省略 # 前缀"
+          }
+        }
+      }
+    },
+    "settings.colorValue.spacedComponents" : {
+      "comment" : "Switch: separate components with a space",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Space between components"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分量之间加空格"
+          }
+        }
+      }
+    },
+    "settings.colorValue.preview" : {
+      "comment" : "Live preview of the color value format",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preview: %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "预览：%@"
+          }
+        }
+      }
+    },
     "annotation.cancel" : {
       "comment" : "Cancel button in annotation editor",
       "extractionState" : "stale",

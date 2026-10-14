@@ -39,6 +39,8 @@ struct ScreenshotPluginSettingsPage: View {
     @State private var gestureBindings = ScreenshotGestureBindings.default
     /// Task 014/07：四角热区。
     @State private var hotCorners = HotCornerConfiguration.default
+    /// Task 014/04：取色输出格式。
+    @State private var colorValueOptions = ColorValueOptions.default
     /// Task 016：白板（底图种类 + 纯色）。
     @State private var whiteboardBackground: WhiteboardBackgroundKind = .solid
     @State private var whiteboardColorHex = WhiteboardSession.defaultSolidColorHex
@@ -313,6 +315,42 @@ struct ScreenshotPluginSettingsPage: View {
                 }
             }
 
+            // Task 014/04：取色输出格式（标注窗口与白板内 `C` / `⇧C` 生效）。
+            SettingsSection("settings.colorValue.section") {
+                HStack {
+                    Text(L10n.localized("settings.colorValue.space"))
+                        .font(JadeFont.body)
+                        .foregroundStyle(JadeColor.textPrimary)
+                    Spacer()
+                    Picker("", selection: colorValueSpaceBinding) {
+                        Text("RGB").tag(ColorValueSpace.rgb)
+                        Text("HSV").tag(ColorValueSpace.hsv)
+                        Text("HSL").tag(ColorValueSpace.hsl)
+                    }
+                    .labelsHidden()
+                    .pickerStyle(.segmented)
+                    .frame(maxWidth: 240)
+                }
+                JadeSettingsDivider()
+                JadeSwitchRow(
+                    L10n.localized("settings.colorValue.uppercaseHex"),
+                    isOn: colorValueOptionBinding(\.uppercaseHex)
+                )
+                JadeSettingsDivider()
+                JadeSwitchRow(
+                    L10n.localized("settings.colorValue.omitHash"),
+                    isOn: colorValueOptionBinding(\.omitHash)
+                )
+                JadeSettingsDivider()
+                JadeSwitchRow(
+                    L10n.localized("settings.colorValue.spacedComponents"),
+                    isOn: colorValueOptionBinding(\.spacedComponents)
+                )
+                Text(L10n.localized("settings.colorValue.preview", colorPreview))
+                    .font(JadeFont.caption)
+                    .foregroundStyle(JadeColor.textTertiary)
+            }
+
             // Task 016：白板。纯色底图不读取屏幕，因此不需要屏幕录制权限。
             SettingsSection("settings.whiteboard.section") {
                 HStack {
@@ -520,6 +558,8 @@ private func recorderRow(_ row: RecorderRow) -> some View {
             ?? .default
         hotCorners = ((try? await viewModel.value(for: .screenshotHotCorners, as: HotCornerConfiguration.self))
             ?? .default).sanitized()
+        colorValueOptions = (try? await viewModel.value(for: .colorValueOptions, as: ColorValueOptions.self))
+            ?? .default
         let whiteboard = (try? await viewModel.value(for: .whiteboardSession, as: WhiteboardSession.self))
             ?? WhiteboardSession()
         whiteboardBackground = whiteboard.background
@@ -558,6 +598,49 @@ private func recorderRow(_ row: RecorderRow) -> some View {
                 Task { try? await viewModel.set(raw, for: .magnifierOptions) }
             }
         )
+    }
+
+    // MARK: - Task 014/04 取色格式
+
+    /// 预览用的固定样本色（避免预览随指针变化而闪烁）。
+    private static let colorPreviewSample: (UInt8, UInt8, UInt8) = (58, 123, 213)
+
+    private var colorPreview: String {
+        let sample = Self.colorPreviewSample
+        let hex = ColorValueFormatter.string(
+            red: sample.0, green: sample.1, blue: sample.2,
+            style: .hex, options: colorValueOptions
+        )
+        let components = ColorValueFormatter.string(
+            red: sample.0, green: sample.1, blue: sample.2,
+            style: .components, options: colorValueOptions
+        )
+        return "\(hex)  ·  \(components)"
+    }
+
+    private var colorValueSpaceBinding: Binding<ColorValueSpace> {
+        Binding(
+            get: { colorValueOptions.space },
+            set: { newValue in
+                colorValueOptions.space = newValue
+                persistColorValueOptions()
+            }
+        )
+    }
+
+    private func colorValueOptionBinding(_ keyPath: WritableKeyPath<ColorValueOptions, Bool>) -> Binding<Bool> {
+        Binding(
+            get: { colorValueOptions[keyPath: keyPath] },
+            set: { newValue in
+                colorValueOptions[keyPath: keyPath] = newValue
+                persistColorValueOptions()
+            }
+        )
+    }
+
+    private func persistColorValueOptions() {
+        let snapshot = colorValueOptions
+        Task { try? await viewModel.set(snapshot, for: .colorValueOptions) }
     }
 
     // MARK: - Task 016 白板

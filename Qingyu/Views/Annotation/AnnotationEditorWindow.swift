@@ -12,12 +12,17 @@ final class AnnotationEditorWindow: NSWindowController, NSWindowDelegate {
     private let onComplete: (AnnotationEditorCompletion) -> Void
     private let presentationFrame: NSRect?
     private let initialTool: AnnotationTool
+    /// Task 014/04：取色输出格式；`present()` 时从设置装载。
+    private var colorOptions: ColorValueOptions = .default
+    /// Task 014/04：取色后的轻量反馈（复用了预览阶段「短提示」的做法）。
+    private let toast = AnnotationToastModel()
 
     init(
         image: NSImage,
         captureDate: Date,
         presentationFrame: NSRect? = nil,
         initialTool: AnnotationTool = .rectangle,
+        colorValueOptions: ColorValueOptions = .default,
         onCopy: @escaping (Data) throws -> Void,
         onSave: @escaping (Data, Date) throws -> URL,
         onComplete: @escaping (AnnotationEditorCompletion) -> Void
@@ -29,6 +34,7 @@ final class AnnotationEditorWindow: NSWindowController, NSWindowDelegate {
         self.onComplete = onComplete
         self.presentationFrame = presentationFrame
         self.initialTool = initialTool
+        self.colorOptions = colorValueOptions
         super.init(window: nil)
     }
 
@@ -38,6 +44,10 @@ final class AnnotationEditorWindow: NSWindowController, NSWindowDelegate {
         state.tool = initialTool
         let root = AnnotationEditorRootView(
             state: state,
+            toast: toast,
+            onRequestColorSample: { [weak self] shifted in
+                self?.sampleColor(shifted: shifted)
+            },
             onUndo: { [weak self] in self?.undo() },
             onRedo: { [weak self] in self?.redo() },
             onCancel: { [weak self] in self?.cancel() },
@@ -70,6 +80,46 @@ final class AnnotationEditorWindow: NSWindowController, NSWindowDelegate {
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
         self.window = window
+        Task { @MainActor in await loadColorOptions() }
+    }
+
+    // MARK: - Color sampling (Task 014/04)
+
+    /// 跟随设置刷新（注入值作为首帧默认，避免设置读取延迟导致首次取色用错格式）。
+    private func loadColorOptions() async {
+        let service = SettingsService(persistence: .shared)
+        colorOptions = (try? await service.value(for: .colorValueOptions, as: ColorValueOptions.self)) ?? colorOptions
+    }
+
+    /// `C` / `⇧C`：取指针所在像素的颜色并复制到剪贴板（PRD 键位表）。
+    ///
+    /// 采样直接来自画布底图，**不重新抓屏**：既不需要额外权限，也保证取到的
+    /// 就是用户看到的那一个像素。
+    private func sampleColor(shifted: Bool) {
+        guard let point = state.lastHoveredImagePoint else {
+            toast.show(L10n.localized("annotation.colorSample.unavailable"))
+            return
+        }
+        copyColor(at: point, shifted: shifted)
+    }
+
+    private func copyColor(at point: CGPoint, shifted: Bool) {
+        guard let color = state.sampledColor(atImagePoint: point) else {
+            toast.show(L10n.localized("annotation.colorSample.unavailable"))
+            return
+        }
+        let text = ColorValueFormatter.string(
+            red: color.red,
+            green: color.green,
+            blue: color.blue,
+            style: shifted ? .components : .hex,
+            options: colorOptions
+        )
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(text, forType: .string)
+        logger.info("Color copied: \(text, privacy: .public)")
+        toast.show(text)
     }
 
     private func computeWindowRect() -> NSRect {
@@ -168,8 +218,25 @@ private final class AnnotationEditorPanel: NSWindow {
     }
 }
 
+/// Task 014/04：标注窗口内的短提示（取色结果 / 取不到）。
+@MainActor
+final class AnnotationToastModel: ObservableObject {
+    @Published var message: String?
+
+    func show(_ message: String, duration: TimeInterval = 1.5) {
+        self.message = message
+        DispatchQueue.main.asyncAfter(deadline: .now() + duration) { [weak self] in
+            if self?.message == message {
+                self?.message = nil
+            }
+        }
+    }
+}
+
 private struct AnnotationEditorRootView: View {
     @ObservedObject var state: AnnotationCanvasState
+    @ObservedObject var toast: AnnotationToastModel
+    let onRequestColorSample: (Bool) -> Void
     let onUndo: () -> Void
     let onRedo: () -> Void
     let onCancel: () -> Void
@@ -182,6 +249,21 @@ private struct AnnotationEditorRootView: View {
             // Black canvas fills the whole window (P-05).
             AnnotationCanvasView(state: state, onRequestTextInput: onRequestTextInput)
                 .ignoresSafeArea()
+
+            if let message = toast.message {
+                VStack {
+                    Spacer()
+                    Text(message)
+                        .font(JadeFont.callout)
+                        .foregroundStyle(JadeColor.textPrimary)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(JadeColor.surface1)
+                        .jadeRadius(.md)
+                        .padding(.bottom, 96)
+                }
+                .allowsHitTesting(false)
+            }
 
             VStack {
                 AnnotationTopToolbar(state: state)
@@ -207,6 +289,11 @@ private struct AnnotationEditorRootView: View {
         ZStack {
             Button(action: onCopy) { EmptyView() }
                 .keyboardShortcut("c", modifiers: .command)
+            // Task 014/04：`C` / `⇧C` 取色（PRD 键位表）。
+            Button { onRequestColorSample(false) } label: { EmptyView() }
+                .keyboardShortcut("c", modifiers: [])
+            Button { onRequestColorSample(true) } label: { EmptyView() }
+                .keyboardShortcut("c", modifiers: [.shift])
             Button(action: onSave) { EmptyView() }
                 .keyboardShortcut("s", modifiers: .command)
             Button(action: onCancel) { EmptyView() }

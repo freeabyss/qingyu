@@ -16,6 +16,10 @@ final class ScreenshotWindowController {
     /// Task 011：放大镜配置。由 `AppContainer.syncRuntimeSettings()` 从设置同步；
     /// 默认值与 `MagnifierConfiguration.default` 一致，未改设置时行为不变。
     var magnifierConfiguration: MagnifierConfiguration = .default
+    /// Task 014/04：取色输出格式（标注窗口内 `C` / `⇧C` 使用）。
+    var colorValueOptions: ColorValueOptions = .default {
+        didSet { toolbar.colorValueOptions = colorValueOptions }
+    }
     /// Task 014/05：预览阶段可配置手势（Enter / 双击 / 中键 / 右键）。
     var gestureBindings: ScreenshotGestureBindings = .default {
         didSet { toolbar.gestureBindings = gestureBindings }

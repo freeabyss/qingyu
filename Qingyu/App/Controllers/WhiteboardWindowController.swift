@@ -60,6 +60,9 @@ final class WhiteboardWindowController {
             let state = AnnotationCanvasState(image: baseImage)
             let root = WhiteboardRootView(
                 state: state,
+                onSampleColor: { [weak self, weak state] shifted in
+                    self?.sampleColor(from: state, shifted: shifted)
+                },
                 onUndo: { [weak state] in state?.undo() },
                 onRedo: { [weak state] in state?.redo() },
                 onClear: { [weak state] in state?.clearAll() },
@@ -126,6 +129,27 @@ final class WhiteboardWindowController {
         onDismiss?()
     }
 
+    // MARK: - Color sampling (Task 014/04)
+
+    /// 白板同样支持取色：与标注窗口共用同一套采样与格式化实现。
+    private func sampleColor(from state: AnnotationCanvasState?, shifted: Bool) {
+        guard let state, let point = state.lastHoveredImagePoint,
+              let color = state.sampledColor(atImagePoint: point) else { return }
+        let text = ColorValueFormatter.string(
+            red: color.red,
+            green: color.green,
+            blue: color.blue,
+            style: shifted ? .components : .hex,
+            options: colorValueOptions
+        )
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(text, forType: .string)
+    }
+
+    /// 取色输出格式（由调用方按设置注入）。
+    var colorValueOptions: ColorValueOptions = .default
+
     // MARK: - Actions
 
     private func copy(_ state: AnnotationCanvasState?) {
@@ -169,6 +193,7 @@ final class WhiteboardPanel: NSWindow {
 
 private struct WhiteboardRootView: View {
     @ObservedObject var state: AnnotationCanvasState
+    let onSampleColor: (Bool) -> Void
     let onUndo: () -> Void
     let onRedo: () -> Void
     let onClear: () -> Void
@@ -229,6 +254,11 @@ private struct WhiteboardRootView: View {
                 .keyboardShortcut("z", modifiers: [.command, .shift])
             Button(action: onExit) { EmptyView() }
                 .keyboardShortcut(.cancelAction)
+            // Task 014/04：`C` / `⇧C` 取色（与标注窗口一致）。
+            Button { onSampleColor(false) } label: { EmptyView() }
+                .keyboardShortcut("c", modifiers: [])
+            Button { onSampleColor(true) } label: { EmptyView() }
+                .keyboardShortcut("c", modifiers: [.shift])
         }
         .opacity(0)
         .allowsHitTesting(false)

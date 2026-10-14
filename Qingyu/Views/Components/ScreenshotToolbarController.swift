@@ -53,6 +53,9 @@ final class ScreenshotToolbarController {
         }
     }
 
+    /// Task 014/04：取色输出格式（标注窗口内 `C` / `⇧C` 使用）。
+    var colorValueOptions: ColorValueOptions = .default
+
     /// Task 014/05：预览阶段的手势绑定（默认 Enter 复制并结束，其余不响应）。
     var gestureBindings: ScreenshotGestureBindings = .default
 
@@ -364,6 +367,7 @@ final class ScreenshotToolbarController {
             captureDate: result.captureDate,
             presentationFrame: startedFromRegion ? selection?.globalRect : nil,
             initialTool: initialTool,
+            colorValueOptions: colorValueOptions,
             onCopy: { [weak self] pngData in
                 try self?.copyToPasteboard(pngData)
             },

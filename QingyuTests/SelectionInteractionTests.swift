@@ -199,3 +199,141 @@ final class SelectionNudgeTests: XCTestCase {
         )
     }
 }
+
+
+// MARK: - Task 014/04：截图期取色落地
+
+@MainActor
+final class ColorSamplingTests: XCTestCase {
+
+    /// 构造 4×4 位图：**下半**蓝、**上半**绿（用 `NSGraphicsContext` 填充，
+    /// 这是唯一在本环境下确实写入像素的方式；`setColor` 会静默无效）。
+    private func makeImage(scale: CGFloat = 1) -> (NSImage, CGImage) {
+        let pixelWidth = 4
+        let pixelHeight = 4
+        let rep = NSBitmapImageRep(
+            bitmapDataPlanes: nil,
+            pixelsWide: pixelWidth,
+            pixelsHigh: pixelHeight,
+            bitsPerSample: 8,
+            samplesPerPixel: 4,
+            hasAlpha: true,
+            isPlanar: false,
+            colorSpaceName: .deviceRGB,
+            bytesPerRow: 0,
+            bitsPerPixel: 0
+        )!
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: rep)
+        // NSGraphicsContext 原点在左下：y 0..2 是图像下半部分。
+        NSColor.blue.setFill()
+        NSRect(x: 0, y: 0, width: 4, height: 2).fill()
+        NSColor.green.setFill()
+        NSRect(x: 0, y: 2, width: 4, height: 2).fill()
+        NSGraphicsContext.restoreGraphicsState()
+
+        let image = NSImage(size: CGSize(width: CGFloat(pixelWidth) / scale, height: CGFloat(pixelHeight) / scale))
+        image.addRepresentation(rep)
+        return (image, rep.cgImage!)
+    }
+
+    func testSourcePixelSizeUsesBitmapPixels() {
+        let (image, _) = makeImage(scale: 1)
+        let state = AnnotationCanvasState(image: image)
+
+        XCTAssertEqual(state.sourcePixelSize, CGSize(width: 4, height: 4))
+    }
+
+    func testSourcePixelFlipsVerticalAxis() {
+        let (image, _) = makeImage(scale: 1)
+        let state = AnnotationCanvasState(image: image)
+
+        // 图像点坐标左下原点：y=0 是图像底部 → 像素第 3 行。
+        XCTAssertEqual(state.sourcePixel(atImagePoint: CGPoint(x: 0.5, y: 0.5)), CGPoint(x: 0, y: 3))
+        XCTAssertEqual(state.sourcePixel(atImagePoint: CGPoint(x: 3.5, y: 3.5)), CGPoint(x: 3, y: 0))
+        // 越界返回 nil。
+        XCTAssertNil(state.sourcePixel(atImagePoint: CGPoint(x: -1, y: 0)))
+        XCTAssertNil(state.sourcePixel(atImagePoint: CGPoint(x: 0, y: 5)))
+    }
+
+    func testSourcePixelHandlesRetinaScale() {
+        // 2 倍图：点尺寸 2×2，像素 4×4。
+        let (image, _) = makeImage(scale: 2)
+        let state = AnnotationCanvasState(image: image)
+
+        XCTAssertEqual(state.sourcePixelSize, CGSize(width: 4, height: 4))
+        XCTAssertEqual(
+            state.sourcePixel(atImagePoint: CGPoint(x: 0.25, y: 0.25)),
+            CGPoint(x: 0, y: 3),
+            "2 倍图上 0.25 点对应第 0 像素列、倒数第 1 像素行"
+        )
+    }
+
+    func testSampledColorMatchesKnownPixels() throws {
+        let (image, _) = makeImage(scale: 1)
+        let state = AnnotationCanvasState(image: image)
+
+        // 图像点左下原点：(0.5, 0.5) 在图像下半 → 蓝。
+        let bottom = try XCTUnwrap(state.sampledColor(atImagePoint: CGPoint(x: 0.5, y: 0.5)))
+        XCTAssertLessThan(bottom.red, 40, "下半应为蓝：红分量接近 0")
+        XCTAssertLessThan(bottom.green, 40, "下半应为蓝：绿分量接近 0")
+        XCTAssertGreaterThan(bottom.blue, 200)
+
+        // (0.5, 3.5) 在图像上半 → 绿。若 y 未翻转，这里会取到蓝，断言即失败。
+        let top = try XCTUnwrap(state.sampledColor(atImagePoint: CGPoint(x: 0.5, y: 3.5)))
+        XCTAssertGreaterThan(top.green, 200, "上半应为绿：绿分量接近满值")
+        XCTAssertLessThan(top.blue, 40, "y 必须翻转，否则上半会取到下半的颜色")
+    }
+
+    func testSampledColorReturnsNilOutsideImage() {
+        let (image, _) = makeImage(scale: 1)
+        let state = AnnotationCanvasState(image: image)
+
+        XCTAssertNil(state.sampledColor(atImagePoint: CGPoint(x: 99, y: 99)))
+    }
+
+    // MARK: 复制形式
+
+    func testHexStyleHonoursOptions() {
+        let options = ColorValueOptions(space: .rgb, uppercaseHex: false, omitHash: true, spacedComponents: false)
+
+        XCTAssertEqual(
+            ColorValueFormatter.string(red: 58, green: 123, blue: 213, style: .hex, options: options),
+            "3a7bd5"
+        )
+    }
+
+    func testComponentStyleUsesRGBTripletForRGBSpace() {
+        let options = ColorValueOptions(space: .rgb, uppercaseHex: true, omitHash: false, spacedComponents: false)
+
+        XCTAssertEqual(
+            ColorValueFormatter.string(red: 58, green: 123, blue: 213, style: .components, options: options),
+            "58, 123, 213",
+            "⇧C 在 RGB 空间下复制分量值，而不是十六进制"
+        )
+    }
+
+    func testComponentStyleUsesConfiguredSpaceForHSVAndHSL() {
+        let hsv = ColorValueOptions(space: .hsv, uppercaseHex: true, omitHash: false, spacedComponents: true)
+        let hsl = ColorValueOptions(space: .hsl, uppercaseHex: true, omitHash: false, spacedComponents: false)
+
+        XCTAssertNotEqual(
+            ColorValueFormatter.string(red: 58, green: 123, blue: 213, style: .components, options: hsv),
+            ColorValueFormatter.string(red: 58, green: 123, blue: 213, style: .components, options: hsl)
+        )
+        XCTAssertTrue(
+            ColorValueFormatter.string(red: 58, green: 123, blue: 213, style: .components, options: hsv)
+                .contains(", "),
+            "spacedComponents 生效"
+        )
+    }
+
+    func testColorValueOptionsCodableRoundTrip() throws {
+        let options = ColorValueOptions(space: .hsl, uppercaseHex: false, omitHash: true, spacedComponents: true)
+
+        let data = try JSONEncoder().encode(options)
+        let decoded = try JSONDecoder().decode(ColorValueOptions.self, from: data)
+
+        XCTAssertEqual(decoded, options)
+    }
+}
