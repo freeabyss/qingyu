@@ -7249,6 +7249,42 @@
         }
       }
     },
+    "management.screenshot.format.png" : {
+      "comment" : "Export format: PNG (lossless, keeps transparency)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PNG"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PNG"
+          }
+        }
+      }
+    },
+    "management.screenshot.format.jpeg" : {
+      "comment" : "Export format: JPEG (smaller files, no transparency)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "JPEG"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "JPEG"
+          }
+        }
+      }
+    },
     "management.screenshot.format" : {
       "comment" : "Screenshot format section",
       "extractionState" : "stale",
@@ -7267,38 +7303,20 @@
         }
       }
     },
-    "management.screenshot.format.jpgDisabled" : {
-      "comment" : "JPG disabled tooltip",
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "JPG is not supported yet (PNG only for now)"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "暂不支持 JPG(当前仅 PNG)"
-          }
-        }
-      }
-    },
     "management.screenshot.format.note" : {
-      "comment" : "Screenshot format note",
-      "extractionState" : "stale",
+      "comment" : "Note under the export format picker",
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "MVP supports PNG only; more formats coming later."
+            "value" : "Applies to saved files. The clipboard always receives PNG so transparency is preserved."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "MVP 仅支持 PNG,更多格式后续开放。"
+            "value" : "仅作用于保存到磁盘的文件。剪贴板始终写入 PNG，以保留透明区域。"
           }
         }
       }

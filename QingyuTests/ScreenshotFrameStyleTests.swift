@@ -234,3 +234,130 @@ final class ScreenshotFrameStyleTests: XCTestCase {
         return rep.representation(using: .png, properties: [:])!
     }
 }
+
+
+// MARK: - JPEG 导出格式
+
+final class ScreenshotImageFormatTests: XCTestCase {
+
+    private func makePNG(width: Int, height: Int, color: NSColor = .red) -> Data {
+        let rep = NSBitmapImageRep(
+            bitmapDataPlanes: nil, pixelsWide: width, pixelsHigh: height,
+            bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
+            colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0
+        )!
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: rep)
+        color.setFill()
+        NSRect(x: 0, y: 0, width: width, height: height).fill()
+        NSGraphicsContext.restoreGraphicsState()
+        return rep.representation(using: .png, properties: [:])!
+    }
+
+    /// 带透明区域的 PNG：用于验证 JPEG 白底压平。
+    private func makeTransparentPNG(width: Int, height: Int) -> Data {
+        let rep = NSBitmapImageRep(
+            bitmapDataPlanes: nil, pixelsWide: width, pixelsHigh: height,
+            bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
+            colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0
+        )!
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: rep)
+        NSColor.clear.setFill()
+        NSRect(x: 0, y: 0, width: width, height: height).fill()
+        NSColor.red.setFill()
+        NSRect(x: 0, y: 0, width: width / 2, height: height).fill()
+        NSGraphicsContext.restoreGraphicsState()
+        return rep.representation(using: .png, properties: [:])!
+    }
+
+    func testDefaultFormatIsPNGSoBehaviorDoesNotRegress() throws {
+        let suiteName = "ScreenshotImageFormatTests-\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        XCTAssertEqual(ScreenshotImageFormat.default, .png)
+        XCTAssertEqual(ScreenshotImageFormat.current(from: defaults), .png)
+
+        defaults.set("somethingElse", forKey: ScreenshotImageFormat.DefaultsKey.imageFormat)
+        XCTAssertEqual(ScreenshotImageFormat.current(from: defaults), .png, "非法值回落 PNG")
+    }
+
+    func testCurrentReadsStoredFormat() throws {
+        let suiteName = "ScreenshotImageFormatTests-\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        defaults.set(ScreenshotImageFormat.jpeg.rawValue, forKey: ScreenshotImageFormat.DefaultsKey.imageFormat)
+        XCTAssertEqual(ScreenshotImageFormat.current(from: defaults), .jpeg)
+    }
+
+    func testFileExtensions() {
+        XCTAssertEqual(ScreenshotImageFormat.png.fileExtension, "png")
+        XCTAssertEqual(ScreenshotImageFormat.jpeg.fileExtension, "jpg")
+    }
+
+    func testPNGEncodingIsByteIdentical() {
+        let png = makePNG(width: 8, height: 8)
+
+        XCTAssertEqual(
+            ScreenshotImageEncoder.encode(png, format: .png),
+            png,
+            "PNG 必须原样返回，保证导出逐字节不变"
+        )
+    }
+
+    func testJPEGEncodingProducesJPEGData() throws {
+        let png = makePNG(width: 16, height: 16)
+
+        let jpeg = ScreenshotImageEncoder.encode(png, format: .jpeg)
+
+        XCTAssertNotEqual(jpeg, png)
+        // JPEG 以 SOI 标记 FF D8 开头、以 EOI 标记 FF D9 结尾。
+        XCTAssertEqual(Array(jpeg.prefix(2)), [0xFF, 0xD8])
+        XCTAssertEqual(Array(jpeg.suffix(2)), [0xFF, 0xD9])
+    }
+
+    func testJPEGKeepsPixelDimensions() throws {
+        let png = makePNG(width: 20, height: 12)
+
+        let jpeg = try XCTUnwrap(ScreenshotImageEncoder.encodeJPEG(png))
+        let rep = try XCTUnwrap(NSBitmapImageRep(data: jpeg))
+
+        XCTAssertEqual(rep.pixelsWide, 20)
+        XCTAssertEqual(rep.pixelsHigh, 12, "JPEG 编码不得改变像素尺寸")
+    }
+
+    func testJPEGFlattensTransparencyToWhiteInsteadOfBlack() throws {
+        let png = makeTransparentPNG(width: 20, height: 20)
+
+        let jpeg = try XCTUnwrap(ScreenshotImageEncoder.encodeJPEG(png))
+        let rep = try XCTUnwrap(NSBitmapImageRep(data: jpeg))
+        let right = try XCTUnwrap(rep.colorAt(x: 18, y: 10)?.usingColorSpace(.sRGB))
+
+        // 透明区域应压平为白底：若被当作黑色，JPEG 上会出现明显黑边。
+        XCTAssertGreaterThan(right.redComponent, 0.9)
+        XCTAssertGreaterThan(right.greenComponent, 0.9)
+        XCTAssertGreaterThan(right.blueComponent, 0.9)
+    }
+
+    func testJPEGEncodingReturnsNilForGarbage() {
+        XCTAssertNil(ScreenshotImageEncoder.encodeJPEG(Data([0x00, 0x01])))
+    }
+
+    func testUndecodableDataFallsBackToOriginal() {
+        let garbage = Data([0x00, 0x01, 0x02])
+
+        XCTAssertEqual(
+            ScreenshotImageEncoder.encode(garbage, format: .jpeg),
+            garbage,
+            "编码失败时回退原数据，绝不产出空文件"
+        )
+    }
+
+    func testFormatLocalizationKeys() {
+        for format in ScreenshotImageFormat.allCases {
+            XCTAssertFalse(L10n.localized(format.localizationKey).isEmpty)
+        }
+    }
+}

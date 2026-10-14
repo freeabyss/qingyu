@@ -53,6 +53,11 @@ final class ScreenshotToolbarController {
         }
     }
 
+    /// 导出格式读取（默认读设置；测试可注入固定值）。
+    ///
+    /// 保存时才读取而不是启动时快照：用户改完设置无需重启即可生效。
+    var imageFormatProvider: () -> ScreenshotImageFormat = { ScreenshotImageFormat.current() }
+
     /// 截图后行为策略（保存后同时复制）。
     var postCapturePolicy: ScreenshotPostCapturePolicy = .default
 
@@ -295,7 +300,7 @@ final class ScreenshotToolbarController {
             }
         case .save:
             do {
-                let url = try savePNG(result.imageData, date: result.captureDate)
+                let url = try saveImage(result.imageData, date: result.captureDate)
                 copyAfterSaveIfNeeded(result.imageData)
                 if regionCleanup != nil {
                     dismiss(reason: .action)
@@ -389,7 +394,7 @@ final class ScreenshotToolbarController {
             },
             onSave: { [weak self] pngData, date in
                 guard let self else { throw SnapVaultError.screenshotFailed(reason: L10n.localized("error.serviceDeallocated")) }
-                return try self.savePNG(pngData, date: date)
+                return try self.saveImage(pngData, date: date)
             },
             onComplete: { [weak self, weak viewModel] completion in
                 Task { @MainActor in
@@ -430,19 +435,25 @@ final class ScreenshotToolbarController {
     }
 
     @discardableResult
-    private func savePNG(_ pngData: Data, date: Date) throws -> URL {
+    /// 按当前导出格式落盘（PNG 逐字节原样；JPEG 白底压平后重新编码）。
+    private func saveImage(_ imageData: Data, date: Date) throws -> URL {
         let fileManager = FileManager.default
         let directory = configuredSaveDirectory()
         try fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
 
+        let format = imageFormatProvider()
+        let encoded = ScreenshotImageEncoder.encode(imageData, format: format)
+
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.dateFormat = "yyyy-MM-dd HH.mm.ss"
-        var url = directory.appendingPathComponent("Screenshot \(formatter.string(from: date)).png")
+        var url = directory.appendingPathComponent(
+            "Screenshot \(formatter.string(from: date)).\(format.fileExtension)"
+        )
         if fileManager.fileExists(atPath: url.path) {
             url = uniqueURL(baseURL: url)
         }
-        try pngData.write(to: url, options: .atomic)
+        try encoded.write(to: url, options: .atomic)
         logger.info("Screenshot saved to \(url.path, privacy: .public)")
         return url
     }

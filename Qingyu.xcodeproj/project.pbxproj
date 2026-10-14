@@ -51,6 +51,7 @@
 		B017000000000000000000B2 /* CapturePresetStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B017000000000000000000B1 /* CapturePresetStore.swift */; };
 		B017000000000000000000A2 /* CapturePreset.swift in Sources */ = {isa = PBXBuildFile; fileRef = B017000000000000000000A1 /* CapturePreset.swift */; };
 		B018000000000000000000A2 /* ScreenshotGestureBindings.swift in Sources */ = {isa = PBXBuildFile; fileRef = B018000000000000000000A1 /* ScreenshotGestureBindings.swift */; };
+		B01C000000000000000000A2 /* ScreenshotImageFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = B01C000000000000000000A1 /* ScreenshotImageFormat.swift */; };
 		B01B000000000000000000A2 /* ScreenshotPostCapturePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = B01B000000000000000000A1 /* ScreenshotPostCapturePolicy.swift */; };
 		B019000000000000000000A2 /* HotCornerMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B019000000000000000000A1 /* HotCornerMonitor.swift */; };
 
@@ -257,6 +258,7 @@
 		B017000000000000000000B1 /* Qingyu/Services/ScreenshotService/CapturePresetStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingyu/Services/ScreenshotService/CapturePresetStore.swift; sourceTree = SOURCE_ROOT; };
 		B017000000000000000000A1 /* Qingyu/Models/CapturePreset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingyu/Models/CapturePreset.swift; sourceTree = SOURCE_ROOT; };
 		B018000000000000000000A1 /* Qingyu/Services/ScreenshotService/ScreenshotGestureBindings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingyu/Services/ScreenshotService/ScreenshotGestureBindings.swift; sourceTree = SOURCE_ROOT; };
+		B01C000000000000000000A1 /* Qingyu/Services/ScreenshotService/ScreenshotImageFormat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingyu/Services/ScreenshotService/ScreenshotImageFormat.swift; sourceTree = SOURCE_ROOT; };
 		B01B000000000000000000A1 /* Qingyu/Services/ScreenshotService/ScreenshotPostCapturePolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingyu/Services/ScreenshotService/ScreenshotPostCapturePolicy.swift; sourceTree = SOURCE_ROOT; };
 		B019000000000000000000A1 /* Qingyu/Services/ScreenshotService/HotCornerMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingyu/Services/ScreenshotService/HotCornerMonitor.swift; sourceTree = SOURCE_ROOT; };
 
@@ -810,6 +812,7 @@
 				B017000000000000000000B1 /* Qingyu/Services/ScreenshotService/CapturePresetStore.swift */,
 				B017000000000000000000A1 /* Qingyu/Models/CapturePreset.swift */,
 				B018000000000000000000A1 /* Qingyu/Services/ScreenshotService/ScreenshotGestureBindings.swift */,
+				B01C000000000000000000A1 /* Qingyu/Services/ScreenshotService/ScreenshotImageFormat.swift */,
 				B01B000000000000000000A1 /* Qingyu/Services/ScreenshotService/ScreenshotPostCapturePolicy.swift */,
 				B019000000000000000000A1 /* Qingyu/Services/ScreenshotService/HotCornerMonitor.swift */,
 
@@ -1179,6 +1182,7 @@
 				B017000000000000000000B2 /* Qingyu/Services/ScreenshotService/CapturePresetStore.swift in Sources */,
 				B017000000000000000000A2 /* Qingyu/Models/CapturePreset.swift in Sources */,
 				B018000000000000000000A2 /* Qingyu/Services/ScreenshotService/ScreenshotGestureBindings.swift in Sources */,
+				B01C000000000000000000A2 /* Qingyu/Services/ScreenshotService/ScreenshotImageFormat.swift in Sources */,
 				B01B000000000000000000A2 /* Qingyu/Services/ScreenshotService/ScreenshotPostCapturePolicy.swift in Sources */,
 				B019000000000000000000A2 /* Qingyu/Services/ScreenshotService/HotCornerMonitor.swift in Sources */,
 
@@ -1435,7 +1439,7 @@
 				CODE_SIGN_ENTITLEMENTS = Qingyu/Qingyu.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 360;
+				CURRENT_PROJECT_VERSION = 361;
 				DEVELOPMENT_TEAM = 454XB348PX;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -1444,7 +1448,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.3.60;
+				MARKETING_VERSION = 0.3.61;
 				PRODUCT_BUNDLE_IDENTIFIER = com.freeabyss.qingyu;
 				PRODUCT_MODULE_NAME = Qingyu;
 				PRODUCT_NAME = Qingyu;
@@ -1460,7 +1464,7 @@
 				CODE_SIGN_ENTITLEMENTS = Qingyu/Qingyu.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 360;
+				CURRENT_PROJECT_VERSION = 361;
 				DEVELOPMENT_TEAM = 454XB348PX;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -1469,7 +1473,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.3.60;
+				MARKETING_VERSION = 0.3.61;
 				PRODUCT_BUNDLE_IDENTIFIER = com.freeabyss.qingyu;
 				PRODUCT_MODULE_NAME = Qingyu;
 				PRODUCT_NAME = Qingyu;

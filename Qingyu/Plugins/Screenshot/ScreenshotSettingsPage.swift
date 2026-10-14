@@ -14,6 +14,8 @@ struct ScreenshotPluginSettingsPage: View {
 
     // 这两个开关此前从未被消费；接通后默认值改为「关」，保证不加配置时行为与
     // 接通前完全一致（符合「默认值下行为不倒退」）。
+    /// 导出格式（落盘用；剪贴板始终 PNG）。默认 PNG = 与引入前一致。
+    @AppStorage(ScreenshotImageFormat.DefaultsKey.imageFormat) private var imageFormatRaw = ScreenshotImageFormat.default.rawValue
     @AppStorage(ScreenshotPostCapturePolicy.DefaultsKey.copyToClipboard) private var copyToClipboard = false
     @AppStorage(ScreenshotPostCapturePolicy.DefaultsKey.playSound) private var playSound = false
     @AppStorage("screenshot.includeShadow") private var includeShadow = true
@@ -109,14 +111,13 @@ struct ScreenshotPluginSettingsPage: View {
             }
 
             SettingsSection("management.screenshot.format") {
-                Picker("", selection: .constant(0)) {
-                    Text("PNG").tag(0)
-                    Text("JPG").tag(1)
+                Picker("", selection: imageFormat) {
+                    ForEach(ScreenshotImageFormat.allCases, id: \.self) { format in
+                        Text(L10n.localized(format.localizationKey)).tag(format)
+                    }
                 }
                 .labelsHidden()
                 .pickerStyle(.segmented)
-                .disabled(true)
-                .help(L10n.localized("management.screenshot.format.jpgDisabled"))
                 Text(L10n.localized("management.screenshot.format.note"))
                     .font(JadeFont.caption)
                     .foregroundStyle(JadeColor.textTertiary)
@@ -593,6 +594,14 @@ private func recorderRow(_ row: RecorderRow) -> some View {
     private func persistColorValueOptions() {
         let snapshot = colorValueOptions
         Task { try? await viewModel.set(snapshot, for: .colorValueOptions) }
+    }
+
+    /// 导出格式：以 rawValue 存 UserDefaults，非法值回落 PNG。
+    private var imageFormat: Binding<ScreenshotImageFormat> {
+        Binding(
+            get: { ScreenshotImageFormat(rawValue: imageFormatRaw) ?? .default },
+            set: { imageFormatRaw = $0.rawValue }
+        )
     }
 
     // MARK: - Task 014/07 四角热区

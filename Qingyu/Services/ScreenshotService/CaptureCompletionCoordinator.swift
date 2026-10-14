@@ -35,6 +35,9 @@ struct CaptureCompletionHandlers {
     var savePanel: @MainActor (String) async -> URL?
     /// 贴图转换（Task 008 注入）；未注入时贴图不可用。
     var pin: ((ScreenshotResult) async throws -> UUID)?
+    /// 导出**落盘**格式（PNG / JPEG）；默认 PNG，与引入前行为一致。
+    /// 剪贴板路径不使用它（始终 PNG，见 `ScreenshotImageFormat` 的说明）。
+    var imageFormat: () -> ScreenshotImageFormat = { .png }
     /// Task 014/03：导出前的圆角 / 边框 / 阴影装饰。`nil` 或全关时原样导出。
     ///
     /// 只作用于「复制 / 保存 / 快捷保存」；贴图与打印沿用原始像素
@@ -61,6 +64,7 @@ struct CaptureCompletionHandlers {
                 return panel.runModal() == .OK ? panel.url : nil
             },
             pin: nil,
+            imageFormat: { ScreenshotImageFormat.current() },
             decorate: { result in
                 let style = ScreenshotFrameStyle.current()
                 return style.decorated(result, scale: ScreenshotFrameStyle.displayScale())
@@ -130,16 +134,17 @@ final class CaptureCompletionCoordinator {
             guard let url = await handlers.savePanel(handlers.suggestedFilename(result)) else {
                 throw SnapVaultError.screenshotFailed(reason: SnapVaultError.userCancelledReason)
             }
-            try Self.writePNG((await decorated(result)).imageData, to: url)
+            try Self.writeImage((await decorated(result)).imageData, to: url, format: handlers.imageFormat())
             return .completed(.saved(url))
 
         case .quickSave:
             let directory = await handlers.quickSaveDirectory()
             try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            let format = handlers.imageFormat()
             let url = directory
                 .appendingPathComponent(handlers.suggestedFilename(result))
-                .appendingPathExtension("png")
-            try Self.writePNG((await decorated(result)).imageData, to: url)
+                .appendingPathExtension(format.fileExtension)
+            try Self.writeImage((await decorated(result)).imageData, to: url, format: format)
             return .completed(.quickSaved(url))
 
         case .pin:
@@ -175,8 +180,13 @@ final class CaptureCompletionCoordinator {
     }
 
     static func writePNG(_ data: Data, to url: URL) throws {
+        try writeImage(data, to: url, format: .png)
+    }
+
+    /// 按格式编码后写盘。PNG 原样、JPEG 白底压平后重编码。
+    static func writeImage(_ data: Data, to url: URL, format: ScreenshotImageFormat) throws {
         do {
-            try data.write(to: url, options: .atomic)
+            try ScreenshotImageEncoder.encode(data, format: format).write(to: url, options: .atomic)
         } catch {
             throw CaptureCompletionError.fileWriteFailed
         }
