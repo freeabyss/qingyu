@@ -35,6 +35,11 @@ struct CaptureCompletionHandlers {
     var savePanel: @MainActor (String) async -> URL?
     /// 贴图转换（Task 008 注入）；未注入时贴图不可用。
     var pin: ((ScreenshotResult) async throws -> UUID)?
+    /// Task 014/03：导出前的圆角 / 边框 / 阴影装饰。`nil` 或全关时原样导出。
+    ///
+    /// 只作用于「复制 / 保存 / 快捷保存」；贴图与打印沿用原始像素
+    /// （贴图窗口自带阴影、且需对齐屏幕上原选区位置）。
+    var decorate: ((ScreenshotResult) async -> ScreenshotResult)? = nil
     /// 打印（仅结束会话，不产生记录）。NSImageView/NSPrintOperation 为 MainActor 隔离。
     var print: (@MainActor (ScreenshotResult) -> Void)?
 
@@ -56,6 +61,10 @@ struct CaptureCompletionHandlers {
                 return panel.runModal() == .OK ? panel.url : nil
             },
             pin: nil,
+            decorate: { result in
+                let style = ScreenshotFrameStyle.current()
+                return style.decorated(result, scale: ScreenshotFrameStyle.displayScale())
+            },
             print: { result in
                 let imageView = NSImageView(frame: NSRect(
                     x: 0, y: 0,
@@ -114,14 +123,14 @@ final class CaptureCompletionCoordinator {
     private func resolve(_ action: CaptureCompletionAction, result: ScreenshotResult) async throws -> CaptureCompletionOutcome {
         switch action {
         case .copy:
-            try Self.copyToPasteboard(result)
+            try Self.copyToPasteboard(await decorated(result))
             return .completed(.copied)
 
         case .save:
             guard let url = await handlers.savePanel(handlers.suggestedFilename(result)) else {
                 throw SnapVaultError.screenshotFailed(reason: SnapVaultError.userCancelledReason)
             }
-            try Self.writePNG(result.imageData, to: url)
+            try Self.writePNG((await decorated(result)).imageData, to: url)
             return .completed(.saved(url))
 
         case .quickSave:
@@ -130,7 +139,7 @@ final class CaptureCompletionCoordinator {
             let url = directory
                 .appendingPathComponent(handlers.suggestedFilename(result))
                 .appendingPathExtension("png")
-            try Self.writePNG(result.imageData, to: url)
+            try Self.writePNG((await decorated(result)).imageData, to: url)
             return .completed(.quickSaved(url))
 
         case .pin:
@@ -150,6 +159,12 @@ final class CaptureCompletionCoordinator {
     }
 
     // MARK: - Helpers
+
+    /// Task 014/03：按当前圆角 / 边框 / 阴影设置装饰结果图；未注入或全关时原样返回。
+    private func decorated(_ result: ScreenshotResult) async -> ScreenshotResult {
+        guard let decorate = handlers.decorate else { return result }
+        return await decorate(result)
+    }
 
     static func copyToPasteboard(_ result: ScreenshotResult) throws {
         let pasteboard = NSPasteboard.general

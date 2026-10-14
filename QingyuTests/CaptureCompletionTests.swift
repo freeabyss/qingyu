@@ -127,3 +127,81 @@ extension CaptureCompletionHandlers {
         )
     }
 }
+
+// MARK: - Task 014/03：导出装饰挂载点
+
+extension CaptureCompletionTests {
+    /// 用固定字节替换图像，便于在终局产物上断言装饰是否生效。
+    private func decorateHandlers(
+        marker: Data,
+        into handlers: inout CaptureCompletionHandlers
+    ) {
+        handlers.decorate = { result in
+            ScreenshotResult(
+                id: result.id,
+                imageData: marker,
+                width: 12,
+                height: 8,
+                captureDate: result.captureDate,
+                sourceType: result.sourceType,
+                regionSelection: result.regionSelection
+            )
+        }
+    }
+
+    func testCopyExportsDecoratedPixels() async throws {
+        let marker = Data("decorated-png".utf8)
+        var handlers = CaptureCompletionHandlers.testHandlers()
+        decorateHandlers(marker: marker, into: &handlers)
+        let coordinator = CaptureCompletionCoordinator(handlers: handlers)
+
+        _ = try await coordinator.perform(.copy, result: makeResult())
+
+        XCTAssertEqual(NSPasteboard.general.data(forType: .png), marker)
+    }
+
+    func testSaveWritesDecoratedPixels() async throws {
+        let marker = Data("decorated-png".utf8)
+        let targetURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("CaptureCompletionDecorated-\(UUID().uuidString).png")
+        defer { try? FileManager.default.removeItem(at: targetURL) }
+
+        var handlers = CaptureCompletionHandlers.testHandlers()
+        handlers.savePanel = { _ in targetURL }
+        decorateHandlers(marker: marker, into: &handlers)
+        let coordinator = CaptureCompletionCoordinator(handlers: handlers)
+
+        _ = try await coordinator.perform(.save, result: makeResult())
+
+        XCTAssertEqual(try Data(contentsOf: targetURL), marker)
+    }
+
+    /// 贴图与打印必须拿到原始像素：贴图窗口自带阴影，且要沿用在屏幕上的选区位置。
+    func testPinAndPrintKeepOriginalPixels() async throws {
+        var decoratedCalls = 0
+        var pinnedImageData: Data?
+        var printedImageData: Data?
+
+        var handlers = CaptureCompletionHandlers.testHandlers()
+        handlers.decorate = { result in
+            decoratedCalls += 1
+            return result
+        }
+        handlers.pin = { result in
+            pinnedImageData = result.imageData
+            return UUID()
+        }
+        handlers.print = { result in
+            printedImageData = result.imageData
+        }
+        let coordinator = CaptureCompletionCoordinator(handlers: handlers)
+        let original = makeResult()
+
+        _ = try await coordinator.perform(.pin, result: original)
+        _ = try await coordinator.perform(.print, result: original)
+
+        XCTAssertEqual(decoratedCalls, 0, "贴图与打印不应经过导出装饰")
+        XCTAssertEqual(pinnedImageData, original.imageData)
+        XCTAssertEqual(printedImageData, original.imageData)
+    }
+}

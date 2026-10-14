@@ -16,6 +16,13 @@ struct ScreenshotPluginSettingsPage: View {
     @AppStorage("screenshot.playSound") private var playSound = true
     @AppStorage("screenshot.includeShadow") private var includeShadow = true
 
+    // Task 014/03：导出结果图的外观。默认全 0 = 不装饰，导出内容与开启本能力前逐字节一致。
+    @AppStorage(ScreenshotFrameStyle.DefaultsKey.cornerRadius) private var frameCornerRadius = 0.0
+    @AppStorage(ScreenshotFrameStyle.DefaultsKey.borderWidth) private var frameBorderWidth = 0.0
+    @AppStorage(ScreenshotFrameStyle.DefaultsKey.borderColor) private var frameBorderColor = "#000000"
+    @AppStorage(ScreenshotFrameStyle.DefaultsKey.shadowWidth) private var frameShadowWidth = 0.0
+    @AppStorage(ScreenshotFrameStyle.DefaultsKey.shadowColor) private var frameShadowColor = "#000000"
+
     @State private var pinFilePathToImage = true
     @State private var pinRestoreCapacity = PinStore.defaultRestoreCapacity
     @State private var magnifierEnabled = MagnifierConfiguration.default.isEnabled
@@ -92,8 +99,49 @@ struct ScreenshotPluginSettingsPage: View {
                 JadeSwitchRow(L10n.localized("management.screenshot.copyToClipboard"), isOn: $copyToClipboard)
                 JadeSettingsDivider()
                 JadeSwitchRow(L10n.localized("management.screenshot.playSound"), isOn: $playSound)
-                JadeSettingsDivider()
+            }
+
+            // Task 014/03：导出结果图的外观（圆角 / 边框 / 阴影）。
+            // 只影响「复制 / 保存」，贴图与打印沿用原始像素。
+            SettingsSection("management.screenshot.frame") {
                 JadeSwitchRow(L10n.localized("management.screenshot.includeShadow"), isOn: $includeShadow)
+                Text(L10n.localized("management.screenshot.frame.note"))
+                    .font(JadeFont.caption)
+                    .foregroundStyle(JadeColor.textTertiary)
+                JadeSettingsDivider()
+                frameSlider(
+                    titleKey: "management.screenshot.frame.cornerRadius",
+                    value: $frameCornerRadius,
+                    range: 0...60,
+                    upperUnit: "pt"
+                )
+                JadeSettingsDivider()
+                frameSlider(
+                    titleKey: "management.screenshot.frame.shadowWidth",
+                    value: $frameShadowWidth,
+                    range: 0...60,
+                    upperUnit: "pt"
+                )
+                .disabled(!includeShadow)
+                JadeSettingsDivider()
+                colorRow(
+                    titleKey: "management.screenshot.frame.shadowColor",
+                    hex: $frameShadowColor
+                )
+                .disabled(!includeShadow)
+                JadeSettingsDivider()
+                frameSlider(
+                    titleKey: "management.screenshot.frame.borderWidth",
+                    value: $frameBorderWidth,
+                    range: 0...20,
+                    upperUnit: "pt"
+                )
+                JadeSettingsDivider()
+                colorRow(
+                    titleKey: "management.screenshot.frame.borderColor",
+                    hex: $frameBorderColor
+                )
+                .disabled(frameBorderWidth <= 0)
             }
 
             // Task 011：放大镜。关闭时整个分区置灰但保留当前取值，便于对照。
@@ -280,6 +328,56 @@ private func recorderRow(_ row: RecorderRow) -> some View {
                 }
                 let raw = magnifierOptions.map(\.rawValue).sorted()
                 Task { try? await viewModel.set(raw, for: .magnifierOptions) }
+            }
+        )
+    }
+
+    // MARK: - Task 014/03 外观控件
+
+    /// 带数值回显的滑杆行：0 明确显示「0 pt」，避免用户误以为开关失效。
+    private func frameSlider(
+        titleKey: String,
+        value: Binding<Double>,
+        range: ClosedRange<Double>,
+        upperUnit: String
+    ) -> some View {
+        VStack(alignment: .leading, spacing: JadeSpace.x2.value) {
+            HStack {
+                Text(L10n.localized(titleKey))
+                    .font(JadeFont.body)
+                    .foregroundStyle(JadeColor.textPrimary)
+                Spacer()
+                Text("\(Int(value.wrappedValue.rounded())) \(upperUnit)")
+                    .font(JadeFont.callout)
+                    .foregroundStyle(JadeColor.textSecondary)
+            }
+            Slider(value: value, in: range, step: 1)
+        }
+    }
+
+    /// 颜色行：以 `#RRGGBB` 存盘，直接复用 `ScreenshotFrameStyle` 的解析规则。
+    private func colorRow(titleKey: String, hex: Binding<String>) -> some View {
+        HStack {
+            Text(L10n.localized(titleKey))
+                .font(JadeFont.body)
+                .foregroundStyle(JadeColor.textPrimary)
+            Spacer()
+            ColorPicker("", selection: colorBinding(hex))
+                .labelsHidden()
+        }
+    }
+
+    private func colorBinding(_ hex: Binding<String>) -> Binding<Color> {
+        Binding(
+            get: { Color(nsColor: NSColor(hexString: hex.wrappedValue) ?? .black) },
+            set: { newValue in
+                guard let ns = NSColor(newValue).usingColorSpace(.sRGB) else { return }
+                hex.wrappedValue = String(
+                    format: "#%02X%02X%02X",
+                    Int((ns.redComponent * 255).rounded()),
+                    Int((ns.greenComponent * 255).rounded()),
+                    Int((ns.blueComponent * 255).rounded())
+                )
             }
         )
     }

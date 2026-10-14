@@ -6241,6 +6241,132 @@
         }
       }
     },
+    "management.screenshot.frame" : {
+      "comment" : "Section: exported screenshot framing options",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screenshot appearance"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "截图外观"
+          }
+        }
+      }
+    },
+    "management.screenshot.frame.borderColor" : {
+      "comment" : "Color picker: border color",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Border color"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "边框颜色"
+          }
+        }
+      }
+    },
+    "management.screenshot.frame.borderWidth" : {
+      "comment" : "Slider: border width in points",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Border width"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "边框宽度"
+          }
+        }
+      }
+    },
+    "management.screenshot.frame.cornerRadius" : {
+      "comment" : "Slider: corner radius in points",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Corner radius"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "圆角半径"
+          }
+        }
+      }
+    },
+    "management.screenshot.frame.note" : {
+      "comment" : "Note under the framing section",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Applies to copied and saved images; pins and printing keep the original pixels."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "仅作用于「复制」与「保存」的图片；贴图与打印沿用原始画面。"
+          }
+        }
+      }
+    },
+    "management.screenshot.frame.shadowColor" : {
+      "comment" : "Color picker: shadow color",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shadow color"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "阴影颜色"
+          }
+        }
+      }
+    },
+    "management.screenshot.frame.shadowWidth" : {
+      "comment" : "Slider: shadow blur radius in points",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shadow spread"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "阴影扩散"
+          }
+        }
+      }
+    },
     "management.screenshot.includeShadow" : {
       "comment" : "Option: include window shadow",
       "extractionState" : "stale",

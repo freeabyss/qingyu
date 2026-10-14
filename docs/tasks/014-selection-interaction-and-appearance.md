@@ -31,7 +31,15 @@
 
 **规则：** 导出结果图支持四圆角半径、边框宽度与颜色、阴影宽度与颜色，四项可独立开关，默认值等于当前固定行为（阴影开关沿用现有 `screenshot.includeShadow`）。颜色从设计系统调色板取，允许自定义。参数非法（负值、超上限）时钳制到合法范围而非报错。
 
-**验收：** 单测覆盖参数钳制与「关与开」的像素差异；真实导出 PNG 对比四项参数各变一次的结果。
+**落实（2026-10-14）：** 新增 `ScreenshotFrameStyle`（几何为纯函数，绘制走显式 `NSBitmapImageRep`，尺寸严格等于几何计算值，不受当前屏幕缩放影响）。
+
+- **默认全关即纯增量**：四项默认 0 → `isIdentity`，`applying(to:)` 原样返回源字节，导出结果与引入本能力前**逐字节一致**；`decorated()` 在全关时连解码都不做。
+- **单位与缩放**：样式数值单位为**点**，绘制时按 `NSScreen.backingScaleFactor` 折算成位图像素，因此 Retina 截图上「8 点圆角」看上去就是 8 点。
+- **作用范围**：只作用于**复制 / 保存 / 快捷保存**；贴图与打印沿用原始像素 —— 贴图窗口自带阴影，且必须沿用在屏幕上的原选区位置（装饰会改变图像尺寸，导致贴图错位）。
+- **非法值钳制**：负值 / `NaN` → 0，超上限（圆角与阴影 120 点、边框 60 点）截断，不报错。
+- **顺带修复既有缺陷**：设置页的 `screenshot.includeShadow` 此前**没有任何消费者**（拨了没反应的死开关），本次接入导出链路；`screenshot.copyToClipboard` 与 `screenshot.playSound` 仍是死开关，见文末「关于截图设置页的三个死开关」。
+
+**验收：** 单测覆盖参数钳制、几何（含 2 倍屏折算）、像素差异（圆角处透明、边框着色、阴影留白）、默认值读取与 `decorated()` 的 id/尺寸语义（`ScreenshotFrameStyleTests`，13 条），以及协调器挂载点（复制/保存套用装饰、贴图/打印不套用，`CaptureCompletionTests`，3 条）；真实导出 PNG 对比四项参数各变一次的结果。
 
 ## 04 — 取色输出格式
 
@@ -60,7 +68,7 @@
 ## 文件
 
 - 新建：`Qingyu/Services/ScreenshotService/SelectionNudge.swift`（移动/缩放纯函数）
-- 新建：`Qingyu/Services/ScreenshotService/OverlayAppearance.swift`（圆角/边框/阴影导出参数）
+- 新建：`Qingyu/Services/ScreenshotService/ScreenshotFrameStyle.swift`（圆角/边框/阴影导出参数；几何纯函数 + 显式位图绘制）
 - 新建：`Qingyu/Services/ScreenshotService/ColorValueFormatter.swift`
 - 新建：`Qingyu/Services/ScreenshotService/HotCornerMonitor.swift`
 - 修改：`Qingyu/Views/Components/ScreenshotOverlay.swift`
@@ -138,11 +146,23 @@ protocol HotCornerMonitoring: AnyObject {
 |---|---|---|
 | 01 选区微调与辅助线 | ✅ 已交付 | 产品决策已确认（2026-10-13）：**圈选区域松开后进入可微调态**（新增 `CaptureSessionPhase.adjustingRegion`），方向键移动 1 物理像素、`⇧`+方向键沿轴对称伸缩、`Tab` 按住显示对齐辅助线、`Enter` 确认截取、`Esc` 取消。窗口/整屏单击仍即时锁定（它们本身不需要像素级微调）。`docs/prd/02-ui-spec.md` 与 `docs/tasks/README.md` 的产品规则已同步更新。 |
 | 02 笔宽与工具快捷键 | ✅ 已交付 | `[` / `]` 与滚轮在三档笔宽间步进（到边界不循环）。数字键 `1`-`9` 已被 Task 013 的工具条分组占用，因此**不做** `1` / `2` 数字预设（原计划的该部分取消，避免与工具选择冲突）。 |
-| 03 选区圆角/边框/阴影可配置 | ⛔ 未开工 | 需要在导出链路上新增一层合成（圆角裁剪 + 描边 + 阴影），涉及 `CaptureCompletionCoordinator` 的产物管线。 |
+| 03 选区圆角/边框/阴影可配置 | ✅ 已交付 | 新增 `ScreenshotFrameStyle` + `CaptureCompletionHandlers.decorate` 挂载点，接入「复制/保存/快捷保存」；默认全关时逐字节保持原行为。顺带接上了此前无人消费的 `screenshot.includeShadow`。 |
 | 04 取色输出格式 | 🟡 核心已交付，落地入口缺失 | `ColorValueFormatter` + `ColorValueOptions`（RGB/HSV/HSL、十六进制大小写、省略 `#`、分量分隔）已实现并**被 `ColorString.hex` 复用**（保证是活代码）。但**尚未接入设置项与截图期取色入口**：全项目只有贴图的颜色标签在用 `ColorString`，`ColorSampler` 并未被截图链路调用 —— 也就是说「取色格式」目前缺少可配置的落地点；接通它需要先做「截图期取色」这个功能本身。 |
 | 05 鼠标动作可配置 | ⛔ 未开工 | 需要新增设置项 + 会话分发矩阵（Enter / 双击 / 中键 / 右键）。 |
 | 06 长宽比锁定 | ✅ 已交付 | 拖拽选区时按住 `⇧` 锁定长宽比：**首次按下时以当时的选区比例**为准，之后沿该比例投影；松开 `⇧` 立即恢复自由拖拽。 |
 | 07 屏幕四角热区 | ⛔ 未开工 | 需要全局鼠标监听 + 停顿判定 + 去重，并新增设置项。 |
+
+### 关于截图设置页的三个死开关
+
+排查 03 时发现设置页「截图后」分区里的三个开关**全项目没有任何消费者**，属于「拨了没反应」的假设置：
+
+| 键 | 现状 | 处理 |
+|---|---|---|
+| `screenshot.includeShadow` | 无消费者 | 03 已接入导出链路（阴影总开关） |
+| `screenshot.copyToClipboard` | 无消费者 | 未接：复制本身就是独立终局动作，需要一个「按 Enter 后是否同时写入剪贴板」的语义定义，属产品决策 |
+| `screenshot.playSound` | 无消费者 | 未接：需要先定「哪一步播放什么音效」，属产品决策 |
+
+后两项留待产品确认语义后接入；在此之前它们仍是无效开关（建议后续版本要么接线、要么从设置页摘掉）。
 
 ### 关于 04 的一处默认值决策
 
