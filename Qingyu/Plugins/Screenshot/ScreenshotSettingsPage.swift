@@ -37,6 +37,8 @@ struct ScreenshotPluginSettingsPage: View {
     @State private var presets: [CapturePreset] = []
     /// Task 014/05：预览阶段手势绑定。
     @State private var gestureBindings = ScreenshotGestureBindings.default
+    /// Task 014/07：四角热区。
+    @State private var hotCorners = HotCornerConfiguration.default
     @State private var pendingPresetDeletion: CapturePreset?
     @State private var presetStore = CapturePresetStore(
         persistence: SettingsCapturePresetPersistence(settings: SettingsService(persistence: .shared))
@@ -308,6 +310,61 @@ struct ScreenshotPluginSettingsPage: View {
                 }
             }
 
+            // Task 014/07：屏幕四角热区（默认关闭）。
+            SettingsSection("settings.hotCorners.section") {
+                JadeSwitchRow(
+                    L10n.localized("settings.hotCorners.enabled"),
+                    isOn: hotCornerEnabledBinding
+                )
+                Text(L10n.localized("settings.hotCorners.note"))
+                    .font(JadeFont.caption)
+                    .foregroundStyle(JadeColor.textTertiary)
+                JadeSettingsDivider()
+                VStack(alignment: .leading, spacing: JadeSpace.x2.value) {
+                    HStack {
+                        Text(L10n.localized("settings.hotCorners.size"))
+                            .font(JadeFont.body)
+                            .foregroundStyle(JadeColor.textPrimary)
+                        Spacer()
+                        Text("\(Int(hotCorners.size)) pt")
+                            .font(JadeFont.callout)
+                            .foregroundStyle(JadeColor.textSecondary)
+                    }
+                    Slider(value: hotCornerSizeBinding, in: 2...Double(HotCornerConfiguration.maximumSize), step: 1)
+                }
+                JadeSettingsDivider()
+                VStack(alignment: .leading, spacing: JadeSpace.x2.value) {
+                    HStack {
+                        Text(L10n.localized("settings.hotCorners.dwell"))
+                            .font(JadeFont.body)
+                            .foregroundStyle(JadeColor.textPrimary)
+                        Spacer()
+                        Text(String(format: "%.1f s", hotCorners.dwell))
+                            .font(JadeFont.callout)
+                            .foregroundStyle(JadeColor.textSecondary)
+                    }
+                    Slider(value: hotCornerDwellBinding, in: 0.1...Double(HotCornerConfiguration.maximumDwell), step: 0.1)
+                }
+                ForEach(HotCorner.allCases, id: \.self) { corner in
+                    JadeSettingsDivider()
+                    HStack {
+                        Text(L10n.localized(corner.localizationKey))
+                            .font(JadeFont.body)
+                            .foregroundStyle(JadeColor.textPrimary)
+                        Spacer()
+                        Picker("", selection: hotCornerActionBinding(corner)) {
+                            ForEach(HotCornerAction.allCases, id: \.self) { action in
+                                Text(L10n.localized(action.localizationKey)).tag(action)
+                            }
+                        }
+                        .labelsHidden()
+                        .pickerStyle(.menu)
+                        .frame(maxWidth: 180)
+                    }
+                }
+            }
+            .disabled(!hotCorners.isEnabled)
+
             // Task 014/05：预览阶段（截图完成后、工具条出现时）的手势动作。
             SettingsSection("settings.gestures.section") {
                 ForEach(Array(ScreenshotGesture.allCases.enumerated()), id: \.element) { index, gesture in
@@ -415,6 +472,8 @@ private func recorderRow(_ row: RecorderRow) -> some View {
         presets = presetStore.catalog.ordered
         gestureBindings = (try? await viewModel.value(for: .screenshotGestureBindings, as: ScreenshotGestureBindings.self))
             ?? .default
+        hotCorners = ((try? await viewModel.value(for: .screenshotHotCorners, as: HotCornerConfiguration.self))
+            ?? .default).sanitized()
         pinShowsShortcutHints = (try? await viewModel.value(for: .pinShowsShortcutHints, as: Bool.self)) ?? true
         let storedSnapThreshold = try? await viewModel.value(for: .pinSnapThreshold, as: Double.self)
         pinSnapThreshold = Double(PinSnapping.sanitizedThreshold(storedSnapThreshold ?? Double(PinSnapping.defaultThreshold)))
@@ -449,6 +508,53 @@ private func recorderRow(_ row: RecorderRow) -> some View {
                 Task { try? await viewModel.set(raw, for: .magnifierOptions) }
             }
         )
+    }
+
+    // MARK: - Task 014/07 四角热区
+
+    private var hotCornerEnabledBinding: Binding<Bool> {
+        Binding(
+            get: { hotCorners.isEnabled },
+            set: { newValue in
+                hotCorners.isEnabled = newValue
+                persistHotCorners()
+            }
+        )
+    }
+
+    private var hotCornerSizeBinding: Binding<Double> {
+        Binding(
+            get: { Double(hotCorners.size) },
+            set: { newValue in
+                hotCorners.size = CGFloat(newValue)
+                persistHotCorners()
+            }
+        )
+    }
+
+    private var hotCornerDwellBinding: Binding<Double> {
+        Binding(
+            get: { hotCorners.dwell },
+            set: { newValue in
+                hotCorners.dwell = newValue
+                persistHotCorners()
+            }
+        )
+    }
+
+    private func hotCornerActionBinding(_ corner: HotCorner) -> Binding<HotCornerAction> {
+        Binding(
+            get: { hotCorners.action(for: corner) },
+            set: { newValue in
+                hotCorners.set(newValue, for: corner)
+                persistHotCorners()
+            }
+        )
+    }
+
+    private func persistHotCorners() {
+        let snapshot = hotCorners.sanitized()
+        Task { try? await viewModel.set(snapshot, for: .screenshotHotCorners) }
     }
 
     // MARK: - Task 014/05 手势绑定

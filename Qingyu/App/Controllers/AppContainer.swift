@@ -138,6 +138,21 @@ final class AppContainer: NSObject {
     private(set) lazy var commandBarController = CommandBarController(container: self)
     private(set) lazy var clipboardHistoryWindowController = ClipboardHistoryWindowController(container: self)
     private(set) lazy var settingsWindowController = SettingsWindowController(container: self)
+    /// Task 014/07：四角热区监听（默认关闭，由运行时设置决定是否启动）。
+    private(set) lazy var hotCornerMonitor: HotCornerMonitor = {
+        let monitor = HotCornerMonitor()
+        monitor.onTrigger = { [weak self] _, action in
+            guard let self else { return }
+            switch action {
+            case .regionCapture:
+                self.screenshotWindowController.startCapture()
+            case .ignore:
+                break
+            }
+        }
+        return monitor
+    }()
+
     /// Task 015：截图预设仓库（区域 / 尺寸）。会话开始时装入控制器，会话期只读。
     private(set) lazy var capturePresetStore = CapturePresetStore(
         persistence: SettingsCapturePresetPersistence(settings: settingsService)
@@ -316,6 +331,10 @@ final class AppContainer: NSObject {
         let bindings = (try? await settingsService.value(for: .screenshotGestureBindings, as: ScreenshotGestureBindings.self))
             ?? ScreenshotGestureBindings.default
         screenshotWindowController.gestureBindings = bindings
+        // Task 014/07：四角热区（默认关闭时监听器保持停止，不产生任何轮询开销）。
+        let hotCorners = (try? await settingsService.value(for: .screenshotHotCorners, as: HotCornerConfiguration.self))
+            ?? .default
+        hotCornerMonitor.configuration = hotCorners.sanitized()
     }
 
     /// Task 012：把控件级探测与选区吸附设置同步到截图会话工厂。

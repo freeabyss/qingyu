@@ -847,6 +847,204 @@
         }
       }
     },
+    "settings.hotCorners.section" : {
+      "comment" : "Section: hot corner trigger configuration",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hot corners"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "屏幕四角热区"
+          }
+        }
+      }
+    },
+    "settings.hotCorners.enabled" : {
+      "comment" : "Switch: enable hot corner triggers",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable hot corners"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开启四角热区"
+          }
+        }
+      }
+    },
+    "settings.hotCorners.note" : {
+      "comment" : "Note under the hot corner switch",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Push the pointer into a corner and hold it there to trigger. Default off — hot corners are easy to hit by accident."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "把指针推入角落并停留片刻即触发。默认关闭 —— 热区很容易误触。"
+          }
+        }
+      }
+    },
+    "settings.hotCorners.size" : {
+      "comment" : "Slider: hot corner size in points",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Corner size"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "热区尺寸"
+          }
+        }
+      }
+    },
+    "settings.hotCorners.dwell" : {
+      "comment" : "Slider: dwell time required before triggering",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hold duration"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "停留时长"
+          }
+        }
+      }
+    },
+    "settings.hotCorner.topLeft" : {
+      "comment" : "Hot corner label: top left",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Top left"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "左上角"
+          }
+        }
+      }
+    },
+    "settings.hotCorner.topRight" : {
+      "comment" : "Hot corner label: top right",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Top right"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "右上角"
+          }
+        }
+      }
+    },
+    "settings.hotCorner.bottomLeft" : {
+      "comment" : "Hot corner label: bottom left",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bottom left"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "左下角"
+          }
+        }
+      }
+    },
+    "settings.hotCorner.bottomRight" : {
+      "comment" : "Hot corner label: bottom right",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bottom right"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "右下角"
+          }
+        }
+      }
+    },
+    "settings.hotCorner.action.regionCapture" : {
+      "comment" : "Hot corner action: start a region capture session",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start a capture"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开始截图"
+          }
+        }
+      }
+    },
+    "settings.hotCorner.action.ignore" : {
+      "comment" : "Hot corner action: ignore this corner",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Do nothing"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不响应"
+          }
+        }
+      }
+    },
     "settings.gestures.section" : {
       "comment" : "Section: configurable gestures in the preview stage",
       "extractionState" : "manual",
