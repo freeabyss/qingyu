@@ -88,6 +88,19 @@ final class ScreenshotWindowController {
         )
         session.elementProbeOptions = elementDetectionOptions
         session.snapThreshold = snapThreshold
+        // Task 015：会话期只读预设；保存走仓库（满额返回 false → 叠层给内联提示）。
+        session.presets = container.capturePresetStore.catalog.ordered
+        session.onSavePreset = { [weak container] preset in
+            guard let container else { return false }
+            return await container.capturePresetStore.add(preset)
+        }
+        // 设置页可能刚改过预设：会话开始时重新装载一次（同一持久化键，读写一致）。
+        // 先放入缓存快照，异步装载完成后覆盖，保证清单始终有可用内容。
+        Task { @MainActor [weak self, weak session] in
+            guard let self, let session else { return }
+            await self.container.capturePresetStore.reload()
+            session.presets = self.container.capturePresetStore.catalog.ordered
+        }
 
         session.onLocked = { [weak self, weak session] target in
             guard let self, let session else { return }

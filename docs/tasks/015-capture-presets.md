@@ -62,6 +62,12 @@ struct CapturePreset: Identifiable, Codable, Equatable {
     var size: CGSize?
     var order: Int
 }
+```
+（实际实现与上面的草稿一致，另加 `CapturePresetCatalog`（上限 / 排序 / 增删改）、
+`CapturePresetStore`（持久化 + `suggestedName`）与 `ScreenDescriptor.visibleFrame`
+—— 尺寸预设必须钳制到**可见区**，因此描述符需要可见区而不只是 frame。）
+
+```swift
 
 enum PresetApplyError: Error, Equatable {
     case screenUnavailable(displayID: String)
@@ -87,6 +93,24 @@ struct ScreenDescriptor: Equatable {
 }
 ```
 
+## 交付记录（2026-10-14）
+
+**✅ 已交付。** 关键实现决策：
+
+- **持久化**：沿用设置项机制（`SettingKey.screenshotPresets` + JSON `[CapturePreset]`），**未新增数据库表**。`CapturePresetStore` 为 `@MainActor` 仓库，每次写操作立即落盘；会话期只读快照，避免交互期被落盘抖动影响。
+- **区域预设的坐标语义（与原卡片不同，已记录）**：`rect` 存的是**相对目标屏幕 `frame` 原点的偏移**，不是全局绝对坐标。显示器重新排布后绝对坐标必然失效，相对偏移仍然正确。`displayID` 用 `CGDirectDisplayID` 的字符串形式（稳定标识，不用数组下标）。
+- **断屏与越界**：屏幕缺失返回 `.screenUnavailable`、矩形放不下返回 `.outOfBounds`，两者都在叠层上给**内联提示**（`updateNotice`），**不静默改用其它屏幕、不悄悄改位置**。
+- **尺寸预设**：以指针为中心，钳制到该屏可见区；尺寸大于可见区时截断而非报错。
+- **清单 UI 不新建窗口**：直接在截图叠层（`CaptureOverlayContentView`）上绘制，只有活动屏渲染。键位：`P` 打开、`↑`/`↓` 选择（到边界回卷）、`Enter` 套用、`Esc` 关闭；空集合时 `P` 不响应。
+- **套用不结束会话**：区域预设直接落到可微调态，用户可继续微调后再 `Enter` 确认；已锁定/已取消时拒绝套用。
+- **持久化与并发的两个坑（已修）**：
+  1. 只写在协议扩展里的方法对**存在类型走静态派发**，替身与真实叠层的实现永远不会被调用 —— `updatePresetPicker` / `updateNotice` 因此改为**协议要求 + 扩展默认实现**。
+  2. `switchActiveDisplay(notifyState: false)` 是 `start()` 的首帧语义，会**整个重置会话状态**；套用预设后若走它，刚套用的选区会被立刻抹掉。改为新增 `focusActiveDisplay(on:)`（只切活动屏+刷新叠层）。
+- **创建入口**：卡片提到的「以当前选区保存」入口落在**会话内**（`⌘S` 区域 / `⌘⇧S` 尺寸），而不是设置页；设置页负责改名 / 排序 / 删除（删除带二次确认）。会话开始时重新装载一次预设，因此设置页的改动无需重启即可生效。
+- **排序稳定性**：`order` 相同时用原数组位置做稳定兜底 —— Swift 的 `sorted` 不是稳定排序，依赖其巧合顺序会让 `move` 结果随机漂移（该缺陷在实现过程中被测试捕获）。
+
+**测试：** `CapturePresetTests` 18 条（落位、断屏、越界、钳制、上限、排序、持久化往返、Codable）+ `CaptureSessionControllerTests` 新增 11 条（套用进入可微调态且不结束会话、断屏/越界内联提示、尺寸居中与不超屏、清单开关与回卷、空集合不响应、套用高亮项、保存区域/尺寸、未框选与满额提示）。
+
 ## 步骤
 
 1. 先写 `PresetResolver` 失败用例（含屏幕缺失与边界钳制），转绿。
@@ -99,3 +123,9 @@ struct ScreenDescriptor: Equatable {
 
 - 不做「自动记住上次选区」（Snipaste 的 `Reuse the last snipping areas`）——如需，另立小任务，因为它与预设是不同语义。
 - 不做预设的导入导出与云同步。
+
+## 状态
+
+| 项 | 状态 | 说明 |
+|---|---|---|
+| 预设区域与预设尺寸 | ✅ 已交付 | 数据 / 落位 / 目录 / 持久化 + 会话内清单（`P` / `↑↓` / `Enter` / `Esc`）+ 会话内创建（`⌘S` / `⌘⇧S`）+ 设置页改名 / 排序 / 删除。详见上「交付记录」。 |

@@ -685,6 +685,168 @@
         }
       }
     },
+    "settings.presets.section" : {
+      "comment" : "Section: capture preset management",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Capture presets"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "截图预设"
+          }
+        }
+      }
+    },
+    "settings.presets.empty" : {
+      "comment" : "Empty state for the preset list",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No presets yet. In a capture session, drag a region and press ⌘S to save it as a preset (⌘⇧S for a fixed size)."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "还没有预设。在截图会话中框选区域后按 ⌘S 存为区域预设（⌘⇧S 存为固定尺寸）。"
+          }
+        }
+      }
+    },
+    "settings.presets.note" : {
+      "comment" : "Note under the preset list",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Region presets remember their display and position; size presets are centered on the pointer when applied. Presets are user data and travel with your data folder."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "区域预设会记住所在屏幕与位置；尺寸预设套用时以指针为中心。预设属于用户数据，随数据目录一起备份迁移。"
+          }
+        }
+      }
+    },
+    "settings.presets.kind.region" : {
+      "comment" : "Preset kind label: region",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Region"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "区域"
+          }
+        }
+      }
+    },
+    "settings.presets.kind.size" : {
+      "comment" : "Preset kind label: size",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Size"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "尺寸"
+          }
+        }
+      }
+    },
+    "settings.presets.delete" : {
+      "comment" : "Button: delete a preset",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete preset"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "删除预设"
+          }
+        }
+      }
+    },
+    "settings.presets.delete.cancel" : {
+      "comment" : "Button: cancel preset deletion",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "取消"
+          }
+        }
+      }
+    },
+    "settings.presets.delete.confirm" : {
+      "comment" : "Title: confirm preset deletion",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete this preset?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "删除该预设？"
+          }
+        }
+      }
+    },
+    "settings.presets.delete.message" : {
+      "comment" : "Message: preset deletion is permanent",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deleting cannot be undone."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "删除后不可恢复。"
+          }
+        }
+      }
+    },
     "settings.pin.filePathToImage" : {
       "comment" : "Pin setting: first pin of a file path converts to image",
       "extractionState" : "manual",
@@ -735,6 +897,168 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "鼠标穿透快捷键"
+          }
+        }
+      }
+    },
+    "capture.preset.screenUnavailable" : {
+      "comment" : "Inline notice: region preset screen unavailable",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "That preset belongs to a display that is no longer connected."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "该预设所属的屏幕已断开。"
+          }
+        }
+      }
+    },
+    "capture.preset.outOfBounds" : {
+      "comment" : "Inline notice: preset out of bounds",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "That preset no longer fits on its display."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "该预设在当前屏幕上已放不下。"
+          }
+        }
+      }
+    },
+    "capture.preset.saveNeedsSelection" : {
+      "comment" : "Inline notice: saving a preset requires a selection",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drag a region first, then press ⌘S to save it as a preset."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请先框选区域，再按 ⌘S 保存为预设。"
+          }
+        }
+      }
+    },
+    "capture.preset.saved" : {
+      "comment" : "Inline notice: preset saved",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preset saved."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "预设已保存。"
+          }
+        }
+      }
+    },
+    "capture.preset.limitReached" : {
+      "comment" : "Inline notice: preset catalog full",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preset limit reached (20). Delete one first."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "预设数量已达上限（20），请先删除一个。"
+          }
+        }
+      }
+    },
+    "capture.preset.defaultRegionName" : {
+      "comment" : "Default name for a region preset",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Region preset"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "区域预设"
+          }
+        }
+      }
+    },
+    "capture.preset.defaultSizeName" : {
+      "comment" : "Default name for a size preset",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Size preset"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "尺寸预设"
+          }
+        }
+      }
+    },
+    "screenshot.hint.presets" : {
+      "comment" : "Hint: open the preset picker",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "P: preset list"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "P 预设清单"
+          }
+        }
+      }
+    },
+    "screenshot.hint.savePreset" : {
+      "comment" : "Hint: save the current selection as a preset",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⌘S: save as preset"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⌘S 存为预设"
           }
         }
       }

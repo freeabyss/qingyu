@@ -93,6 +93,18 @@ final class CaptureOverlayWindowController: CaptureOverlayWindow {
         contentView.updateHints(hintKeys)
     }
 
+    // MARK: - Preset picker (Task 015)
+
+    func updatePresetPicker(items: [String], selectedIndex: Int?) {
+        contentView.updatePresetPicker(items: items, selectedIndex: selectedIndex)
+        // 只有活动屏持有 key 窗口；非活动屏的清单不会渲染，但其内容仍需同步，
+        // 以便跨屏切换后立即显示正确的高亮项。
+    }
+
+    func updateNotice(_ text: String?) {
+        contentView.updateNotice(text)
+    }
+
     func orderFront() {
         // 仅上屏，不争 key：makeKey 由 setActive(true) 分支统一负责。
         window.orderFrontRegardless()
@@ -129,6 +141,18 @@ final class CaptureOverlayContentView: NSView {
         didSet { updateMagnifierMask() }
     }
     var onEvent: ((CaptureInputEvent) -> Void)?
+
+    /// Task 015：预设清单（`selectedIndex` 为 nil 表示清单未打开）。
+    var presetPickerItems: [String] = [] {
+        didSet { if presetPickerItems != oldValue { needsDisplay = true } }
+    }
+    var presetPickerSelection: Int? {
+        didSet { if presetPickerSelection != oldValue { needsDisplay = true } }
+    }
+    /// Task 015：内联提示（屏幕已断开 / 预设已满等）。
+    var noticeText: String? {
+        didSet { if noticeText != oldValue { needsDisplay = true } }
+    }
 
     fileprivate private(set) var hintsView: ScreenshotShortcutHintsView?
     private var isMouseDown = false
@@ -184,6 +208,17 @@ final class CaptureOverlayContentView: NSView {
 
     func updateHints(_ hintKeys: [String]) {
         hintsView?.update(hintKeys: hintKeys)
+    }
+
+    // MARK: - Preset picker (Task 015)
+
+    func updatePresetPicker(items: [String], selectedIndex: Int?) {
+        presetPickerItems = items
+        presetPickerSelection = selectedIndex
+    }
+
+    func updateNotice(_ text: String?) {
+        noticeText = text
     }
 
     private func updateHintsVisibility() {
@@ -340,6 +375,29 @@ final class CaptureOverlayContentView: NSView {
     }
 
     override func keyDown(with event: NSEvent) {
+        // Task 015：清单打开时独占方向键 / Enter / Esc，避免与选区微调冲突。
+        if presetPickerSelection != nil {
+            switch event.keyCode {
+            case 126: onEvent?(.movePresetSelection(delta: -1)); return   // ↑
+            case 125: onEvent?(.movePresetSelection(delta: 1)); return    // ↓
+            case 36, 76: onEvent?(.applySelectedPreset); return           // Return / Enter
+            case 53: onEvent?(.closePresetPicker); return                 // Esc
+            default:
+                super.keyDown(with: event)
+                return
+            }
+        }
+        // Task 015：`P` 打开清单；`⌘S` / `⌘⇧S` 把当前选区存为区域 / 尺寸预设。
+        if event.keyCode == 35, !event.modifierFlags.contains(.command) {
+            onEvent?(.openPresetPicker)
+            return
+        }
+        if event.keyCode == 1, event.modifierFlags.contains(.command) {   // ⌘S
+            onEvent?(.saveCurrentSelectionAsPreset(
+                kind: event.modifierFlags.contains(.shift) ? .size : .region
+            ))
+            return
+        }
         // Task 014/01：`Tab` 按住显示对齐辅助线。
         if event.keyCode == 48 {
             showsAlignmentGuides = true
@@ -386,6 +444,24 @@ final class CaptureOverlayContentView: NSView {
     private var nudgeStep: CGFloat {
         let scale = MagnifierGeometry.displayScale(frame: display.frame, pixelSize: display.pixelSize)
         return 1 / max(scale, 0.0001)
+    }
+
+    // MARK: - Preset picker 布局（纯函数，便于单测）
+
+    /// 清单每一项的行高。
+    static let presetPickerRowHeight: CGFloat = 26
+    /// 清单面板宽度。
+    static let presetPickerWidth: CGFloat = 260
+
+    /// 清单面板矩形（叠层本地坐标，居中偏上）。
+    static func presetPickerFrame(itemCount: Int, in bounds: NSRect) -> NSRect {
+        let height = CGFloat(max(itemCount, 1)) * presetPickerRowHeight + 16
+        return NSRect(
+            x: bounds.midX - presetPickerWidth / 2,
+            y: bounds.midY - height / 2,
+            width: presetPickerWidth,
+            height: height
+        )
     }
 
     // MARK: Drawing
@@ -443,6 +519,63 @@ final class CaptureOverlayContentView: NSView {
                 drawAlignmentGuides(for: local)
             }
         }
+
+        // Task 015：仅在活动屏绘制预设清单与内联提示。
+        if isActiveDisplay {
+            drawPresetPicker()
+            drawNotice()
+        }
+    }
+
+    /// 预设清单面板：高亮当前项，并在每项左侧标出种类。
+    private func drawPresetPicker() {
+        guard let selection = presetPickerSelection, !presetPickerItems.isEmpty else { return }
+        let panel = Self.presetPickerFrame(itemCount: presetPickerItems.count, in: bounds)
+
+        NSColor.black.withAlphaComponent(0.78).setFill()
+        NSBezierPath(roundedRect: panel, xRadius: 8, yRadius: 8).fill()
+
+        for (index, label) in presetPickerItems.enumerated() {
+            // 自下而上排列：第 0 项在最上方。
+            let rowY = panel.maxY - 8 - CGFloat(index + 1) * Self.presetPickerRowHeight
+            let row = NSRect(
+                x: panel.minX + 8,
+                y: rowY,
+                width: panel.width - 16,
+                height: Self.presetPickerRowHeight
+            )
+            if index == selection {
+                JadeColor.primaryNS.withAlphaComponent(0.35).setFill()
+                NSBezierPath(roundedRect: row, xRadius: 5, yRadius: 5).fill()
+            }
+            let attributes: [NSAttributedString.Key: Any] = [
+                .font: NSFont.systemFont(ofSize: 12),
+                .foregroundColor: NSColor.white
+            ]
+            let text = NSAttributedString(string: label, attributes: attributes)
+            let size = text.size()
+            text.draw(at: NSPoint(x: row.minX + 8, y: row.midY - size.height / 2))
+        }
+    }
+
+    /// 内联提示：底部居中一行，用于「目标屏幕已断开」「预设已满」等。
+    private func drawNotice() {
+        guard let noticeText, !noticeText.isEmpty else { return }
+        let attributes: [NSAttributedString.Key: Any] = [
+            .font: NSFont.systemFont(ofSize: 12),
+            .foregroundColor: NSColor.white
+        ]
+        let text = NSAttributedString(string: noticeText, attributes: attributes)
+        let size = text.size()
+        let box = NSRect(
+            x: bounds.midX - size.width / 2 - 12,
+            y: bounds.minY + 72,
+            width: size.width + 24,
+            height: size.height + 12
+        )
+        NSColor.black.withAlphaComponent(0.72).setFill()
+        NSBezierPath(roundedRect: box, xRadius: 6, yRadius: 6).fill()
+        text.draw(at: NSPoint(x: box.minX + 12, y: box.midY - size.height / 2))
     }
 
     /// 对齐辅助线：把选区四边与中线延伸到整屏，并叠一层屏幕中心十字。

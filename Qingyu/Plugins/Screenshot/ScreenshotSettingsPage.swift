@@ -33,6 +33,12 @@ struct ScreenshotPluginSettingsPage: View {
     @State private var ignoredAppsText = ""
     @State private var pinSnapThreshold = Double(PinSnapping.defaultThreshold)
     @State private var pinShowsShortcutHints = true
+    /// Task 015：预设管理（创建在截图会话内用 ⌘S 完成；此处负责改名 / 排序 / 删除）。
+    @State private var presets: [CapturePreset] = []
+    @State private var pendingPresetDeletion: CapturePreset?
+    @State private var presetStore = CapturePresetStore(
+        persistence: SettingsCapturePresetPersistence(settings: SettingsService(persistence: .shared))
+    )
     @State private var saveDirectory: URL = URL(fileURLWithPath: ("~/Desktop" as NSString).expandingTildeInPath)
     @State private var showDirectoryImporter = false
 
@@ -300,6 +306,23 @@ struct ScreenshotPluginSettingsPage: View {
                 }
             }
 
+            // Task 015：预设管理。创建动作在截图会话内完成（⌘S 区域 / ⌘⇧S 尺寸）。
+            SettingsSection("settings.presets.section") {
+                if presets.isEmpty {
+                    Text(L10n.localized("settings.presets.empty"))
+                        .font(JadeFont.caption)
+                        .foregroundStyle(JadeColor.textTertiary)
+                } else {
+                    ForEach(Array(presets.enumerated()), id: \.element.id) { index, preset in
+                        if index > 0 { JadeSettingsDivider() }
+                        presetRow(index: index, preset: preset)
+                    }
+                }
+                Text(L10n.localized("settings.presets.note"))
+                    .font(JadeFont.caption)
+                    .foregroundStyle(JadeColor.textTertiary)
+            }
+
             // Task 017：贴图交互快捷键。作用于「光标下的贴图」；穿透键在没有光标下贴图时整体切换。
             SettingsSection("settings.pin.shortcuts.section") {
                 ForEach(Array(pinRecorderRows.enumerated()), id: \.element.id) { index, row in
@@ -318,6 +341,26 @@ struct ScreenshotPluginSettingsPage: View {
         }
     }
     .task { await load() }
+    .confirmationDialog(
+        L10n.localized("settings.presets.delete.confirm"),
+        isPresented: Binding(
+            get: { pendingPresetDeletion != nil },
+            set: { if !$0 { pendingPresetDeletion = nil } }
+        ),
+        titleVisibility: .visible
+    ) {
+        Button(L10n.localized("settings.presets.delete"), role: .destructive) {
+            if let preset = pendingPresetDeletion {
+                Task { await deletePreset(preset) }
+            }
+            pendingPresetDeletion = nil
+        }
+        Button(L10n.localized("settings.presets.delete.cancel"), role: .cancel) {
+            pendingPresetDeletion = nil
+        }
+    } message: {
+        Text(L10n.localized("settings.presets.delete.message"))
+    }
 }
 
 private func recorderRow(_ row: RecorderRow) -> some View {
@@ -342,6 +385,8 @@ private func recorderRow(_ row: RecorderRow) -> some View {
             ?? URL(fileURLWithPath: ("~/Desktop" as NSString).expandingTildeInPath)
         pinFilePathToImage = (try? await viewModel.value(for: .pinFilePathToImage, as: Bool.self)) ?? true
         pinRestoreCapacity = (try? await viewModel.value(for: .pinRestoreCapacity, as: Int.self)) ?? PinStore.defaultRestoreCapacity
+        await presetStore.reload()
+        presets = presetStore.catalog.ordered
         pinShowsShortcutHints = (try? await viewModel.value(for: .pinShowsShortcutHints, as: Bool.self)) ?? true
         let storedSnapThreshold = try? await viewModel.value(for: .pinSnapThreshold, as: Double.self)
         pinSnapThreshold = Double(PinSnapping.sanitizedThreshold(storedSnapThreshold ?? Double(PinSnapping.defaultThreshold)))
@@ -376,6 +421,86 @@ private func recorderRow(_ row: RecorderRow) -> some View {
                 Task { try? await viewModel.set(raw, for: .magnifierOptions) }
             }
         )
+    }
+
+    // MARK: - Task 015 预设管理
+
+    private func presetRow(index: Int, preset: CapturePreset) -> some View {
+        HStack(spacing: JadeSpace.x2.value) {
+            VStack(alignment: .leading, spacing: 2) {
+                TextField("", text: presetNameBinding(for: preset))
+                    .textFieldStyle(.plain)
+                    .font(JadeFont.body)
+                    .foregroundStyle(JadeColor.textPrimary)
+                Text(L10n.localized(
+                    preset.kind == .region
+                        ? "settings.presets.kind.region"
+                        : "settings.presets.kind.size"
+                ) + " · " + presetDetail(preset))
+                    .font(JadeFont.caption)
+                    .foregroundStyle(JadeColor.textTertiary)
+            }
+            Spacer()
+            Button {
+                Task { await movePreset(from: index, to: index - 1) }
+            } label: {
+                Image(systemName: "arrow.up")
+            }
+            .buttonStyle(.jadeSecondary)
+            .disabled(index == 0)
+            Button {
+                Task { await movePreset(from: index, to: index + 1) }
+            } label: {
+                Image(systemName: "arrow.down")
+            }
+            .buttonStyle(.jadeSecondary)
+            .disabled(index >= presets.count - 1)
+            Button {
+                pendingPresetDeletion = preset
+            } label: {
+                Image(systemName: "trash")
+            }
+            .buttonStyle(.jadeSecondary)
+        }
+    }
+
+    private func presetDetail(_ preset: CapturePreset) -> String {
+        switch preset.kind {
+        case .region:
+            guard let rect = preset.rect else { return "—" }
+            return "\(Int(rect.width)) × \(Int(rect.height))"
+        case .size:
+            guard let size = preset.size else { return "—" }
+            return "\(Int(size.width)) × \(Int(size.height))"
+        }
+    }
+
+    /// 改名即时落盘；空名回退为原名，避免出现无法辨认的空条目。
+    private func presetNameBinding(for preset: CapturePreset) -> Binding<String> {
+        Binding(
+            get: {
+                presets.first { $0.id == preset.id }?.name ?? preset.name
+            },
+            set: { newValue in
+                guard let index = presets.firstIndex(where: { $0.id == preset.id }) else { return }
+                var updated = presets[index]
+                updated.name = newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                    ? preset.name
+                    : newValue
+                presets[index] = updated
+                Task { await presetStore.update(updated) }
+            }
+        )
+    }
+
+    private func movePreset(from: Int, to: Int) async {
+        guard await presetStore.move(from: from, to: to) else { return }
+        presets = presetStore.catalog.ordered
+    }
+
+    private func deletePreset(_ preset: CapturePreset) async {
+        guard await presetStore.remove(id: preset.id) else { return }
+        presets = presetStore.catalog.ordered
     }
 
     // MARK: - Task 014/03 外观控件

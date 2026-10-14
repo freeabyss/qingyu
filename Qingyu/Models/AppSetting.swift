@@ -68,6 +68,8 @@ enum SettingKey: String, CaseIterable, Codable {
     case elementDetection = "screenshot.elementDetection"
     /// 选区边缘吸附阈值（逻辑点）；0 表示关闭吸附。
     case snapThreshold = "screenshot.snapThreshold"
+    /// Task 015：截图预设（区域 / 尺寸）集合，JSON 数组。
+    case screenshotPresets = "screenshot.presets"
     /// 不做控件级探测的应用 Bundle ID 列表（例如 `["com.apple.Safari"]`）。
     case elementIgnoredApps = "screenshot.elementIgnoredApps"
     // Task 008: pin (贴图) settings.

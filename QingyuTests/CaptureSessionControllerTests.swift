@@ -57,10 +57,28 @@ final class CaptureSessionControllerTests: XCTestCase {
             lastElementHighlight = frame
         }
 
-        func updateRegion(rect: CGRect?) {}
+        private(set) var lastRegion: CGRect?
+
+        func updateRegion(rect: CGRect?) {
+            lastRegion = rect
+        }
 
         func updateHints(_ hintKeys: [String]) {
             lastHints = hintKeys
+        }
+
+        /// Task 015：预设清单与内联提示。
+        private(set) var presetPickerItems: [String] = []
+        private(set) var presetPickerSelection: Int?
+        private(set) var lastNotice: String?
+
+        func updatePresetPicker(items: [String], selectedIndex: Int?) {
+            presetPickerItems = items
+            presetPickerSelection = selectedIndex
+        }
+
+        func updateNotice(_ text: String?) {
+            lastNotice = text
         }
 
         func orderFront() {}
@@ -426,5 +444,205 @@ final class CaptureSessionControllerTests: XCTestCase {
 
         XCTAssertNil(lockedTarget)
         XCTAssertEqual(factory.closedDisplayIDs.count, 2)
+    }
+}
+
+
+// MARK: - Task 015：预设套用与会话内清单
+
+extension CaptureSessionControllerTests {
+
+    private func regionPreset(
+        displayID: String = "1",
+        rect: CGRect = CGRect(x: 200, y: 300, width: 400, height: 250)
+    ) -> CapturePreset {
+        CapturePreset(name: "区域", kind: .region, displayID: displayID, rect: rect)
+    }
+
+    private func sizePreset(width: CGFloat = 400, height: CGFloat = 300) -> CapturePreset {
+        CapturePreset(name: "尺寸", kind: .size, size: CGSize(width: width, height: height))
+    }
+
+    /// 进入可微调态：左键按下 → 拖拽 → 抬起。
+    private func dragRegion(
+        _ controller: CaptureSessionController,
+        from start: CGPoint = CGPoint(x: 500, y: 500),
+        to end: CGPoint = CGPoint(x: 900, y: 800)
+    ) {
+        controller.handle(.mouseDown(start))
+        controller.handle(.mouseDragged(end))
+        controller.handle(.mouseUp(end))
+    }
+
+    func testRegionPresetAppliesAsAdjustableSelectionWithoutEndingSession() {
+        let (controller, factory) = makeController()
+        controller.start()
+
+        XCTAssertNil(controller.apply(preset: regionPreset()))
+        XCTAssertTrue(controller.isSessionActive, "套用预设不结束会话")
+
+        guard case .adjustingRegion(let display, let rect) = controller.state.phase else {
+            return XCTFail("区域预设应进入可微调态")
+        }
+        XCTAssertEqual(display.id, 1)
+        XCTAssertEqual(rect, CGRect(x: 200, y: 300, width: 400, height: 250))
+        XCTAssertEqual(factory.window(for: 1)?.lastRegion, rect)
+    }
+
+    func testRegionPresetOnDisconnectedScreenShowsInlineNotice() {
+        let (controller, factory) = makeController()
+        controller.start()
+        dragRegion(controller)
+        guard case .adjustingRegion(_, let before) = controller.state.phase else {
+            return XCTFail("前置条件：应处于可微调态")
+        }
+
+        let notice = controller.apply(preset: regionPreset(displayID: "9"))
+
+        XCTAssertNotNil(notice, "屏幕断开必须给出内联提示")
+        XCTAssertEqual(factory.window(for: 1)?.lastNotice, notice)
+        // 不得静默改用其它屏幕：选区保持原样。
+        guard case .adjustingRegion(_, let after) = controller.state.phase else {
+            return XCTFail("仍应处于可微调态")
+        }
+        XCTAssertEqual(after, before)
+    }
+
+    func testRegionPresetOutOfBoundsShowsInlineNotice() {
+        let (controller, factory) = makeController()
+        controller.start()
+
+        let notice = controller.apply(preset: regionPreset(rect: CGRect(x: 1800, y: 100, width: 400, height: 200)))
+
+        XCTAssertNotNil(notice)
+        XCTAssertEqual(factory.window(for: 1)?.lastNotice, notice)
+    }
+
+    func testSizePresetCentersOnPointerAndStaysOnScreen() {
+        let (controller, _) = makeController()
+        controller.start()
+
+        XCTAssertNil(controller.apply(preset: sizePreset(width: 400, height: 300)))
+
+        guard case .adjustingRegion(_, let rect) = controller.state.phase else {
+            return XCTFail("尺寸预设应进入可微调态")
+        }
+        XCTAssertEqual(rect.size, CGSize(width: 400, height: 300))
+        let screen = leftDisplay.frame
+        XCTAssertTrue(screen.contains(rect), "选区必须落在指针所在屏内")
+    }
+
+    func testPresetPickerOpensMovesWrapsAndCloses() {
+        let (controller, factory) = makeController()
+        controller.start()
+        controller.presets = [regionPreset(), sizePreset()]
+
+        controller.handle(.openPresetPicker)
+        XCTAssertEqual(factory.window(for: 1)?.presetPickerSelection, 0)
+        XCTAssertEqual(factory.window(for: 1)?.presetPickerItems.count, 2)
+
+        controller.handle(.movePresetSelection(delta: 1))
+        XCTAssertEqual(controller.presetPickerSelection, 1)
+
+        controller.handle(.movePresetSelection(delta: 1))
+        XCTAssertEqual(controller.presetPickerSelection, 0, "到底后回卷")
+
+        controller.handle(.movePresetSelection(delta: -1))
+        XCTAssertEqual(controller.presetPickerSelection, 1, "向上越界回卷到末项")
+
+        controller.handle(.closePresetPicker)
+        XCTAssertNil(controller.presetPickerSelection)
+        XCTAssertNil(factory.window(for: 1)?.presetPickerSelection)
+    }
+
+    func testPresetPickerIgnoresEmptyCatalog() {
+        let (controller, factory) = makeController()
+        controller.start()
+
+        controller.handle(.openPresetPicker)
+
+        XCTAssertNil(controller.presetPickerSelection, "空清单不响应")
+        XCTAssertTrue(factory.window(for: 1)?.presetPickerItems.isEmpty ?? false)
+    }
+
+    func testApplyingSelectedPresetUsesHighlightedItemAndClosesPicker() {
+        let (controller, _) = makeController()
+        controller.start()
+        controller.presets = [
+            sizePreset(width: 200, height: 100),
+            regionPreset(rect: CGRect(x: 100, y: 100, width: 500, height: 400))
+        ]
+
+        controller.handle(.openPresetPicker)
+        controller.handle(.movePresetSelection(delta: 1))
+        controller.handle(.applySelectedPreset)
+
+        guard case .adjustingRegion(_, let rect) = controller.state.phase else {
+            return XCTFail("应套用第 2 条（区域）预设")
+        }
+        XCTAssertEqual(rect, CGRect(x: 100, y: 100, width: 500, height: 400))
+        XCTAssertNil(controller.presetPickerSelection, "套用后关闭清单")
+    }
+
+    func testSaveCurrentSelectionAsRegionPresetUsesRelativeRect() async {
+        let (controller, _) = makeController()
+        controller.start()
+        dragRegion(controller, from: CGPoint(x: 500, y: 500), to: CGPoint(x: 900, y: 800))
+
+        var saved: CapturePreset?
+        controller.onSavePreset = { preset in
+            saved = preset
+            return true
+        }
+
+        controller.handle(.saveCurrentSelectionAsPreset(kind: .region))
+        await Task.yield()
+
+        XCTAssertEqual(saved?.kind, .region)
+        XCTAssertEqual(saved?.displayID, "1")
+        XCTAssertEqual(saved?.rect, CGRect(x: 500, y: 500, width: 400, height: 300))
+        XCTAssertNil(saved?.size)
+    }
+
+    func testSaveSizePresetStoresOnlySize() async {
+        let (controller, _) = makeController()
+        controller.start()
+        dragRegion(controller, from: CGPoint(x: 500, y: 500), to: CGPoint(x: 900, y: 800))
+
+        var saved: CapturePreset?
+        controller.onSavePreset = { preset in
+            saved = preset
+            return true
+        }
+
+        controller.handle(.saveCurrentSelectionAsPreset(kind: .size))
+        await Task.yield()
+
+        XCTAssertEqual(saved?.kind, .size)
+        XCTAssertEqual(saved?.size, CGSize(width: 400, height: 300))
+        XCTAssertNil(saved?.rect)
+    }
+
+    func testSaveWithoutSelectionShowsInlineNotice() {
+        let (controller, factory) = makeController()
+        controller.start()
+
+        controller.handle(.saveCurrentSelectionAsPreset(kind: .region))
+
+        XCTAssertNotNil(factory.window(for: 1)?.lastNotice, "未框选时应提示先框选")
+    }
+
+    func testSaveWhenCatalogIsFullShowsInlineNotice() async {
+        let (controller, factory) = makeController()
+        controller.start()
+        dragRegion(controller)
+        controller.onSavePreset = { _ in false }
+
+        controller.handle(.saveCurrentSelectionAsPreset(kind: .region))
+        await Task.yield()
+        await Task.yield()
+
+        XCTAssertNotNil(factory.window(for: 1)?.lastNotice, "满额时应提示，不静默丢弃")
+        XCTAssertTrue(controller.presets.isEmpty, "未被接受的预设不写入会话快照")
     }
 }

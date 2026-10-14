@@ -17,9 +17,12 @@ enum ScreenshotShortcutHints {
         "screenshot.hint.cancel"
     ]
     /// 可微调阶段（Task 014/01）：方向键调整、`⇧`+方向键伸缩、`Tab` 辅助线、`Enter` 确认。
+    /// Task 015 追加：`P` 预设清单、`⌘S` 存为预设。
     static let regionAdjustingKeys = [
         "screenshot.hint.nudgeRegion",
         "screenshot.hint.confirmRegion",
+        "screenshot.hint.presets",
+        "screenshot.hint.savePreset",
         "screenshot.hint.cancel"
     ]
     /// 选区/目标锁定阶段。

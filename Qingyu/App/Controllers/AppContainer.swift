@@ -138,6 +138,10 @@ final class AppContainer: NSObject {
     private(set) lazy var commandBarController = CommandBarController(container: self)
     private(set) lazy var clipboardHistoryWindowController = ClipboardHistoryWindowController(container: self)
     private(set) lazy var settingsWindowController = SettingsWindowController(container: self)
+    /// Task 015：截图预设仓库（区域 / 尺寸）。会话开始时装入控制器，会话期只读。
+    private(set) lazy var capturePresetStore = CapturePresetStore(
+        persistence: SettingsCapturePresetPersistence(settings: settingsService)
+    )
     private(set) lazy var screenshotWindowController = ScreenshotWindowController(container: self)
 
     /// v1.2 (T-008): unified global-shortcut registrar. Owns the six rebindable
@@ -306,6 +310,8 @@ final class AppContainer: NSObject {
         logger.info("Runtime settings synced: clipboardEnabled=\(enabled)")
         await syncMagnifierSettings(settingsService)
         await syncElementDetectionSettings(settingsService)
+        // Task 015：预设集合随运行时设置一起装载（会话开始时直接取快照）。
+        await capturePresetStore.reload()
     }
 
     /// Task 012：把控件级探测与选区吸附设置同步到截图会话工厂。

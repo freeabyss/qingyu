@@ -15,6 +15,16 @@ enum CaptureInputEvent {
     case nudgeSelection(axis: SelectionNudge.Axis, delta: CGFloat, resize: Bool)
     /// Task 014/01：确认微调后的选区（Enter）。
     case confirmSelection
+    /// Task 015：打开预设清单（`P`）。
+    case openPresetPicker
+    /// Task 015：清单内上下移动选择（方向键）。
+    case movePresetSelection(delta: Int)
+    /// Task 015：套用当前选中的预设（Enter）。
+    case applySelectedPreset
+    /// Task 015：关闭清单（Esc）。
+    case closePresetPicker
+    /// Task 015：把当前微调中的选区保存为预设（`⌘S` 区域 / `⌘⇧S` 尺寸）。
+    case saveCurrentSelectionAsPreset(kind: CapturePresetKind)
     case cancel
 }
 
@@ -40,9 +50,23 @@ protocol CaptureOverlayWindow: AnyObject {
     func updateElementHighlight(frame: CGRect?)
     func updateRegion(rect: CGRect?)
     func updateHints(_ hintKeys: [String])
+    /// Task 015：预设清单（`items` 为显示标签，`selectedIndex` 为 nil 表示清单未打开）。
+    ///
+    /// 必须是**协议要求**：只写在扩展里的方法对存在类型走静态派发，
+    /// 具体实现（真实叠层、测试替身）永远不会被调用。
+    func updatePresetPicker(items: [String], selectedIndex: Int?)
+    /// Task 015：内联提示（屏幕已断开 / 预设已满等）。传 nil 清除。
+    func updateNotice(_ text: String?)
     func orderFront()
     func hide()
     func close()
+}
+
+extension CaptureOverlayWindow {
+    /// 默认空实现：既有替身无需为新增能力逐个补方法。
+    func updatePresetPicker(items: [String], selectedIndex: Int?) {}
+
+    func updateNotice(_ text: String?) {}
 }
 
 @MainActor
@@ -72,6 +96,13 @@ final class CaptureSessionController {
     var elementProbeOptions: ElementProbeOptions = .default
     /// 选区边缘吸附阈值（逻辑点）；<= 0 表示关闭吸附。
     var snapThreshold: CGFloat = 0
+    /// Task 015：本会话可用的预设（进入会话时由调用方从仓库装入，会话期只读）。
+    var presets: [CapturePreset] = []
+    /// Task 015：保存预设；返回 false 表示已达上限。
+    var onSavePreset: ((CapturePreset) async -> Bool)?
+    /// Task 015：清单中当前高亮的预设下标；nil 表示清单未打开。
+    private(set) var presetPickerSelection: Int?
+
 
     /// 控件级探测调度器；未启用控件探测时它不会产生任何系统调用。
     private let probeScheduler: CandidateProbeScheduler
@@ -227,6 +258,21 @@ final class CaptureSessionController {
                 onLocked?(target)
             }
 
+        case .openPresetPicker:
+            openPresetPicker()
+
+        case .movePresetSelection(let delta):
+            movePresetSelection(by: delta)
+
+        case .applySelectedPreset:
+            applySelectedPreset()
+
+        case .closePresetPicker:
+            closePresetPicker()
+
+        case .saveCurrentSelectionAsPreset(let kind):
+            saveCurrentSelectionAsPreset(kind: kind)
+
         case .cancel:
             cancel()
         }
@@ -239,6 +285,137 @@ final class CaptureSessionController {
         state = CaptureSessionState()
         buildWindows()
         switchActiveDisplay(to: NSEvent.mouseLocation, notifyState: false)
+    }
+
+    // MARK: - Presets (Task 015)
+
+    /// 打开清单：预设为空时不响应（不弹空清单）；仅活动屏渲染。
+    private func openPresetPicker() {
+        guard !presets.isEmpty else {
+            logger.info("Preset picker ignored: no presets")
+            return
+        }
+        guard isSessionActive else { return }
+        presetPickerSelection = 0
+        syncPresetPicker()
+    }
+
+    private func movePresetSelection(by delta: Int) {
+        guard let current = presetPickerSelection, !presets.isEmpty else { return }
+        let count = presets.count
+        let next = ((current + delta) % count + count) % count
+        presetPickerSelection = next
+        syncPresetPicker()
+    }
+
+    private func closePresetPicker() {
+        guard presetPickerSelection != nil else { return }
+        presetPickerSelection = nil
+        syncPresetPicker()
+    }
+
+    /// 套用选中的预设：区域直接落位；尺寸以指针为中心生成。
+    /// 套用**不结束会话**，失败时给出内联提示而不是静默改位置。
+    private func applySelectedPreset() {
+        guard let index = presetPickerSelection, presets.indices.contains(index) else { return }
+        let preset = presets[index]
+        apply(preset: preset)
+        closePresetPicker()
+    }
+
+    /// 套用单条预设。返回 nil 表示成功，否则为内联提示文案。
+    @discardableResult
+    func apply(preset: CapturePreset) -> String? {
+        switch preset.kind {
+        case .region:
+            let screens = displayProvider.displays.map { display in
+                ScreenDescriptor(displayID: String(display.id), frame: display.frame)
+            }
+            switch PresetResolver.resolve(regionPreset: preset, availableScreens: screens) {
+            case .success(let rect):
+                guard let display = displayProvider.display(containing: CGPoint(x: rect.midX, y: rect.midY))
+                    ?? displayProvider.displays.first else {
+                    return showNotice(L10n.localized("capture.preset.screenUnavailable"))
+                }
+                state.applyPresetRegion(rect, display: display)
+                // 焦点跟随到预设所在屏，但**不得**走 `switchActiveDisplay(notifyState: false)`：
+                // 那是 `start()` 的首帧语义，会把刚套用的状态整个重置掉。
+                focusActiveDisplay(on: display)
+                return nil
+            case .failure(.screenUnavailable):
+                return showNotice(L10n.localized("capture.preset.screenUnavailable"))
+            case .failure(.outOfBounds):
+                return showNotice(L10n.localized("capture.preset.outOfBounds"))
+            }
+
+        case .size:
+            let pointer = NSEvent.mouseLocation
+            guard let display = displayProvider.display(containing: pointer) ?? displayProvider.displays.first else {
+                return showNotice(L10n.localized("capture.preset.screenUnavailable"))
+            }
+            let screen = ScreenDescriptor(displayID: String(display.id), frame: display.frame)
+            let rect = PresetResolver.resolve(sizePreset: preset, pointerLocation: pointer, screen: screen)
+            state.applyPresetRegion(rect, display: display)
+            focusActiveDisplay(on: display)
+            return nil
+        }
+    }
+
+    /// 把当前微调中的选区保存为预设（相对该屏原点的偏移 + 稳定显示器标识）。
+    private func saveCurrentSelectionAsPreset(kind: CapturePresetKind) {
+        guard case .adjustingRegion(let display, let rect) = state.phase else {
+            _ = showNotice(L10n.localized("capture.preset.saveNeedsSelection"))
+            return
+        }
+        let preset = CapturePreset(
+            name: L10n.localized(kind == .region ? "capture.preset.defaultRegionName" : "capture.preset.defaultSizeName"),
+            kind: kind,
+            displayID: String(display.id),
+            rect: kind == .region
+                ? CGRect(
+                    x: rect.minX - display.frame.minX,
+                    y: rect.minY - display.frame.minY,
+                    width: rect.width,
+                    height: rect.height
+                )
+                : nil,
+            size: kind == .size ? rect.size : nil
+        )
+        guard let onSavePreset else { return }
+        Task { @MainActor in
+            let accepted = await onSavePreset(preset)
+            if accepted {
+                self.presets = (self.presets + [preset])
+                _ = self.showNotice(L10n.localized("capture.preset.saved"))
+            } else {
+                _ = self.showNotice(L10n.localized("capture.preset.limitReached"))
+            }
+        }
+    }
+
+    /// 只切换活动屏并刷新叠层，**不重置会话状态**。
+    private func focusActiveDisplay(on display: CaptureDisplay) {
+        if display.id != activeDisplayID {
+            activeDisplayID = display.id
+            logger.debug("Active capture display switched to \(display.id)")
+        }
+        syncOverlays()
+    }
+
+    /// 所有叠层同步清单状态（只有活动屏会真正绘制，非活动屏内容视图被隐藏）。
+    private func syncPresetPicker() {
+        let items = CapturePresetCatalog.displayLabels(for: presets)
+        for overlay in overlayWindows.values {
+            overlay.updatePresetPicker(items: items, selectedIndex: presetPickerSelection)
+        }
+    }
+
+    @discardableResult
+    private func showNotice(_ text: String) -> String {
+        for overlay in overlayWindows.values {
+            overlay.updateNotice(text)
+        }
+        return text
     }
 
     // MARK: - Keyboard

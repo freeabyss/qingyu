@@ -138,6 +138,23 @@ struct CaptureSessionState {
         return true
     }
 
+    /// Task 015：套用预设选区 —— 直接进入可微调态，**不结束会话**，
+    /// 用户可继续微调后再 `confirmRegion()`。
+    ///
+    /// 已锁定 / 已取消时拒绝（返回 false），避免预设覆盖用户已经确认的目标。
+    @discardableResult
+    mutating func applyPresetRegion(_ rect: CGRect, display: CaptureDisplay) -> Bool {
+        switch phase {
+        case .targetingWindow, .draggingRegion, .adjustingRegion:
+            lastElementFrame = nil
+            dragMoved = false
+            phase = .adjustingRegion(display: display, globalRect: rect)
+            return true
+        case .locked, .cancelled:
+            return false
+        }
+    }
+
     /// 确认微调后的选区（Enter）：进入锁定态，由调用方开始捕获。
     mutating func confirmRegion() {
         guard case .adjustingRegion(let display, let rect) = phase else { return }

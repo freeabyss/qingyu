@@ -95,9 +95,9 @@ flowchart TD
 | [012](012-window-and-element-detection.md) | 窗口与界面元素自动识别 + 边缘吸附（无辅助功能权限时降级为窗口级） | 006、007 |
 | [013](013-annotation-tools-expansion.md) | 标注工具 6 → 12（高斯模糊 / 序号 / 橡皮擦 / 铅笔 / 荧光笔 / 提示框）+ 马赛克↔模糊合并按钮 | 007 |
 | [014](014-selection-interaction-and-appearance.md) | 选区微调、辅助线、笔宽快捷键、圆角/边框/阴影可配置、取色格式、鼠标动作可配置、屏幕四角热区 | 007 |
-| [015](015-capture-presets.md) | 预设区域（含屏幕）与预设尺寸 | 007 |
+| [015](015-capture-presets.md) | 预设区域（含屏幕）与预设尺寸 ✅ 已交付 | 007 |
 | [016](016-whiteboard-mode.md) | 白板模式：纯色底图不要求屏幕录制权限；冻结底图为另一模式 | 007 |
-| [017](017-pin-interaction-enhancement.md) | 贴图磁性吸附 + 点击穿透/缩放/透明度热键 + 双击关闭 + 悬停提示 | 008 |
+| [017](017-pin-interaction-enhancement.md) | 贴图磁性吸附 + 点击穿透/缩放/透明度热键 + 双击关闭 + 悬停提示 ✅ 已交付 | 008 |
 | [018](018-pin-image-groups.md) | 贴图图像组（分组、切换、清空、批量导出） | ⚠️ **需先产品决策** |
 
 ### 本组的固定边界
