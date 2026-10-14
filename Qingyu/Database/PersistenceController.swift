@@ -41,7 +41,13 @@ final class PersistenceController {
         container.viewContext
     }
 
-    private static let managedObjectModel: NSManagedObjectModel = makeManagedObjectModel()
+    /// 每个控制器**独立**构建一份模型（不再跨控制器共享）。
+    ///
+    /// 此前这里是 `static let` 共享实例，而 `NSPersistentContainer(name:managedObjectModel:)`
+    /// 在装载 store 期间会改写模型内部的实体索引集合；两个控制器并发装载时就会撞上
+    /// `Collection was mutated while being enumerated`（并行跑单测时约每三次复现一次）。
+    /// 模型构建很便宜、正常进程也只建一次，因此按控制器构建以彻底消除这份共享可变状态。
+    private let managedObjectModel: NSManagedObjectModel
 
     convenience init() {
         self.init(storeConfiguration: .persistent(), fileSystem: .default)
@@ -49,7 +55,9 @@ final class PersistenceController {
 
     init(storeConfiguration: StoreConfiguration, fileSystem: AssistantFileSystem) {
         self.fileSystem = fileSystem
-        self.container = NSPersistentContainer(name: "Qingyu", managedObjectModel: Self.managedObjectModel)
+        let model = Self.makeManagedObjectModel()
+        self.managedObjectModel = model
+        self.container = NSPersistentContainer(name: "Qingyu", managedObjectModel: model)
 
         let description = NSPersistentStoreDescription()
         switch storeConfiguration {
@@ -58,7 +66,11 @@ final class PersistenceController {
             description.url = storeURL ?? fileSystem.storeURL
         case .temporary:
             description.type = NSInMemoryStoreType
-            description.url = URL(fileURLWithPath: "/dev/null")
+            // URL 对内存库只作**标识**用（不会落盘），但 Core Data 会按 URL 归集 store：
+            // 所有临时库共用同一个 `/dev/null` 时，并发创建/装载多个内存库会撞在
+            // 同一份注册表上，表现为 `Collection was mutated while being enumerated`
+            // （并行跑单测时约每三次复现一次）。给每个内存库一个唯一标识即可消除共享。
+            description.url = URL(fileURLWithPath: "/dev/null/\(UUID().uuidString)")
         }
         description.shouldMigrateStoreAutomatically = true
         description.shouldInferMappingModelAutomatically = true
