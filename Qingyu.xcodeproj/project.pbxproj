@@ -51,6 +51,7 @@
 		B017000000000000000000B2 /* CapturePresetStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B017000000000000000000B1 /* CapturePresetStore.swift */; };
 		B017000000000000000000A2 /* CapturePreset.swift in Sources */ = {isa = PBXBuildFile; fileRef = B017000000000000000000A1 /* CapturePreset.swift */; };
 		B018000000000000000000A2 /* ScreenshotGestureBindings.swift in Sources */ = {isa = PBXBuildFile; fileRef = B018000000000000000000A1 /* ScreenshotGestureBindings.swift */; };
+		B01B000000000000000000A2 /* ScreenshotPostCapturePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = B01B000000000000000000A1 /* ScreenshotPostCapturePolicy.swift */; };
 		B01A000000000000000000C2 /* WhiteboardWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B01A000000000000000000C1 /* WhiteboardWindowController.swift */; };
 		B01A000000000000000000B2 /* WhiteboardBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = B01A000000000000000000B1 /* WhiteboardBackground.swift */; };
 		B01A000000000000000000A2 /* WhiteboardSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = B01A000000000000000000A1 /* WhiteboardSession.swift */; };
@@ -260,6 +261,7 @@
 		B017000000000000000000B1 /* Qingyu/Services/ScreenshotService/CapturePresetStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingyu/Services/ScreenshotService/CapturePresetStore.swift; sourceTree = SOURCE_ROOT; };
 		B017000000000000000000A1 /* Qingyu/Models/CapturePreset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingyu/Models/CapturePreset.swift; sourceTree = SOURCE_ROOT; };
 		B018000000000000000000A1 /* Qingyu/Services/ScreenshotService/ScreenshotGestureBindings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingyu/Services/ScreenshotService/ScreenshotGestureBindings.swift; sourceTree = SOURCE_ROOT; };
+		B01B000000000000000000A1 /* Qingyu/Services/ScreenshotService/ScreenshotPostCapturePolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingyu/Services/ScreenshotService/ScreenshotPostCapturePolicy.swift; sourceTree = SOURCE_ROOT; };
 		B01A000000000000000000C1 /* Qingyu/App/Controllers/WhiteboardWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingyu/App/Controllers/WhiteboardWindowController.swift; sourceTree = SOURCE_ROOT; };
 		B01A000000000000000000B1 /* Qingyu/Services/WhiteboardService/WhiteboardBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingyu/Services/WhiteboardService/WhiteboardBackground.swift; sourceTree = SOURCE_ROOT; };
 		B01A000000000000000000A1 /* Qingyu/Models/WhiteboardSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingyu/Models/WhiteboardSession.swift; sourceTree = SOURCE_ROOT; };
@@ -817,6 +819,7 @@
 				B017000000000000000000B1 /* Qingyu/Services/ScreenshotService/CapturePresetStore.swift */,
 				B017000000000000000000A1 /* Qingyu/Models/CapturePreset.swift */,
 				B018000000000000000000A1 /* Qingyu/Services/ScreenshotService/ScreenshotGestureBindings.swift */,
+				B01B000000000000000000A1 /* Qingyu/Services/ScreenshotService/ScreenshotPostCapturePolicy.swift */,
 				B01A000000000000000000C1 /* Qingyu/App/Controllers/WhiteboardWindowController.swift */,
 				B01A000000000000000000B1 /* Qingyu/Services/WhiteboardService/WhiteboardBackground.swift */,
 				B01A000000000000000000A1 /* Qingyu/Models/WhiteboardSession.swift */,
@@ -1188,6 +1191,7 @@
 				B017000000000000000000B2 /* Qingyu/Services/ScreenshotService/CapturePresetStore.swift in Sources */,
 				B017000000000000000000A2 /* Qingyu/Models/CapturePreset.swift in Sources */,
 				B018000000000000000000A2 /* Qingyu/Services/ScreenshotService/ScreenshotGestureBindings.swift in Sources */,
+				B01B000000000000000000A2 /* Qingyu/Services/ScreenshotService/ScreenshotPostCapturePolicy.swift in Sources */,
 				B01A000000000000000000C2 /* Qingyu/App/Controllers/WhiteboardWindowController.swift in Sources */,
 				B01A000000000000000000B2 /* Qingyu/Services/WhiteboardService/WhiteboardBackground.swift in Sources */,
 				B01A000000000000000000A2 /* Qingyu/Models/WhiteboardSession.swift in Sources */,
@@ -1447,7 +1451,7 @@
 				CODE_SIGN_ENTITLEMENTS = Qingyu/Qingyu.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 355;
+				CURRENT_PROJECT_VERSION = 358;
 				DEVELOPMENT_TEAM = 454XB348PX;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -1456,7 +1460,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.3.55;
+				MARKETING_VERSION = 0.3.58;
 				PRODUCT_BUNDLE_IDENTIFIER = com.freeabyss.qingyu;
 				PRODUCT_MODULE_NAME = Qingyu;
 				PRODUCT_NAME = Qingyu;
@@ -1472,7 +1476,7 @@
 				CODE_SIGN_ENTITLEMENTS = Qingyu/Qingyu.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 355;
+				CURRENT_PROJECT_VERSION = 358;
 				DEVELOPMENT_TEAM = 454XB348PX;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -1481,7 +1485,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.3.55;
+				MARKETING_VERSION = 0.3.58;
 				PRODUCT_BUNDLE_IDENTIFIER = com.freeabyss.qingyu;
 				PRODUCT_MODULE_NAME = Qingyu;
 				PRODUCT_NAME = Qingyu;

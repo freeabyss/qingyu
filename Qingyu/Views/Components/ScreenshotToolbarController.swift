@@ -53,6 +53,9 @@ final class ScreenshotToolbarController {
         }
     }
 
+    /// 截图后行为策略（保存后同时复制）。
+    var postCapturePolicy: ScreenshotPostCapturePolicy = .default
+
     /// Task 014/04：取色输出格式（标注窗口内 `C` / `⇧C` 使用）。
     var colorValueOptions: ColorValueOptions = .default
 
@@ -210,6 +213,18 @@ final class ScreenshotToolbarController {
         window.setFrame(frame, display: true)
     }
 
+    // MARK: - Post-capture policy
+
+    /// 保存成功后按策略再写一份到剪贴板（失败不影响保存结果，仅记录日志）。
+    private func copyAfterSaveIfNeeded(_ pngData: Data) {
+        guard postCapturePolicy.copiesToClipboardAfterSave else { return }
+        do {
+            try copyToPasteboard(pngData)
+        } catch {
+            logger.error("Post-save clipboard copy failed: \(error.localizedDescription, privacy: .public)")
+        }
+    }
+
     // MARK: - Gestures (Task 014/05)
 
     /// 安装全局鼠标监听（仅预览可见期间）。
@@ -281,6 +296,7 @@ final class ScreenshotToolbarController {
         case .save:
             do {
                 let url = try savePNG(result.imageData, date: result.captureDate)
+                copyAfterSaveIfNeeded(result.imageData)
                 if regionCleanup != nil {
                     dismiss(reason: .action)
                     return

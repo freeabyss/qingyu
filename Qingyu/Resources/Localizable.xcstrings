@@ -7232,19 +7232,19 @@
       }
     },
     "management.screenshot.copyToClipboard" : {
-      "comment" : "Option: copy to clipboard",
-      "extractionState" : "stale",
+      "comment" : "Switch: after a successful save, also write the image to the clipboard",
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Copy to clipboard"
+            "value" : "Also copy to clipboard after saving"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "复制到剪贴板"
+            "value" : "保存后同时复制到剪贴板"
           }
         }
       }
@@ -7448,19 +7448,19 @@
       }
     },
     "management.screenshot.playSound" : {
-      "comment" : "Option: play sound",
-      "extractionState" : "stale",
+      "comment" : "Switch: play a system sound when a capture succeeds",
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Play sound after saving"
+            "value" : "Play a sound when a capture completes"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "保存后播放声音"
+            "value" : "截图完成时播放提示音"
           }
         }
       }

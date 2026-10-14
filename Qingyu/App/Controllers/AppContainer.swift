@@ -436,6 +436,10 @@ final class AppContainer: NSObject {
             ?? .default
         whiteboardWindowController.colorValueOptions = colorOptions
         screenshotWindowController.colorValueOptions = colorOptions
+        // 截图后行为策略（保存后同时复制 / 截图完成播放提示音）；默认全关。
+        let postCapturePolicy = ScreenshotPostCapturePolicy.current()
+        screenshotWindowController.postCapturePolicy = postCapturePolicy
+        whiteboardWindowController.postCapturePolicy = postCapturePolicy
     }
 
     /// Task 012：把控件级探测与选区吸附设置同步到截图会话工厂。

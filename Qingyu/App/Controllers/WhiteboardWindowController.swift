@@ -150,6 +150,9 @@ final class WhiteboardWindowController {
     /// 取色输出格式（由调用方按设置注入）。
     var colorValueOptions: ColorValueOptions = .default
 
+    /// 截图后行为策略（白板保存同样遵守「保存后同时复制」）。
+    var postCapturePolicy: ScreenshotPostCapturePolicy = .default
+
     // MARK: - Actions
 
     private func copy(_ state: AnnotationCanvasState?) {
@@ -160,6 +163,11 @@ final class WhiteboardWindowController {
 
     private func save(_ state: AnnotationCanvasState?) {
         guard let state, let onSave, let png = try? state.renderedPNGData() else { return }
+        if postCapturePolicy.copiesToClipboardAfterSave {
+            let pasteboard = NSPasteboard.general
+            pasteboard.clearContents()
+            pasteboard.setData(png, forType: .png)
+        }
         Task { @MainActor in
             _ = try? await onSave(png, Date())
             self.dismiss(force: true)

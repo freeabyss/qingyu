@@ -11,11 +11,17 @@ import os.log
 @MainActor
 final class ScreenshotWindowController {
     private let logger = Logger.screenshot
+    /// 截图提示音播放器（持有音效实例，避免播放中被释放）。
+    private let soundPlayer = CaptureSoundPlayer()
     private unowned let container: AppContainer
 
     /// Task 011：放大镜配置。由 `AppContainer.syncRuntimeSettings()` 从设置同步；
     /// 默认值与 `MagnifierConfiguration.default` 一致，未改设置时行为不变。
     var magnifierConfiguration: MagnifierConfiguration = .default
+    /// 截图后行为策略（保存后同时复制 / 截图完成播放提示音）。默认全关。
+    var postCapturePolicy: ScreenshotPostCapturePolicy = .default {
+        didSet { toolbar.postCapturePolicy = postCapturePolicy }
+    }
     /// Task 014/04：取色输出格式（标注窗口内 `C` / `⇧C` 使用）。
     var colorValueOptions: ColorValueOptions = .default {
         didSet { toolbar.colorValueOptions = colorValueOptions }
@@ -128,6 +134,8 @@ final class ScreenshotWindowController {
                 do {
                     try? await Task.sleep(nanoseconds: 80_000_000)
                     let result = try await self.container.screenshotService.captureTarget(target)
+                    // 截图成功 → 可选提示音（默认关，与接通前行为一致）。
+                    self.soundPlayer.playIfNeeded(self.postCapturePolicy.playsSoundOnCapture)
                     self.showPreview(for: result)
                     session.finish()
                     // 截图会话到「预览」即告结束：预览阶段不再占用互斥，白板可随时开始。

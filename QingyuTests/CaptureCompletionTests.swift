@@ -205,3 +205,71 @@ extension CaptureCompletionTests {
         XCTAssertEqual(printedImageData, original.imageData)
     }
 }
+
+
+// MARK: - 截图后行为策略（接通两个此前的哑开关）
+
+@MainActor
+final class ScreenshotPostCapturePolicyTests: XCTestCase {
+
+    func testDefaultsAreOffSoBehaviorDoesNotRegress() {
+        let policy = ScreenshotPostCapturePolicy.default
+
+        XCTAssertFalse(
+            policy.copiesToClipboardAfterSave,
+            "这两个开关此前从未生效，默认开会在无配置情况下凭空多出剪贴板写入"
+        )
+        XCTAssertFalse(
+            policy.playsSoundOnCapture,
+            "默认开会在无配置情况下凭空多出提示音"
+        )
+    }
+
+    func testCurrentReadsUserDefaultsAndDefaultsToOff() throws {
+        let suiteName = "ScreenshotPostCapturePolicyTests-\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        XCTAssertEqual(ScreenshotPostCapturePolicy.current(from: defaults), .default)
+
+        defaults.set(true, forKey: ScreenshotPostCapturePolicy.DefaultsKey.copyToClipboard)
+        defaults.set(true, forKey: ScreenshotPostCapturePolicy.DefaultsKey.playSound)
+
+        let policy = ScreenshotPostCapturePolicy.current(from: defaults)
+        XCTAssertTrue(policy.copiesToClipboardAfterSave)
+        XCTAssertTrue(policy.playsSoundOnCapture)
+    }
+
+    func testPolicyCodableRoundTrip() throws {
+        let policy = ScreenshotPostCapturePolicy(copiesToClipboardAfterSave: true, playsSoundOnCapture: false)
+
+        let data = try JSONEncoder().encode(policy)
+        let decoded = try JSONDecoder().decode(ScreenshotPostCapturePolicy.self, from: data)
+
+        XCTAssertEqual(decoded, policy)
+    }
+
+    // MARK: 音效回退
+
+    func testResolveCaptureSoundPrefersFirstAvailable() {
+        let sound = ScreenshotPostCapturePolicy.resolveCaptureSound { name in
+            name == "Pop" ? NSSound(named: NSSound.Name("Pop")) : nil
+        }
+
+        XCTAssertNotNil(sound, "首选不可用时应回退到下一个可用音效")
+    }
+
+    func testResolveCaptureSoundReturnsNilWhenNoneAvailable() {
+        XCTAssertNil(
+            ScreenshotPostCapturePolicy.resolveCaptureSound { _ in nil },
+            "全部不可用时返回 nil，由调用方静默跳过而不是报错"
+        )
+    }
+
+    func testCaptureSoundExistsOnThisSystem() {
+        XCTAssertNotNil(
+            ScreenshotPostCapturePolicy.resolveCaptureSound(),
+            "系统应至少提供候选列表中的一个提示音"
+        )
+    }
+}

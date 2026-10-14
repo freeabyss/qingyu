@@ -12,8 +12,10 @@ import UniformTypeIdentifiers
 struct ScreenshotPluginSettingsPage: View {
     @EnvironmentObject private var viewModel: SettingsViewModel
 
-    @AppStorage("screenshot.copyToClipboard") private var copyToClipboard = true
-    @AppStorage("screenshot.playSound") private var playSound = true
+    // 这两个开关此前从未被消费；接通后默认值改为「关」，保证不加配置时行为与
+    // 接通前完全一致（符合「默认值下行为不倒退」）。
+    @AppStorage(ScreenshotPostCapturePolicy.DefaultsKey.copyToClipboard) private var copyToClipboard = false
+    @AppStorage(ScreenshotPostCapturePolicy.DefaultsKey.playSound) private var playSound = false
     @AppStorage("screenshot.includeShadow") private var includeShadow = true
 
     // Task 014/03：导出结果图的外观。默认全 0 = 不装饰，导出内容与开启本能力前逐字节一致。
