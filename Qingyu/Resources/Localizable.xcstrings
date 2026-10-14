@@ -55,6 +55,150 @@
         }
       }
     },
+    "pin.hint.close" : {
+      "comment" : "Pin hover hint: close action",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关闭"
+          }
+        }
+      }
+    },
+    "pin.hint.reset" : {
+      "comment" : "Pin hover hint: middle-click reset",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reset scale and opacity"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "复位缩放与不透明度"
+          }
+        }
+      }
+    },
+    "pin.hint.resetKey" : {
+      "comment" : "Pin hover hint: key description for reset",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Middle click"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "中键"
+          }
+        }
+      }
+    },
+    "pin.hint.doubleClickClose" : {
+      "comment" : "Pin hover hint: double-click close action",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关闭"
+          }
+        }
+      }
+    },
+    "pin.hint.doubleClickKey" : {
+      "comment" : "Pin hover hint: key description for double click",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Double click"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "双击"
+          }
+        }
+      }
+    },
+    "pin.hint.scale" : {
+      "comment" : "Pin hover hint: scale hotkey action",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zoom"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "缩放"
+          }
+        }
+      }
+    },
+    "pin.hint.opacity" : {
+      "comment" : "Pin hover hint: opacity hotkey action",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opacity"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不透明度"
+          }
+        }
+      }
+    },
+    "pin.hint.passthrough" : {
+      "comment" : "Pin hover hint: passthrough hotkey action",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Click-through"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "点击穿透"
+          }
+        }
+      }
+    },
     "pin.menu.close" : {
       "comment" : "Pin context menu: close pin and enter restore queue (⌘W)",
       "extractionState" : "manual",
@@ -483,6 +627,60 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "拖动贴图靠近窗口或屏幕边缘时自动对齐；按住 ⌘ 可临时禁用。0 表示关闭。"
+          }
+        }
+      }
+    },
+    "settings.pin.shortcuts.section" : {
+      "comment" : "Section: pin interaction shortcuts",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pin shortcuts"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "贴图快捷键"
+          }
+        }
+      }
+    },
+    "settings.pin.shortcuts.note" : {
+      "comment" : "Note: pin shortcuts scope",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pin shortcuts act on the pin under the cursor. With no pin under the cursor, the click-through shortcut toggles every pin and the scale/opacity shortcuts do nothing."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "贴图快捷键作用于「光标下的贴图」；光标下没有贴图时，穿透键作用于全部贴图，缩放与不透明度键不响应。"
+          }
+        }
+      }
+    },
+    "settings.pin.showShortcutHints" : {
+      "comment" : "Switch: show a one-line shortcut hint when hovering a pin",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show shortcut hints on hover"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "悬停时显示快捷键提示"
           }
         }
       }
@@ -12635,6 +12833,96 @@
     "需要屏幕录制权限" : {},
     "清羽 Qingyu" : {},
     "清羽需要屏幕录制权限才能截取屏幕内容。请在系统设置中开启后重试。" : {},
+    "management.shortcuts.pinToggleMouseEvents" : {
+      "comment" : "Recorder row: toggle mouse-events passthrough for the pin under the cursor",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toggle pin click-through"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "切换贴图点击穿透"
+          }
+        }
+      }
+    },
+    "management.shortcuts.pinScaleUp" : {
+      "comment" : "Recorder row: scale up the pin under the cursor",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scale pin up"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "放大光标下贴图"
+          }
+        }
+      }
+    },
+    "management.shortcuts.pinScaleDown" : {
+      "comment" : "Recorder row: scale down the pin under the cursor",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scale pin down"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "缩小光标下贴图"
+          }
+        }
+      }
+    },
+    "management.shortcuts.pinOpacityUp" : {
+      "comment" : "Recorder row: increase opacity of the pin under the cursor",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Increase pin opacity"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "提高贴图不透明度"
+          }
+        }
+      }
+    },
+    "management.shortcuts.pinOpacityDown" : {
+      "comment" : "Recorder row: decrease opacity of the pin under the cursor",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Decrease pin opacity"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "降低贴图不透明度"
+          }
+        }
+      }
+    },
     "management.shortcuts.startScreenshot" : {
       "comment" : "Screenshot settings: single unified screenshot shortcut recorder label",
       "extractionState" : "manual",

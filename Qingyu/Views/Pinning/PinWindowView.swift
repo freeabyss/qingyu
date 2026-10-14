@@ -1,4 +1,5 @@
 import AppKit
+import KeyboardShortcuts
 import SwiftUI
 
 // MARK: - Pin window view (Task 008)
@@ -6,6 +7,12 @@ import SwiftUI
 /// 贴图内容视图：按载荷类型渲染，并应用缩放/不透明度/旋转/翻转。
 struct PinWindowView: View {
     let item: PinItem
+
+    /// Task 017/02：穿透态的视觉标识（虚线描边）。
+    ///
+    /// 穿透后贴图不再响应鼠标，用户无法用点击或悬停找到它；因此给一个克制但
+    /// 明确的提示，避免"贴图消失了"。刻意不改变不透明度等其他观感。
+    static let passthroughBorderColor = Color.accentColor.opacity(0.85)
 
     var body: some View {
         content
@@ -15,6 +22,16 @@ struct PinWindowView: View {
             )
             .opacity(Double(item.transform.opacity))
             .rotationEffect(.degrees(Double(item.transform.quarterTurns) * 90))
+            .overlay {
+                if item.ignoresMouseEvents {
+                    RoundedRectangle(cornerRadius: 4)
+                        .strokeBorder(
+                            Self.passthroughBorderColor,
+                            style: StrokeStyle(lineWidth: 2, dash: [6, 4])
+                        )
+                        .allowsHitTesting(false)
+                }
+            }
     }
 
     @ViewBuilder
@@ -96,8 +113,34 @@ final class PinEventContainerView: NSView {
     var onOpenSettings: (() -> Void)?                 // `⇧⌘P`
     var onReplaceFromPasteboard: (() -> Void)?        // `⌘V`
 
+    /// Task 017/04：悬停时显示一行快捷键提示（设置可整体关闭）。
+    var showsShortcutHints = true {
+        didSet {
+            guard showsShortcutHints != oldValue else { return }
+            if !showsShortcutHints { hintLabel.isHidden = true }
+        }
+    }
+
     private(set) var item: PinItem
     private let hostingView: NSHostingView<PinWindowView>
+    private lazy var hintLabel: NSTextField = {
+        let label = NSTextField(labelWithString: "")
+        label.font = .systemFont(ofSize: 11)
+        label.textColor = .secondaryLabelColor
+        label.alignment = .center
+        label.lineBreakMode = .byTruncatingTail
+        label.drawsBackground = true
+        label.backgroundColor = NSColor.windowBackgroundColor.withAlphaComponent(0.78)
+        label.isBezeled = false
+        label.isEditable = false
+        label.isSelectable = false
+        label.isHidden = true
+        return label
+    }()
+    private var hoverTrackingArea: NSTrackingArea?
+
+    /// 悬停提示当前是否可见（单测与布局用）。
+    var isHoverHintVisible: Bool { !hintLabel.isHidden && hintLabel.superview != nil }
 
     init(item: PinItem, size: NSSize) {
         self.item = item
@@ -121,6 +164,85 @@ final class PinEventContainerView: NSView {
     override func layout() {
         super.layout()
         hostingView.frame = bounds
+        let height: CGFloat = 18
+        hintLabel.frame = NSRect(
+            x: 6,
+            y: 6,
+            width: max(0, bounds.width - 12),
+            height: height
+        )
+    }
+
+    // MARK: 悬停提示（Task 017/04）
+
+    override func updateTrackingAreas() {
+        super.updateTrackingAreas()
+        if let hoverTrackingArea {
+            removeTrackingArea(hoverTrackingArea)
+        }
+        let area = NSTrackingArea(
+            rect: bounds,
+            options: [.mouseEnteredAndExited, .activeAlways, .inVisibleRect],
+            owner: self,
+            userInfo: nil
+        )
+        addTrackingArea(area)
+        hoverTrackingArea = area
+    }
+
+    override func mouseEntered(with event: NSEvent) {
+        guard showsShortcutHints else { return }
+        let text = Self.hoverHintText()
+        guard !text.isEmpty else { return }
+        hintLabel.stringValue = text
+        addSubview(hintLabel, positioned: .above, relativeTo: hostingView)
+        hintLabel.isHidden = false
+        needsLayout = true
+        layoutSubtreeIfNeeded()
+    }
+
+    override func mouseExited(with event: NSEvent) {
+        hintLabel.isHidden = true
+    }
+
+    /// 提示内容随当前可用键位变化：未绑定的项不出现。
+    ///
+    /// `shortcutDescriptions` 为 nil 时读取真实键位（MainActor 隔离）。
+    @MainActor
+    static func hoverHintText(
+        shortcutDescriptions: [KeyboardShortcuts.Name: String]? = nil
+    ) -> String {
+        let shortcutDescriptions = shortcutDescriptions ?? Self.pinHintShortcuts()
+        var items: [PinShortcutHints.Item] = [
+            .init(action: L10n.localized("pin.hint.close"), keys: "Esc"),
+            .init(action: L10n.localized("pin.hint.reset"), keys: L10n.localized("pin.hint.resetKey")),
+            .init(action: L10n.localized("pin.hint.doubleClickClose"), keys: L10n.localized("pin.hint.doubleClickKey"))
+        ]
+        items.append(.init(
+            action: L10n.localized("pin.hint.scale"),
+            keys: shortcutDescriptions[.pinScaleUp] ?? ""
+        ))
+        items.append(.init(
+            action: L10n.localized("pin.hint.opacity"),
+            keys: shortcutDescriptions[.pinOpacityUp] ?? ""
+        ))
+        items.append(.init(
+            action: L10n.localized("pin.hint.passthrough"),
+            keys: shortcutDescriptions[.pinToggleMouseEvents] ?? ""
+        ))
+        return PinShortcutHints.text(items)
+    }
+
+    /// 读取当前键位描述（MainActor 隔离）。
+    @MainActor
+    private static func pinHintShortcuts() -> [KeyboardShortcuts.Name: String] {
+        var result: [KeyboardShortcuts.Name: String] = [:]
+        for name in [KeyboardShortcuts.Name.pinScaleUp, .pinOpacityUp, .pinToggleMouseEvents] {
+            if let shortcut = KeyboardShortcuts.getShortcut(for: name) {
+                result[name] = shortcut.description
+            }
+        }
+        return result
     }
 
     // MARK: Key mapping

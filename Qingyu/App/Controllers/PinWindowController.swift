@@ -92,6 +92,8 @@ final class PinWindowController {
     private var cascadeIndex = 0
     /// Task 017/01：吸附阈值（点）；0 = 关闭吸附。由设置同步写入。
     var snapThreshold: CGFloat = PinSnapping.defaultThreshold
+    /// Task 017/04：悬停是否显示快捷键提示。由设置同步写入。
+    var showsShortcutHints = true
     /// 每个贴图的移动通知监听（拖动结束后吸附）。
     private var moveObservers: [UUID: NSObjectProtocol] = [:]
     /// 拖动结束探测（鼠标松开前不断重试）。
@@ -107,7 +109,7 @@ final class PinWindowController {
         self.store = store
         self.payloadFactory = payloadFactory
         self.onOpenSettings = onOpenSettings
-        attachMouseEventsShortcut()
+        attachPinShortcuts()
     }
 
     var windowCount: Int { windows.count }
@@ -117,21 +119,118 @@ final class PinWindowController {
         windows[id]
     }
 
-    /// 鼠标穿透全局快捷键（设置页可改键；不属于六个核心槽位）。
-    /// 1.0.0 FeatureGate：截图/贴图入口整体隐藏，快捷键不注册；
-    /// 贴图窗口只能在截图工具条/剪贴板贴图入口恢复后出现。
-    private func attachMouseEventsShortcut() {
+    /// 贴图全局快捷键（设置页可改键；不属于四个核心槽位）。
+    /// FeatureGate：截图/贴图入口整体隐藏时不注册；贴图窗口只能在截图工具条
+    /// 或剪贴板贴图入口恢复后出现。
+    private func attachPinShortcuts() {
         guard FeatureGate.screenshotEnabled else { return }
         KeyboardShortcuts.onKeyUp(for: .pinToggleMouseEvents) { [weak self] in
-            Task { @MainActor in self?.toggleIgnoresMouseEventsForAll() }
+            Task { @MainActor in self?.toggleMouseEventsForPinUnderCursor() }
+        }
+        KeyboardShortcuts.onKeyUp(for: .pinScaleUp) { [weak self] in
+            Task { @MainActor in self?.adjustScaleForPinUnderCursor(by: PinEventContainerView.zoomStep) }
+        }
+        KeyboardShortcuts.onKeyUp(for: .pinScaleDown) { [weak self] in
+            Task { @MainActor in self?.adjustScaleForPinUnderCursor(by: 1 / PinEventContainerView.zoomStep) }
+        }
+        KeyboardShortcuts.onKeyUp(for: .pinOpacityUp) { [weak self] in
+            Task { @MainActor in self?.adjustOpacityForPinUnderCursor(by: PinEventContainerView.opacityStep) }
+        }
+        KeyboardShortcuts.onKeyUp(for: .pinOpacityDown) { [weak self] in
+            Task { @MainActor in self?.adjustOpacityForPinUnderCursor(by: -PinEventContainerView.opacityStep) }
+        }
+    }
+
+    // MARK: - 光标下贴图（Task 017/02、03）
+
+    /// 测试注入点：单测用它固定「光标下的贴图」。
+    ///
+    /// 生产路径为 nil（走真实光标命中）；若不注入，单测结果会随测试机上鼠标
+    /// 的实际位置漂移，属于不可接受的偶发失败来源。
+    var pinUnderCursorProvider: (() -> UUID?)?
+
+    /// 当前「光标下的贴图」，优先使用注入的判定。
+    func currentPinUnderCursor() -> UUID? {
+        (pinUnderCursorProvider ?? { self.pinIDUnderCursor() })()
+    }
+
+    /// 光标下的贴图 id；命中多个时取**最前面**的那个（`orderedWindows` 前到后）。
+    func pinIDUnderCursor() -> UUID? {
+        // windowNumber → id，用于把「有序窗口号」翻译回贴图 id。
+        var idByWindowNumber: [Int: UUID] = [:]
+        for (id, window) in windows {
+            idByWindowNumber[window.windowNumber] = id
+        }
+        let orderedIDs: [UUID] = NSApp.orderedWindows.compactMap { idByWindowNumber[$0.windowNumber] }
+        // `orderedWindows` 可能不含刚创建尚未参与排序的窗口，补齐后仍保持前到后语义。
+        let remaining = windows.keys.filter { !orderedIDs.contains($0) }
+        return Self.pinUnderCursor(
+            mouseLocation: NSEvent.mouseLocation,
+            candidates: (orderedIDs + remaining).compactMap { id in
+                windows[id].map { (id: id, frame: $0.frame) }
+            }
+        )
+    }
+
+    /// 纯函数：在**前到后**排列的候选里找出光标命中的贴图。先命中者胜出。
+    static func pinUnderCursor(
+        mouseLocation: NSPoint,
+        candidates: [(id: UUID, frame: NSRect)]
+    ) -> UUID? {
+        candidates.first { NSMouseInRect(mouseLocation, $0.frame, false) }?.id
+    }
+
+    /// 切换鼠标事件穿透：光标下有贴图时**只切它**，否则整体切换（等价于批量切换）。
+    func toggleMouseEventsForPinUnderCursor() {
+        guard let id = currentPinUnderCursor(), let item = store.item(id: id) else {
+            toggleIgnoresMouseEventsForAll()
+            return
+        }
+        setIgnoresMouseEvents(!item.ignoresMouseEvents, for: id)
+        logger.info("Pin mouse-events passthrough toggled for the pin under cursor")
+    }
+
+    /// 缩放光标下贴图；光标下没有贴图时**不响应**（不报错）。
+    /// 上下限由 `PinTransform.clampScale` 承担（10%…800%）。
+    func adjustScaleForPinUnderCursor(by multiplier: CGFloat) {
+        guard let id = currentPinUnderCursor(), var item = store.item(id: id) else { return }
+        item.transform.scale(by: multiplier)
+        store.updateTransform(item.transform, for: id)
+        refreshWindow(item)
+    }
+
+    /// 调整光标下贴图的不透明度；光标下没有贴图时不响应。
+    /// 上下限由 `PinTransform.clampOpacity` 承担（10%…100%）。
+    func adjustOpacityForPinUnderCursor(by delta: CGFloat) {
+        guard let id = currentPinUnderCursor(), var item = store.item(id: id) else { return }
+        item.transform.adjustOpacity(by: delta)
+        store.updateTransform(item.transform, for: id)
+        refreshWindow(item)
+    }
+
+    /// 写入穿透状态并同步窗口与视觉标识。
+    func setIgnoresMouseEvents(_ ignores: Bool, for id: UUID) {
+        store.setIgnoresMouseEvents(ignores, for: id)
+        windows[id]?.ignoresMouseEvents = ignores
+        if let item = store.item(id: id) {
+            refreshWindow(item)
         }
     }
 
     /// 应用持久化设置（文件路径转图片、恢复队列容量）。
-    func applySettings(filePathToImage: Bool, restoreCapacity: Int, snapThreshold: CGFloat = PinSnapping.defaultThreshold) {
+    func applySettings(
+        filePathToImage: Bool,
+        restoreCapacity: Int,
+        snapThreshold: CGFloat = PinSnapping.defaultThreshold,
+        showsShortcutHints: Bool = true
+    ) {
         payloadFactory.filePathToImage = filePathToImage
         store.setRestoreCapacity(restoreCapacity)
         self.snapThreshold = snapThreshold
+        self.showsShortcutHints = showsShortcutHints
+        for window in windows.values {
+            (window.contentView as? PinEventContainerView)?.showsShortcutHints = showsShortcutHints
+        }
         // 阈值由「关闭」变「开启」时补挂监听；反向则摘掉，避免白跑定时器。
         for (id, window) in windows {
             if snapThreshold > 0, moveObservers[id] == nil {
@@ -146,12 +245,9 @@ final class PinWindowController {
     func toggleIgnoresMouseEventsForAll() {
         let shouldIgnore = !(store.items.first?.ignoresMouseEvents ?? false)
         for item in store.items {
-            store.setIgnoresMouseEvents(shouldIgnore, for: item.id)
-            if let window = windows[item.id] {
-                window.ignoresMouseEvents = shouldIgnore
-            }
+            setIgnoresMouseEvents(shouldIgnore, for: item.id)
         }
-        logger.info("Pin mouse-events passthrough: \(shouldIgnore)")
+        logger.info("Pin mouse-events passthrough (all): \(shouldIgnore)")
     }
 
     // MARK: - Presenting
@@ -256,6 +352,7 @@ final class PinWindowController {
         }
 
         let container = PinEventContainerView(item: item, size: frame.size)
+        container.showsShortcutHints = showsShortcutHints
         let window = PinNSWindow(
             contentRect: frame,
             styleMask: [.borderless, .resizable],

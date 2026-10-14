@@ -66,7 +66,7 @@ final class HotkeyConflictDetector: ObservableObject, HotkeyConflictDetectorProt
     private let systemShortcutProvider: () -> [KeyboardShortcuts.Shortcut]
 
     init(
-        managedNames: [KeyboardShortcuts.Name] = KeyboardShortcuts.Name.managedGlobalShortcuts,
+        managedNames: [KeyboardShortcuts.Name] = KeyboardShortcuts.Name.conflictScannedShortcuts,
         currentShortcutProvider: @escaping (KeyboardShortcuts.Name) -> KeyboardShortcuts.Shortcut? = { KeyboardShortcuts.getShortcut(for: $0) },
         systemShortcutProvider: @escaping () -> [KeyboardShortcuts.Shortcut] = HotkeyValidationService.enabledSystemShortcuts
     ) {

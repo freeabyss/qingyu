@@ -88,10 +88,12 @@ final class AppContainer: NSObject {
             let capacity = (try? await settings.value(for: .pinRestoreCapacity, as: Int.self)) ?? PinStore.defaultRestoreCapacity
             let snapThreshold = (try? await settings.value(for: .pinSnapThreshold, as: Double.self))
                 ?? Double(PinSnapping.defaultThreshold)
+            let showsShortcutHints = (try? await settings.value(for: .pinShowsShortcutHints, as: Bool.self)) ?? true
             self.pinWindowController.applySettings(
                 filePathToImage: filePathToImage,
                 restoreCapacity: capacity,
-                snapThreshold: PinSnapping.sanitizedThreshold(snapThreshold)
+                snapThreshold: PinSnapping.sanitizedThreshold(snapThreshold),
+                showsShortcutHints: showsShortcutHints
             )
         }
         return controller

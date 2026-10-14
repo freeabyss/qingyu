@@ -75,6 +75,8 @@ enum SettingKey: String, CaseIterable, Codable {
     case pinRestoreCapacity = "pin.restoreCapacity"
     /// Task 017/01：贴图拖动吸附阈值（逻辑点）；0 表示关闭吸附。
     case pinSnapThreshold = "pin.snapThreshold"
+    /// Task 017/04：悬停贴图时是否显示一行快捷键提示。
+    case pinShowsShortcutHints = "pin.showsShortcutHints"
     case appearanceMode = "appearance.mode"
     case dataFolderBookmark = "data.folderBookmark"
     case languageMode = "language.mode"

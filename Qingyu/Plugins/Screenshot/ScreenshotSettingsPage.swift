@@ -32,6 +32,7 @@ struct ScreenshotPluginSettingsPage: View {
     @State private var snapThreshold: Double = 0
     @State private var ignoredAppsText = ""
     @State private var pinSnapThreshold = Double(PinSnapping.defaultThreshold)
+    @State private var pinShowsShortcutHints = true
     @State private var saveDirectory: URL = URL(fileURLWithPath: ("~/Desktop" as NSString).expandingTildeInPath)
     @State private var showDirectoryImporter = false
 
@@ -44,6 +45,17 @@ struct ScreenshotPluginSettingsPage: View {
     private var recorderRows: [RecorderRow] {
         [
             RecorderRow(label: L10n.localized("management.shortcuts.startScreenshot"), name: .startScreenshot)
+        ]
+    }
+
+    /// Task 017：贴图交互快捷键（首个未设默认键位，需用户自行录制）。
+    private var pinRecorderRows: [RecorderRow] {
+        [
+            RecorderRow(label: L10n.localized("management.shortcuts.pinToggleMouseEvents"), name: .pinToggleMouseEvents),
+            RecorderRow(label: L10n.localized("management.shortcuts.pinScaleUp"), name: .pinScaleUp),
+            RecorderRow(label: L10n.localized("management.shortcuts.pinScaleDown"), name: .pinScaleDown),
+            RecorderRow(label: L10n.localized("management.shortcuts.pinOpacityUp"), name: .pinOpacityUp),
+            RecorderRow(label: L10n.localized("management.shortcuts.pinOpacityDown"), name: .pinOpacityDown)
         ]
     }
 
@@ -256,6 +268,15 @@ struct ScreenshotPluginSettingsPage: View {
                     }
                 }
                 JadeSettingsDivider()
+                // Task 017/04：悬停快捷键提示开关。
+                JadeSwitchRow(
+                    L10n.localized("settings.pin.showShortcutHints"),
+                    isOn: $pinShowsShortcutHints
+                )
+                .onChange(of: pinShowsShortcutHints) { newValue in
+                    Task { try? await viewModel.set(newValue, for: .pinShowsShortcutHints) }
+                }
+                JadeSettingsDivider()
                 // Task 017/01：拖动吸附阈值。0 = 关闭（拖动时按住 ⌘ 可临时禁用）。
                 VStack(alignment: .leading, spacing: JadeSpace.x2.value) {
                     HStack {
@@ -277,18 +298,17 @@ struct ScreenshotPluginSettingsPage: View {
                         .font(JadeFont.caption)
                         .foregroundStyle(JadeColor.textTertiary)
                 }
-                JadeSettingsDivider()
-                HStack {
-                    Text(L10n.localized("settings.pin.mouseEventsShortcut"))
-                        .font(JadeFont.body)
-                        .foregroundStyle(JadeColor.textPrimary)
-                    Spacer()
-                    HotkeyRecorder(
-                        for: .pinToggleMouseEvents,
-                        isConflicting: .constant(false),
-                        conflictMessage: .constant(nil)
-                    )
+            }
+
+            // Task 017：贴图交互快捷键。作用于「光标下的贴图」；穿透键在没有光标下贴图时整体切换。
+            SettingsSection("settings.pin.shortcuts.section") {
+                ForEach(Array(pinRecorderRows.enumerated()), id: \.element.id) { index, row in
+                    if index > 0 { JadeSettingsDivider() }
+                    recorderRow(row)
                 }
+                Text(L10n.localized("settings.pin.shortcuts.note"))
+                    .font(JadeFont.caption)
+                    .foregroundStyle(JadeColor.textTertiary)
             }
     }
     .fileImporter(isPresented: $showDirectoryImporter, allowedContentTypes: [.folder], allowsMultipleSelection: false) { result in
@@ -322,6 +342,7 @@ private func recorderRow(_ row: RecorderRow) -> some View {
             ?? URL(fileURLWithPath: ("~/Desktop" as NSString).expandingTildeInPath)
         pinFilePathToImage = (try? await viewModel.value(for: .pinFilePathToImage, as: Bool.self)) ?? true
         pinRestoreCapacity = (try? await viewModel.value(for: .pinRestoreCapacity, as: Int.self)) ?? PinStore.defaultRestoreCapacity
+        pinShowsShortcutHints = (try? await viewModel.value(for: .pinShowsShortcutHints, as: Bool.self)) ?? true
         let storedSnapThreshold = try? await viewModel.value(for: .pinSnapThreshold, as: Double.self)
         pinSnapThreshold = Double(PinSnapping.sanitizedThreshold(storedSnapThreshold ?? Double(PinSnapping.defaultThreshold)))
 
