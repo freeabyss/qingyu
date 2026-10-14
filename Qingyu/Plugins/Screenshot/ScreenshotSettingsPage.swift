@@ -35,6 +35,8 @@ struct ScreenshotPluginSettingsPage: View {
     @State private var pinShowsShortcutHints = true
     /// Task 015：预设管理（创建在截图会话内用 ⌘S 完成；此处负责改名 / 排序 / 删除）。
     @State private var presets: [CapturePreset] = []
+    /// Task 014/05：预览阶段手势绑定。
+    @State private var gestureBindings = ScreenshotGestureBindings.default
     @State private var pendingPresetDeletion: CapturePreset?
     @State private var presetStore = CapturePresetStore(
         persistence: SettingsCapturePresetPersistence(settings: SettingsService(persistence: .shared))
@@ -306,6 +308,30 @@ struct ScreenshotPluginSettingsPage: View {
                 }
             }
 
+            // Task 014/05：预览阶段（截图完成后、工具条出现时）的手势动作。
+            SettingsSection("settings.gestures.section") {
+                ForEach(Array(ScreenshotGesture.allCases.enumerated()), id: \.element) { index, gesture in
+                    if index > 0 { JadeSettingsDivider() }
+                    HStack {
+                        Text(L10n.localized(gesture.localizationKey))
+                            .font(JadeFont.body)
+                            .foregroundStyle(JadeColor.textPrimary)
+                        Spacer()
+                        Picker("", selection: gestureBinding(gesture)) {
+                            ForEach(ScreenshotGestureAction.allCases, id: \.self) { action in
+                                Text(L10n.localized(action.localizationKey)).tag(action)
+                            }
+                        }
+                        .labelsHidden()
+                        .pickerStyle(.menu)
+                        .frame(maxWidth: 180)
+                    }
+                }
+                Text(L10n.localized("settings.gestures.note"))
+                    .font(JadeFont.caption)
+                    .foregroundStyle(JadeColor.textTertiary)
+            }
+
             // Task 015：预设管理。创建动作在截图会话内完成（⌘S 区域 / ⌘⇧S 尺寸）。
             SettingsSection("settings.presets.section") {
                 if presets.isEmpty {
@@ -387,6 +413,8 @@ private func recorderRow(_ row: RecorderRow) -> some View {
         pinRestoreCapacity = (try? await viewModel.value(for: .pinRestoreCapacity, as: Int.self)) ?? PinStore.defaultRestoreCapacity
         await presetStore.reload()
         presets = presetStore.catalog.ordered
+        gestureBindings = (try? await viewModel.value(for: .screenshotGestureBindings, as: ScreenshotGestureBindings.self))
+            ?? .default
         pinShowsShortcutHints = (try? await viewModel.value(for: .pinShowsShortcutHints, as: Bool.self)) ?? true
         let storedSnapThreshold = try? await viewModel.value(for: .pinSnapThreshold, as: Double.self)
         pinSnapThreshold = Double(PinSnapping.sanitizedThreshold(storedSnapThreshold ?? Double(PinSnapping.defaultThreshold)))
@@ -419,6 +447,20 @@ private func recorderRow(_ row: RecorderRow) -> some View {
                 }
                 let raw = magnifierOptions.map(\.rawValue).sorted()
                 Task { try? await viewModel.set(raw, for: .magnifierOptions) }
+            }
+        )
+    }
+
+    // MARK: - Task 014/05 手势绑定
+
+    /// 手势 → 动作的绑定；改动立即落盘。
+    private func gestureBinding(_ gesture: ScreenshotGesture) -> Binding<ScreenshotGestureAction> {
+        Binding(
+            get: { gestureBindings.action(for: gesture) },
+            set: { newValue in
+                gestureBindings.set(newValue, for: gesture)
+                let snapshot = gestureBindings
+                Task { try? await viewModel.set(snapshot, for: .screenshotGestureBindings) }
             }
         )
     }

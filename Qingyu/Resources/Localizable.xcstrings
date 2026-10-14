@@ -847,6 +847,186 @@
         }
       }
     },
+    "settings.gestures.section" : {
+      "comment" : "Section: configurable gestures in the preview stage",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preview gestures"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "预览手势"
+          }
+        }
+      }
+    },
+    "settings.gestures.note" : {
+      "comment" : "Note under the gesture bindings",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gestures act while the preview toolbar is shown. Mouse gestures are recognized when you click outside Qingyu — that is, on the captured content."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "手势在预览工具条出现期间生效。鼠标手势在点击清羽窗口之外（也就是刚截到的画面上）时生效。"
+          }
+        }
+      }
+    },
+    "settings.gesture.enter" : {
+      "comment" : "Gesture label: Enter key",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter key"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter 键"
+          }
+        }
+      }
+    },
+    "settings.gesture.doubleClick" : {
+      "comment" : "Gesture label: double click",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Double click"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "双击"
+          }
+        }
+      }
+    },
+    "settings.gesture.middleClick" : {
+      "comment" : "Gesture label: middle click",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Middle click"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "中键"
+          }
+        }
+      }
+    },
+    "settings.gesture.rightClick" : {
+      "comment" : "Gesture label: right click",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Right click"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "右键"
+          }
+        }
+      }
+    },
+    "settings.gesture.action.copyAndEnd" : {
+      "comment" : "Gesture action: copy and end the session",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy and finish"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "复制并结束"
+          }
+        }
+      }
+    },
+    "settings.gesture.action.save" : {
+      "comment" : "Gesture action: save to disk",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存"
+          }
+        }
+      }
+    },
+    "settings.gesture.action.pin" : {
+      "comment" : "Gesture action: create a pin",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pin to screen"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "贴图"
+          }
+        }
+      }
+    },
+    "settings.gesture.action.ignore" : {
+      "comment" : "Gesture action: ignore the gesture",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Do nothing"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不响应"
+          }
+        }
+      }
+    },
     "settings.pin.filePathToImage" : {
       "comment" : "Pin setting: first pin of a file path converts to image",
       "extractionState" : "manual",

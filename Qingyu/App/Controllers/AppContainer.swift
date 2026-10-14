@@ -312,6 +312,10 @@ final class AppContainer: NSObject {
         await syncElementDetectionSettings(settingsService)
         // Task 015：预设集合随运行时设置一起装载（会话开始时直接取快照）。
         await capturePresetStore.reload()
+        // Task 014/05：预览阶段手势绑定。
+        let bindings = (try? await settingsService.value(for: .screenshotGestureBindings, as: ScreenshotGestureBindings.self))
+            ?? ScreenshotGestureBindings.default
+        screenshotWindowController.gestureBindings = bindings
     }
 
     /// Task 012：把控件级探测与选区吸附设置同步到截图会话工厂。

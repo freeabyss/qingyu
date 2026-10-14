@@ -16,6 +16,10 @@ final class ScreenshotWindowController {
     /// Task 011：放大镜配置。由 `AppContainer.syncRuntimeSettings()` 从设置同步；
     /// 默认值与 `MagnifierConfiguration.default` 一致，未改设置时行为不变。
     var magnifierConfiguration: MagnifierConfiguration = .default
+    /// Task 014/05：预览阶段可配置手势（Enter / 双击 / 中键 / 右键）。
+    var gestureBindings: ScreenshotGestureBindings = .default {
+        didSet { toolbar.gestureBindings = gestureBindings }
+    }
 
     /// Task 012：控件级探测与选区吸附配置，同样由 `syncRuntimeSettings()` 同步。
     /// 默认关闭吸附（阈值 0）且控件探测需显式开启，避免改变既有手感。

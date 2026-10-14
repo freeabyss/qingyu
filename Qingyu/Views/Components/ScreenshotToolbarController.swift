@@ -53,6 +53,13 @@ final class ScreenshotToolbarController {
         }
     }
 
+    /// Task 014/05：预览阶段的手势绑定（默认 Enter 复制并结束，其余不响应）。
+    var gestureBindings: ScreenshotGestureBindings = .default
+
+    /// 全局鼠标监听：只在预览可见期间存在，点击落在本应用之外（即截取画面上）
+    /// 才会被识别 —— 因此天然不会与工具条按钮抢事件，也不会有「自己点自己」的歧义。
+    private var gestureMonitor: Any?
+
     private var window: ScreenshotPreviewWindow?
     private var annotationWindow: AnnotationEditorWindow?
     private var overlayCancelObserver: NSObjectProtocol?
@@ -61,6 +68,9 @@ final class ScreenshotToolbarController {
 
     deinit {
         toastWorkItem?.cancel()
+        if let gestureMonitor {
+            NSEvent.removeMonitor(gestureMonitor)
+        }
         if let overlayCancelObserver {
             NotificationCenter.default.removeObserver(overlayCancelObserver)
         }
@@ -92,11 +102,19 @@ final class ScreenshotToolbarController {
         window.onEscape = { [weak self] in
             self?.dismiss(reason: .userEscape)
         }
+        window.onGesture = { [weak self] gesture in
+            self?.handleGesture(gesture, result: result, viewModel: viewModel)
+        }
+        window.onGesture = { [weak self] gesture in
+            self?.handleGesture(gesture, result: result, viewModel: viewModel)
+        }
         window.contentView = NSHostingView(rootView: view)
         position(window: window, for: result)
         window.makeKeyAndOrderFront(nil)
+        installGestureMonitor(result: result, viewModel: viewModel)
         NSApp.activate(ignoringOtherApps: true)
         self.window = window
+        installGestureMonitor(result: result, viewModel: viewModel)
         logger.info("Screenshot preview shown for \(result.width)x\(result.height) capture")
     }
 
@@ -152,6 +170,7 @@ final class ScreenshotToolbarController {
     }
 
     private func dismiss(reason: DismissReason) {
+        removeGestureMonitor()
         toastWorkItem?.cancel()
         toastWorkItem = nil
         annotationWindow?.close()
@@ -186,6 +205,57 @@ final class ScreenshotToolbarController {
             height: targetHeight
         )
         window.setFrame(frame, display: true)
+    }
+
+    // MARK: - Gestures (Task 014/05)
+
+    /// 安装全局鼠标监听（仅预览可见期间）。
+    ///
+    /// 只监听**其它应用**派发的鼠标事件：点在自己面板上的事件不会进来，
+    /// 因此不存在与工具条按钮抢事件的歧义；而点在被截取画面上（或任意应用上）
+    /// 的点击会被识别 —— 正是「对刚截到的画面下指令」的手感。
+    private func installGestureMonitor(result: ScreenshotResult, viewModel: ScreenshotPreviewViewModel) {
+        removeGestureMonitor()
+        gestureMonitor = NSEvent.addGlobalMonitorForEvents(
+            matching: [.leftMouseUp, .otherMouseUp, .rightMouseUp]
+        ) { [weak self] event in
+            Task { @MainActor in
+                guard let self else { return }
+                guard let gesture = ScreenshotGestureDispatcher.gesture(
+                    eventType: event.type,
+                    buttonNumber: event.buttonNumber,
+                    clickCount: event.clickCount,
+                    isOutsidePanel: true
+                ) else { return }
+                self.handleGesture(gesture, result: result, viewModel: viewModel)
+            }
+        }
+    }
+
+    private func removeGestureMonitor() {
+        if let gestureMonitor {
+            NSEvent.removeMonitor(gestureMonitor)
+        }
+        gestureMonitor = nil
+    }
+
+    /// 手势 → 动作。`.ignore`（默认）时什么都不做，事件已由系统交给目标应用，
+    /// 本应用不做任何拦截。
+    private func handleGesture(
+        _ gesture: ScreenshotGesture,
+        result: ScreenshotResult,
+        viewModel: ScreenshotPreviewViewModel
+    ) {
+        switch ScreenshotGestureDispatcher.action(for: gesture, bindings: gestureBindings) {
+        case .copyAndEnd:
+            handle(action: .copy, result: result, viewModel: viewModel)
+        case .save:
+            handle(action: .save, result: result, viewModel: viewModel)
+        case .pin:
+            handle(action: .pin, result: result, viewModel: viewModel)
+        case .ignore:
+            break
+        }
     }
 
     private func handle(action: ScreenshotToolbarAction, result: ScreenshotResult, viewModel: ScreenshotPreviewViewModel) {
@@ -416,14 +486,19 @@ final class ScreenshotToolbarController {
 
 final class ScreenshotPreviewWindow: NSPanel {
     var onEscape: (() -> Void)?
+    /// Task 014/05：`Enter` / 小键盘 Enter。
+    var onGesture: ((ScreenshotGesture) -> Void)?
 
     override var canBecomeKey: Bool { true }
     override var canBecomeMain: Bool { true }
 
     override func keyDown(with event: NSEvent) {
-        if event.keyCode == 53 {
+        switch event.keyCode {
+        case 53:
             onEscape?()
-        } else {
+        case 36, 76:
+            onGesture?(.enter)
+        default:
             super.keyDown(with: event)
         }
     }
