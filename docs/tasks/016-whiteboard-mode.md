@@ -70,9 +70,22 @@ enum WhiteboardBackgroundSource {
 }
 ```
 
+## ⛔ 已撤销（2026-10-14，产品决策）
+
+**本任务实现后经产品决策撤销，相关代码、设置项、菜单入口、快捷键、本地化文案与回归用例已全部移除。**
+
+撤销范围与理由：
+
+- **移除内容**：`WhiteboardSession`（含会话互斥与目标屏解析）、`WhiteboardBackground`、`WhiteboardWindowController`、白板设置分区、状态栏菜单项、`⌥⌘W` 快捷键、`whiteboard.*` / `settings.whiteboard.*` 等 12 条本地化文案、`WhiteboardSessionTests`（24 条）与 `SHOT-LIFE-008`。
+- **顺带简化**：为白板引入的 `SessionCoordinator` / `SessionExclusion`（跨会话互斥）随之移除；截图入口改为自身防重入标记 `isCapturing`，避免叠出两套全屏叠层。
+- **保留内容**：截图期的取色能力（`AnnotationCanvasState.sampledColor` 等）保留 —— 它服务于标注窗口的 `C` / `⇧C`，与白板无关。
+- **保留价值**：本卡片记录的「纯色底图不读屏、因此不需要屏幕录制权限」「每屏一个无边框全屏窗口、退出后不残留」等实现结论仍然有效，若将来重新引入可直接复用。
+
+以下为撤销前的交付记录，保留作参考。
+
 ## 交付记录（2026-10-14）
 
-**✅ 已交付。** 关键实现决策：
+**（已撤销）** 关键实现决策：
 
 - **标注实现零复制**：白板直接复用 `AnnotationCanvasState` / `AnnotationCanvasView` / `AnnotationShape` / `AnnotationFlattener` / `AnnotationTopToolbar` / `AnnotationBottomToolbar`。白板只提供「底图 + 会话包装」，导出走既有 `state.renderedPNGData()`。
 - **纯色底图不读屏**：`WhiteboardBackground.solidImage` 是纯内存绘制（显式 `NSBitmapImageRep`，1:1 像素输出），**不触碰任何抓屏 API**，因此在未授予屏幕录制权限时完整可用 —— 测试在无权限的测试进程里直接构造底图并断言像素，即是对该硬性要求的覆盖。
@@ -102,4 +115,4 @@ enum WhiteboardBackgroundSource {
 
 | 项 | 状态 | 说明 |
 |---|---|---|
-| 白板模式 | ✅ 已交付 | 纯色 / 冻结两种底图；复用标注实现；与截图互斥；空白退出无副作用；生命周期回归 SHOT-LIFE-008。详见上「交付记录」。 |
+| 白板模式 | ⛔ 已撤销 | 实现后经产品决策撤销，代码与入口已全部移除。 |

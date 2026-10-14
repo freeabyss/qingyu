@@ -180,13 +180,21 @@ final class PinInteractionTests: XCTestCase {
 
     // MARK: - 悬停提示文案（走生产实现）
 
+    /// 未绑定的动作不应出现在提示里。
+    ///
+    /// 断言必须用**键位符号**（`⌃` / `Esc`）而不是本地化文案做子串匹配：
+    /// 中文下「复位缩放与不透明度」天然包含「缩放」与「不透明度」，
+    /// 按文案匹配会随语言与措辞漂移而假失败（该缺陷已在中文构建下暴露过一次）。
     func testHoverHintSkipsUnboundShortcuts() {
         let text = PinEventContainerView.hoverHintText(shortcutDescriptions: [:])
 
-        XCTAssertFalse(text.contains(L10n.localized("pin.hint.scale")))
-        XCTAssertFalse(text.contains(L10n.localized("pin.hint.opacity")))
-        XCTAssertFalse(text.contains(L10n.localized("pin.hint.passthrough")))
-        XCTAssertTrue(text.contains(L10n.localized("pin.hint.close")), "固定键位提示始终存在")
+        XCTAssertFalse(text.contains("⌃"), "未绑定的可重绑快捷键不应出现")
+        XCTAssertFalse(text.contains("⌥"), "未绑定的可重绑快捷键不应出现")
+        XCTAssertTrue(text.contains("Esc"), "固定键位提示始终存在")
+        XCTAssertTrue(
+            text.contains(L10n.localized("pin.hint.resetKey")),
+            "中键复位提示始终存在"
+        )
     }
 
     func testHoverHintIncludesBoundShortcuts() {

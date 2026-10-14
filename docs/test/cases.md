@@ -24,6 +24,7 @@
 | 2026-10-13 | Claude | Task 011 放大镜：第 12 节新增 1 条自动化用例 SHOT-LIFE-004（取样取消后不回调 + 在途请求合并），原手工冒烟由 SHOT-LIFE-004 顺延为 SHOT-LIFE-005。放大镜取样在叠层窗口下方按需抓屏，涉及叠层生命周期，故纳入本节。 |
 | 2026-10-13 | Claude | Task 012 窗口与控件识别：第 12 节新增 1 条自动化用例 SHOT-LIFE-005（控件探测取消后不回调 + 在途请求合并 + 关闭时零调用），手工冒烟顺延为 SHOT-LIFE-006。控件探测跑在后台队列且随会话取消，涉及叠层生命周期，故纳入本节。 |
 | 2026-10-13 | Claude | Task 014/01 选区微调：第 12 节新增 1 条自动化用例 SHOT-LIFE-006（区域选区改为「松开进入可微调态 + Enter 确认」），手工冒烟顺延为 SHOT-LIFE-007。该改动改变截图会话状态机，涉及叠层与会话生命周期，故纳入本节。 |
+| 2026-10-14 | Claude | **撤销白板模式**（产品决策）：移除 `WhiteboardSession` / `WhiteboardBackground` / `WhiteboardWindowController`、设置分区、状态栏菜单项、`⌥⌘W` 快捷键、12 条本地化文案、`WhiteboardSessionTests`（24 条）与本节 **SHOT-LIFE-008**；12.2 手工冒烟中的白板与互斥步骤同步删除。为白板引入的跨会话互斥（`SessionCoordinator` / `SessionExclusion`）一并移除，截图入口改为自身防重入标记，避免叠出两套全屏叠层。测试总数 581 → 557。另修一条**语言相关的脆弱断言**：`PinInteractionTests.testHoverHintSkipsUnboundShortcuts` 原以本地化文案做子串匹配，中文下「复位缩放与不透明度」天然包含「缩放」「不透明度」导致假失败，改为断言键位符号（`⌃` / `Esc`）。 |
 | 2026-10-14 | Claude | **修复测试门禁偶发失败**（`Collection <__NSCFSet> was mutated while being enumerated`，约每 3 次全量跑复现 1 次，命中位置随执行顺序漂移但都在 `PersistenceController.load()` 内）：根因是两处跨控制器共享的可变状态——`NSManagedObjectModel` 曾被做成 `static let` 共享实例（`NSPersistentContainer` 装载 store 期间会改写模型内部实体索引集合），以及 `.temporary` 配置让所有内存库共用同一个 `/dev/null` URL（Core Data 按 URL 归集 store）。改为按控制器构建模型 + 每个内存库唯一 URL 标识；随后连续 10 次全量跑全部通过（修复前约 1/3 失败）。该缺陷在生产路径上不易显现（正常进程只建一次数据栈），但会让「提交前必跑 verify」的门禁随机变红，故必须修。 |
 | 2026-10-14 | Claude | 接通两个此前的哑开关（`screenshot.copyToClipboard` / `screenshot.playSound`）：新增自动化用例 `ScreenshotPostCapturePolicyTests`（6 条：默认关以保证行为不倒退、UserDefaults 读取与缺省、序列化往返、音效回退链取首个可用 / 全不可用返回 nil / 本机至少一个候选可用）。语义定为「保存成功后同时复制到剪贴板」与「截图成功时播放提示音」并写进设置项标题；默认值由 true 改为 false，因此**不加配置时行为与接通前完全一致**，发版前手工冒烟可按需开启这两项各验一次。 |
 | 2026-10-14 | Claude | Task 014/04 取色落地入口：新增自动化用例 `ColorSamplingTests`（9 条：像素换算含 y 翻转 / Retina 2 倍 / 越界、取色与已知像素一致、三种色彩空间的复制形式、选项序列化往返）。取色采样自画布底图而不重新抓屏，因此不涉及权限与叠层生命周期；`C` / `⇧C` 由标注窗口与白板共用的隐藏按钮承担。本次同时记录一个测试环境的既有事实：`NSBitmapImageRep.setColor(_:atX:y:)` 在本环境下静默无效（`colorAt` 读回全 0），测试因此统一用 `NSGraphicsContext` 填充构造位图。 |
@@ -1186,17 +1187,12 @@ MVP 暂不覆盖：
 - **步骤**：拖拽圈选 → 松开 → 断言进入 `adjustingRegion` 且**未**交付目标 → 方向键 / `⇧`+方向键调整 → `Enter` → 断言交付区域目标。
 - **预期结果**：松开不再自动截取；方向键每次移动 1 物理像素，`⇧` 沿轴对称伸缩且中心不变；越界贴屏幕边缘、缩到最小尺寸即停住；非可微调态忽略方向键；可微调态下 `⌘A` 仍可切整屏。窗口/整屏单击仍即时锁定。
 
-#### SHOT-LIFE-008：白板会话生命周期（开关 10 次无残留）
-- **关联**：Task 016 白板模式 ｜ **优先级**：P0 ｜ **类型**：XCTest ｜ **文件**：`QingyuTests/WhiteboardSessionTests.swift`（`WhiteboardLifecycleTests`：`testPresentCreatesOneWindowPerTargetDisplay` / `testPresentWithNoTargetsIsRejected` / `testDismissReleasesWindowsAndStrokes` / `testRepeatedOpenCloseLeavesNoResidualWindows` / `testPresentTwiceDoesNotStackWindows` / `testBlankWhiteboardExitSkipsConfirmation`）
-- **步骤**：对每个目标屏呈现白板 → 断言窗口数与呈现态 → 退出 → 断言窗口与笔迹状态全部释放、`onDismiss` 恰好回调一次；**连续开关 10 次**逐次断言无残留；重复呈现断言不会叠出多块白板。
-- **预期结果**：退出后 `isPresented == false`、笔迹计数归零、无残留窗口；重复退出不重复回调；空白白板退出不弹确认、不产生任何产物。白板与截图互斥（`SessionExclusion` 已单测覆盖）。
-
 ### 12.2 手工验收用例（真实屏幕录制环境）
 
 #### SHOT-LIFE-007：真实交互冒烟
 - **优先级**：P0 ｜ **类型**：手工
 - **时机**：发版前，以及任何截图链路（叠层、会话、完成协调器）改动之后。
-- **步骤**：F1 或菜单「截图」进入截图状态，依次验证：屏幕压暗；悬停窗口出现高亮框；单击截取窗口；拖拽圈选自动截取区域；`⌘A` 截当前屏；悬停菜单栏/桌面空白出现整屏提示框且单击截全屏；`Esc` 随时退出；连续多次触发后取消不残留暗幕。另验证白板：`⌥⌘W` 或菜单「白板」进入，纯色底图在**关闭屏幕录制权限**下可画线并复制/保存/贴图；冻结底图显示当前屏幕内容；白板进行中按 F1 不进入截图、截图进行中按 `⌥⌘W` 不进入白板；退出后无残留窗口。
+- **步骤**：F1 或菜单「截图」进入截图状态，依次验证：屏幕压暗；悬停窗口出现高亮框；单击截取窗口；拖拽圈选自动截取区域；`⌘A` 截当前屏；悬停菜单栏/桌面空白出现整屏提示框且单击截全屏；`Esc` 随时退出；连续多次触发后取消不残留暗幕。
 - **预期结果**：以上全部可用；任何一步无响应即为本节回归缺陷复发。
 
 ### 12.3 必跑门禁

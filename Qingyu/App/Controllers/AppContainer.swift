@@ -138,99 +138,6 @@ final class AppContainer: NSObject {
     private(set) lazy var commandBarController = CommandBarController(container: self)
     private(set) lazy var clipboardHistoryWindowController = ClipboardHistoryWindowController(container: self)
     private(set) lazy var settingsWindowController = SettingsWindowController(container: self)
-    /// Task 016：截图与白板的会话互斥。两类会话不得同时进行。
-    let sessionCoordinator = SessionCoordinator()
-
-    /// Task 016：白板会话配置（底图 / 颜色 / 目标屏）。
-    private(set) var whiteboardSession = WhiteboardSession()
-
-    /// Task 016：白板窗口控制器。
-    private(set) lazy var whiteboardWindowController: WhiteboardWindowController = {
-        let controller = WhiteboardWindowController()
-        controller.onDismiss = { [weak self] in
-            self?.sessionCoordinator.end(.whiteboard)
-        }
-        controller.onCopy = { [weak self] data in
-            let pasteboard = NSPasteboard.general
-            pasteboard.clearContents()
-            pasteboard.setData(data, forType: .png)
-            _ = self
-        }
-        controller.onSave = { [weak self] data, date in
-            guard let self else { throw CaptureCompletionError.fileWriteFailed }
-            let directory = (try? await SettingsService(persistence: .shared)
-                .value(for: .screenshotQuickSaveDirectory, as: URL.self))
-                ?? FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask).first
-                ?? FileManager.default.temporaryDirectory
-            let url = directory
-                .appendingPathComponent(CaptureCompletionHandlers.defaultFilename(for: date))
-                .appendingPathExtension("png")
-            try data.write(to: url, options: .atomic)
-            return url
-        }
-        controller.onPin = { [weak self] data in
-            _ = self?.pinWindowController.present(payload: .image(data))
-        }
-        return controller
-    }()
-
-    /// 进入白板会话：解析目标屏 → 占用互斥 → 呈现。
-    ///
-    /// 冻结底图需要屏幕录制权限；纯色底图**不需要**，因此权限判定只在冻结模式下发生。
-    @discardableResult
-    func startWhiteboard() -> Bool {
-        guard FeatureGate.screenshotEnabled else { return false }
-        guard sessionCoordinator.begin(.whiteboard) else {
-            logger.info("Whiteboard ignored: another session is active")
-            return false
-        }
-
-        let displays = NSScreenDisplayProvider().displays
-        let pointer = NSEvent.mouseLocation
-        let pointerDisplayID = displays
-            .first { $0.frame.contains(pointer) }
-            .map { String($0.id) }
-        let target: WhiteboardTarget = whiteboardSession.displayIDs.isEmpty
-            ? .pointer
-            : .display(whiteboardSession.displayIDs[0])
-        let displayIDs = WhiteboardTargetResolver.displayIDs(
-            target: target,
-            availableDisplayIDs: displays.map { String($0.id) },
-            pointerDisplayID: pointerDisplayID
-        )
-        let targets = displays.filter { displayIDs.contains(String($0.id)) }
-        guard !targets.isEmpty else {
-            sessionCoordinator.end(.whiteboard)
-            logger.error("Whiteboard aborted: no target display")
-            return false
-        }
-
-        var frozen: [String: CGImage] = [:]
-        if whiteboardSession.background == .frozen {
-            let permission = permissionService.status(for: .screenRecording)
-            guard permission.isAuthorized else {
-                sessionCoordinator.end(.whiteboard)
-                logger.info("Whiteboard aborted: screen recording not authorized")
-                return false
-            }
-            for display in targets {
-                if let cgImage = CGDisplayCreateImage(display.id) {
-                    frozen[String(display.id)] = cgImage
-                }
-            }
-        }
-
-        let presented = whiteboardWindowController.present(
-            session: whiteboardSession,
-            displays: targets,
-            frozenImages: frozen
-        )
-        if !presented {
-            sessionCoordinator.end(.whiteboard)
-        }
-        return presented
-    }
-
     /// Task 014/07：四角热区监听（默认关闭，由运行时设置决定是否启动）。
     private(set) lazy var hotCornerMonitor: HotCornerMonitor = {
         let monitor = HotCornerMonitor()
@@ -428,18 +335,13 @@ final class AppContainer: NSObject {
         let hotCorners = (try? await settingsService.value(for: .screenshotHotCorners, as: HotCornerConfiguration.self))
             ?? .default
         hotCornerMonitor.configuration = hotCorners.sanitized()
-        // Task 016：白板配置（底图 / 颜色 / 目标屏）。
-        whiteboardSession = (try? await settingsService.value(for: .whiteboardSession, as: WhiteboardSession.self))
-            ?? WhiteboardSession()
         // Task 014/04：取色输出格式（标注窗口与白板共用）。
         let colorOptions = (try? await settingsService.value(for: .colorValueOptions, as: ColorValueOptions.self))
             ?? .default
-        whiteboardWindowController.colorValueOptions = colorOptions
         screenshotWindowController.colorValueOptions = colorOptions
         // 截图后行为策略（保存后同时复制 / 截图完成播放提示音）；默认全关。
         let postCapturePolicy = ScreenshotPostCapturePolicy.current()
         screenshotWindowController.postCapturePolicy = postCapturePolicy
-        whiteboardWindowController.postCapturePolicy = postCapturePolicy
     }
 
     /// Task 012：把控件级探测与选区吸附设置同步到截图会话工厂。

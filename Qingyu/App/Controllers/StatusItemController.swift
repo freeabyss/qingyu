@@ -66,17 +66,6 @@ final class StatusItemController: NSObject {
             screenshot.target = self
             screenshot.setAccessibilityIdentifier("menubar.screenshot")
             menu.addItem(screenshot)
-
-            // Task 016：白板入口（与截图互斥）。
-            let whiteboard = NSMenuItem(
-                title: L10n.localized("menubar.whiteboard"),
-                action: #selector(startWhiteboardFromMenu),
-                keyEquivalent: ""
-            )
-            whiteboard.image = NSImage(systemSymbolName: "rectangle.and.pencil.and.ellipsis", accessibilityDescription: nil)
-            whiteboard.target = self
-            whiteboard.setAccessibilityIdentifier("menubar.whiteboard")
-            menu.addItem(whiteboard)
         }
 
         menu.addItem(.separator())
@@ -114,11 +103,6 @@ final class StatusItemController: NSObject {
     @objc private func openClipboardFromMenu() {
         logger.info("Clipboard selected from status menu")
         container.clipboardHistoryWindowController.show()
-    }
-
-    @objc private func startWhiteboardFromMenu() {
-        logger.info("Whiteboard selected from status menu")
-        _ = container.startWhiteboard()
     }
 
     @objc private func startScreenshotFromMenu() {

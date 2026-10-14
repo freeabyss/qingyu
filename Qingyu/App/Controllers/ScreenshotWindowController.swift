@@ -13,6 +13,8 @@ final class ScreenshotWindowController {
     private let logger = Logger.screenshot
     /// 截图提示音播放器（持有音效实例，避免播放中被释放）。
     private let soundPlayer = CaptureSoundPlayer()
+    /// 防重入：会话进行中忽略重复触发（避免叠出两套全屏叠层）。
+    private var isCapturing = false
     private unowned let container: AppContainer
 
     /// Task 011：放大镜配置。由 `AppContainer.syncRuntimeSettings()` 从设置同步；
@@ -64,14 +66,15 @@ final class ScreenshotWindowController {
             logger.info("FeatureGate: screenshot disabled, startCapture ignored")
             return
         }
-        // Task 016：白板进行中不允许启动截图（互斥）。
-        guard container.sessionCoordinator.begin(.screenshot) else {
-            logger.info("Screenshot ignored: another session is active")
+        // 防重入：会话进行中再次触发入口时忽略，避免叠出两套全屏叠层。
+        guard !isCapturing else {
+            logger.info("Screenshot ignored: a capture session is already active")
             return
         }
+        isCapturing = true
         logger.info("Screenshot capture triggered")
         guard ensureScreenRecordingPermission() else {
-            container.sessionCoordinator.end(.screenshot)
+            isCapturing = false
             return
         }
 
@@ -81,7 +84,7 @@ final class ScreenshotWindowController {
         if ProcessInfo.processInfo.arguments.contains(UITestLaunchArg.skipScreenshotCapture) {
             logger.info("UITest: skipping capture, posting notification")
             NotificationCenter.default.post(name: .uitestScreenshotTriggered, object: nil)
-            container.sessionCoordinator.end(.screenshot)
+            isCapturing = false
             return
         }
         #endif
@@ -138,19 +141,19 @@ final class ScreenshotWindowController {
                     self.soundPlayer.playIfNeeded(self.postCapturePolicy.playsSoundOnCapture)
                     self.showPreview(for: result)
                     session.finish()
-                    // 截图会话到「预览」即告结束：预览阶段不再占用互斥，白板可随时开始。
-                    self.container.sessionCoordinator.end(.screenshot)
+                    // 截图会话到「预览」即告结束（预览阶段不占用会话状态）。
+                    self.isCapturing = false
                     self.logger.info("Capture completed, preview shown")
                 } catch {
                     session.finish()
-                    self.container.sessionCoordinator.end(.screenshot)
+                    self.isCapturing = false
                     self.handleCaptureError(error, restoreCommandBar: wasCommandBarVisible)
                 }
             }
         }
 
         session.onCancel = { [weak self] in
-            self?.container.sessionCoordinator.end(.screenshot)
+            self?.isCapturing = false
             self?.logger.info("Capture cancelled")
             if wasCommandBarVisible {
                 self?.container.commandBarController.show()
