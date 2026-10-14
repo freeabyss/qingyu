@@ -24,6 +24,7 @@
 | 2026-10-13 | Claude | Task 011 放大镜：第 12 节新增 1 条自动化用例 SHOT-LIFE-004（取样取消后不回调 + 在途请求合并），原手工冒烟由 SHOT-LIFE-004 顺延为 SHOT-LIFE-005。放大镜取样在叠层窗口下方按需抓屏，涉及叠层生命周期，故纳入本节。 |
 | 2026-10-13 | Claude | Task 012 窗口与控件识别：第 12 节新增 1 条自动化用例 SHOT-LIFE-005（控件探测取消后不回调 + 在途请求合并 + 关闭时零调用），手工冒烟顺延为 SHOT-LIFE-006。控件探测跑在后台队列且随会话取消，涉及叠层生命周期，故纳入本节。 |
 | 2026-10-13 | Claude | Task 014/01 选区微调：第 12 节新增 1 条自动化用例 SHOT-LIFE-006（区域选区改为「松开进入可微调态 + Enter 确认」），手工冒烟顺延为 SHOT-LIFE-007。该改动改变截图会话状态机，涉及叠层与会话生命周期，故纳入本节。 |
+| 2026-10-14 | Claude | **截图入口恢复**（`FeatureGate.screenshotEnabled = true`）：菜单项、搜索命令、全局快捷键 F1、设置页截图分区、欢迎向导屏幕录制段全部恢复暴露。原先「暂缓执行」的截图入口类用例恢复为当前行为断言，并按开启后的语义改写：`GlobalShortcutManagerTests` / `HotkeyConflictDetectorTests` / `OnboardingViewModelTests`（改为「授权或跳过」二选一门槛）/ `SettingsNavigationTests`（侧栏含截图页）/ `SystemCommandSourceTests`（截图命令可搜可执行）。 |
 
 ---
 

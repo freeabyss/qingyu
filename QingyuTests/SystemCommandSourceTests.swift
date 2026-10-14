@@ -3,18 +3,21 @@ import XCTest
 
 final class SystemCommandSourceTests: XCTestCase {
     /// 1.0.0 FeatureGate 关闭：截图命令不登记/不返回（统一搜索不再出现截图）。
-    func testScreenshotCommandHiddenFromCatalogWhileGateOff() async {
-        // 固化开关状态：本组断言依赖 1.0.0「截图入口整体隐藏」。
-        XCTAssertFalse(FeatureGate.screenshotEnabled)
+    /// 截图入口已开放：「截图」命令出现在目录中并可按多种别名搜到。
+    func testScreenshotCommandIsInCatalogAndSearchable() async {
+        XCTAssertTrue(FeatureGate.screenshotEnabled, "截图入口已开放，本用例描述当前产品行为")
 
         let source = SystemCommandSource()
-        XCTAssertFalse(source.commands.contains { $0.id == .captureScreenshot }, "FeatureGate 关闭时命令目录不应包含 captureScreenshot")
-        XCTAssertFalse(AssistantCommandCatalog.allowedIDs.contains(.captureScreenshot))
-        XCTAssertNil(AssistantCommandCatalog.byID[.captureScreenshot])
+        XCTAssertTrue(source.commands.contains { $0.id == .captureScreenshot })
+        XCTAssertTrue(AssistantCommandCatalog.allowedIDs.contains(.captureScreenshot))
+        XCTAssertNotNil(AssistantCommandCatalog.byID[.captureScreenshot])
 
         for query in ["截图", "截屏", "screenshot", "capture window"] {
             let results = await source.search(query: query)
-            XCTAssertFalse(results.containsCommand(.captureScreenshot), "Query '\(query)' should not surface the hidden screenshot command")
+            XCTAssertTrue(
+                results.containsCommand(.captureScreenshot),
+                "查询 '\(query)' 应命中截图命令"
+            )
         }
     }
 
@@ -37,11 +40,12 @@ final class SystemCommandSourceTests: XCTestCase {
             .lockScreen,
             .sleepComputer,
             .restartComputer,
-            .shutdownComputer
+            .shutdownComputer,
+            .captureScreenshot
         ]
 
-        // 18 条全量定义中 captureScreenshot 因 FeatureGate 关闭而不返回（1.0.0）。
-        XCTAssertEqual(source.commands.count, 17)
+        // 截图入口已开放：18 条定义全部暴露。
+        XCTAssertEqual(source.commands.count, 18)
         XCTAssertEqual(Set(source.commands.map(\.id)), Set(expectedIDs))
 
         for command in source.commands {
@@ -73,7 +77,8 @@ final class SystemCommandSourceTests: XCTestCase {
     /// 1.0.0 FeatureGate 关闭期间：截图命令不返回；截图专属查询无任何结果。
     /// （注：'jt' 等极短模糊串同时命中剪贴板命令的拼音缩写，属匹配器既有行为，
     /// 与截图入口无关，故只断言其中不再出现 captureScreenshot。）
-    func testScreenshotQueriesReturnNothingWhileGateOff() async {
+    /// 截图专属查询都应命中截图命令（中文 / 拼音 / 缩写 / 英文）。
+    func testScreenshotQueriesSurfaceTheCommand() async {
         let source = SystemCommandSource()
         let queries = [
             "截图", "截屏", "区域截图", "全屏截图", "窗口截图",
@@ -83,12 +88,10 @@ final class SystemCommandSourceTests: XCTestCase {
 
         for query in queries {
             let results = await source.search(query: query)
-            XCTAssertFalse(results.containsCommand(.captureScreenshot), "Query '\(query)' should not surface the hidden screenshot command")
-        }
-
-        for query in ["截图", "截屏", "screenshot", "capture full screen"] {
-            let results = await source.search(query: query)
-            XCTAssertTrue(results.isEmpty, "Screenshot-specific query '\(query)' should return nothing while the feature is gated off")
+            XCTAssertTrue(
+                results.containsCommand(.captureScreenshot),
+                "查询 '\(query)' 应命中截图命令"
+            )
         }
     }
 
@@ -210,9 +213,9 @@ final class SystemCommandSourceTests: XCTestCase {
 
     func testSearchReturnsOnlyWhitelistCommands() async throws {
         let source = SystemCommandSource()
-        // FeatureGate 关闭：截图查询返回空（入口隐藏），用剪贴板命令验证白名单路径。
+        // 截图入口已开放：截图查询应返回命令，其命令 ID 也必须在白名单内。
         let screenshotResults = await source.search(query: "截图")
-        XCTAssertTrue(screenshotResults.isEmpty, "FeatureGate 关闭时截图查询不应返回命令")
+        XCTAssertTrue(screenshotResults.containsCommand(.captureScreenshot))
 
         let results = await source.search(query: "剪贴板")
 
@@ -268,15 +271,18 @@ final class SystemCommandSourceTests: XCTestCase {
 
     /// 1.0.0 FeatureGate 关闭：截图命令不登记到执行器，执行应报 unknownCommand
     /// （唯一入口 ScreenshotWindowController.startCapture() 另有守卫兜底）。
-    func testCaptureScreenshotExecutionRejectedWhileGateOff() async throws {
-        let executor = SystemCommandExecutor(notificationCenter: NotificationCenter())
-
-        do {
-            try await executor.execute(.captureScreenshot)
-            XCTFail("Expected unknownCommand while the screenshot feature is gated off")
-        } catch AssistantCommandExecutionError.unknownCommand(let id) {
-            XCTAssertEqual(id, .captureScreenshot)
+    /// 截图入口已开放：执行「截图」命令应广播截图通知，而不是报未知命令。
+    func testCaptureScreenshotExecutionPostsNotification() async throws {
+        let center = NotificationCenter()
+        let executor = SystemCommandExecutor(notificationCenter: center)
+        let expectation = expectation(description: "captureScreenshot notification")
+        let token = center.addObserver(forName: .commandCaptureScreenshot, object: nil, queue: .main) { _ in
+            expectation.fulfill()
         }
+        defer { center.removeObserver(token) }
+
+        try await executor.execute(.captureScreenshot)
+        await fulfillment(of: [expectation], timeout: 2)
     }
 
     func testCommandSearchActionExecutorCancelsWhenConfirmationDenied() async throws {

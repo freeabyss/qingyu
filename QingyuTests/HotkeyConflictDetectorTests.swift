@@ -18,13 +18,14 @@ final class HotkeyConflictDetectorTests: XCTestCase {
     /// 1.0.0 FeatureGate 关闭：F1（startScreenshot）不注册，因此不参与
     /// 冲突扫描 / 批量重置（managedGlobalShortcuts 同步条件化）。
     /// Name 定义与 F1 默认键位保留，开关恢复后自动回到四槽位。
-    func testManagedGlobalShortcutsExcludeScreenshotWhileGateOff() {
-        XCTAssertFalse(FeatureGate.screenshotEnabled)
-        XCTAssertEqual(KeyboardShortcuts.Name.managedGlobalShortcuts.count, 3)
-        XCTAssertFalse(KeyboardShortcuts.Name.managedGlobalShortcuts.contains(.startScreenshot))
+    /// 截图入口已开放：受管快捷键应包含 F1。
+    func testManagedGlobalShortcutsIncludeScreenshot() {
+        XCTAssertTrue(FeatureGate.screenshotEnabled)
+        XCTAssertEqual(KeyboardShortcuts.Name.managedGlobalShortcuts.count, 4)
+        XCTAssertTrue(KeyboardShortcuts.Name.managedGlobalShortcuts.contains(.startScreenshot))
         XCTAssertEqual(
             Set(KeyboardShortcuts.Name.managedGlobalShortcuts),
-            [.togglePanel, .openClipboardHistory, .openSettings]
+            [.togglePanel, .startScreenshot, .openClipboardHistory, .openSettings]
         )
     }
 

@@ -58,8 +58,9 @@ final class SettingsNavigationTests: XCTestCase {
         try registry.register(StubPlugin(id: .clipboard, settingsOrder: 30))
         let viewModel = SettingsViewModel(pluginRegistry: registry)
 
+        // 截图入口已开放：侧栏应包含截图页。
         XCTAssertEqual(viewModel.visiblePageIDs, [
-            .general, .plugin(.quickLaunch), .plugin(.clipboard), .about
+            .general, .plugin(.quickLaunch), .plugin(.clipboard), .plugin(.screenshot), .about
         ])
     }
 
@@ -78,7 +79,8 @@ final class SettingsNavigationTests: XCTestCase {
         await registry.setEnabled(false, for: .clipboard)
         let viewModel = SettingsViewModel(pluginRegistry: registry)
 
-        XCTAssertEqual(viewModel.visiblePageIDs, [.general, .about])
+        // 被禁用的剪贴板页隐藏；截图入口已开放，其页面保留。
+        XCTAssertEqual(viewModel.visiblePageIDs, [.general, .plugin(.screenshot), .about])
     }
 
     // MARK: - Route mapping
@@ -93,7 +95,7 @@ final class SettingsNavigationTests: XCTestCase {
         viewModel.select(route: .clipboard)
         XCTAssertEqual(viewModel.selectedPage, .plugin(.clipboard))
         viewModel.select(route: .screenshot)
-        XCTAssertEqual(viewModel.selectedPage, .plugin(.clipboard), "隐藏功能路由不得改变当前设置页")
+        XCTAssertEqual(viewModel.selectedPage, .plugin(.screenshot), "截图入口已开放，路由应直达截图页")
         viewModel.select(route: .about)
         XCTAssertEqual(viewModel.selectedPage, .about)
     }

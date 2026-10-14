@@ -20,26 +20,29 @@ final class OnboardingViewModelTests: XCTestCase {
 
     // 1.0.0 FeatureGate 关闭：屏幕录制段整体隐藏（不渲染、不设为必选），
     // 「开始使用」不再被屏幕录制授权状态阻塞。
-    func test_canStart_notBlockedByScreenRecordingWhileScreenshotHidden() async throws {
-        XCTAssertFalse(FeatureGate.screenshotEnabled, "1.0.0 截图功能应处于 FeatureGate 关闭状态")
+    /// 截图入口开放后回到「授权 / 跳过」二选一的语义：未授权且未跳过时阻塞「开始使用」。
+    func test_canStart_requiresScreenRecordingOrSkip() async throws {
+        XCTAssertTrue(FeatureGate.screenshotEnabled, "截图入口已开放，本用例描述当前产品行为")
 
         permissions.statuses[.screenRecording] = .denied
         let viewModel = makeViewModel()
         await viewModel.refreshScreenRecordingStatus()
         XCTAssertFalse(viewModel.screenRecordingAuthorized)
-        XCTAssertTrue(viewModel.canStart, "截图隐藏期间未授权也不应阻塞「开始使用」")
+        XCTAssertFalse(viewModel.canStart, "未授权且未跳过时应阻塞「开始使用」")
+
+        viewModel.skipScreenshot()
+        XCTAssertTrue(viewModel.canStart, "选择「暂不开启截图」后应放行")
 
         permissions.statuses[.screenRecording] = .authorized
         await viewModel.refreshScreenRecordingStatus()
         XCTAssertTrue(viewModel.canStart)
     }
 
-    // 「暂不开启截图」标记仍可设置（开关恢复后授权/跳过二选一的语义不变）。
     func test_canStart_enabledAfterSkippingScreenshot() async throws {
         permissions.statuses[.screenRecording] = .denied
         let viewModel = makeViewModel()
         await viewModel.refreshScreenRecordingStatus()
-        XCTAssertTrue(viewModel.canStart, "截图隐藏期间 canStart 恒为 true")
+        XCTAssertFalse(viewModel.canStart, "未跳过前应被屏幕录制门槛拦住")
 
         viewModel.skipScreenshot()
         XCTAssertTrue(viewModel.screenshotSkipped)
@@ -81,17 +84,21 @@ final class OnboardingViewModelTests: XCTestCase {
 
     // 1.0.0 FeatureGate 关闭：屏幕录制未授权（且段已隐藏）时 start() 仍完成，
     // 不再出现「开始使用」被权限卡死的死锁。
-    func test_start_completesWhenScreenRecordingDeniedWhileScreenshotHidden() async throws {
+    /// 未授权且未跳过时 `start()` 必须被拦住并给出本地化提示，不得写入完成时间。
+    func test_start_isBlockedWhenScreenRecordingDenied() async throws {
         permissions.statuses[.screenRecording] = .denied
         let viewModel = makeViewModel()
         await viewModel.refreshScreenRecordingStatus()
 
         await viewModel.start()
 
-        XCTAssertTrue(didComplete)
-        XCTAssertNil(viewModel.completionErrorMessage)
+        XCTAssertFalse(didComplete, "屏幕录制未授权不应完成向导")
+        XCTAssertEqual(
+            viewModel.completionErrorMessage,
+            L10n.localized("onboarding.error.screenRecordingRequired")
+        )
         let completedAt = try await settings.stringValue(for: .onboardingCompletedAt)
-        XCTAssertFalse(completedAt.isEmpty)
+        XCTAssertTrue(completedAt.isEmpty, "被拦住时不得写入完成时间")
     }
 
     // ONB-V2-008: start() 写入 onboardingCompletedAt + settings + 开机启动。
