@@ -54,8 +54,16 @@ final class ScreenshotWindowController {
             logger.info("FeatureGate: screenshot disabled, startCapture ignored")
             return
         }
+        // Task 016：白板进行中不允许启动截图（互斥）。
+        guard container.sessionCoordinator.begin(.screenshot) else {
+            logger.info("Screenshot ignored: another session is active")
+            return
+        }
         logger.info("Screenshot capture triggered")
-        guard ensureScreenRecordingPermission() else { return }
+        guard ensureScreenRecordingPermission() else {
+            container.sessionCoordinator.end(.screenshot)
+            return
+        }
 
         #if DEBUG
         // TC-UI-013：跳过真实屏幕捕获（不弹全屏 overlay、不依赖屏幕录制权限），
@@ -63,6 +71,7 @@ final class ScreenshotWindowController {
         if ProcessInfo.processInfo.arguments.contains(UITestLaunchArg.skipScreenshotCapture) {
             logger.info("UITest: skipping capture, posting notification")
             NotificationCenter.default.post(name: .uitestScreenshotTriggered, object: nil)
+            container.sessionCoordinator.end(.screenshot)
             return
         }
         #endif
@@ -117,15 +126,19 @@ final class ScreenshotWindowController {
                     let result = try await self.container.screenshotService.captureTarget(target)
                     self.showPreview(for: result)
                     session.finish()
+                    // 截图会话到「预览」即告结束：预览阶段不再占用互斥，白板可随时开始。
+                    self.container.sessionCoordinator.end(.screenshot)
                     self.logger.info("Capture completed, preview shown")
                 } catch {
                     session.finish()
+                    self.container.sessionCoordinator.end(.screenshot)
                     self.handleCaptureError(error, restoreCommandBar: wasCommandBarVisible)
                 }
             }
         }
 
         session.onCancel = { [weak self] in
+            self?.container.sessionCoordinator.end(.screenshot)
             self?.logger.info("Capture cancelled")
             if wasCommandBarVisible {
                 self?.container.commandBarController.show()

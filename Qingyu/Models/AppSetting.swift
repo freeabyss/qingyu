@@ -68,6 +68,8 @@ enum SettingKey: String, CaseIterable, Codable {
     case elementDetection = "screenshot.elementDetection"
     /// 选区边缘吸附阈值（逻辑点）；0 表示关闭吸附。
     case snapThreshold = "screenshot.snapThreshold"
+    /// Task 016：白板配置（底图种类 / 纯色值 / 目标屏），JSON。
+    case whiteboardSession = "whiteboard.session"
     /// Task 014/07：屏幕四角热区配置（开关 / 尺寸 / 停留时长 / 各角动作），JSON。
     case screenshotHotCorners = "screenshot.hotCorners"
     /// Task 014/05：预览阶段手势绑定（Enter / 双击 / 中键 / 右键），JSON 字典。

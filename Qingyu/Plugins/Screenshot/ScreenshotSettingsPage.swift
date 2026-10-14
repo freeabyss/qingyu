@@ -39,6 +39,9 @@ struct ScreenshotPluginSettingsPage: View {
     @State private var gestureBindings = ScreenshotGestureBindings.default
     /// Task 014/07：四角热区。
     @State private var hotCorners = HotCornerConfiguration.default
+    /// Task 016：白板（底图种类 + 纯色）。
+    @State private var whiteboardBackground: WhiteboardBackgroundKind = .solid
+    @State private var whiteboardColorHex = WhiteboardSession.defaultSolidColorHex
     @State private var pendingPresetDeletion: CapturePreset?
     @State private var presetStore = CapturePresetStore(
         persistence: SettingsCapturePresetPersistence(settings: SettingsService(persistence: .shared))
@@ -310,6 +313,49 @@ struct ScreenshotPluginSettingsPage: View {
                 }
             }
 
+            // Task 016：白板。纯色底图不读取屏幕，因此不需要屏幕录制权限。
+            SettingsSection("settings.whiteboard.section") {
+                HStack {
+                    Text(L10n.localized("settings.whiteboard.background"))
+                        .font(JadeFont.body)
+                        .foregroundStyle(JadeColor.textPrimary)
+                    Spacer()
+                    Picker("", selection: whiteboardBackgroundBinding) {
+                        ForEach(WhiteboardBackgroundKind.allCases, id: \.self) { kind in
+                            Text(L10n.localized(kind.localizationKey)).tag(kind)
+                        }
+                    }
+                    .labelsHidden()
+                    .pickerStyle(.segmented)
+                    .frame(maxWidth: 260)
+                }
+                Text(L10n.localized("settings.whiteboard.note"))
+                    .font(JadeFont.caption)
+                    .foregroundStyle(JadeColor.textTertiary)
+                JadeSettingsDivider()
+                HStack {
+                    Text(L10n.localized("settings.whiteboard.solidColor"))
+                        .font(JadeFont.body)
+                        .foregroundStyle(JadeColor.textPrimary)
+                    Spacer()
+                    ColorPicker("", selection: whiteboardColorBinding)
+                        .labelsHidden()
+                }
+                .disabled(whiteboardBackground != .solid)
+                JadeSettingsDivider()
+                HStack {
+                    Text(L10n.localized("management.shortcuts.startWhiteboard"))
+                        .font(JadeFont.body)
+                        .foregroundStyle(JadeColor.textPrimary)
+                    Spacer()
+                    HotkeyRecorder(
+                        for: .startWhiteboard,
+                        isConflicting: .constant(viewModel.isShortcutConflict(.startWhiteboard)),
+                        conflictMessage: .constant(viewModel.conflictMessage(for: .startWhiteboard))
+                    )
+                }
+            }
+
             // Task 014/07：屏幕四角热区（默认关闭）。
             SettingsSection("settings.hotCorners.section") {
                 JadeSwitchRow(
@@ -474,6 +520,10 @@ private func recorderRow(_ row: RecorderRow) -> some View {
             ?? .default
         hotCorners = ((try? await viewModel.value(for: .screenshotHotCorners, as: HotCornerConfiguration.self))
             ?? .default).sanitized()
+        let whiteboard = (try? await viewModel.value(for: .whiteboardSession, as: WhiteboardSession.self))
+            ?? WhiteboardSession()
+        whiteboardBackground = whiteboard.background
+        whiteboardColorHex = whiteboard.solidColorHex
         pinShowsShortcutHints = (try? await viewModel.value(for: .pinShowsShortcutHints, as: Bool.self)) ?? true
         let storedSnapThreshold = try? await viewModel.value(for: .pinSnapThreshold, as: Double.self)
         pinSnapThreshold = Double(PinSnapping.sanitizedThreshold(storedSnapThreshold ?? Double(PinSnapping.defaultThreshold)))
@@ -508,6 +558,42 @@ private func recorderRow(_ row: RecorderRow) -> some View {
                 Task { try? await viewModel.set(raw, for: .magnifierOptions) }
             }
         )
+    }
+
+    // MARK: - Task 016 白板
+
+    private var whiteboardBackgroundBinding: Binding<WhiteboardBackgroundKind> {
+        Binding(
+            get: { whiteboardBackground },
+            set: { newValue in
+                whiteboardBackground = newValue
+                persistWhiteboard()
+            }
+        )
+    }
+
+    private var whiteboardColorBinding: Binding<Color> {
+        Binding(
+            get: { Color(nsColor: NSColor(hexString: whiteboardColorHex) ?? .white) },
+            set: { newValue in
+                guard let ns = NSColor(newValue).usingColorSpace(.sRGB) else { return }
+                whiteboardColorHex = String(
+                    format: "#%02X%02X%02X",
+                    Int((ns.redComponent * 255).rounded()),
+                    Int((ns.greenComponent * 255).rounded()),
+                    Int((ns.blueComponent * 255).rounded())
+                )
+                persistWhiteboard()
+            }
+        )
+    }
+
+    private func persistWhiteboard() {
+        let session = WhiteboardSession(
+            background: whiteboardBackground,
+            solidColorHex: whiteboardColorHex
+        )
+        Task { try? await viewModel.set(session, for: .whiteboardSession) }
     }
 
     // MARK: - Task 014/07 四角热区

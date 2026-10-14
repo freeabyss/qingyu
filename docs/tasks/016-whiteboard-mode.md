@@ -70,6 +70,20 @@ enum WhiteboardBackgroundSource {
 }
 ```
 
+## 交付记录（2026-10-14）
+
+**✅ 已交付。** 关键实现决策：
+
+- **标注实现零复制**：白板直接复用 `AnnotationCanvasState` / `AnnotationCanvasView` / `AnnotationShape` / `AnnotationFlattener` / `AnnotationTopToolbar` / `AnnotationBottomToolbar`。白板只提供「底图 + 会话包装」，导出走既有 `state.renderedPNGData()`。
+- **纯色底图不读屏**：`WhiteboardBackground.solidImage` 是纯内存绘制（显式 `NSBitmapImageRep`，1:1 像素输出），**不触碰任何抓屏 API**，因此在未授予屏幕录制权限时完整可用 —— 测试在无权限的测试进程里直接构造底图并断言像素，即是对该硬性要求的覆盖。
+- **冻结底图才要权限**：权限判定只在 `.frozen` 分支发生（`CGDisplayCreateImage` 之前），未授权时给出明确拒绝而不是开一块空白板。
+- **互斥用引用类型持有**：`SessionExclusion` 是值类型（便于单测），但互斥状态需被截图与白板两侧共享；若各自持有一份副本，互斥会静默失效。因此用 `SessionCoordinator` 包一层。截图在**锁定进入预览**时即释放占用（预览阶段不再互斥），取消/失败路径也释放。
+- **空白退出无副作用**：`WhiteboardExitRule` 纯函数决定是否二次确认；空白板直接退出，不弹确认、不写文件、不写剪贴板。白板不做「取消」，`Esc` 即退出（有笔迹时二次确认）。
+- **生命周期**：每个目标屏一个无边框全屏窗口，`dismiss` 统一 `orderOut` + 清空 `contentViewController` + 释放状态；无定时器、无常驻监听。回归用例 `SHOT-LIFE-008` 覆盖「连续开关 10 次无残留」。
+- **入口**：状态栏菜单「白板」+ 全局快捷键 `⌥⌘W`（可重绑，参与冲突扫描，不进入核心四槽位的批量重置）。
+
+**与原卡片的差异（已记录）：** 卡片提到「多屏时可选择『所有屏幕各开一个白板』」，本版实现为「每屏一个窗口、各自独立画布」（`WhiteboardTargetResolver.allDisplays`），但设置页暂只暴露「指针所在屏」与「指定屏」两条路径 —— 「所有屏幕」的解析与上限已实现并单测，UI 开关留待后续按需开放。
+
 ## 步骤
 
 1. 先写 `WhiteboardSession` 与互斥规则的单测（含空白退出无副作用）。
@@ -83,3 +97,9 @@ enum WhiteboardBackgroundSource {
 
 - 不做 Snipaste 的 `transparent-whiteboard`（透明底 + 其它应用可见）——那要求白板窗口本身可点击穿透并与桌面合成，属于另一个交互模型，需先确认产品是否要。
 - 不做白板的持久化与历史（清羽不做截图历史）。
+
+## 状态
+
+| 项 | 状态 | 说明 |
+|---|---|---|
+| 白板模式 | ✅ 已交付 | 纯色 / 冻结两种底图；复用标注实现；与截图互斥；空白退出无副作用；生命周期回归 SHOT-LIFE-008。详见上「交付记录」。 |

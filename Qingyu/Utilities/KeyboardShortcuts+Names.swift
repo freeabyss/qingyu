@@ -32,6 +32,12 @@ extension KeyboardShortcuts.Name {
     /// 不属于 `managedGlobalShortcuts`（批量重置只覆盖四个核心槽位）。
     static let pinToggleMouseEvents = Self("pinToggleMouseEvents")
 
+    /// Task 016：启动白板（默认 ⌥⌘W）。
+    ///
+    /// 与截图（F1）同属「会话入口」类，但独立成键：白板是另一类会话，
+    /// 两者互斥，不能共用入口。
+    static let startWhiteboard = Self("startWhiteboard", default: .init(.w, modifiers: [.option, .command]))
+
     /// Task 017-03：光标下贴图的缩放与不透明度。
     ///
     /// 卡片原文设想「一个热键 + 按住修饰键反向」，但全局快捷键按**精确组合**匹配，
@@ -52,7 +58,7 @@ extension KeyboardShortcuts.Name {
     /// 与 `managedGlobalShortcuts` 分开，是因为后者的语义是「参与批量重置的核心槽位」；
     /// 贴图快捷键只参与冲突扫描，不应被核心重置改写。
     static var conflictScannedShortcuts: [KeyboardShortcuts.Name] {
-        managedGlobalShortcuts + pinGlobalShortcuts
+        managedGlobalShortcuts + pinGlobalShortcuts + [.startWhiteboard]
     }
 
     /// All global shortcuts managed by `GlobalShortcutManager`. Used for bulk

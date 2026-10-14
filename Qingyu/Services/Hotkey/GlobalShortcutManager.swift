@@ -42,6 +42,7 @@ final class GlobalShortcutManager {
         registerSearchToggle()
         if FeatureGate.screenshotEnabled {
             registerScreenshot()
+            registerWhiteboard()
         } else {
             logger.info("FeatureGate: screenshot disabled, skipping startScreenshot (F1) registration")
         }
@@ -81,6 +82,15 @@ final class GlobalShortcutManager {
     func registerScreenshot() {
         KeyboardShortcuts.onKeyUp(for: .startScreenshot) { [weak self] in
             Task { @MainActor in self?.container.screenshotWindowController.startCapture() }
+        }
+    }
+
+    /// Task 016：白板入口（⌥⌘W）。白板与截图互斥，互斥判定在 AppContainer 内。
+    func registerWhiteboard() {
+        KeyboardShortcuts.onKeyUp(for: .startWhiteboard) { [weak self] in
+            Task { @MainActor in
+                _ = self?.container.startWhiteboard()
+            }
         }
     }
 
