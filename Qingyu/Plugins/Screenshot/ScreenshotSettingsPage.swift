@@ -31,6 +31,7 @@ struct ScreenshotPluginSettingsPage: View {
     @State private var elementDetectionEnabled = false
     @State private var snapThreshold: Double = 0
     @State private var ignoredAppsText = ""
+    @State private var pinSnapThreshold = Double(PinSnapping.defaultThreshold)
     @State private var saveDirectory: URL = URL(fileURLWithPath: ("~/Desktop" as NSString).expandingTildeInPath)
     @State private var showDirectoryImporter = false
 
@@ -255,6 +256,28 @@ struct ScreenshotPluginSettingsPage: View {
                     }
                 }
                 JadeSettingsDivider()
+                // Task 017/01：拖动吸附阈值。0 = 关闭（拖动时按住 ⌘ 可临时禁用）。
+                VStack(alignment: .leading, spacing: JadeSpace.x2.value) {
+                    HStack {
+                        Text(L10n.localized("settings.pin.snapThreshold"))
+                            .font(JadeFont.body)
+                            .foregroundStyle(JadeColor.textPrimary)
+                        Spacer()
+                        Text(pinSnapThreshold <= 0
+                             ? L10n.localized("settings.snapThreshold.off")
+                             : "\(Int(pinSnapThreshold)) pt")
+                            .font(JadeFont.callout)
+                            .foregroundStyle(JadeColor.textSecondary)
+                    }
+                    Slider(value: $pinSnapThreshold, in: 0...Double(PinSnapping.maximumThreshold), step: 1)
+                        .onChange(of: pinSnapThreshold) { newValue in
+                            Task { try? await viewModel.set(newValue, for: .pinSnapThreshold) }
+                        }
+                    Text(L10n.localized("settings.pin.snapThreshold.note"))
+                        .font(JadeFont.caption)
+                        .foregroundStyle(JadeColor.textTertiary)
+                }
+                JadeSettingsDivider()
                 HStack {
                     Text(L10n.localized("settings.pin.mouseEventsShortcut"))
                         .font(JadeFont.body)
@@ -299,6 +322,8 @@ private func recorderRow(_ row: RecorderRow) -> some View {
             ?? URL(fileURLWithPath: ("~/Desktop" as NSString).expandingTildeInPath)
         pinFilePathToImage = (try? await viewModel.value(for: .pinFilePathToImage, as: Bool.self)) ?? true
         pinRestoreCapacity = (try? await viewModel.value(for: .pinRestoreCapacity, as: Int.self)) ?? PinStore.defaultRestoreCapacity
+        let storedSnapThreshold = try? await viewModel.value(for: .pinSnapThreshold, as: Double.self)
+        pinSnapThreshold = Double(PinSnapping.sanitizedThreshold(storedSnapThreshold ?? Double(PinSnapping.defaultThreshold)))
 
         let magnifierDefaults = MagnifierConfiguration.default
         magnifierEnabled = (try? await viewModel.value(for: .magnifierShown, as: Bool.self))

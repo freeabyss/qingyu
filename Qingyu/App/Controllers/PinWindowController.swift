@@ -90,6 +90,14 @@ final class PinWindowController {
     private var windows: [UUID: PinNSWindow] = [:]
     /// 同一运行期内连续创建剪贴板贴图的级联序号（PRD 规则 15）。
     private var cascadeIndex = 0
+    /// Task 017/01：吸附阈值（点）；0 = 关闭吸附。由设置同步写入。
+    var snapThreshold: CGFloat = PinSnapping.defaultThreshold
+    /// 每个贴图的移动通知监听（拖动结束后吸附）。
+    private var moveObservers: [UUID: NSObjectProtocol] = [:]
+    /// 拖动结束探测（鼠标松开前不断重试）。
+    private var pendingSnaps: [UUID: DispatchWorkItem] = [:]
+    /// 吸附自身会再次触发移动通知，用它避免递归。
+    private var isApplyingSnap = false
 
     init(
         store: PinStore,
@@ -120,9 +128,18 @@ final class PinWindowController {
     }
 
     /// 应用持久化设置（文件路径转图片、恢复队列容量）。
-    func applySettings(filePathToImage: Bool, restoreCapacity: Int) {
+    func applySettings(filePathToImage: Bool, restoreCapacity: Int, snapThreshold: CGFloat = PinSnapping.defaultThreshold) {
         payloadFactory.filePathToImage = filePathToImage
         store.setRestoreCapacity(restoreCapacity)
+        self.snapThreshold = snapThreshold
+        // 阈值由「关闭」变「开启」时补挂监听；反向则摘掉，避免白跑定时器。
+        for (id, window) in windows {
+            if snapThreshold > 0, moveObservers[id] == nil {
+                observeMoves(for: window, id: id)
+            } else if snapThreshold <= 0 {
+                teardownSnapping(for: id)
+            }
+        }
     }
 
     /// 为全部活跃贴图开关鼠标穿透。
@@ -169,6 +186,7 @@ final class PinWindowController {
     /// 关闭：进入恢复队列并撤下窗口（可恢复）。
     func close(_ id: UUID) {
         store.close(id)
+        teardownSnapping(for: id)
         windows[id]?.orderOut(nil)
         windows[id] = nil
     }
@@ -183,6 +201,7 @@ final class PinWindowController {
 
     /// 销毁：移除窗口与全部状态（不可恢复）。
     func destroy(_ id: UUID) {
+        teardownSnapping(for: id)
         windows[id]?.orderOut(nil)
         windows[id] = nil
         store.destroy(id)
@@ -190,7 +209,8 @@ final class PinWindowController {
 
     /// 退出应用：销毁全部运行期贴图。
     func destroyAll() {
-        for (_, window) in windows {
+        for (id, window) in windows {
+            teardownSnapping(for: id)
             window.orderOut(nil)
         }
         windows.removeAll()
@@ -315,7 +335,89 @@ final class PinWindowController {
         refreshWindow(item)
         window.makeKeyAndOrderFront(nil)
         window.makeFirstResponder(container)  // borderless 窗口键盘焦点
+        observeMoves(for: window, id: item.id)
     }
+
+    // MARK: - 拖动吸附（Task 017/01）
+
+    /// 监听窗口移动；鼠标松开后（拖动结束）按同屏参照物吸附。
+    ///
+    /// 不接管鼠标事件：贴图内容里的文本选择、双击关闭等既有交互完全不受影响。
+    private func observeMoves(for window: NSWindow, id: UUID) {
+        guard snapThreshold > 0 else { return }
+        let observer = NotificationCenter.default.addObserver(
+            forName: NSWindow.didMoveNotification,
+            object: window,
+            queue: nil
+        ) { [weak self] _ in
+            Task { @MainActor in self?.scheduleSnap(for: id) }
+        }
+        moveObservers[id] = observer
+    }
+
+    private func scheduleSnap(for id: UUID, attempt: Int = 0) {
+        guard snapThreshold > 0, !isApplyingSnap else { return }
+        pendingSnaps[id]?.cancel()
+        let work = DispatchWorkItem { [weak self] in
+            Task { @MainActor in self?.performSnap(for: id, attempt: attempt) }
+        }
+        pendingSnaps[id] = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.snapSettleDelay, execute: work)
+    }
+
+    private func performSnap(for id: UUID, attempt: Int) {
+        guard snapThreshold > 0, !isApplyingSnap, let window = windows[id] else { return }
+        // 鼠标仍按下说明用户还在拖：稍后重试（上限约 6 秒，避免无限轮询）。
+        guard NSEvent.pressedMouseButtons == 0 else {
+            if attempt < Self.snapMaximumRetries {
+                scheduleSnap(for: id, attempt: attempt + 1)
+            }
+            return
+        }
+        applySnap(to: window)
+    }
+
+    /// 按同屏屏幕可见区与其它可见窗口的边缘吸附；按住 ⌘ 临时禁用。
+    ///
+    /// 只改原点、不改尺寸（PRD/卡片要求：拖动吸附不改变贴图大小）。
+    @discardableResult
+    func applySnap(to window: NSWindow) -> PinSnapResult? {
+        guard snapThreshold > 0, !isApplyingSnap else { return nil }
+        guard !NSEvent.modifierFlags.contains(.command) else { return nil }
+
+        let moving = window.frame
+        let screen = NSScreen.screens.first { $0.frame.intersects(moving) } ?? NSScreen.main
+        guard let screen else { return nil }
+
+        let candidates = PinSnapping.candidates(
+            for: moving,
+            screenVisibleFrame: screen.visibleFrame,
+            otherWindowRects: PinSnapping.liveWindowRects(excludingWindowNumber: window.windowNumber)
+        )
+        let result = PinSnapping.resolve(
+            movingRect: moving,
+            candidates: candidates,
+            threshold: snapThreshold
+        )
+        guard result.didSnap, result.origin != moving.origin else { return nil }
+
+        isApplyingSnap = true
+        window.setFrameOrigin(result.origin)
+        isApplyingSnap = false
+        logger.info("Pin snapped to \(result.snappedHorizontally ? "x" : "-")\(result.snappedVertically ? "y" : "-")")
+        return result
+    }
+
+    /// 撤下窗口时清掉监听与待办，避免窗口销毁后仍有定时回调。
+    private func teardownSnapping(for id: UUID) {
+        if let observer = moveObservers.removeValue(forKey: id) {
+            NotificationCenter.default.removeObserver(observer)
+        }
+        pendingSnaps.removeValue(forKey: id)?.cancel()
+    }
+
+    private static let snapSettleDelay: TimeInterval = 0.12
+    private static let snapMaximumRetries = 50
 
     /// `⇧⌘C`：文本/HTML 贴图复制纯文本到剪贴板；图像/颜色载荷 no-op（UI 规范键位表）。
     func copyPlainText(for id: UUID) {

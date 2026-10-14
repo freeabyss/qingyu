@@ -73,6 +73,8 @@ enum SettingKey: String, CaseIterable, Codable {
     // Task 008: pin (贴图) settings.
     case pinFilePathToImage = "pin.filePathToImage"
     case pinRestoreCapacity = "pin.restoreCapacity"
+    /// Task 017/01：贴图拖动吸附阈值（逻辑点）；0 表示关闭吸附。
+    case pinSnapThreshold = "pin.snapThreshold"
     case appearanceMode = "appearance.mode"
     case dataFolderBookmark = "data.folderBookmark"
     case languageMode = "language.mode"

@@ -53,11 +53,13 @@
 		AB0100000000000000000080 /* Qingyu/Models/PinItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0100000000000000000079 /* Qingyu/Models/PinItem.swift */; };
 		AB0100000000000000000082 /* Qingyu/Services/Pinning/PinPayloadFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0100000000000000000081 /* Qingyu/Services/Pinning/PinPayloadFactory.swift */; };
 		AB0100000000000000000084 /* Qingyu/Services/Pinning/PinStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0100000000000000000083 /* Qingyu/Services/Pinning/PinStore.swift */; };
+		B015000000000000000000A2 /* Qingyu/Services/Pinning/PinSnapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = B015000000000000000000A1 /* Qingyu/Services/Pinning/PinSnapping.swift */; };
 		AB0100000000000000000086 /* Qingyu/App/Controllers/PinWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0100000000000000000085 /* Qingyu/App/Controllers/PinWindowController.swift */; };
 		AB0100000000000000000088 /* Qingyu/Views/Pinning/PinWindowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0100000000000000000087 /* Qingyu/Views/Pinning/PinWindowView.swift */; };
 		AB0100000000000000000090 /* PinPayloadFactoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0100000000000000000089 /* PinPayloadFactoryTests.swift */; };
 		AB0100000000000000000092 /* PinStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0100000000000000000091 /* PinStoreTests.swift */; };
 		AB0100000000000000000094 /* PinWindowControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0100000000000000000093 /* PinWindowControllerTests.swift */; };
+		B015000000000000000000A4 /* PinSnappingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B015000000000000000000A3 /* PinSnappingTests.swift */; };
 		AB0100000000000000000097 /* PinWindowUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0100000000000000000098 /* PinWindowUITests.swift */; };
 		AB0100000000000000000100 /* JadeSettingsComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0100000000000000000099 /* JadeSettingsComponents.swift */; };
 		48960A05A2DF71B339FEDE8A /* ClipboardWindowUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A66E86C8A0860C49F8909E51 /* ClipboardWindowUITests.swift */; };
@@ -245,11 +247,13 @@
 		AB0100000000000000000079 /* Qingyu/Models/PinItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingyu/Models/PinItem.swift; sourceTree = SOURCE_ROOT; };
 		AB0100000000000000000081 /* Qingyu/Services/Pinning/PinPayloadFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingyu/Services/Pinning/PinPayloadFactory.swift; sourceTree = SOURCE_ROOT; };
 		AB0100000000000000000083 /* Qingyu/Services/Pinning/PinStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingyu/Services/Pinning/PinStore.swift; sourceTree = SOURCE_ROOT; };
+		B015000000000000000000A1 /* Qingyu/Services/Pinning/PinSnapping.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingyu/Services/Pinning/PinSnapping.swift; sourceTree = SOURCE_ROOT; };
 		AB0100000000000000000085 /* Qingyu/App/Controllers/PinWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingyu/App/Controllers/PinWindowController.swift; sourceTree = SOURCE_ROOT; };
 		AB0100000000000000000087 /* Qingyu/Views/Pinning/PinWindowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingyu/Views/Pinning/PinWindowView.swift; sourceTree = SOURCE_ROOT; };
 		AB0100000000000000000089 /* PinPayloadFactoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QingyuTests/PinPayloadFactoryTests.swift; sourceTree = SOURCE_ROOT; };
 		AB0100000000000000000091 /* PinStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QingyuTests/PinStoreTests.swift; sourceTree = SOURCE_ROOT; };
 		AB0100000000000000000093 /* PinWindowControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QingyuTests/PinWindowControllerTests.swift; sourceTree = SOURCE_ROOT; };
+		B015000000000000000000A3 /* QingyuTests/PinSnappingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QingyuTests/PinSnappingTests.swift; sourceTree = SOURCE_ROOT; };
 		AB0100000000000000000098 /* PinWindowUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinWindowUITests.swift; sourceTree = "<group>"; };
 		AB0100000000000000000099 /* JadeSettingsComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JadeSettingsComponents.swift; sourceTree = "<group>"; };
 		AB0100000000000000000001 /* Qingyu/Plugins/Core/PluginTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingyu/Plugins/Core/PluginTypes.swift; sourceTree = SOURCE_ROOT; };
@@ -608,6 +612,7 @@
 				AB0100000000000000000089 /* PinPayloadFactoryTests.swift */,
 				AB0100000000000000000091 /* PinStoreTests.swift */,
 				AB0100000000000000000093 /* PinWindowControllerTests.swift */,
+				B015000000000000000000A3 /* PinSnappingTests.swift */,
 			);
 			path = QingyuTests;
 			sourceTree = "<group>";
@@ -901,6 +906,7 @@
 			children = (
 				AB0100000000000000000081 /* Qingyu/Services/Pinning/PinPayloadFactory.swift */,
 				AB0100000000000000000083 /* Qingyu/Services/Pinning/PinStore.swift */,
+				B015000000000000000000A1 /* Qingyu/Services/Pinning/PinSnapping.swift */,
 			);
 			path = Pinning;
 			sourceTree = "<group>";
@@ -1138,6 +1144,7 @@
 				AB0100000000000000000080 /* Qingyu/Models/PinItem.swift in Sources */,
 				AB0100000000000000000082 /* Qingyu/Services/Pinning/PinPayloadFactory.swift in Sources */,
 				AB0100000000000000000084 /* Qingyu/Services/Pinning/PinStore.swift in Sources */,
+				B015000000000000000000A2 /* Qingyu/Services/Pinning/PinSnapping.swift in Sources */,
 				AB0100000000000000000086 /* Qingyu/App/Controllers/PinWindowController.swift in Sources */,
 				AB0100000000000000000088 /* Qingyu/Views/Pinning/PinWindowView.swift in Sources */,
 				A10001000000000000000027 /* ScreenshotOverlay.swift in Sources */,
@@ -1215,6 +1222,7 @@
 				AB0100000000000000000090 /* PinPayloadFactoryTests.swift in Sources */,
 				AB0100000000000000000092 /* PinStoreTests.swift in Sources */,
 				AB0100000000000000000094 /* PinWindowControllerTests.swift in Sources */,
+				B015000000000000000000A4 /* PinSnappingTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1379,7 +1387,7 @@
 				CODE_SIGN_ENTITLEMENTS = Qingyu/Qingyu.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 349;
+				CURRENT_PROJECT_VERSION = 350;
 				DEVELOPMENT_TEAM = 454XB348PX;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -1388,7 +1396,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.3.49;
+				MARKETING_VERSION = 0.3.50;
 				PRODUCT_BUNDLE_IDENTIFIER = com.freeabyss.qingyu;
 				PRODUCT_MODULE_NAME = Qingyu;
 				PRODUCT_NAME = Qingyu;
@@ -1404,7 +1412,7 @@
 				CODE_SIGN_ENTITLEMENTS = Qingyu/Qingyu.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 349;
+				CURRENT_PROJECT_VERSION = 350;
 				DEVELOPMENT_TEAM = 454XB348PX;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -1413,7 +1421,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.3.49;
+				MARKETING_VERSION = 0.3.50;
 				PRODUCT_BUNDLE_IDENTIFIER = com.freeabyss.qingyu;
 				PRODUCT_MODULE_NAME = Qingyu;
 				PRODUCT_NAME = Qingyu;

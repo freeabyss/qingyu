@@ -451,6 +451,42 @@
         }
       }
     },
+    "settings.pin.snapThreshold" : {
+      "comment" : "Slider: pin drag snapping threshold in points",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pin snap threshold"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "贴图吸附阈值"
+          }
+        }
+      }
+    },
+    "settings.pin.snapThreshold.note" : {
+      "comment" : "Note: pin snapping",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drag a pin near a window or screen edge to align; hold ⌘ to disable temporarily. 0 turns snapping off."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "拖动贴图靠近窗口或屏幕边缘时自动对齐；按住 ⌘ 可临时禁用。0 表示关闭。"
+          }
+        }
+      }
+    },
     "settings.pin.filePathToImage" : {
       "comment" : "Pin setting: first pin of a file path converts to image",
       "extractionState" : "manual",

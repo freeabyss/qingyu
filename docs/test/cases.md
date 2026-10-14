@@ -24,6 +24,7 @@
 | 2026-10-13 | Claude | Task 011 放大镜：第 12 节新增 1 条自动化用例 SHOT-LIFE-004（取样取消后不回调 + 在途请求合并），原手工冒烟由 SHOT-LIFE-004 顺延为 SHOT-LIFE-005。放大镜取样在叠层窗口下方按需抓屏，涉及叠层生命周期，故纳入本节。 |
 | 2026-10-13 | Claude | Task 012 窗口与控件识别：第 12 节新增 1 条自动化用例 SHOT-LIFE-005（控件探测取消后不回调 + 在途请求合并 + 关闭时零调用），手工冒烟顺延为 SHOT-LIFE-006。控件探测跑在后台队列且随会话取消，涉及叠层生命周期，故纳入本节。 |
 | 2026-10-13 | Claude | Task 014/01 选区微调：第 12 节新增 1 条自动化用例 SHOT-LIFE-006（区域选区改为「松开进入可微调态 + Enter 确认」），手工冒烟顺延为 SHOT-LIFE-007。该改动改变截图会话状态机，涉及叠层与会话生命周期，故纳入本节。 |
+| 2026-10-14 | Claude | Task 017/01 贴图拖动吸附：新增自动化用例 `PinSnappingTests`（12 条：参照物组装、阈值边界与关闭、最近者优先、首尾相邻贴合、中对中、屏幕边缘优先、尺寸不变、CG→AppKit 坐标换算）。本子项只在鼠标松开后调整贴图窗口原点，未改动窗口生命周期（新增的移动通知监听与待办定时器在 close/destroy/destroyAll 统一摘除，代码已覆盖），故第 12 节不新增 SHOT-LIFE 编号。 |
 | 2026-10-14 | Claude | Task 014/03 导出装饰（圆角/边框/阴影）：新增自动化用例 `ScreenshotFrameStyleTests`（13 条：钳制、几何含 2 倍屏折算、圆角透明/边框着色/阴影留白的像素断言、默认值读取、`decorated()` 的 id 与尺寸语义）与 `CaptureCompletionTests` 的 3 条挂载点用例（复制/保存套用装饰、贴图/打印不套用）。默认全关时导出结果逐字节不变，本改动不触及叠层与会话生命周期，故第 12 节不新增 SHOT-LIFE 编号；真实导出对比走既有 SHOT-LIFE-007 手工冒烟（其步骤已覆盖完成协调器）。 |
 | 2026-10-14 | Claude | **截图入口恢复**（`FeatureGate.screenshotEnabled = true`）：菜单项、搜索命令、全局快捷键 F1、设置页截图分区、欢迎向导屏幕录制段全部恢复暴露。原先「暂缓执行」的截图入口类用例恢复为当前行为断言，并按开启后的语义改写：`GlobalShortcutManagerTests` / `HotkeyConflictDetectorTests` / `OnboardingViewModelTests`（改为「授权或跳过」二选一门槛）/ `SettingsNavigationTests`（侧栏含截图页）/ `SystemCommandSourceTests`（截图命令可搜可执行）。 |
 

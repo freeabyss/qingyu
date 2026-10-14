@@ -86,7 +86,13 @@ final class AppContainer: NSObject {
             let settings = SettingsService(persistence: .shared)
             let filePathToImage = (try? await settings.value(for: .pinFilePathToImage, as: Bool.self)) ?? true
             let capacity = (try? await settings.value(for: .pinRestoreCapacity, as: Int.self)) ?? PinStore.defaultRestoreCapacity
-            self.pinWindowController.applySettings(filePathToImage: filePathToImage, restoreCapacity: capacity)
+            let snapThreshold = (try? await settings.value(for: .pinSnapThreshold, as: Double.self))
+                ?? Double(PinSnapping.defaultThreshold)
+            self.pinWindowController.applySettings(
+                filePathToImage: filePathToImage,
+                restoreCapacity: capacity,
+                snapThreshold: PinSnapping.sanitizedThreshold(snapThreshold)
+            )
         }
         return controller
     }()
