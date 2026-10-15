@@ -17,6 +17,12 @@ final class PersistenceController {
         if let override = _debugOverride {
             return override
         }
+        // 单测宿主进程必须用**隔离数据栈**：与正在运行的正式 App 共用同一个
+        // SQLite 库会争抢锁（表现为个别 main-actor 用例被拖住十几分钟），
+        // 也会把测试写入的真实数据污染掉。
+        if isHostingUnitTests {
+            return _unitTestShared
+        }
         #endif
         return _defaultShared
     }
@@ -32,6 +38,24 @@ final class PersistenceController {
     static func setDebugShared(_ controller: PersistenceController) {
         _debugOverride = controller
     }
+
+    /// 单测宿主检测：XCTest 框架已被加载进本进程即认为是单测。
+    private static var isHostingUnitTests: Bool {
+        NSClassFromString("XCTestCase") != nil
+    }
+
+    /// 单测专用数据栈：**进程内唯一**的临时目录，绝不触碰生产库。
+    ///
+    /// 每次运行都新建（天然 hermetic，默认设置也是全新的），目录落在系统临时目录下，
+    /// 由系统回收；不使用固定路径，避免并行运行的两个测试进程互相踩踏。
+    private static let _unitTestShared: PersistenceController = {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("Qingyu-UnitTests-\(UUID().uuidString)", isDirectory: true)
+        return PersistenceController(
+            storeConfiguration: .persistent(storeURL: directory.appendingPathComponent("Qingyu.sqlite")),
+            fileSystem: AssistantFileSystem(rootDirectory: directory)
+        )
+    }()
     #endif
 
     let container: NSPersistentContainer

@@ -204,20 +204,39 @@ final class ScreenshotWindowController {
 
     private func ensureScreenRecordingPermission() -> Bool {
         let permissionService = container.permissionService
-        guard permissionService.status(for: .screenRecording).isAuthorized else {
-            let alert = NSAlert()
-            alert.alertStyle = .warning
-            alert.messageText = L10n.localized("screenshot.permission.title")
-            alert.informativeText = L10n.localized("screenshot.permission.message")
-            alert.addButton(withTitle: L10n.localized("screenshot.permission.openSettings"))
-            alert.addButton(withTitle: L10n.localized("screenshot.permission.cancel"))
-            let response = alert.runModal()
-            if response == .alertFirstButtonReturn {
-                _ = permissionService.requestScreenRecordingPrompt()
-                permissionService.openSystemSettings(for: .screenRecording)
-            }
-            return false
+        guard !permissionService.status(for: .screenRecording).isAuthorized else { return true }
+
+        // 必须先触发一次系统申请：未调用过 `CGRequestScreenCaptureAccess()` 的进程
+        // 不会出现在「系统设置 → 屏幕录制」列表里，用户根本无从授权。
+        // 该调用只在尚未授权时弹系统 UI，重复触发是安全的。
+        _ = permissionService.requestScreenRecordingPrompt()
+
+        let alert = NSAlert()
+        alert.alertStyle = .warning
+        alert.messageText = L10n.localized("screenshot.permission.title")
+        alert.informativeText = L10n.localized("screenshot.permission.message")
+        for action in ScreenRecordingRecovery.actions {
+            alert.addButton(withTitle: L10n.localized(action.localizationKey))
         }
-        return true
+        // 取消按钮响应 Esc。
+        alert.buttons.last?.keyEquivalent = "\u{1B}"
+
+        let response = alert.runModal()
+        let index: Int
+        switch response {
+        case .alertFirstButtonReturn: index = 0
+        case .alertSecondButtonReturn: index = 1
+        default: index = ScreenRecordingRecovery.actions.count - 1
+        }
+
+        switch ScreenRecordingRecovery.actions[index] {
+        case .openSystemSettings:
+            permissionService.openSystemSettings(for: .screenRecording)
+        case .relaunch:
+            PermissionService.relaunch()
+        case .cancel:
+            break
+        }
+        return false
     }
 }

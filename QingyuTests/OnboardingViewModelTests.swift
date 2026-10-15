@@ -303,3 +303,57 @@ private actor InMemorySettingsService: SettingsServiceProtocol {
         values[key.rawValue] ?? ""
     }
 }
+
+// MARK: - 屏幕录制权限恢复流程
+
+@MainActor
+final class ScreenRecordingRecoveryTests: XCTestCase {
+
+    /// 「授权后仍提示未授权」的两个真实成因决定了按钮集合：
+    /// 先去授权、再让授权生效、最后才是取消。
+    func testRecoveryActionsOrderPutsRelaunchBeforeCancel() {
+        XCTAssertEqual(
+            ScreenRecordingRecovery.actions,
+            [.openSystemSettings, .relaunch, .cancel],
+            "必须提供「重新启动清羽」：macOS 会缓存当前实例的授权判定"
+        )
+    }
+
+    func testRelaunchIsOffered() {
+        XCTAssertTrue(
+            ScreenRecordingRecovery.actions.contains(.relaunch),
+            "缺少重启入口正是「授权后一直提示未授权」的直接原因"
+        )
+        XCTAssertFalse(
+            ScreenRecordingRecovery.actions.isEmpty,
+            "未授权时必须给出可执行的下一步，而不是只提示失败"
+        )
+    }
+
+    func testCancelIsLastSoEscapeMapsToIt() {
+        XCTAssertEqual(
+            ScreenRecordingRecovery.actions.last,
+            .cancel,
+            "取消放在最后，控制器据此把 Esc 绑到最后一个按钮"
+        )
+    }
+
+    func testEveryActionHasLocalization() {
+        for action in ScreenRecordingRecovery.Action.allCases {
+            XCTAssertFalse(
+                L10n.localized(action.localizationKey).isEmpty,
+                "\(action.localizationKey) 缺少文案"
+            )
+        }
+    }
+
+    /// 权限状态映射：preflight 为真即已授权（真实系统调用不在单测里触发）。
+    func testStatusMappingForInjectedService() {
+        let mock = MockPermissionService()
+        mock.statuses[.screenRecording] = .authorized
+        XCTAssertTrue(mock.status(for: .screenRecording).isAuthorized)
+
+        mock.statuses[.screenRecording] = .denied
+        XCTAssertFalse(mock.status(for: .screenRecording).isAuthorized)
+    }
+}

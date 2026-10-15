@@ -41,6 +41,40 @@ protocol PermissionServiceProtocol {
     func onDemandAccessibilityCheck() -> Bool
 }
 
+// MARK: - Screen-recording recovery
+
+/// 屏幕录制权限未授予时的恢复流程。
+///
+/// 两个真实的失败模式决定了这里的按钮设计：
+///
+/// 1. **App 未注册进 TCC**：从未调用过 `CGRequestScreenCaptureAccess()` 的进程
+///    不会出现在「系统设置 → 隐私与安全性 → 屏幕录制」列表里，用户根本无从授权，
+///    表现就是「授权后一直提示没有授权」。因此调用方必须先触发一次系统申请。
+/// 2. **授权判定被进程内缓存**：用户在系统设置里打开开关后，**当前运行实例**
+///    通常仍读到旧的「未授权」，必须重启才生效。因此把「重新启动清羽」作为
+///    一等操作给出，而不是只让用户自己去关掉重开。
+enum ScreenRecordingRecovery {
+    enum Action: CaseIterable {
+        /// 打开系统设置的屏幕录制页。
+        case openSystemSettings
+        /// 重启清羽，让新授权生效。
+        case relaunch
+        case cancel
+
+        var localizationKey: String {
+            switch self {
+            case .openSystemSettings: return "screenshot.permission.openSettings"
+            case .relaunch: return "screenshot.permission.relaunch"
+            case .cancel: return "screenshot.permission.cancel"
+            }
+        }
+    }
+
+    /// 展示给用户的操作顺序（即 NSAlert 的按钮顺序）：先给「去授权」，再给
+    /// 「让授权生效」，最后才是取消。
+    static let actions: [Action] = [.openSystemSettings, .relaunch, .cancel]
+}
+
 /// Thin macOS API wrapper for Screen Recording and Accessibility privacy permissions.
 final class PermissionService: PermissionServiceProtocol {
     private let workspace: NSWorkspace
@@ -106,6 +140,23 @@ final class PermissionService: PermissionServiceProtocol {
     private func requestAccessibilityPromptIfNeeded() {
         let options = [kAXTrustedCheckOptionPrompt.takeRetainedValue() as String: true] as CFDictionary
         _ = AXIsProcessTrustedWithOptions(options)
+    }
+
+    /// 重启本应用。
+    ///
+    /// 屏幕录制授权在进程内被缓存，重启是让新状态生效的可靠手段。先请求系统启动
+    /// 新实例（`createsNewApplicationInstance` 允许与当前实例并存），再退出当前
+    /// 实例，避免出现「旧实例已退出但新实例没起来」的空窗。
+    @MainActor
+    static func relaunch() {
+        let url = Bundle.main.bundleURL
+        let configuration = NSWorkspace.OpenConfiguration()
+        configuration.createsNewApplicationInstance = true
+        NSWorkspace.shared.openApplication(at: url, configuration: configuration) { _, _ in
+            Task { @MainActor in
+                NSApp.terminate(nil)
+            }
+        }
     }
 
     private func systemSettingsURL(for permission: PermissionKind) -> URL? {

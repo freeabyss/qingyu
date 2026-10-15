@@ -10665,6 +10665,24 @@
         }
       }
     },
+    "screenshot.permission.relaunch" : {
+      "comment" : "Alert button: relaunch the app so a freshly granted screen recording permission takes effect",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Relaunch Qingyu"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重新启动清羽"
+          }
+        }
+      }
+    },
     "screenshot.permission.cancel" : {
       "comment" : "Cancel button for screen recording permission alert",
       "extractionState" : "stale",
@@ -10684,19 +10702,19 @@
       }
     },
     "screenshot.permission.message" : {
-      "comment" : "Screen Recording permission missing alert body",
-      "extractionState" : "stale",
+      "comment" : "Alert message: screen recording permission required, including the relaunch step",
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Qingyu needs Screen Recording permission to capture screenshots. Grant it in System Settings, then quit and reopen Qingyu before trying again."
+            "value" : "Qingyu needs Screen Recording permission to take screenshots. Grant it in System Settings. macOS caches this decision for the running app, so use Relaunch Qingyu afterwards to make the grant take effect."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "清羽需要屏幕录制权限才能截图。请在系统设置中授权，然后退出并重新打开清羽后再试。"
+            "value" : "清羽需要屏幕录制权限才能截图。请在系统设置中授权。macOS 会缓存当前运行实例的授权判定，授权后请点「重新启动清羽」让授权生效。"
           }
         }
       }
