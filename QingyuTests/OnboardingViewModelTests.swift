@@ -347,6 +347,28 @@ final class ScreenRecordingRecoveryTests: XCTestCase {
         }
     }
 
+    /// ad-hoc 构建（本地编译默认）必须给出「每次重编都要重新授权」的说明；
+    /// 正式签名下不展示，避免误导。
+    func testDevelopmentSignatureNoteOnlyForAdhocBuilds() {
+        XCTAssertEqual(
+            PermissionGuidance.developmentSignatureNoteKey(for: .adhoc),
+            "permission.adhocSignature.note"
+        )
+        XCTAssertNil(PermissionGuidance.developmentSignatureNoteKey(for: .signed(teamIdentifier: "ABCDE12345")))
+        XCTAssertNil(
+            PermissionGuidance.developmentSignatureNoteKey(for: .unknown),
+            "取不到签名信息时不展示开发构建说明"
+        )
+        XCTAssertTrue(AppSignatureStatus.adhoc.isAdhoc)
+        XCTAssertFalse(AppSignatureStatus.signed(teamIdentifier: "ABCDE12345").isAdhoc)
+        XCTAssertFalse(AppSignatureStatus.unknown.isAdhoc)
+    }
+
+    func testAdhocNoteIsLocalized() {
+        let key = try? XCTUnwrap(PermissionGuidance.developmentSignatureNoteKey(for: .adhoc))
+        XCTAssertFalse(L10n.localized(key ?? "").isEmpty)
+    }
+
     /// 权限状态映射：preflight 为真即已授权（真实系统调用不在单测里触发）。
     func testStatusMappingForInjectedService() {
         let mock = MockPermissionService()

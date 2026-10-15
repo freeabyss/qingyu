@@ -9,7 +9,7 @@ struct OnboardingView: View {
     @StateObject var viewModel: OnboardingViewModel
     @State private var showSkipConfirmation = false
 
-    private let privacyURL = URL(string: "https://github.com/freeabyss/qingyu/blob/main/PRIVACY.md")
+    private let privacyURL = URL(string: "https://github.com/freeabyss/qingyu/blob/main/docs/guides/privacy.md")
 
     init(viewModel: OnboardingViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
@@ -174,6 +174,17 @@ struct OnboardingView: View {
                         Text(L10n.localized("onboarding.screenRecording.skipped"))
                             .font(JadeFont.caption)
                             .foregroundStyle(JadeColor.textTertiary)
+                    }
+
+                    // ad-hoc 构建（本地编译）下 TCC 按代码哈希记录授权：每次重编
+                    // 都会失效，而系统设置里的旧条目仍显示为已授权。
+                    if let noteKey = PermissionGuidance.developmentSignatureNoteKey(
+                        for: PermissionService.appSignatureStatus()
+                    ) {
+                        Text(L10n.localized(noteKey))
+                            .font(JadeFont.caption)
+                            .foregroundStyle(JadeColor.warning)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                 }
             }

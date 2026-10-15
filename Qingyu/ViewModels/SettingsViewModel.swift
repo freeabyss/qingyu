@@ -31,6 +31,8 @@ final class SettingsViewModel: ObservableObject {
     private let settingsService: SettingsServiceProtocol
     private let blacklistRepository: SearchBlacklistRepositoryProtocol
     private let permissionService: PermissionServiceProtocol
+    /// 本应用签名状态：决定屏幕录制授权能否跨构建保留（ad-hoc 构建每次重编都失效）。
+    let appSignatureStatus: AppSignatureStatus = PermissionService.appSignatureStatus()
     private let launchAtLoginService: LaunchAtLoginServiceProtocol
     private let notificationCenter: NotificationCenter
     private let userDefaults: UserDefaults

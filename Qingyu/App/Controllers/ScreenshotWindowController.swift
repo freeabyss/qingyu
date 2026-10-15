@@ -214,7 +214,16 @@ final class ScreenshotWindowController {
         let alert = NSAlert()
         alert.alertStyle = .warning
         alert.messageText = L10n.localized("screenshot.permission.title")
-        alert.informativeText = L10n.localized("screenshot.permission.message")
+        // ad-hoc 构建（本地编译的默认结果）下，TCC 按代码哈希记录授权：
+        // 每次重新编译都会被当成另一个 App，旧授权立即失效，而系统设置里那条
+        // 旧条目仍显示为已授权。必须把这一点讲清楚，否则用户只会反复授权却无效。
+        var message = L10n.localized("screenshot.permission.message")
+        if let noteKey = PermissionGuidance.developmentSignatureNoteKey(
+            for: PermissionService.appSignatureStatus()
+        ) {
+            message += "\n\n" + L10n.localized(noteKey)
+        }
+        alert.informativeText = message
         for action in ScreenRecordingRecovery.actions {
             alert.addButton(withTitle: L10n.localized(action.localizationKey))
         }

@@ -10683,6 +10683,24 @@
         }
       }
     },
+    "permission.adhocSignature.note" : {
+      "comment" : "Note shown when the app is ad-hoc signed: the screen recording grant is keyed by code hash",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Note: this is a development build with an ad-hoc signature. macOS records this permission per code hash, so it stops matching every time the app is rebuilt. If System Settings already lists Qingyu, remove that entry first, then grant it again for this build."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "说明：当前是 ad-hoc 签名的开发构建。macOS 按代码哈希记录该权限，因此每次重新编译后旧授权都会失效。若系统设置里已有旧的「清羽」条目，请先移除它，再为本构建重新授权。"
+          }
+        }
+      }
+    },
     "screenshot.permission.cancel" : {
       "comment" : "Cancel button for screen recording permission alert",
       "extractionState" : "stale",

@@ -2,6 +2,7 @@ import AppKit
 import ApplicationServices
 import CoreGraphics
 import Foundation
+import Security
 import os.log
 
 /// MVP permissions that must be granted before Assistant can enter the full experience.
@@ -39,6 +40,34 @@ protocol PermissionServiceProtocol {
     /// - Returns: 当前辅助功能是否已授权（`AXIsProcessTrusted()`）。已授权时不弹 Alert 直接返回 true。
     @MainActor
     func onDemandAccessibilityCheck() -> Bool
+}
+
+// MARK: - App signature status
+
+/// 本应用的代码签名状态。
+///
+/// 直接决定屏幕录制授权**能否跨构建保留**，因此是「明明授权了却仍提示未授权」
+/// 的第一诊断项：
+/// - 正式签名（开发者 ID / Apple 开发证书）：TCC 按 Team + Bundle ID 记录授权，
+///   重新编译仍然有效；
+/// - **ad-hoc 签名**（本地构建的默认结果）：TCC 只能按**代码哈希**记录身份，
+///   每次重新编译都是「另一个 App」，旧授权立即失效 —— 而系统设置里那条旧条目
+///   仍然显示为已授权，于是看起来就是「明明授权了却还说没授权」。
+enum AppSignatureStatus: Equatable {
+    case signed(teamIdentifier: String)
+    case adhoc
+    case unknown
+
+    /// 是否为开发构建（ad-hoc），需要向用户解释「每次重新编译都要重新授权」。
+    var isAdhoc: Bool { self == .adhoc }
+}
+
+/// 权限相关提示文案的纯逻辑（便于单测，不依赖真实签名）。
+enum PermissionGuidance {
+    /// 未授权且为 ad-hoc 构建时，额外展示的说明；正式签名下返回 nil。
+    static func developmentSignatureNoteKey(for status: AppSignatureStatus) -> String? {
+        status.isAdhoc ? "permission.adhocSignature.note" : nil
+    }
 }
 
 // MARK: - Screen-recording recovery
@@ -140,6 +169,33 @@ final class PermissionService: PermissionServiceProtocol {
     private func requestAccessibilityPromptIfNeeded() {
         let options = [kAXTrustedCheckOptionPrompt.takeRetainedValue() as String: true] as CFDictionary
         _ = AXIsProcessTrustedWithOptions(options)
+    }
+
+    /// 读取自身签名状态。
+    ///
+    /// 取不到签名信息时返回 `.unknown`（此时不展示开发构建说明，避免误导）。
+    static func appSignatureStatus() -> AppSignatureStatus {
+        var code: SecCode?
+        guard SecCodeCopySelf([], &code) == errSecSuccess, let code else { return .unknown }
+        var staticCode: SecStaticCode?
+        guard SecCodeCopyStaticCode(code, [], &staticCode) == errSecSuccess, let staticCode else { return .unknown }
+        var information: CFDictionary?
+        guard SecCodeCopySigningInformation(
+            staticCode,
+            SecCSFlags(rawValue: UInt32(kSecCSSigningInformation)),
+            &information
+        ) == errSecSuccess, let dictionary = information as? [String: Any] else {
+            return .unknown
+        }
+
+        let flags = (dictionary[kSecCodeInfoFlags as String] as? NSNumber)?.uint32Value ?? 0
+        if flags & SecCodeSignatureFlags.adhoc.rawValue != 0 {
+            return .adhoc
+        }
+        if let team = dictionary[kSecCodeInfoTeamIdentifier as String] as? String, !team.isEmpty {
+            return .signed(teamIdentifier: team)
+        }
+        return .unknown
     }
 
     /// 重启本应用。

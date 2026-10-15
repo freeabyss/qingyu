@@ -324,6 +324,15 @@ private struct GeneralPage: View {
                 Text(viewModel.permissionDescription(kind))
                     .font(JadeFont.caption)
                     .foregroundStyle(JadeColor.textSecondary)
+                // 未授权 + ad-hoc 构建：直接说明「为什么授权了还是没授权」，
+                // 避免用户反复授权却始终无效。
+                if !status.isAuthorized,
+                   let noteKey = PermissionGuidance.developmentSignatureNoteKey(for: viewModel.appSignatureStatus) {
+                    Text(L10n.localized(noteKey))
+                        .font(JadeFont.caption)
+                        .foregroundStyle(JadeColor.warning)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
             Spacer()
             if status.isAuthorized {
