@@ -42,7 +42,8 @@ final class ClipboardHistoryWindowController: NSWindowController, NSWindowDelega
             )
             let view = ClipboardHistoryView(
                 viewModel: viewModel,
-                onCopyAndClose: { [weak window] in window?.close() }
+                onCopyAndClose: { [weak window] in window?.close() },
+                onClose: { [weak self] in self?.hide() }
             )
             .tint(JadeColor.primary)
             window.contentMinSize = NSSize(width: 720, height: 420)

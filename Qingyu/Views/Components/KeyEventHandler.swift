@@ -6,11 +6,13 @@ import AppKit
 /// Used as an overlay on the main content view to handle arrow keys and Enter
 /// for search result navigation, compatible with macOS 13+.
 struct KeyEventHandler: NSViewRepresentable {
-    var onUpArrow: () -> Void
-    var onDownArrow: () -> Void
-    var onReturn: () -> Void
-    var onEscape: () -> Void = {}
-    var onTab: () -> Void
+    /// 只处理已传入的按键：未提供的回调不会吞掉该按键，避免遮挡同窗口内的
+    /// 其他 SwiftUI `keyboardShortcut`（例如剪贴板窗口的 j/k/⌘C）。
+    var onUpArrow: (() -> Void)?
+    var onDownArrow: (() -> Void)?
+    var onReturn: (() -> Void)?
+    var onEscape: (() -> Void)?
+    var onTab: (() -> Void)?
 
     func makeNSView(context: Context) -> KeyEventNSView {
         let view = KeyEventNSView()
@@ -79,7 +81,9 @@ class KeyEventNSView: NSView {
         return client.hasMarkedText()
     }
 
-    private func handle(_ event: NSEvent) -> Bool {
+    /// Whether this view handles `event`. Internal (not private) so tests can
+    /// lock the "consume only keys that have a handler" contract.
+    func handle(_ event: NSEvent) -> Bool {
         let disallowedModifiers: NSEvent.ModifierFlags = [.command, .option, .control]
         guard event.modifierFlags.intersection(disallowedModifiers).isEmpty else { return false }
 
@@ -90,19 +94,24 @@ class KeyEventNSView: NSView {
 
         switch event.keyCode {
         case 126: // Up arrow
-            onUpArrow?()
+            guard let onUpArrow else { return false }
+            onUpArrow()
             return true
         case 125: // Down arrow
-            onDownArrow?()
+            guard let onDownArrow else { return false }
+            onDownArrow()
             return true
         case 36: // Return/Enter
-            onReturn?()
+            guard let onReturn else { return false }
+            onReturn()
             return true
         case 53: // Escape
-            onEscape?()
+            guard let onEscape else { return false }
+            onEscape()
             return true
         case 48: // Tab
-            onTab?()
+            guard let onTab else { return false }
+            onTab()
             return true
         default:
             return false

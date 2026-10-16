@@ -150,6 +150,7 @@
 		C011000000000000000000E6 /* KeywordLaunchSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C011000000000000000000E5 /* KeywordLaunchSourceTests.swift */; };
 		B01100000000000000000009 /* SearchPanelViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B01100000000000000000008 /* SearchPanelViewModelTests.swift */; };
 		B01300000000000000000001 /* ClipboardListViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B01300000000000000000002 /* ClipboardListViewModelTests.swift */; };
+		B01F00000000000000000001 /* KeyEventHandlerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B01F00000000000000000002 /* KeyEventHandlerTests.swift */; };
 		C01400000000000000000001 /* Qingyu/Services/Permissions/PermissionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C01400000000000000000002 /* Qingyu/Services/Permissions/PermissionService.swift */; };
 		C01400000000000000000003 /* Qingyu/Services/Hotkey/HotkeyValidationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C01400000000000000000004 /* Qingyu/Services/Hotkey/HotkeyValidationService.swift */; };
 		C01400000000000000000005 /* Qingyu/Services/LaunchAtLogin/LaunchAtLoginService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C01400000000000000000006 /* Qingyu/Services/LaunchAtLogin/LaunchAtLoginService.swift */; };
@@ -360,6 +361,7 @@
 		C011000000000000000000E5 /* KeywordLaunchSourceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeywordLaunchSourceTests.swift; sourceTree = "<group>"; };
 		B01100000000000000000008 /* SearchPanelViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchPanelViewModelTests.swift; sourceTree = "<group>"; };
 		B01300000000000000000002 /* ClipboardListViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardListViewModelTests.swift; sourceTree = "<group>"; };
+		B01F00000000000000000002 /* KeyEventHandlerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyEventHandlerTests.swift; sourceTree = "<group>"; };
 		B8013829E2DF283371786A6C /* MenuDispatchUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MenuDispatchUITests.swift; sourceTree = "<group>"; };
 		C01400000000000000000002 /* Qingyu/Services/Permissions/PermissionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingyu/Services/Permissions/PermissionService.swift; sourceTree = SOURCE_ROOT; };
 		C01400000000000000000004 /* Qingyu/Services/Hotkey/HotkeyValidationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingyu/Services/Hotkey/HotkeyValidationService.swift; sourceTree = SOURCE_ROOT; };
@@ -621,6 +623,7 @@
 				C011000000000000000000E5 /* KeywordLaunchSourceTests.swift */,
 				B01100000000000000000008 /* SearchPanelViewModelTests.swift */,
 				B01300000000000000000002 /* ClipboardListViewModelTests.swift */,
+				B01F00000000000000000002 /* KeyEventHandlerTests.swift */,
 				AB0100000000000000000005 /* PluginRegistryTests.swift */,
 				AB0100000000000000000057 /* CaptureSessionStateTests.swift */,
 				AB0100000000000000000067 /* CaptureSessionControllerTests.swift */,
@@ -1253,6 +1256,7 @@
 				C011000000000000000000E6 /* KeywordLaunchSourceTests.swift in Sources */,
 				B01100000000000000000009 /* SearchPanelViewModelTests.swift in Sources */,
 				B01300000000000000000001 /* ClipboardListViewModelTests.swift in Sources */,
+				B01F00000000000000000001 /* KeyEventHandlerTests.swift in Sources */,
 				AB0100000000000000000006 /* PluginRegistryTests.swift in Sources */,
 				AB0100000000000000000026 /* QuickLaunchPluginTests.swift in Sources */,
 				AB0100000000000000000036 /* ClipboardPluginTests.swift in Sources */,
@@ -1443,7 +1447,7 @@
 				CODE_SIGN_ENTITLEMENTS = Qingyu/Qingyu.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 365;
+				CURRENT_PROJECT_VERSION = 366;
 				DEVELOPMENT_TEAM = 454XB348PX;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -1452,7 +1456,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.3.65;
+				MARKETING_VERSION = 0.3.66;
 				PRODUCT_BUNDLE_IDENTIFIER = com.freeabyss.qingyu;
 				PRODUCT_MODULE_NAME = Qingyu;
 				PRODUCT_NAME = Qingyu;
@@ -1468,7 +1472,7 @@
 				CODE_SIGN_ENTITLEMENTS = Qingyu/Qingyu.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 365;
+				CURRENT_PROJECT_VERSION = 366;
 				DEVELOPMENT_TEAM = 454XB348PX;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -1477,7 +1481,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.3.65;
+				MARKETING_VERSION = 0.3.66;
 				PRODUCT_BUNDLE_IDENTIFIER = com.freeabyss.qingyu;
 				PRODUCT_MODULE_NAME = Qingyu;
 				PRODUCT_NAME = Qingyu;

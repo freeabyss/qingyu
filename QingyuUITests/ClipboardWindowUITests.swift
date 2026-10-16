@@ -149,4 +149,30 @@ final class ClipboardWindowUITests: XCTestCase {
             "TC-UI-022: 空数据下过滤后应显示空态或搜索空态文案（无异常）"
         )
     }
+
+    // MARK: - TC-UI-023　Esc 关闭剪贴板历史窗口
+
+    /// 覆盖：PRD §9.4 P-02「Esc 关闭窗口且保留应用运行」；CLIP-013
+    /// 验证：窗口内按 Esc 后窗口关闭、应用保持运行、不触发复制。
+    func testTCUI023EscapeClosesClipboardWindow() throws {
+        launchWithClipboard(for: "TC-UI-023")
+
+        let searchField = app.textFields["clipboard.searchField"]
+        XCTAssertTrue(
+            searchField.waitForExistence(timeout: 10),
+            "TC-UI-023: 剪贴板窗口应呈现"
+        )
+
+        app.typeKey(.escape, modifierFlags: [])
+
+        XCTAssertFalse(
+            searchField.waitForExistence(timeout: 3),
+            "TC-UI-023: 按 Esc 后剪贴板窗口应关闭"
+        )
+        XCTAssertNotEqual(
+            app.state,
+            .notRunning,
+            "TC-UI-023: 关闭窗口后应用应保持运行"
+        )
+    }
 }

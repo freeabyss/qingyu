@@ -10,6 +10,8 @@ struct ClipboardHistoryView: View {
     @ObservedObject var viewModel: ClipboardListViewModel
     /// Invoked when an item is copied via ⏎ / click — closes the window.
     var onCopyAndClose: () -> Void = {}
+    /// Invoked by ⎋ — closes the window without copying (PRD §9.7「关闭窗口且保留应用运行」).
+    var onClose: () -> Void = {}
 
     /// Fixed detail-pane width (independent of content size).
     private static let detailPaneWidth: CGFloat = 360
@@ -48,6 +50,7 @@ struct ClipboardHistoryView: View {
             searchFocused = true
         }
         .background(keyboardShortcuts)
+        .background(navigationKeys)
         .jadeConfirmationDialog(
             "clipboard.clearAll.title",
             isPresented: $viewModel.showClearAllConfirmation,
@@ -307,17 +310,27 @@ struct ClipboardHistoryView: View {
 
     // MARK: - Keyboard shortcuts (hidden buttons, macOS 13 compatible)
 
+    /// ↑↓ / ⏎ / ⎋。改由 `KeyEventHandler` 接管：与命令栏同一套窗口级本地监听，
+    /// 既能在搜索框持有 first responder 时生效，也尊重中文输入法的候选态
+    /// （⌘F / j / k / ⌫ / ⌘C 仍走下面的隐藏按钮）。
+    private var navigationKeys: some View {
+        KeyEventHandler(
+            onUpArrow: { viewModel.moveSelectionUp() },
+            onDownArrow: { viewModel.moveSelectionDown() },
+            onReturn: {
+                viewModel.copySelectedToPasteboard()
+                onCopyAndClose()
+            },
+            onEscape: { onClose() }
+        )
+        .allowsHitTesting(false)
+    }
+
     private var keyboardShortcuts: some View {
         ZStack {
             shortcutButton(.init("f"), modifiers: .command) { searchFocused = true }
-            shortcutButton(.upArrow, modifiers: []) { viewModel.moveSelectionUp() }
-            shortcutButton(.downArrow, modifiers: []) { viewModel.moveSelectionDown() }
             shortcutButton(.init("k"), modifiers: []) { viewModel.moveSelectionUp() }
             shortcutButton(.init("j"), modifiers: []) { viewModel.moveSelectionDown() }
-            shortcutButton(.return, modifiers: []) {
-                viewModel.copySelectedToPasteboard()
-                onCopyAndClose()
-            }
             shortcutButton(.init("c"), modifiers: .command) {
                 viewModel.copySelectedToPasteboard()
                 onCopyAndClose()
