@@ -13,13 +13,19 @@ All notable changes to Qingyu (清羽) are documented here. The format is based 
   universal binary, signs and notarizes it, packages a `.dmg`, and uploads it to
   a GitHub Release when a `v*` tag is pushed (or via manual dispatch).
 - **Local packaging script.** `scripts/package-release.sh` (also exposed as
-  `./start.sh package`) produces a notarized universal `.dmg` and can upload it
-  with `gh`.
+  `./scripts/install.sh package`) produces a notarized universal `.dmg` and can
+  upload it with `gh`.
 - **Installer self-cleanup.** After the app is installed under `/Applications`,
   the first launch moves a downloaded `Qingyu-*.dmg` from `~/Downloads` /
   `~/Desktop` to the Trash (recoverable), at most once per version.
 - **First real-device screenshot.** `assets/product/command-bar.png` (the
   `⌥ Space` command bar) is wired into the READMEs and the product page.
+- **Three more interface languages: 繁體中文, 日本語, Français.** The app now ships
+  five languages (简体中文 / 繁體中文 / English / 日本語 / Français). The string
+  catalog is fully populated for each — 819 translated entries apiece, no
+  untranslated or placeholder-mismatched strings — and the language picker lists
+  every language **in its own script**, so it reads the same no matter which
+  interface language you are currently in.
 
 ### Changed
 
@@ -33,9 +39,30 @@ All notable changes to Qingyu (清羽) are documented here. The format is based 
   under **System Settings → Privacy & Security**.
 - **Marketing copy.** The "没有账号，没有云同步，没有埋点" slogan is replaced by
   the simpler "无需账号" / "No account required" across the README and website.
+- **Switching the interface language now restarts the app for you.** `AppleLanguages`
+  is only read by `Bundle` when the process starts, so the language cannot change
+  under a running app. Instead of the old "restart required" alert — which asked
+  you to do the work and explain the mechanism to yourself — picking a language now
+  relaunches Qingyu immediately in that language. Nothing else about your setup
+  changes across the relaunch, and re-picking the language you are already using
+  does not restart anything.
 
 ### Fixed
 
+- **Clipboard history is on by default for everyone, including when you skip
+  onboarding.** The "Skip Setup" path used to write `clipboard.enabled = false`
+  on the way out — the opposite of its own intent, since the clipboard is a
+  feature the product ships **on** by default. Skipping the wizard now means
+  "leave my settings alone": it persists your hotkey and the onboarding-completed
+  flag and touches nothing else. Users who skipped setup previously and want
+  clipboard history back can enable it in **Settings → Clipboard**.
+- **Hardcoded Chinese text is gone from the interface.** Built-in command names,
+  settings-search routes, keyword-launch titles, feedback-email subjects and
+  bodies, and the default cancel button of confirmation dialogs were still
+  Chinese-only literals in code, so they stayed Chinese in every language. They
+  now resolve through the string catalog. Command and settings search keeps both
+  the Chinese and English names as **matching aliases**, so searching "截图" from
+  an English interface (or "screenshot" from a Chinese one) still works.
 - **Clipboard "Show in Finder" no longer fails silently.** When a file or folder
   copied earlier has since been moved or deleted, the row icon, the context menu
   item, the detail-pane button and the preview sheet now report it with an error

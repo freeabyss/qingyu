@@ -353,3 +353,29 @@ enum InstallerCleanup {
         return removed
     }
 }
+
+/// 语言切换后的自动重启入口。
+///
+/// `AppleLanguages` 只在进程启动时被 `Bundle` 读一次，改语言无法热生效，因此
+/// 直接把当前 App 重新拉起来、再退出自己，用户不需要手动退出重开。
+///
+/// 关键在于 `createsNewApplicationInstance = true`：没有它，系统只会把已有的
+/// 旧进程激活到前台，语言覆盖永远不生效。重启失败时仍然退出——宁可让用户
+/// 手动再打开一次，也不能留下两个并存进程。
+@MainActor
+enum AppRelauncher {
+    static func relaunch() {
+        let bundleURL = Bundle.main.bundleURL
+        let configuration = NSWorkspace.OpenConfiguration()
+        configuration.createsNewApplicationInstance = true
+
+        NSWorkspace.shared.openApplication(at: bundleURL, configuration: configuration) { _, error in
+            if let error {
+                Logger.app.error("Relaunch failed: \(error.localizedDescription, privacy: .public)")
+            }
+            DispatchQueue.main.async {
+                NSApp.terminate(nil)
+            }
+        }
+    }
+}

@@ -92,6 +92,22 @@ enum KeywordLaunchCatalog {
     static let aiSearchCategory = "AI Search"
     static let aiChatCategory = "AI Chat"
 
+    /// 结果行标题前缀（如「用 Google 搜索」）。站点名是专有名词不翻译，
+    /// 但「用…搜索 / 向…提问」这层壳必须跟随界面语言。
+    static func searchTitlePrefix(for siteName: String) -> String {
+        L10n.localized("search.keywordLaunch.prefix.web", siteName)
+    }
+
+    static func askTitlePrefix(for siteName: String) -> String {
+        L10n.localized("search.keywordLaunch.prefix.ask", siteName)
+    }
+
+    /// 不支持 URL 预填的站点：结果行要在执行前说明「会顺手复制文字」，
+    /// 否则面板一关用户不知道还得自己粘贴。
+    static func prefillNote(for site: String) -> String {
+        L10n.localized("search.keywordLaunch.prefill.note", site)
+    }
+
     /// 设置页展示顺序。
     static let categories = [webSearchCategory, specialistCategory, aiSearchCategory, aiChatCategory]
 
@@ -219,7 +235,7 @@ enum KeywordLaunchCatalog {
             keywords: keywords,
             name: name,
             site: URL(string: urlTemplate)?.host ?? name,
-            titlePrefix: "用 \(name) 搜索",
+            titlePrefix: KeywordLaunchCatalog.searchTitlePrefix(for: name),
             urlTemplate: urlTemplate,
             typeLabel: "Web Search",
             iconSystemName: "globe",
@@ -239,7 +255,7 @@ enum KeywordLaunchCatalog {
             keywords: keywords,
             name: name,
             site: URL(string: urlTemplate)?.host ?? name,
-            titlePrefix: "向 \(name) 提问",
+            titlePrefix: KeywordLaunchCatalog.askTitlePrefix(for: name),
             urlTemplate: urlTemplate,
             typeLabel: "AI Chat",
             iconSystemName: "bubble.left.and.text.bubble.right",
@@ -292,12 +308,12 @@ final class KeywordLaunchSource: SearchSource {
         // 用户无从知道需要粘贴。
         let subtitle = preset.prefill == .urlParam
             ? preset.site
-            : "\(preset.site)（打开并复制文字，粘贴发送）"
+            : KeywordLaunchCatalog.prefillNote(for: preset.site)
 
         return [SearchResult(
             id: SearchResultID(rawValue: "\(id.rawValue):\(preset.id):\(text)"),
             sourceID: id,
-            title: "\(preset.titlePrefix)「\(text)」",
+            title: L10n.localized("search.keywordLaunch.result.title", preset.titlePrefix, text),
             subtitle: subtitle,
             icon: .systemSymbol(preset.iconSystemName),
             typeLabel: preset.typeLabel,

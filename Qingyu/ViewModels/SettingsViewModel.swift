@@ -67,7 +67,10 @@ final class SettingsViewModel: ObservableObject {
 
     @Published var statusMessage: String?
     @Published var errorMessage: String?
-    @Published var showLanguageRestartAlert = false
+
+    /// 重启应用的可注入入口。生产环境走 `AppRelauncher`；单元测试注入空实现，
+    /// 否则跑测试时真的会把宿主进程重启掉。
+    private let relaunch: @MainActor () -> Void
 
     /// v1.2 (T-003): drives the "清空所有数据" confirmation + post-reset restart prompt
     /// on the settings Data page (T-013 UI binds to these).
@@ -86,7 +89,15 @@ final class SettingsViewModel: ObservableObject {
     }
 
     static let retentionOptions: [ClipboardRetention] = [.sevenDays, .thirtyDays, .ninetyDays, .forever]
-    static let languageOptions: [LanguageMode] = [.followSystem, .simplifiedChinese, .english]
+    /// 语言列表顺序即用户扫读顺序：先系统，再按中文 → 英文 → 日文 → 法文。
+    static let languageOptions: [LanguageMode] = [
+        .followSystem,
+        .simplifiedChinese,
+        .traditionalChinese,
+        .english,
+        .japanese,
+        .french
+    ]
 
     static let sourceOptions: [(id: SearchSourceID, label: String)] = [
         (.app, "AppSource"),
@@ -115,7 +126,8 @@ final class SettingsViewModel: ObservableObject {
         dataManagementService: DataManagementService = DataManagementService(),
         conflictDetector: HotkeyConflictDetector? = nil,
         clipboardRepository: ClipboardRepositoryProtocol = ClipboardRepository(),
-        pluginRegistry: PluginRegistry? = nil
+        pluginRegistry: PluginRegistry? = nil,
+        relaunch: @escaping @MainActor () -> Void = { AppRelauncher.relaunch() }
     ) {
         self.settingsService = settingsService
         self.blacklistRepository = blacklistRepository
@@ -127,6 +139,7 @@ final class SettingsViewModel: ObservableObject {
         self.conflictDetector = conflictDetector ?? HotkeyConflictDetector()
         self.clipboardRepository = clipboardRepository
         self.pluginRegistry = pluginRegistry
+        self.relaunch = relaunch
     }
 
     /// Sidebar page order: 通用、当前可见的插件页（按 order 排序）、关于。
@@ -193,6 +206,8 @@ final class SettingsViewModel: ObservableObject {
 
     func saveSettings() async {
         do {
+            // 先取落盘的语言，用来判断这次保存是否真的改了语言（见 applyLanguagePreference）。
+            let previousLanguage = try? await settingsService.value(for: .languageMode, as: LanguageMode.self)
             for toggle in sourceToggles {
                 try await settingsService.set(toggle.isEnabled, for: toggle.settingKey)
             }
@@ -202,7 +217,7 @@ final class SettingsViewModel: ObservableObject {
             try await settingsService.set(languageMode, for: .languageMode)
             try await settingsService.set(appearanceMode, for: .appearanceMode)
             try launchAtLoginService.setEnabled(launchAtLoginEnabled)
-            applyLanguagePreference()
+            applyLanguagePreference(previous: previousLanguage)
             notificationCenter.post(name: .settingsDidChange, object: nil)
             statusMessage = L10n.localized("management.settings.saved")
         } catch {
@@ -213,6 +228,8 @@ final class SettingsViewModel: ObservableObject {
 
     func resetSettingsToDefaults() async {
         do {
+            // 恢复默认会把语言也改回「跟随系统」，同样属于语言变更，需要重启。
+            let previousLanguage = try? await settingsService.value(for: .languageMode, as: LanguageMode.self)
             for key in [
                 SettingKey.appSourceEnabled,
                 .commandSourceEnabled,
@@ -230,6 +247,7 @@ final class SettingsViewModel: ObservableObject {
                 try await settingsService.reset(key: key)
             }
             await loadSettings()
+            applyLanguagePreference(previous: previousLanguage)
             notificationCenter.post(name: .settingsDidChange, object: nil)
             statusMessage = L10n.localized("management.settings.reset")
         } catch {
@@ -413,11 +431,7 @@ final class SettingsViewModel: ObservableObject {
     }
 
     func languageTitle(_ language: LanguageMode) -> String {
-        switch language {
-        case .followSystem: return L10n.localized("management.language.system")
-        case .simplifiedChinese: return L10n.localized("management.language.zh")
-        case .english: return L10n.localized("management.language.en")
-        }
+        language.displayName
     }
 
     func permissionTitle(_ kind: PermissionKind) -> String {
@@ -463,15 +477,22 @@ final class SettingsViewModel: ObservableObject {
         }
     }
 
-    private func applyLanguagePreference() {
-        switch languageMode {
-        case .followSystem:
+    /// 落盘语言覆盖，并在语言**真的变了**时自动重启应用。
+    ///
+    /// `AppleLanguages` 只在进程启动时被 `Bundle` 读取一次，切换语言无法热生效，
+    /// 因此这里直接重启而不是弹「需要重启」提示。
+    ///
+    /// - Parameter previous: 本次保存前的落盘语言。`nil`（读取失败）时只写覆盖，
+    ///   不重启——把「读不到旧值」当成语言变更会让非语言设置的保存也重启应用。
+    private func applyLanguagePreference(previous: LanguageMode?) {
+        if let override = languageMode.appleLanguagesOverride {
+            userDefaults.set(override, forKey: "AppleLanguages")
+        } else {
             userDefaults.removeObject(forKey: "AppleLanguages")
-        case .simplifiedChinese:
-            userDefaults.set(["zh-Hans"], forKey: "AppleLanguages")
-        case .english:
-            userDefaults.set(["en"], forKey: "AppleLanguages")
         }
-        showLanguageRestartAlert = true
+
+        guard let previous, previous != languageMode else { return }
+        logger.info("Interface language changed \(previous.rawValue, privacy: .public) -> \(self.languageMode.rawValue, privacy: .public); relaunching")
+        relaunch()
     }
 }

@@ -39,6 +39,7 @@
 | 2026-10-14 | Claude | Task 017/01 贴图拖动吸附：新增自动化用例 `PinSnappingTests`（12 条：参照物组装、阈值边界与关闭、最近者优先、首尾相邻贴合、中对中、屏幕边缘优先、尺寸不变、CG→AppKit 坐标换算）。本子项只在鼠标松开后调整贴图窗口原点，未改动窗口生命周期（新增的移动通知监听与待办定时器在 close/destroy/destroyAll 统一摘除，代码已覆盖），故第 12 节不新增 SHOT-LIFE 编号。 |
 | 2026-10-14 | Claude | Task 014/03 导出装饰（圆角/边框/阴影）：新增自动化用例 `ScreenshotFrameStyleTests`（13 条：钳制、几何含 2 倍屏折算、圆角透明/边框着色/阴影留白的像素断言、默认值读取、`decorated()` 的 id 与尺寸语义）与 `CaptureCompletionTests` 的 3 条挂载点用例（复制/保存套用装饰、贴图/打印不套用）。默认全关时导出结果逐字节不变，本改动不触及叠层与会话生命周期，故第 12 节不新增 SHOT-LIFE 编号；真实导出对比走既有 SHOT-LIFE-007 手工冒烟（其步骤已覆盖完成协调器）。 |
 | 2026-10-14 | Claude | **截图入口恢复**（`FeatureGate.screenshotEnabled = true`）：菜单项、搜索命令、全局快捷键 F1、设置页截图分区、欢迎向导屏幕录制段全部恢复暴露。原先「暂缓执行」的截图入口类用例恢复为当前行为断言，并按开启后的语义改写：`GlobalShortcutManagerTests` / `HotkeyConflictDetectorTests` / `OnboardingViewModelTests`（改为「授权或跳过」二选一门槛）/ `SettingsNavigationTests`（侧栏含截图页）/ `SystemCommandSourceTests`（截图命令可搜可执行）。 |
+| 2026-10-16 | Claude | **剪贴板默认开启 + 五语言界面 + 切语言即重启**：① 修掉「跳过设置」把剪贴板关掉的行为 —— 剪贴板历史本是产品默认开启的能力（`clipboard.enabled` 代码默认 `"true"`），而 `skipOnboarding()` 曾显式写 `false`，等于「跳过向导」反过来关掉默认能力；现在跳过只写热键与完成标记。② 语言从 2 种扩到 5 种：新增 **繁體中文（zh-Hant）/ 日本語（ja）/ Français（fr）**，`Localizable.xcstrings` 全量补齐（846 键，五种语言各 819 条），语言列表改为**用该语言自身的写法**展示（简体中文 / 繁體中文 / English / 日本語 / Français），不随界面语言翻译。③ 顺带清掉散落在代码里的硬编码中文（内置命令名、设置搜索路由、关键词启动前缀、反馈邮件正文、确认对话框默认按钮），全部改走本地化键；中英文别名保留为**搜索匹配别名**，保证双语/拼音搜索不随界面语言变化。④ **切换语言后自动重启**：写 `AppleLanguages` 后直接以 `createsNewApplicationInstance` 重启自身，不再弹「需要重启才能生效」提示（`SettingsViewModel` 的 `relaunch` 注入点让单测可替换空实现，避免测试真的重启宿主进程）。测试总数 557 → 575。 |
 
 ---
 
@@ -311,6 +312,7 @@ P0/P1 手动用例执行时，应记录：执行日期、macOS 版本、构建�
 | CLIP-010 | 重复复制去重 | 重复复制相同内容 | 不新增记录，只更新时间并重新排序 | P0 |
 | CLIP-011 | 存储占用 | 打开设置或剪贴板页面 | 显示剪贴板历史存储占用，并提供清空入口 | P1 |
 | CLIP-012 | 清空确认 | 点击清空全部 | 显示二次确认，提示不可撤销 | P0 |
+| CLIP-013 | Esc 关闭窗口 | 剪贴板历史窗口内按 `Esc` | 窗口关闭，应用保持运行，不执行复制 | P0 |
 
 > **v1.2 修订（P-02 剪贴板窗口重设计）**：剪贴板历史改为**独立 NSWindow + 两栏 NavigationSplitView**（64px 行、hover 操作、预览 Sheet、swipe action、底部状态栏，见 §9.4 P-02）。CLIP-001~012 功能语义**全部保留有效**，但界面断言（行高、hover 4 按钮、预览 Sheet、swipe 收藏/删除）走新布局；数据链路（去重/置顶/保留/存储占用）不变。数据目录由 `Assistant/` 迁移到 `Qingyu/`，迁移后历史数据必须仍在（见 **DATA** 系列）。
 
@@ -363,7 +365,7 @@ P0/P1 手动用例执行时，应记录：执行日期、macOS 版本、构建�
 | SET-002 | 剪贴板功能开关 | 关闭剪贴板记录 | 停止记录新剪贴板；重新开启后恢复 | P0 |
 | SET-003 | 黑名单管理 | 设置页添加/移除具体结果 | 加入后不展示，移除后重新展示 | P1 |
 | SET-004 | 开机启动 | 完成 Onboarding 后检查登录项 | 默认启用；设置中可关闭 | P1 |
-| SET-005 | 语言切换 | 设置为中文/English/跟随系统 | 文案切换或提示重启后生效 | P1 |
+| SET-005 | 语言切换 | 设置为简体中文/繁體中文/English/日本語/Français/跟随系统 | **App 自动重启**，重启后界面文案即切换；语言列表一律用该语言自身写法展示（见 L10N-005） | P1 |
 | ABOUT-001 | 关于页信息 | 打开关于页 | 显示应用名称、版本号、构建号、官网/项目主页、隐私政策、检查更新、反馈入口、第三方许可、版权信息 | P0 |
 | ABOUT-002 | 检查更新 | 点击检查更新 | 打开官网下载页或 GitHub Release 页面 | P1 |
 | ABOUT-003 | 邮件反馈 | 点击反馈问题 | 打开邮件客户端，预填应用版本、macOS 版本、错误摘要和用户补充说明 | P1 |
@@ -380,10 +382,15 @@ P0/P1 手动用例执行时，应记录：执行日期、macOS 版本、构建�
 
 | Case ID | 场景 | 步骤 | 预期结果 | 优先级 |
 | :--- | :--- | :--- | :--- | :--- |
-| L10N-001 | 系统中文 | macOS 语言为中文 | App 默认显示简体中文 | P0 |
+| L10N-001 | 系统中文 | macOS 语言为简体中文 | App 默认显示简体中文 | P0 |
 | L10N-002 | 系统英文 | macOS 语言为英文 | App 默认显示 English | P0 |
-| L10N-003 | 手动切换语言 | 设置中选择语言 | 核心 UI、Onboarding、权限说明、隐私说明、错误提示、关于页语言一致 | P0 |
-| L10N-004 | 双语命令搜索 | 中文界面输入英文命令，英文界面输入中文命令 | 均能搜索到对应内置命令 | P1 |
+| L10N-003 | 手动切换语言 | 设置中选择简体中文 / 繁體中文 / English / 日本語 / Français | 改选后 App **自动重启**并生效；核心 UI、Onboarding、权限说明、隐私说明、错误提示、关于页语言一致 | P0 |
+| L10N-004 | 双语命令搜索 | 任意界面语言下输入中文或英文命令 | 均能搜索到对应内置命令（内置命令的中英文名保留为**搜索别名**，搜索不随界面语言变化） | P1 |
+| L10N-005 | 语言列表用自身写法 | 打开设置页语言选择器（分别用简体中文、English、日本語 界面查看） | 列表恒为 `跟随系统 / 简体中文 / 繁體中文 / English / 日本語 / Français`，条目名不随界面语言翻译 | P1 |
+| L10N-006 | 繁体中文完整性 | 切换到繁體中文 | 术语用台湾用语（剪貼簿、螢幕、設定、選單列…），品牌写「清羽 Qingyu」而非裸 `Qingyu`，无简体残留 | P0 |
+| L10N-007 | 日语 / 法语完整性 | 分别切换到 日本語 / Français | 核心路径文案完整、无未翻译英文残留、占位符（`%@`）数量与原语言一致 | P0 |
+| L10N-008 | 跟随系统回落 | 系统语言为德语（未收录）时选「跟随系统」 | 回落到英文界面，不出现半截翻译或空文案 | P1 |
+| L10N-009 | 语言切换不丢设置 | 切换语言前进设置改几项、切换语言触发重启 | 重启后此前设置（搜索源开关、剪贴板开关、快捷键、关键词表）全部保留 | P1 |
 
 ### 5.9 更新检查（v1.0.1 起）
 
@@ -408,7 +415,7 @@ P0/P1 手动用例执行时，应记录：执行日期、macOS 版本、构建�
 | 截图与标注 | SHOT-001 ~ SHOT-012 | `AnnotationTests` 覆盖标注模型/样式/撤销重做，以及多屏裁剪和区域工具栏定位几何；Xcode build 覆盖截图 target 集成 | 必须手动验证区域/全屏/窗口截图、副屏真实内容、选区锁定、复制/保存 PNG、ESC | 真实截图依赖屏幕录制权限和多显示器环境 |
 | 内置命令 | CMD-001 ~ CMD-010 | `SystemCommandSourceTests` 覆盖 15 个白名单（含打开剪贴板历史）、确认门禁、危险命令拒绝、双语/拼音和使用统计 | 必须手动验证打开目录/系统设置/截图命令；重启 Finder/Dock 仅安全环境确认 | 自动化不得真实执行中风险系统操作 |
 | 设置、黑名单、关于与发布信息 | SET-001 ~ SET-005、ABOUT-001 ~ ABOUT-003、PRIV-001 | `SettingsServiceTests`、`SettingsSourceTests`、`SearchBlacklistRepositoryTests`、`ReleaseInfoServiceTests` | 必须手动验证真实关于页、隐私政策链接、邮件客户端、检查更新 URL | US-020 官网素材与链接最终准备不属于 US-021 |
-| 本地化 | L10N-001 ~ L10N-004 | `SettingsSourceTests`、`SettingsServiceTests`、`SystemCommandSourceTests` 覆盖语言设置 raw value 和双语搜索 | 必须手动验证中文/英文 UI 文案完整 | 自动化覆盖设置/搜索，完整文案需人工走查 |
+| 本地化 | L10N-001 ~ L10N-009 | `SettingsServiceTests`（六种语言的 raw value、自身写法语言名、`AppleLanguages` 覆盖值与 `.lproj` 目录名一致）、`SettingsSourceTests`（切语言触发一次重启，且注入空实现使测试不重启宿主）、`SystemCommandSourceTests`（双语/拼音搜索不随界面语言变化） | 必须手动验证五种语言 UI 文案完整、繁體中文无简体残留与术语正确（L10N-006/007） | 自动化覆盖设置/搜索与重启触发，完整文案需人工走查；未收录语言回落英文由 L10N-008 人工确认 |
 | 性能 | 冷启动、搜索响应、CPU、内存、剪贴板响应 | SearchService elapsed 和索引单测可作为回归信号 | 必须用 Activity Monitor/Instruments 和人工计时验收 | US-021 建立验收方式；US-022 执行完整性能记录 |
 
 ---
@@ -470,7 +477,7 @@ MVP 暂不覆盖：
 | TC-U-001 | 协议扩展未破坏既有 conformer | AC-8 | unit | P0 |
 | TC-U-002 | 进入 .screenRecording 调 request 恰一次 | AC-8 | unit | P0 |
 | TC-U-003 | openPermissionSettings 先 request 后 openSettings | AC-8 | unit | P0 |
-| TC-U-004 | skipOnboarding 写 flag、显式 clipboard=false、回调 onComplete | AC-5/6 | unit | P0 |
+| TC-U-004 | skipOnboarding 写 flag、**不关闭剪贴板**、回调 onComplete | AC-5/6 | unit | P0 |
 | TC-U-005 | skipOnboarding 遍历 7 步参数化均可跳 | AC-4/5 | unit | P0 |
 | TC-U-006 | 跳过时 hotkey 持久化策略 | P-2.3 | unit | P1 |
 | TC-U-007 | MockPermissionService spy 计数/返回值可配 | AC-8（基础设施） | unit | P0 |
@@ -478,7 +485,8 @@ MVP 暂不覆盖：
 - **TC-U-001**：`PermissionServiceProtocol` 新增 `requestScreenRecordingPrompt() -> Bool` 后，全部 conformer（真实 `PermissionService`、`MockPermissionService`、`StaticPermissionService`）均实现且可调用。判定：Mock 返回可配置 `true`、Static 返回固定 `true`、测试目标编译通过且不弹任何系统对话框。
 - **TC-U-002**：`continueToNextStep()` 从 `.clipboardPrivacy` 进入 `.screenRecording` 时调用 `requestScreenRecordingPrompt()` 恰好一次。判定：`requestScreenRecordingCallCount == 1` 且 `step == .screenRecording`。
 - **TC-U-003**：`openPermissionSettings(.screenRecording)` 在调 `openSystemSettings` 前先调 `requestScreenRecordingPrompt`。判定：`callLog == ["request", "openSettings"]` 且 `opened == [.screenRecording]`；`openPermissionSettings(.accessibility)` 不应调 request（`requestScreenRecordingCallCount == 0`）。
-- **TC-U-004**：`skipOnboarding()` 写 `onboardingCompleted=true`、**显式**写 `clipboardEnabled=false`（`clipboard.enabled` 代码默认为 `"true"`，见 `PersistenceController.swift:307`，因此必须显式写 false 而非留空）、触发 `onComplete` 一次。判定：`XCTAssertTrue(onboardingCompleted)`、`XCTAssertFalse(clipboardEnabled)`、`XCTAssertTrue(didComplete)`。
+- **TC-U-004**（2026-10-16 改判定）：`skipOnboarding()` 只写热键与 `onboardingCompleted=true`、触发 `onComplete` 一次，**不得改动剪贴板开关**。判定：`XCTAssertTrue(onboardingCompleted)`、`XCTAssertTrue(clipboardEnabled)`、`XCTAssertTrue(didComplete)`。
+  - **背景（原判定是缺陷）**：旧实现显式写 `clipboardEnabled=false`，理由是「`clipboard.enabled` 代码默认 `"true"`，所以必须显式写 false」。但剪贴板历史**本就是产品默认开启的能力**（`AssistantSettingDefaults["clipboard.enabled"] == "true"`，插件 `defaultEnabled: true`，见 `PersistenceController.swift:307`），「跳过设置」的语义是**不改设置**，反过来把默认开启的能力关掉，等于让「跳过」比「走完向导」得到一个更残缺的 App。
 - **TC-U-005**：在 `OnboardingStep.allCases`（7 步）任意一步调 `skipOnboarding()` 均成功且行为一致。判定：每步 `onboardingCompleted == true` 且 `didComplete == true`，`allCases.count == 7`。
 - **TC-U-006**：跳过时若 hotkey 已录入有效值则持久化其值，否则用默认 `option+space`，禁止写空串/非法值。判定：`searchHotkey == "option+space"`（或实现选择的默认键）。
 - **TC-U-007**：`MockPermissionService.requestScreenRecordingPrompt()` 支持 spy 计数（`requestScreenRecordingCallCount`）与返回值可配（`requestScreenRecordingResult`）+ `callLog`。判定：返回值随配置变化、计数累加。
@@ -499,7 +507,7 @@ MVP 暂不覆盖：
 - **TC-M-003**：系统设置勾选授权后切回 app 点 Recheck，Continue 由禁用变可用、进入 accessibility 步骤（无 activation 自动检测、需手动 Recheck 是可接受降级）。
 - **TC-M-004**：welcome/searchHotkey/clipboardPrivacy/screenRecording/accessibility/launchAtLogin/done 7 步 footer 左下角均可见 Skip Setup 按钮。
 - **TC-M-005**：点 Skip Setup 弹含标题+内容+Skip/Cancel 两按钮的确认 Alert；点 Cancel 停留原步骤、无 settings 变化。
-- **TC-M-006**：Alert 中点 Skip 后 onboarding 窗口关闭、状态栏图标出现、可打开搜索面板（跳过后 clipboardEnabled=false，剪贴板监听 pause 不 crash、不影响其它快捷键）。
+- **TC-M-006**：Alert 中点 Skip 后 onboarding 窗口关闭、状态栏图标出现、可打开搜索面板（2026-10-16 起跳过后剪贴板保持默认开启，见 TC-U-004 判定修订）。
 
 - **待验证（v1.1.1+）**：TC-M-007 重启不重弹 / TC-M-008 hotkey 按需申请 Alert / TC-M-009 设置面板权限入口。代码层对称补齐（AppDelegate.ensureScreenRecordingPermission 补 request、`onboardingCompleted=true` 持久化由 TC-U-004 单测覆盖），端到端待下一迭代补验。详见 `iterations/v1.1.0/test/report.md`。
 
@@ -839,8 +847,8 @@ MVP 暂不覆盖：
 
 #### ONB-V2-006：跳过设置入口 + 二次确认
 - **关联**：FR-ONBOARD-18、P-06 ｜ **优先级**：P0 ｜ **类型**：swift + 手工 ｜ **文件**：`OnboardingViewModelTests.swift`
-- **步骤**：点左下「跳过设置」，断言弹确认 Alert，Cancel 不改变、Skip 进主界面并显式写 clipboardEnabled=false（承接 v1.1 TC-U-004）。
-- **预期结果**：跳过带二次确认，行为与 v1.1 一致。
+- **步骤**：点左下「跳过设置」，断言弹确认 Alert，Cancel 不改变、Skip 进主界面。
+- **预期结果**：跳过带二次确认；跳过只持久化热键与完成标记，**剪贴板历史保持默认开启**（2026-10-16 起；此前会显式写 clipboardEnabled=false，见 TC-U-004 判定修订）。
 
 #### ONB-V2-007：隐私政策链接
 - **关联**：FR-UI-20、P-06 ｜ **优先级**：P1 ｜ **类型**：手工 ｜ **文件**：手工

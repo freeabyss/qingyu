@@ -56,11 +56,6 @@ struct ManagementCenterView: View {
         } message: {
             Text(viewModel.errorMessage ?? "")
         }
-        .alert(L10n.localized("management.language.restart.title"), isPresented: $viewModel.showLanguageRestartAlert) {
-            Button(L10n.localized("settings.alert.ok"), role: .cancel) {}
-        } message: {
-            Text(L10n.localized("management.language.restart.message"))
-        }
         .alert(L10n.localized("management.data.restart.title"), isPresented: $viewModel.showResetAllDataRestartAlert) {
             Button(L10n.localized("management.data.restart.quit")) { NSApp.terminate(nil) }
         } message: {

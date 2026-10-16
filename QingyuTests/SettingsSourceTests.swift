@@ -67,7 +67,7 @@ final class SettingsSourceTests: XCTestCase {
     }
 
     @MainActor
-    func testManagementCenterLanguageSelectionWritesAppleLanguagesAndShowsRestartPrompt() async throws {
+    func testManagementCenterLanguageSelectionWritesAppleLanguagesAndRelaunches() async throws {
         let suiteName = "AssistantUS019LanguageTests-\(UUID().uuidString)"
         guard let userDefaults = UserDefaults(suiteName: suiteName) else {
             XCTFail("Expected suite-scoped UserDefaults")
@@ -76,31 +76,51 @@ final class SettingsSourceTests: XCTestCase {
         defer { UserDefaults.standard.removePersistentDomain(forName: suiteName) }
 
         let settings = InMemoryManagementSettingsService()
+        var relaunchCount = 0
         let viewModel = SettingsViewModel(
             settingsService: settings,
             blacklistRepository: EmptyBlacklistRepository(),
             permissionService: StaticPermissionService(),
             launchAtLoginService: NoopLaunchAtLoginService(),
             notificationCenter: NotificationCenter(),
-            userDefaults: userDefaults
+            userDefaults: userDefaults,
+            relaunch: { relaunchCount += 1 }
         )
+
+        // 未改语言时保存（例如只动了剪贴板开关）不得重启应用。
+        await viewModel.saveSettings()
+        XCTAssertNil(userDefaults.persistentDomain(forName: suiteName)?["AppleLanguages"])
+        XCTAssertEqual(relaunchCount, 0)
 
         viewModel.languageMode = .simplifiedChinese
         await viewModel.saveSettings()
         XCTAssertEqual(userDefaults.array(forKey: "AppleLanguages") as? [String], ["zh-Hans"])
-        XCTAssertTrue(viewModel.showLanguageRestartAlert)
+        XCTAssertEqual(relaunchCount, 1)
 
-        viewModel.showLanguageRestartAlert = false
+        viewModel.languageMode = .traditionalChinese
+        await viewModel.saveSettings()
+        XCTAssertEqual(userDefaults.array(forKey: "AppleLanguages") as? [String], ["zh-Hant"])
+        XCTAssertEqual(relaunchCount, 2)
+
+        viewModel.languageMode = .japanese
+        await viewModel.saveSettings()
+        XCTAssertEqual(userDefaults.array(forKey: "AppleLanguages") as? [String], ["ja"])
+        XCTAssertEqual(relaunchCount, 3)
+
+        viewModel.languageMode = .french
+        await viewModel.saveSettings()
+        XCTAssertEqual(userDefaults.array(forKey: "AppleLanguages") as? [String], ["fr"])
+        XCTAssertEqual(relaunchCount, 4)
+
         viewModel.languageMode = .english
         await viewModel.saveSettings()
         XCTAssertEqual(userDefaults.array(forKey: "AppleLanguages") as? [String], ["en"])
-        XCTAssertTrue(viewModel.showLanguageRestartAlert)
+        XCTAssertEqual(relaunchCount, 5)
 
-        viewModel.showLanguageRestartAlert = false
         viewModel.languageMode = .followSystem
         await viewModel.saveSettings()
         XCTAssertNil(userDefaults.persistentDomain(forName: suiteName)?["AppleLanguages"])
-        XCTAssertTrue(viewModel.showLanguageRestartAlert)
+        XCTAssertEqual(relaunchCount, 6)
     }
 
     func testSettingsSourceCanBeHiddenByPersistentSearchSourceSwitch() async throws {

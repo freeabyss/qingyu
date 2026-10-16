@@ -142,7 +142,7 @@ final class OnboardingViewModelTests: XCTestCase {
         XCTAssertFalse(clipboardEnabled)
     }
 
-    // ONB-V2-006 / TC-U-004: skipOnboarding 写完成标记、显式 clipboardEnabled=false、回调 onComplete。
+    // ONB-V2-006 / TC-U-004: skipOnboarding 写完成标记、保留剪贴板默认开启、回调 onComplete。
     func test_skipOnboarding_writesFlagsAndInvokesCompletion() async throws {
         let defaultClipboard = try await settings.value(for: .clipboardEnabled, as: Bool.self)
         XCTAssertTrue(defaultClipboard)
@@ -156,7 +156,7 @@ final class OnboardingViewModelTests: XCTestCase {
 
         XCTAssertFalse(completedAt.isEmpty)
         XCTAssertTrue(legacy)
-        XCTAssertFalse(clipboardEnabled)
+        XCTAssertTrue(clipboardEnabled, "跳过设置不得关闭默认开启的剪贴板历史")
         XCTAssertTrue(didComplete)
     }
 

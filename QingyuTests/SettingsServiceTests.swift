@@ -53,7 +53,14 @@ final class SettingsServiceTests: XCTestCase {
     }
 
     func testLanguageOptionsAndDefaultFollowSystem() async throws {
-        XCTAssertEqual(LanguageMode.allCases, [.followSystem, .simplifiedChinese, .english])
+        XCTAssertEqual(LanguageMode.allCases, [
+            .followSystem,
+            .simplifiedChinese,
+            .traditionalChinese,
+            .english,
+            .japanese,
+            .french
+        ])
 
         let defaultLanguage = try await service.value(for: .languageMode, as: LanguageMode.self)
         XCTAssertEqual(defaultLanguage, .followSystem)
@@ -65,6 +72,23 @@ final class SettingsServiceTests: XCTestCase {
         try await service.set(LanguageMode.english, for: .languageMode)
         let rawLanguage = try await service.stringValue(for: .languageMode)
         XCTAssertEqual(rawLanguage, "en")
+    }
+
+    /// 语言名一律用该语言自身的写法，不随界面语言翻译；
+    /// `AppleLanguages` 覆盖值必须与 `LanguageMode.rawValue` 一致（即 `.lproj` 目录名）。
+    func testLanguageDisplayNamesAreEndonymsAndOverridesMatchLocaleIdentifiers() {
+        XCTAssertEqual(LanguageMode.simplifiedChinese.displayName, "简体中文")
+        XCTAssertEqual(LanguageMode.traditionalChinese.displayName, "繁體中文")
+        XCTAssertEqual(LanguageMode.english.displayName, "English")
+        XCTAssertEqual(LanguageMode.japanese.displayName, "日本語")
+        XCTAssertEqual(LanguageMode.french.displayName, "Français")
+
+        XCTAssertNil(LanguageMode.followSystem.appleLanguagesOverride)
+        XCTAssertEqual(LanguageMode.simplifiedChinese.appleLanguagesOverride, ["zh-Hans"])
+        XCTAssertEqual(LanguageMode.traditionalChinese.appleLanguagesOverride, ["zh-Hant"])
+        XCTAssertEqual(LanguageMode.english.appleLanguagesOverride, ["en"])
+        XCTAssertEqual(LanguageMode.japanese.appleLanguagesOverride, ["ja"])
+        XCTAssertEqual(LanguageMode.french.appleLanguagesOverride, ["fr"])
     }
 
     /// 主题功能已整体移除：设置项里不再存在主题键。
@@ -144,5 +168,17 @@ final class SettingsServiceTests: XCTestCase {
         try await service.set(LanguageMode.english, for: .languageMode)
         let englishRaw = try await service.stringValue(for: .languageMode)
         XCTAssertEqual(englishRaw, "en")
+
+        try await service.set(LanguageMode.traditionalChinese, for: .languageMode)
+        let traditionalChineseRaw = try await service.stringValue(for: .languageMode)
+        XCTAssertEqual(traditionalChineseRaw, "zh-Hant")
+
+        try await service.set(LanguageMode.japanese, for: .languageMode)
+        let japaneseRaw = try await service.stringValue(for: .languageMode)
+        XCTAssertEqual(japaneseRaw, "ja")
+
+        try await service.set(LanguageMode.french, for: .languageMode)
+        let frenchRaw = try await service.stringValue(for: .languageMode)
+        XCTAssertEqual(frenchRaw, "fr")
     }
 }

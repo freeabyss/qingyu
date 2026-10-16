@@ -6,9 +6,9 @@ final class ReleaseInfoServiceTests: XCTestCase {
         let info = BundleAboutInfoProvider(bundle: .main).info
 
         XCTAssertEqual(info.homepageURL.absoluteString, "https://github.com/freeabyss/qingyu")
-        XCTAssertEqual(info.privacyPolicyURL.absoluteString, "https://github.com/freeabyss/qingyu/blob/main/PRIVACY.md")
+        XCTAssertEqual(info.privacyPolicyURL.absoluteString, "https://github.com/freeabyss/qingyu/blob/main/docs/guides/privacy.md")
         XCTAssertEqual(info.releasesURL.absoluteString, "https://github.com/freeabyss/qingyu/releases")
-        XCTAssertEqual(info.thirdPartyLicensesURL.absoluteString, "https://github.com/freeabyss/qingyu/blob/main/THIRD_PARTY_NOTICES.md")
+        XCTAssertEqual(info.thirdPartyLicensesURL.absoluteString, "https://github.com/freeabyss/qingyu/blob/main/docs/guides/third-party-notices.md")
         XCTAssertEqual(info.feedbackEmail, "qingyu_freeabyss@163.com")
     }
 
@@ -17,9 +17,9 @@ final class ReleaseInfoServiceTests: XCTestCase {
             .deletingLastPathComponent()
             .deletingLastPathComponent()
         let readme = try String(contentsOf: root.appendingPathComponent("README.md"), encoding: .utf8)
-        let privacy = try String(contentsOf: root.appendingPathComponent("PRIVACY.md"), encoding: .utf8)
-        let changelog = try String(contentsOf: root.appendingPathComponent("CHANGELOG.md"), encoding: .utf8)
-        let notices = try String(contentsOf: root.appendingPathComponent("THIRD_PARTY_NOTICES.md"), encoding: .utf8)
+        let privacy = try String(contentsOf: root.appendingPathComponent("docs/guides/privacy.md"), encoding: .utf8)
+        let changelog = try String(contentsOf: root.appendingPathComponent("docs/guides/changelog.md"), encoding: .utf8)
+        let notices = try String(contentsOf: root.appendingPathComponent("docs/guides/third-party-notices.md"), encoding: .utf8)
 
         // 锚点对齐当前 README 结构（US-020 产品页材料 + MVP 范围守卫）。
         // FAQ/常见问题已于产品说明中移除，不再作为必备章节。
@@ -31,7 +31,7 @@ final class ReleaseInfoServiceTests: XCTestCase {
             "Get the latest release",
             "https://github.com/freeabyss/qingyu/releases",
             "## Privacy",
-            "PRIVACY.md",
+            "privacy.md",
             "### Permissions",
             "Accessibility",
             "## Version History",
@@ -65,12 +65,14 @@ final class ReleaseInfoServiceTests: XCTestCase {
 
         let absolute = url.absoluteString.removingPercentEncoding ?? url.absoluteString
         XCTAssertTrue(absolute.hasPrefix("mailto:support@example.com?"))
-        XCTAssertTrue(absolute.contains("清羽 Qingyu 反馈"))
-        XCTAssertTrue(absolute.contains("App version: 0.1.0 (7)"))
-        XCTAssertTrue(absolute.contains("macOS version: Version 15.0"))
-        XCTAssertTrue(absolute.contains("Error summary: Screenshot failed"))
+        XCTAssertTrue(absolute.contains(L10n.localized("feedback.email.subject")))
+        // 正文标签随界面语言变化，这里只钉住与语言无关的数据部分。
+        XCTAssertTrue(absolute.contains("0.1.0 (7)"))
+        XCTAssertTrue(absolute.contains("Version 15.0"))
+        XCTAssertTrue(absolute.contains("Screenshot failed"))
         XCTAssertTrue(absolute.contains("It happened after pressing the shortcut."))
-        XCTAssertTrue(absolute.contains("does not attach clipboard history, screenshots, files, or automatic crash logs"))
+        XCTAssertTrue(absolute.contains(L10n.localized("feedback.email.diagnostics")))
+        XCTAssertTrue(absolute.contains(L10n.localized("feedback.email.privacyNote")))
     }
 
     func testUpdateCheckServiceOpensReleasesURLOnly() {

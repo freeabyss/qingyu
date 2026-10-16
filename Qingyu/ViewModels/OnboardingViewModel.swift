@@ -128,13 +128,13 @@ final class OnboardingViewModel: ObservableObject {
 
     /// 「跳过设置」：不校验权限，写完成标记后进入主界面（承接 v1.1 行为）。
     ///
-    /// 与 `start()` 差异：跳过时显式写 `clipboardEnabled = false`（PRD P-2.3，
-    /// 保留用户选择权 / 延后启用），且不改动开机启动。
+    /// 与 `start()` 差异：跳过时只持久化热键，不写 `clipboardEnabled`、不改动开机启动。
+    /// 剪贴板历史是产品默认开启的能力（`AssistantSettingDefaults` 为 `"true"`），
+    /// 跳过向导只表示「不改设置」，绝不能反过来把默认开启的能力关掉。
     func skipOnboarding() async {
         completionErrorMessage = nil
         do {
             try await settingsService.set(hotkeyService.persistCurrentShortcutString(), for: .searchHotkey)
-            try await settingsService.set(false, for: .clipboardEnabled)
             try await markCompleted()
             onComplete()
         } catch {

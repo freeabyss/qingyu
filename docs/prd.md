@@ -548,12 +548,12 @@ PRD 记录完整愿景，但开发按版本分期。长期功能包括：
 - FR-UI-27：MVP 不要求提供 GitHub Issue 反馈入口和内置反馈后端。
 - FR-UI-28：MVP 必须支持中文和英文两种界面语言。
 - FR-UI-29：默认语言必须跟随系统语言。
-- FR-UI-30：核心 UI、Onboarding、权限说明、隐私说明、错误提示和关于页必须完成中英文文案，且品牌名统一为清羽 / Qingyu。
+- FR-UI-30：核心 UI、Onboarding、权限说明、隐私说明、错误提示和关于页必须完成**五种语言**文案（简体中文 / 繁體中文 / English / 日本語 / Français），且品牌名统一为清羽 Qingyu（`zh-Hant` 不得写成裸 `Qingyu`）。
 - FR-UI-30a：App 图标采用简洁抽象效率工具风格，不绑定单一功能。
 - FR-UI-30b：菜单栏图标必须使用单色 template 风格，适配深色/浅色模式。
-- FR-UI-31：设置页必须提供语言切换：跟随系统、简体中文、English。
+- **FR-UI-31 🔧（2026-10-16 改）**：设置页必须提供语言切换：跟随系统、简体中文、繁體中文、English、日本語、Français。语言列表一律用**该语言自身的写法**展示（`简体中文` / `繁體中文` / `English` / `日本語` / `Français`），不随界面语言翻译；「跟随系统」一项随界面语言翻译。
 - FR-UI-32：语言默认选项必须为"跟随系统"。
-- FR-UI-33：如果运行时切换语言实现复杂，MVP 可以提示用户重启后生效。
+- **FR-UI-33 🔧（2026-10-16 改）**：切换语言后 App **自动重启**并立即以新语言呈现（写 `AppleLanguages` 后以 `createsNewApplicationInstance` 重启自身），不得只弹「需要重启才能生效」的提示让用户自行处理。重启前后用户设置不得丢失；若所选语言即当前语言，不触发重启。
 - FR-UI-34：MVP 最低支持系统版本必须为 macOS 12 Monterey；发行包必须为通用二进制，同时支持 Apple 芯片与 Intel 芯片。
 - FR-UI-35：如果某些功能在 macOS 12 上 API 受限（例如 macOS 13 起可用的 `SMAppService`），必须提供兼容分支或明确降级提示。
 - **FR-UI-36 🔧（v1.2 修）**：版本号必须三源一致——Xcode `MARKETING_VERSION=1.2.0`、`Info.plist` `CFBundleShortVersionString=1.2.0`、`CHANGELOG.md` 补全 v1.0.0 / v1.0.1 / v1.1.0 / v1.2.0 条目。任何一处不一致视为发布阻塞（见 D-108）。

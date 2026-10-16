@@ -108,16 +108,36 @@ enum ClipboardRetention: String, Codable, CaseIterable, Hashable, Sendable {
     }
 }
 
+/// 界面语言偏好。`rawValue` 必须与 `Bundle` 的 `.lproj` 目录名、以及
+/// `AppleLanguages` 覆盖值完全一致，否则改完语言重启会回落成开发语言。
 enum LanguageMode: String, Codable, CaseIterable, Hashable, Sendable {
     case followSystem = "system"
     case simplifiedChinese = "zh-Hans"
+    case traditionalChinese = "zh-Hant"
     case english = "en"
+    case japanese = "ja"
+    case french = "fr"
 
+    /// 语言名称一律用**该语言本身的写法**（endonym）呈现，不随当前界面语言翻译：
+    /// 简体中文永远显示「简体中文」、英语永远显示 `English`。
+    /// 这样无论用户当前看懂哪种语言，都能在列表里认出自己想要的选项；
+    /// 「跟随系统」不是语言名，仍需本地化。
     var displayName: String {
         switch self {
-        case .followSystem: return "跟随系统"
+        case .followSystem: return L10n.localized("management.language.system")
         case .simplifiedChinese: return "简体中文"
+        case .traditionalChinese: return "繁體中文"
         case .english: return "English"
+        case .japanese: return "日本語"
+        case .french: return "Français"
+        }
+    }
+
+    /// 写入 `AppleLanguages` 的值；`nil` 表示「跟随系统」——删除覆盖而非写死系统语言。
+    var appleLanguagesOverride: [String]? {
+        switch self {
+        case .followSystem: return nil
+        default: return [rawValue]
         }
     }
 }

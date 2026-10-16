@@ -10,7 +10,7 @@
 ![平台](https://img.shields.io/badge/platform-macOS%2012%2B-blue)
 ![版本](https://img.shields.io/github/v/release/freeabyss/qingyu?label=version)
 ![许可](https://img.shields.io/badge/license-个人免费%C2%B7禁止商用-orange)
-![语言](https://img.shields.io/badge/UI-简体中文%20%7C%20English-green)
+![语言](https://img.shields.io/badge/UI-%E7%AE%80%E4%BD%93%20%7C%20%E7%B9%81%E9%AB%94%20%7C%20EN%20%7C%20JA%20%7C%20FR-green)
 
 ---
 
@@ -81,7 +81,7 @@
 - 外观：跟随系统 / 浅色 / 深色
 - 菜单栏：打开搜索、剪贴板历史、设置、退出（关于在设置内）
 
-界面语言：跟随系统 / 简体中文 / English。
+界面语言：跟随系统 / 简体中文 / 繁體中文 / English / 日本語 / Français（切换后应用自动重启，立即生效）。
 
 ## 隐私
 
@@ -94,7 +94,7 @@
 - 反馈仅由你主动发邮件触发；应用生成的邮件包含版本号、构建号、macOS 版本
   和你的备注，**不附带**剪贴板历史、截图、文件或崩溃日志
 
-完整内容见 [隐私政策](PRIVACY.md)。
+完整内容见 [隐私政策](docs/guides/privacy.md)。
 
 ### 权限
 
@@ -155,14 +155,14 @@
 如需商业授权，请联系 <qingyu_freeabyss@163.com>。
 
 本软件包含第三方开源组件，各组件遵循其自身许可证，
-详见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+详见 [docs/guides/third-party-notices.md](docs/guides/third-party-notices.md)。
 
 ## 版本历史
 
-见 [CHANGELOG.md](CHANGELOG.md) 与 [GitHub Releases](https://github.com/freeabyss/qingyu/releases)。
+见 [docs/guides/changelog.md](docs/guides/changelog.md) 与 [GitHub Releases](https://github.com/freeabyss/qingyu/releases)。
 
 > **维护者：** 发版流程（版本递增、测试门禁、通用 `.dmg`、GitHub Release）见
-> [BUILD_README.md](BUILD_README.md) 与 `.opencode/skills/release/` 下的 `release` skill；
+> [docs/guides/build.md](docs/guides/build.md) 与 `.opencode/skills/release/` 下的 `release` skill；
 > 当前构建为 **ad-hoc 免签名、未公证**，首次打开需手动放行。
 
 ## 反馈

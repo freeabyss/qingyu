@@ -77,9 +77,9 @@ enum ReleaseLinks {
     }
 
     static let homepageURL = url("https://github.com/freeabyss/qingyu")
-    static let privacyPolicyURL = url("https://github.com/freeabyss/qingyu/blob/main/PRIVACY.md")
+    static let privacyPolicyURL = url("https://github.com/freeabyss/qingyu/blob/main/docs/guides/privacy.md")
     static let releasesURL = url("https://github.com/freeabyss/qingyu/releases")
-    static let thirdPartyLicensesURL = url("https://github.com/freeabyss/qingyu/blob/main/THIRD_PARTY_NOTICES.md")
+    static let thirdPartyLicensesURL = url("https://github.com/freeabyss/qingyu/blob/main/docs/guides/third-party-notices.md")
     static let feedbackEmail = "qingyu_freeabyss@163.com"
 }
 
@@ -95,7 +95,7 @@ struct FeedbackEmailService: FeedbackServiceProtocol {
         components.scheme = "mailto"
         components.path = recipient
         components.queryItems = [
-            URLQueryItem(name: "subject", value: "清羽 Qingyu 反馈"),
+            URLQueryItem(name: "subject", value: L10n.localized("feedback.email.subject")),
             URLQueryItem(name: "body", value: emailBody(context: context))
         ]
 
@@ -107,21 +107,22 @@ struct FeedbackEmailService: FeedbackServiceProtocol {
 
     private func emailBody(context: FeedbackContext) -> String {
         let trimmedSummary = context.errorSummary?.trimmingCharacters(in: .whitespacesAndNewlines)
-        let summary = (trimmedSummary?.isEmpty == false ? trimmedSummary : nil) ?? "No error summary provided"
+        let summary = (trimmedSummary?.isEmpty == false ? trimmedSummary : nil)
+            ?? L10n.localized("feedback.email.noSummary")
         let description = context.userDescription.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            ? "Please describe what happened here."
+            ? L10n.localized("feedback.email.placeholder")
             : context.userDescription
 
         return """
-        Please describe the issue or suggestion:
+        \(L10n.localized("feedback.email.intro"))
         \(description)
 
-        Diagnostic information included by your action:
-        - App version: \(context.appVersion) (\(context.buildNumber))
-        - macOS version: \(context.macOSVersion)
-        - Error summary: \(summary)
+        \(L10n.localized("feedback.email.diagnostics"))
+        \(L10n.localized("feedback.email.line.appVersion", "\(context.appVersion) (\(context.buildNumber))"))
+        \(L10n.localized("feedback.email.line.macOSVersion", context.macOSVersion))
+        \(L10n.localized("feedback.email.line.errorSummary", summary))
 
-        Privacy note: this email is sent only after you confirm it in your mail app. 清羽 Qingyu does not attach clipboard history, screenshots, files, or automatic crash logs.
+        \(L10n.localized("feedback.email.privacyNote"))
         """
     }
 }

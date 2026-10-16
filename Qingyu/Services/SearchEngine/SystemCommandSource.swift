@@ -42,8 +42,12 @@ protocol CommandConfirmationProviding {
 
 struct AssistantCommandDefinition: Identifiable, Hashable {
     let id: CommandID
+    /// 中文名。**只用于搜索匹配与拼音**，不再直接当显示名——界面语言可能是
+    /// 日文或法文，直接把中文写进结果行会让界面语言失去意义。
     let chineseName: String
     let englishName: String
+    /// 显示名本地化 key（`command.<id>.name`）。
+    let nameKey: String
     let chineseAliases: [String]
     let englishAliases: [String]
     let pinyin: String
@@ -51,9 +55,14 @@ struct AssistantCommandDefinition: Identifiable, Hashable {
     let iconSystemName: String
     let requiresConfirmation: Bool
 
-    var title: String { chineseName }
-    var subtitle: String { englishName }
-    var aliases: [String] { chineseAliases + englishAliases + [englishName] }
+    /// 显示名，随界面语言变化。
+    var title: String { L10n.localized(nameKey) }
+
+    /// 副标题用英文名做对照；界面语言是英文时标题已等于英文名，不再重复一行。
+    var subtitle: String? { title == englishName ? nil : englishName }
+
+    /// 匹配别名同时包含中英文，因此「用哪种语言输入都能搜到」与界面语言无关。
+    var aliases: [String] { chineseAliases + englishAliases + [chineseName, englishName] }
 
     func candidate() -> SearchTextCandidate {
         SearchTextCandidate(
@@ -262,6 +271,7 @@ enum AssistantCommandCatalog {
             id: id,
             chineseName: zh,
             englishName: en,
+            nameKey: "command.\(id.rawValue).name",
             chineseAliases: zhAliases,
             englishAliases: enAliases,
             pinyin: PinyinHelper.toPinyin(zh),
@@ -307,8 +317,8 @@ final class SystemCommandSource: CommandSourceProtocol {
             SearchResult(
                 id: SearchResultID(rawValue: "command:\(match.command.id.rawValue)"),
                 sourceID: .command,
-                title: match.command.chineseName,
-                subtitle: match.command.englishName,
+                title: match.command.title,
+                subtitle: match.command.subtitle,
                 icon: .systemSymbol(match.command.iconSystemName),
                 typeLabel: "Command",
                 baseScore: SourcePriority.command,

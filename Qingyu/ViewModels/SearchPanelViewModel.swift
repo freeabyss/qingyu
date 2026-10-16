@@ -485,7 +485,7 @@ final class SearchPanelCommandConfirmationProvider: CommandConfirmationProviding
     func confirm(command: AssistantCommandDefinition) async -> Bool {
         let alert = NSAlert()
         alert.alertStyle = .warning
-        alert.messageText = command.chineseName
+        alert.messageText = command.title
         alert.informativeText = L10n.localized("searchPanel.confirm.destructive")
         alert.addButton(withTitle: L10n.localized("settings.alert.ok"))
         alert.addButton(withTitle: L10n.localized("settings.alert.cancel"))

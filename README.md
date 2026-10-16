@@ -11,7 +11,7 @@ Mac. No account required — just download and run.
 ![Platform](https://img.shields.io/badge/platform-macOS%2012%2B-blue)
 ![Version](https://img.shields.io/github/v/release/freeabyss/qingyu?label=version)
 ![License](https://img.shields.io/badge/license-Free%20personal%C2%B7No%20commercial-orange)
-![Language](https://img.shields.io/badge/UI-Simplified%20Chinese%20%7C%20English-green)
+![Language](https://img.shields.io/badge/UI-EN%20%7C%20%E7%AE%80%E4%BD%93%20%7C%20%E7%B9%81%E9%AB%94%20%7C%20JA%20%7C%20FR-green)
 
 ---
 
@@ -90,7 +90,8 @@ and **About**.
 - Appearance: Follow System / Light / Dark
 - Menu bar: Open Search, Clipboard History, Settings, Quit (About lives in Settings)
 
-Interface language: **Follow System**, **Simplified Chinese**, **English**.
+Interface language: **Follow System**, **简体中文**, **繁體中文**, **English**, **日本語**, **Français**
+(changing it restarts the app so the new language applies immediately).
 
 ## Privacy
 
@@ -104,7 +105,7 @@ Qingyu is local-first and offline by default:
   version, build number, macOS version, and your notes — it **never attaches**
   clipboard history, screenshots, files, or crash logs
 
-Read the full [Privacy Policy](PRIVACY.md).
+Read the full [Privacy Policy](docs/guides/privacy.md).
 
 ### Permissions
 
@@ -168,15 +169,15 @@ See [LICENSE](LICENSE).
 For commercial licensing: <qingyu_freeabyss@163.com>
 
 This software includes third-party open-source components, each under its own
-license. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+license. See [docs/guides/third-party-notices.md](docs/guides/third-party-notices.md).
 
 ## Version History
 
-See [CHANGELOG.md](CHANGELOG.md) and
+See [docs/guides/changelog.md](docs/guides/changelog.md) and
 [GitHub Releases](https://github.com/freeabyss/qingyu/releases).
 
 > **Maintainers:** the release process (version bump, test gate, universal
-> `.dmg`, GitHub Release) is in [BUILD_README.md](BUILD_README.md) and the
+> `.dmg`, GitHub Release) is in [docs/guides/build.md](docs/guides/build.md) and the
 > `release` skill under `.opencode/skills/release/`. Current builds are
 > **ad-hoc signed and not notarized**.
 

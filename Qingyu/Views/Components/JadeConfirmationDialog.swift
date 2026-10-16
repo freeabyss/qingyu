@@ -21,14 +21,14 @@ extension View {
     ///   - title: 弹窗标题(本地化 key)。
     ///   - isPresented: 控制展示的绑定。
     ///   - confirmTitle: destructive 主按钮文案(本地化 key)。
-    ///   - cancelTitle: 取消按钮文案，默认「取消」。
+    ///   - cancelTitle: 取消按钮文案，默认取 `settings.alert.cancel`。
     ///   - message: 可选补充说明。
     ///   - onConfirm: 用户确认后的回调。
     public func jadeConfirmationDialog(
         _ title: LocalizedStringKey,
         isPresented: Binding<Bool>,
         confirmTitle: LocalizedStringKey,
-        cancelTitle: LocalizedStringKey = "取消",
+        cancelTitle: LocalizedStringKey = "settings.alert.cancel",
         message: LocalizedStringKey? = nil,
         onConfirm: @escaping () -> Void
     ) -> some View {

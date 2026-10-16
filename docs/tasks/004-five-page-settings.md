@@ -99,7 +99,7 @@ xcodebuild test -project Qingyu.xcodeproj -scheme Qingyu \
 
 ## 已知实现不一致（待后续修复）
 
-- `SettingsViewModel.applyLanguagePreference()` 当前修改系统语言偏好后显示“需要重启”提示；产品规则要求语言修改后立即切换界面，不应要求重启。
+- ~~`SettingsViewModel.applyLanguagePreference()` 当前修改系统语言偏好后显示“需要重启”提示；产品规则要求语言修改后立即切换界面，不应要求重启。~~ **已于 2026-10-16 处理**：`AppleLanguages` 只在进程启动时被 `Bundle` 读取，无法在进程内热切换，因此产品口径改为**切换语言后自动重启**（`AppRelauncher.relaunch()`，见 FR-UI-33）——用户不再需要自己动手重启，也不需要理解「重启才生效」。
 - `SettingsViewModel` 当前仍保留 `autoCheckUpdates` 偏好字段；当前版本不提供后台自动联网检查，因此该偏好不应出现在设置 UI 或触发后台任务，自动检查留待后续版本重新定义。
 - `SettingsView` 与 `SettingsViewModel` 当前仍提供“清空所有数据”及重置逻辑；产品规则要求通用页不提供破坏性数据清理，该入口及相关流程需后续移除或迁出本任务范围。
 - `SettingsViewModel.refreshStorageUsage()` 当前通过剪贴板仓储统计占用空间；产品规则要求统计清羽管理的全部本地数据，需后续扩展统计范围。

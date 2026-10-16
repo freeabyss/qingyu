@@ -86,7 +86,7 @@ struct QuickLaunchPluginSettingsPage: View {
 
     private var keywordSection: some View {
         Group {
-            Text("输入「关键词 + 空格 + 文字」后回车，打开对应网页并把文字带过去。取消勾选「启用」即停用该条目，关键词会保留。")
+            Text(L10n.localized("settings.quickLaunch.keyword.intro"))
                 .font(JadeFont.caption)
                 .foregroundStyle(JadeColor.textTertiary)
 
@@ -110,11 +110,11 @@ struct QuickLaunchPluginSettingsPage: View {
     /// 过滤与「仅显示已启用」由两张表共用，因此放在表格之上而不是卡片内部。
     private var keywordTableControls: some View {
         HStack(spacing: JadeSpace.x3.value) {
-            JadeTextField("搜索关键词或站点",
+            JadeTextField("settings.quickLaunch.keyword.filter.placeholder",
                           text: $keywordFilter,
                           icon: Image(systemName: "magnifyingglass"))
                 .accessibilityIdentifier("settings.quickLaunch.keywordFilter")
-            Toggle("仅显示已启用", isOn: $onlyEnabledKeywords)
+            Toggle(L10n.localized("settings.quickLaunch.keyword.filter.onlyEnabled"), isOn: $onlyEnabledKeywords)
                 .toggleStyle(.checkbox)
                 .font(JadeFont.caption)
                 .foregroundStyle(JadeColor.textSecondary)
@@ -128,7 +128,9 @@ struct QuickLaunchPluginSettingsPage: View {
             tableHeaderRow
             JadeSettingsDivider()
             if rows.isEmpty {
-                Text(keywordFilter.isEmpty && !onlyEnabledKeywords ? "该分组暂无条目" : "没有匹配的条目")
+                Text(L10n.localized(keywordFilter.isEmpty && !onlyEnabledKeywords
+                                    ? "settings.quickLaunch.keyword.empty.group"
+                                    : "settings.quickLaunch.keyword.empty.filtered"))
                     .font(JadeFont.callout)
                     .foregroundStyle(JadeColor.textTertiary)
                     .padding(.vertical, JadeSpace.x2.value)
@@ -144,13 +146,13 @@ struct QuickLaunchPluginSettingsPage: View {
     private var tableHeaderRow: some View {
         HStack(spacing: JadeSpace.x3.value) {
             Color.clear.frame(width: KeywordColumn.glyph)
-            Text("关键词")
+            Text(L10n.localized("settings.quickLaunch.keyword.column.keyword"))
                 .frame(width: KeywordColumn.keyword, alignment: .leading)
-            Text("显示文本")
+            Text(L10n.localized("settings.quickLaunch.keyword.column.preview"))
                 .frame(maxWidth: .infinity, alignment: .leading)
-            Text("自定义")
+            Text(L10n.localized("settings.quickLaunch.keyword.column.custom"))
                 .frame(width: KeywordColumn.custom, alignment: .center)
-            Text("启用")
+            Text(L10n.localized("settings.quickLaunch.keyword.column.enabled"))
                 .frame(width: KeywordColumn.enabled, alignment: .center)
         }
         .font(JadeFont.caption)
@@ -165,14 +167,14 @@ struct QuickLaunchPluginSettingsPage: View {
                 .foregroundStyle(JadeColor.textSecondary)
                 .frame(width: KeywordColumn.glyph)
 
-            TextField("关键词", text: draftBinding(for: entry))
+            TextField(L10n.localized("settings.quickLaunch.keyword.column.keyword"), text: draftBinding(for: entry))
                 .textFieldStyle(.roundedBorder)
                 .font(JadeFont.callout)
                 .frame(width: KeywordColumn.keyword)
                 .onSubmit { commitKeywords(for: entry) }
 
             // 结果标题的真实格式是 `前缀「文字」`，这里用 `{query}` 占位展示。
-            Text(entry.titlePrefix + "「{query}」")
+            Text(L10n.localized("search.keywordLaunch.result.title", entry.titlePrefix, "{query}"))
                 .font(JadeFont.callout)
                 .foregroundStyle(JadeColor.textSecondary)
                 .lineLimit(1)
@@ -189,7 +191,7 @@ struct QuickLaunchPluginSettingsPage: View {
                     }
                     .buttonStyle(.plain)
                     .foregroundStyle(JadeColor.textSecondary)
-                    .help("删除")
+                    .help(L10n.localized("settings.quickLaunch.keyword.delete.help"))
                 }
             }
             .frame(width: KeywordColumn.custom)
@@ -198,7 +200,7 @@ struct QuickLaunchPluginSettingsPage: View {
                 .toggleStyle(.checkbox)
                 .labelsHidden()
                 .frame(width: KeywordColumn.enabled)
-                .help("停用后该关键词不再出现在命令栏，关键词文本会保留。")
+                .help(L10n.localized("settings.quickLaunch.keyword.disabled.help"))
         }
         .padding(.vertical, JadeSpace.x1.value)
     }
@@ -209,7 +211,9 @@ struct QuickLaunchPluginSettingsPage: View {
     private var addCustomEntryFooter: some View {
         HStack {
             Spacer()
-            Button(showingAddEntryForm ? "收起" : "添加自定义搜索") {
+            Button(L10n.localized(showingAddEntryForm
+                                  ? "settings.quickLaunch.keyword.add.collapse"
+                                  : "settings.quickLaunch.keyword.add.expand")) {
                 showingAddEntryForm.toggle()
             }
             .buttonStyle(.jadeSecondary)
@@ -224,23 +228,23 @@ struct QuickLaunchPluginSettingsPage: View {
 
     private var customEntryForm: some View {
         HStack(spacing: JadeSpace.x2.value) {
-            TextField("关键词", text: $newKeyword)
+            TextField(L10n.localized("settings.quickLaunch.keyword.column.keyword"), text: $newKeyword)
                 .textFieldStyle(.roundedBorder)
                 .frame(width: 120)
-            TextField("名称", text: $newSiteName)
+            TextField(L10n.localized("settings.quickLaunch.keyword.form.name"), text: $newSiteName)
                 .textFieldStyle(.roundedBorder)
                 .frame(width: 120)
-            TextField("URL 模板（含 {query}）", text: $newURLTemplate)
+            TextField(L10n.localized("settings.quickLaunch.keyword.form.urlTemplate"), text: $newURLTemplate)
                 .textFieldStyle(.roundedBorder)
             Picker("", selection: $newCategory) {
                 ForEach(KeywordLaunchCatalog.categories, id: \.self) { Text($0).tag($0) }
             }
             .labelsHidden()
             .frame(width: 120)
-            Toggle("支持 URL 预填", isOn: $newPrefillsURL)
+            Toggle(L10n.localized("settings.quickLaunch.keyword.form.prefill"), isOn: $newPrefillsURL)
                 .toggleStyle(.checkbox)
                 .font(JadeFont.caption)
-            Button("添加") { addCustomEntry() }
+            Button(L10n.localized("settings.quickLaunch.keyword.form.add")) { addCustomEntry() }
                 .buttonStyle(.jadeSecondary)
                 .disabled(!canAddCustomEntry)
         }
@@ -324,7 +328,11 @@ struct QuickLaunchPluginSettingsPage: View {
                     customization: customization
                 )
                 guard !conflicts.isEmpty else { return nil }
-                return "「\(entry.name)」的 \(conflicts.joined(separator: "、")) 已被更靠前的条目占用，实际不会生效。"
+                return L10n.localized(
+                    "settings.quickLaunch.keyword.conflict",
+                    entry.name,
+                    conflicts.joined(separator: L10n.localized("settings.quickLaunch.keyword.conflict.separator"))
+                )
             }
     }
 
@@ -348,7 +356,9 @@ struct QuickLaunchPluginSettingsPage: View {
             keywords: Self.splitKeywords(newKeyword),
             name: name,
             site: URL(string: urlTemplate)?.host ?? name,
-            titlePrefix: isWeb ? "用 \(name) 搜索" : "向 \(name) 提问",
+            titlePrefix: isWeb
+                ? KeywordLaunchCatalog.searchTitlePrefix(for: name)
+                : KeywordLaunchCatalog.askTitlePrefix(for: name),
             urlTemplate: urlTemplate,
             typeLabel: isWeb ? "Web Search" : "AI Chat",
             iconSystemName: isWeb ? "globe" : "bubble.left.and.text.bubble.right",
