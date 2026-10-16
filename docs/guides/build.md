@@ -4,34 +4,53 @@
 
 ### 使用构建脚本（推荐）
 
-项目根目录下提供了 `build_and_run.sh` 脚本，用于编译和启动 Qingyu 应用。
+`scripts/` 目录下提供了一对脚本：
+
+- `scripts/install.sh`：安装前**先彻底卸载**旧版（调用 `uninstall.sh`），再编译 Debug 产物、安装到 `/Applications/Qingyu.app` 并启动。
+- `scripts/uninstall.sh`：**只做一件事——彻底卸载**。退出应用 → 重置系统权限授权（屏幕录制 / 辅助功能 / Apple 事件）→ 移除已安装的 App（移入废纸篓）→ 删除用户数据与偏好 → 清理构建产物。**不询问**，执行即删除。
 
 ```bash
 # 赋予脚本执行权限（首次使用）
-chmod +x build_and_run.sh
+chmod +x scripts/install.sh scripts/uninstall.sh
 
-# 清理、编译并启动应用（默认）
-./build_and_run.sh
+# 安装：完整卸载旧版 → 清理 → 编译 → 安装到 /Applications → 启动（默认）
+./scripts/install.sh
+
+# 保留已有安装与用户数据，只重装（跳过安装前卸载）
+./scripts/install.sh --no-uninstall
 
 # 仅编译
-./build_and_run.sh build
+./scripts/install.sh build
 
-# 仅启动（需要先编译）
-./build_and_run.sh run
+# 仅启动 Debug 产物（需要先编译，不安装到 /Applications）
+./scripts/install.sh run
 
 # 仅清理构建目录
-./build_and_run.sh clean
+./scripts/install.sh clean
 
 # 显示帮助信息
-./build_and_run.sh help
+./scripts/install.sh help
+
+# 彻底卸载（退出应用 → 重置系统权限授权 → 移除已安装 App → 删除用户数据 → 清理构建产物）
+./scripts/uninstall.sh
+./scripts/uninstall.sh --dry-run   # 预览将删除/重置的内容
+./scripts/uninstall.sh --deep      # 连 DerivedData 缓存/索引与 dist/ 安装包一起清
 ```
 
 ### 脚本功能说明
 
-- **clean**: 清理 `DerivedData/` 构建目录
+- **install**: 调用 `uninstall.sh` 彻底卸载旧版 → clean → build → 安装到 `/Applications` → 启动（默认命令）
 - **build**: 使用 `xcodebuild` 编译项目（Debug 配置）
-- **run**: 启动编译后的 `.app` 应用
-- **all**: 依次执行 clean → build → run（默认命令）
+- **run**: 启动编译后的 `.app` 应用（不安装）
+- **clean**: 清理 `DerivedData/` 构建产物
+- **release**: Release 编译 + Developer ID 签名 + 公证 + 装订
+- **package**: 调用 `scripts/package-release.sh` 生成通用二进制 DMG
+
+`uninstall.sh` **没有子命令**：执行即彻底卸载。可用选项只有 `--dry-run`（预览）、`--deep`（连构建缓存与 `dist/` 一起清）与 `--help`。
+
+> **卸载顺序里的一个硬约束**：重置系统权限授权必须在「移除已安装的 App」**之前**完成。`tccutil` 依赖 LaunchServices 解析 bundle id，App 一旦被移除就只能得到 `-10814`，表现为「重置了但系统设置里条目还在」。
+>
+> 另：「系统设置 → 通用 → 登录项」里的 Qingyu 由系统（`SMAppService`）托管，没有 plist 可删；需在应用内关闭「开机启动」或手动移除。
 
 ### 编译输出
 
@@ -39,6 +58,7 @@ chmod +x build_and_run.sh
 ```
 DerivedData/Build/Products/Debug/Qingyu.app
 ```
+`install.sh` 会把该产物复制到 `/Applications/Qingyu.app`。
 
 ## 手动构建
 
@@ -93,13 +113,13 @@ xcodebuild -project Qingyu.xcodeproj -scheme Qingyu clean
    rm -rf .build
    rm -rf .swiftpm
    # 重新编译
-   ./build_and_run.sh build
+   ./scripts/install.sh build
    ```
 
 3. **权限问题**：
    ```bash
    # 确保脚本有执行权限
-   chmod +x build_and_run.sh
+   chmod +x scripts/install.sh scripts/uninstall.sh
    ```
 
 ### 运行时问题
@@ -218,7 +238,7 @@ xcrun stapler validate dist/Qingyu-<版本>.dmg
 
 ### 修改编译配置
 
-编辑 `build_and_run.sh` 中的变量：
+编辑 `scripts/install.sh` 中的变量：
 
 ```bash
 # 修改编译配置（Debug/Release）
@@ -247,7 +267,7 @@ run_tests() {
 
 ## 相关文档
 
-- [项目架构](docs/architecture/design.md)
-- [需求文档](docs/prd.md)
-- [测试用例](docs/test/cases.md)
+- [项目架构](../architecture/design.md)
+- [需求文档](../prd.md)
+- [测试用例](../test/cases.md)
 </content>

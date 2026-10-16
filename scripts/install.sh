@@ -1,16 +1,46 @@
 #!/bin/bash
 
-# Qingyu 构建并启动脚本
-# 用法: ./start.sh [clean|build|run|all|release|help]
+# Qingyu 安装脚本
+#
+# 默认执行：完整卸载已有 Qingyu（含用户数据与偏好）→ 清理 → 编译 Debug 产物
+# → 安装到 /Applications/Qingyu.app → 启动。
+#
+# 用法: ./scripts/install.sh [命令] [选项]
+#
+# 命令:
+#   install  完整卸载已有版本（调用 uninstall.sh，不询问）→ 编译 → 安装到 /Applications 并启动（默认）
+#   build    仅编译 Debug 产物
+#   run      启动 Debug 产物（需要先编译，不安装）
+#   clean    清理构建产物（保留 SPM 缓存）
+#   release  Release 编译 + Developer ID 签名 + 公证 + 装订
+#   package  Release 签名 + 公证 + 生成通用二进制 DMG（scripts/package-release.sh）
+#   help     显示此帮助信息
+#
+# 选项:
+#   --no-uninstall   跳过安装前的卸载步骤（保留已有安装与用户数据）
+#   -h, --help       显示此帮助信息
+#
+# release/package 需要的环境变量:
+#   DEVELOPER_ID_APP   Developer ID Application 证书名（如
+#                      "Developer ID Application: Your Name (TEAMID)"）
+#   AC_NOTARY_PROFILE  notarytool 已保存的 keychain profile 名
+# 可选:
+#   RELEASE_APP_PATH   输出 .app 路径（默认 Release 产物）
 
 set -euo pipefail  # 遇到错误立即退出；管道中任一命令失败即失败
 
-PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 PROJECT_NAME="Qingyu"
 SCHEME_NAME="Qingyu"
 DERIVED_DATA_PATH="${PROJECT_DIR}/DerivedData"
 APP_PATH="${DERIVED_DATA_PATH}/Build/Products/Debug/Qingyu.app"
+INSTALL_PATH="/Applications/${PROJECT_NAME}.app"
+UNINSTALL_SCRIPT="${SCRIPT_DIR}/uninstall.sh"
 BUNDLE_IDENTIFIER="com.freeabyss.qingyu"
+
+# 选项
+SKIP_UNINSTALL=0
 
 # 颜色输出
 RED='\033[0;31m'
@@ -150,7 +180,25 @@ build_project() {
     return 0
 }
 
-# 启动应用
+# 安装前彻底卸载已有 Qingyu（调用 uninstall.sh）
+#
+# uninstall.sh 的唯一功能就是彻底卸载且不询问，这里因此不再重复确认；
+# 若需要保留已有安装与用户数据，使用 --no-uninstall。
+uninstall_existing() {
+    if [ ! -f "${UNINSTALL_SCRIPT}" ]; then
+        log_warn "未找到卸载脚本 ${UNINSTALL_SCRIPT}，跳过安装前卸载"
+        return 0
+    fi
+
+    log_info "安装前彻底卸载已有 ${PROJECT_NAME}..."
+    if ! bash "${UNINSTALL_SCRIPT}"; then
+        log_error "安装前卸载失败"
+        return 1
+    fi
+    log_success "安装前卸载完成"
+}
+
+# 启动 Debug 产物（不安装）
 run_app() {
     # 检查 .app 文件是否存在
     if [ ! -d "${APP_PATH}" ]; then
@@ -179,15 +227,51 @@ run_app() {
     fi
 }
 
+# 把编译产物安装到 /Applications（对正式安装与脚本安装同一目标位置）
+install_app() {
+    if [ ! -d "${APP_PATH}" ]; then
+        log_error "未找到编译后的应用: ${APP_PATH}"
+        log_info "请先运行编译: $0 build"
+        return 1
+    fi
+
+    local dest_dir
+    dest_dir="$(dirname "${INSTALL_PATH}")"
+    if [ ! -d "${dest_dir}" ]; then
+        log_error "安装目录不存在: ${dest_dir}"
+        return 1
+    fi
+
+    # 旧副本原则上已由卸载步骤移除；此处兜底，避免 ditto 合并残留文件。
+    if [ -e "${INSTALL_PATH}" ]; then
+        log_warn "覆盖已有安装: ${INSTALL_PATH}"
+        rm -rf "${INSTALL_PATH}"
+    fi
+
+    log_info "安装到 ${INSTALL_PATH}..."
+    if ! ditto "${APP_PATH}" "${INSTALL_PATH}"; then
+        log_error "安装失败：无法写入 ${INSTALL_PATH}"
+        log_info "若为权限问题，请改用管理员账号，或手动执行: sudo ditto \"${APP_PATH}\" \"${INSTALL_PATH}\""
+        return 1
+    fi
+
+    log_success "已安装: ${INSTALL_PATH}"
+}
+
+# 启动已安装到 /Applications 的应用
+open_installed_app() {
+    log_info "启动 ${INSTALL_PATH}..."
+    open "${INSTALL_PATH}"
+    sleep 2
+
+    if pgrep -x "${PROJECT_NAME}" > /dev/null; then
+        log_success "${PROJECT_NAME} 已启动"
+    else
+        log_warn "${PROJECT_NAME} 可能未正确启动，请检查控制台日志"
+    fi
+}
+
 # Release 构建 + 签名 + 公证 + 装订（Developer ID 分发）
-#
-# 需要的环境变量：
-#   DEVELOPER_ID_APP   Developer ID Application 证书名（如
-#                      "Developer ID Application: Your Name (TEAMID)"）
-#   AC_NOTARY_PROFILE  notarytool 已保存的 keychain profile 名
-#                      （由 `xcrun notarytool store-credentials` 预先创建）
-# 可选：
-#   RELEASE_APP_PATH   输出 .app 路径（默认 Release 产物）
 build_for_release() {
     local release_derived="${PROJECT_DIR}/DerivedData"
     local release_app="${RELEASE_APP_PATH:-${release_derived}/Build/Products/Release/${PROJECT_NAME}.app}"
@@ -263,32 +347,37 @@ build_for_release() {
 
 # 显示帮助信息
 show_help() {
-    echo "Qingyu 构建并启动脚本"
-    echo ""
-    echo "用法: $0 [命令]"
-    echo ""
-    echo "命令:"
-    echo "  clean    清理构建目录"
-    echo "  build    编译项目"
-    echo "  run      启动应用（需要先编译）"
-    echo "  all      清理、编译并启动（默认）"
-    echo "  release  Release 编译 + Developer ID 签名 + 公证 + 装订"
-    echo "  package  Release 签名 + 公证 + 生成通用二进制 DMG（scripts/package-release.sh）"
-    echo "  help     显示此帮助信息"
-    echo ""
-    echo "示例:"
-    echo "  $0          # 清理、编译并启动"
-    echo "  $0 build    # 仅编译"
-    echo "  $0 run      # 仅启动"
-    echo "  $0 clean    # 仅清理"
-    echo "  $0 release  # 分发构建（需 DEVELOPER_ID_APP / AC_NOTARY_PROFILE）"
+    sed -n '3,/^set -euo/p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' | sed '/^set -euo/d'
 }
 
 # 主函数
 main() {
+    local command=""
+
+    while [ "$#" -gt 0 ]; do
+        case "$1" in
+            --no-uninstall) SKIP_UNINSTALL=1 ;;
+            -h|--help)      show_help; exit 0 ;;
+            -*)
+                log_error "未知选项: $1"
+                show_help
+                exit 2
+                ;;
+            *)
+                if [ -n "${command}" ]; then
+                    log_error "只能指定一个命令（已指定: ${command}，又收到: $1）"
+                    show_help
+                    exit 2
+                fi
+                command="$1"
+                ;;
+        esac
+        shift
+    done
+
     cd "${PROJECT_DIR}"
 
-    case "${1:-all}" in
+    case "${command:-install}" in
         clean)
             clean_build
             ;;
@@ -302,14 +391,24 @@ main() {
             build_for_release
             ;;
         package)
-            "${PROJECT_DIR}/scripts/package-release.sh"
+            "${SCRIPT_DIR}/package-release.sh"
             ;;
-        all)
+        install|all)
+            if [ "${SKIP_UNINSTALL}" -eq 1 ]; then
+                log_warn "已跳过安装前卸载（--no-uninstall），保留已有安装与用户数据"
+            else
+                if ! uninstall_existing; then
+                    log_warn "已取消安装"
+                    exit 1
+                fi
+            fi
+            quit_running_app
             clean_build
             if build_project; then
-                run_app
+                install_app
+                open_installed_app
             else
-                log_error "编译失败，无法启动应用"
+                log_error "编译失败，无法安装应用"
                 exit 1
             fi
             ;;
@@ -317,7 +416,7 @@ main() {
             show_help
             ;;
         *)
-            log_error "未知命令: $1"
+            log_error "未知命令: ${command}"
             show_help
             exit 1
             ;;
