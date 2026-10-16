@@ -10,7 +10,7 @@
 | `Qingyu/Info.plist` | `CFBundleVersion` | 构建号，正整数，与上一项同步递增 |
 | `Qingyu.xcodeproj/project.pbxproj` | `MARKETING_VERSION` | 必须等于 `CFBundleShortVersionString` |
 | `Qingyu.xcodeproj/project.pbxproj` | `CURRENT_PROJECT_VERSION` | 必须等于 `CFBundleVersion` |
-| `CHANGELOG.md` | `## [Unreleased]` 或 `## [<版本>]` | 有对应条目 |
+| `docs/guides/changelog.md` | `## [Unreleased]` 或 `## [<版本>]` | 有对应条目 |
 
 自动检查：`bash .opencode/skills/release/scripts/check-release-consistency.sh`
 
@@ -22,7 +22,7 @@
 
 - `README.md` / `README.zh-CN.md`：平台徽章、Download/下载 段
 - `website/qingyu.html`：`hero` 徽章、`dl.req1`（中/英 i18n）
-- `BUILD_README.md`：系统要求
+- `docs/guides/build.md`：系统要求
 - `docs/prd.md`：`FR-UI-34` / `FR-UI-35` / `D-093`
 - `docs/architecture/design.md`：最低支持系统
 - `docs/onboarding.md`：最低系统与前置
@@ -32,7 +32,7 @@
 
 - `README.md` / `README.zh-CN.md`：Download/下载 段（`.dmg`、Developer ID + 公证、GitHub Releases、不在 Mac App Store、安装后自动清理安装包）
 - `website/qingyu.html`：`dl.desc`、`dl.req1~4`、`dl.note`（中/英 i18n）
-- `BUILD_README.md`：发布构建章节
+- `docs/guides/build.md`：发布构建章节
 
 ### 账号 / 隐私口径
 

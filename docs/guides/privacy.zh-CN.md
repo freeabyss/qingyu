@@ -1,6 +1,6 @@
 # 清羽 Qingyu 隐私政策
 
-[English](PRIVACY.md) | **简体中文**
+[English](privacy.md) | **简体中文**
 
 最后更新：2026-07-06
 

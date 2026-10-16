@@ -5,7 +5,7 @@
 # 校验：
 #   1. 版本单一事实来源：Info.plist 与 project.pbxproj 的版本/构建号一致；
 #   2. Info.plist 语法正确；
-#   3. README / 网站 / BUILD_README 标明的 macOS 版本与部署目标一致；
+#   3. README / 网站 / 构建指南（docs/guides/build.md）标明的 macOS 版本与部署目标一致；
 #   4. 分发描述包含 DMG + GitHub Releases；
 #   5. CHANGELOG 含当前版本或 [Unreleased]；
 #   6. 未见过期文案（旧口号、旧系统版本）；
@@ -70,7 +70,7 @@ else
 fi
 
 # 3. 文档标明的系统版本
-for f in README.md README.zh-CN.md website/qingyu.html BUILD_README.md; do
+for f in README.md README.zh-CN.md website/qingyu.html docs/guides/build.md; do
     path="$ROOT/$f"
     if [[ ! -f "$path" ]]; then
         bad "缺少文件 $f"
@@ -95,15 +95,15 @@ for f in README.md README.zh-CN.md; do
         || warnf "$f 未提及 GitHub Releases"
 done
 
-# 5. CHANGELOG
-if [[ -f "$ROOT/CHANGELOG.md" ]]; then
-    if grep -qE "^## \[($VERSION|Unreleased)\]" "$ROOT/CHANGELOG.md"; then
+# 5. CHANGELOG（docs/guides/changelog.md）
+if [[ -f "$ROOT/docs/guides/changelog.md" ]]; then
+    if grep -qE "^## \[($VERSION|Unreleased)\]" "$ROOT/docs/guides/changelog.md"; then
         pass "CHANGELOG 含 [$VERSION] 或 [Unreleased]"
     else
         warnf "CHANGELOG 未包含 [$VERSION] 或 [Unreleased] 条目"
     fi
 else
-    bad "缺少 CHANGELOG.md"
+    bad "缺少 docs/guides/changelog.md"
 fi
 
 # 6. 过期文案
@@ -113,7 +113,7 @@ stale_patterns=(
     "macOS 13 Ventura"
 )
 for pat in "${stale_patterns[@]}"; do
-    hits="$(grep -rlF "$pat" "$ROOT/README.md" "$ROOT/README.zh-CN.md" "$ROOT/BUILD_README.md" "$ROOT/website" 2>/dev/null)"
+    hits="$(grep -rlF "$pat" "$ROOT/README.md" "$ROOT/README.zh-CN.md" "$ROOT/docs/guides/build.md" "$ROOT/website" 2>/dev/null)"
     if [[ -n "$hits" ]]; then
         warnf "存在疑似过期文案「${pat}」：$(echo "$hits" | tr '\n' ' ')"
     else

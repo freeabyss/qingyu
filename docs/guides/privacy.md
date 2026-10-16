@@ -1,6 +1,6 @@
 # Privacy Policy for Qingyu (清羽)
 
-**English** | [简体中文](PRIVACY.zh-CN.md)
+**English** | [简体中文](privacy.zh-CN.md)
 
 Last updated: 2026-07-06
 

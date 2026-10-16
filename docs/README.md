@@ -5,6 +5,11 @@ Mac Super Assistant 项目的最新累积文档。所有内容随每次迭代 �
 ## 目录
 
 - [onboarding.md](onboarding.md) — 新工程师上手指南（先读这个）
+- [guides/build.md](guides/build.md) — 构建、安装与卸载指南
+- [guides/context.md](guides/context.md) — 产品语境与领域词汇表
+- [guides/privacy.md](guides/privacy.md) / [guides/privacy.zh-CN.md](guides/privacy.zh-CN.md) — 隐私政策（英/中）
+- [guides/changelog.md](guides/changelog.md) — 版本变更记录
+- [guides/third-party-notices.md](guides/third-party-notices.md) — 第三方组件声明
 - [prd.md](prd.md) — 历史累积产品需求与发布追溯
 - [prd/01-product-prd.md](prd/01-product-prd.md) — 当前产品定位、用户场景、功能范围与功能规则
 - [prd/02-ui-spec.md](prd/02-ui-spec.md) — 页面、窗口、控件、状态、键盘与交互规范
@@ -13,6 +18,7 @@ Mac Super Assistant 项目的最新累积文档。所有内容随每次迭代 �
 - [architecture/api.md](architecture/api.md) — 内部接口设计
 - [architecture/db.md](architecture/db.md) — 数据模型设计
 - [architecture/review.md](architecture/review.md) — 架构评审记录
+- [reference/snipaste-screenshot-pin.md](reference/snipaste-screenshot-pin.md) — 外部对标：Snipaste 截图/贴图能力清单与差距分析（仅供设计参考，不复刻代码/素材）
 - [test/cases.md](test/cases.md) — 测试用例
 - [test/report.md](test/report.md) — 测试执行摘要
 - [test/implementation-audit.md](test/implementation-audit.md) — 当前产品实现与验收证据

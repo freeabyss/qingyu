@@ -35,7 +35,7 @@ description: 清羽 Qingyu 的端到端发布流程。当用户说“发布 / �
 - **下载方式**：双击 `.dmg` → 拖入「应用程序」；首次打开若被拦截 → 系统设置 → 隐私与安全性 → 仍要打开。
 - **无需账号**：账号/云同步/埋点/支付相关表述要统一（当前口径：「无需账号」，不接入云同步、埋点或支付服务）。
 - **功能与命令数量**：内置命令条数、设置页、快捷键等要与实现一致。
-- **版本**：README/网站用动态徽章（`img.shields.io/github/v/release/...`），不要写死版本号；`CHANGELOG.md` 该版本或 `[Unreleased]` 有对应条目。
+- **版本**：README/网站用动态徽章（`img.shields.io/github/v/release/...`），不要写死版本号；`docs/guides/changelog.md` 该版本或 `[Unreleased]` 有对应条目。
 - **应用内**：确认「关于」页、更新页、反馈邮件都从 Bundle 读取版本与构建号（见 `references/release-checklist.md` 的人工验收项）。
 
 改完运行一致性检查：

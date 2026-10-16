@@ -1,7 +1,7 @@
 # 清羽 Qingyu 工程上手指南（New Engineer Onboarding）
 
 > 面向新加入的工程师，帮助你在 1 小时内理解项目全貌、跑起来、并知道去哪里改代码。
-> 关联文档：`doc/prd.md`（需求）、`doc/architecture/design.md`（架构总设计 v17）、`doc/architecture/api.md`（接口契约 v3）、`doc/architecture/db.md`（数据模型 v3）、`BUILD_README.md`（构建细节）。
+> 关联文档：`doc/prd.md`（需求）、`doc/architecture/design.md`（架构总设计 v17）、`doc/architecture/api.md`（接口契约 v3）、`doc/architecture/db.md`（数据模型 v3）、`guides/build.md`（构建细节）。
 >
 > **阅读顺序建议**：本文 → `design.md` §2 分层架构 → 挑一个你要改的模块看 `api.md` 对应章节。
 
@@ -25,10 +25,12 @@
 前置：macOS 12+、Xcode 15+、Swift 5.9+。
 
 ```bash
-# 方式 A：一键脚本（推荐，Debug 构建 + 启动）
-cd /path/to/assistant
-chmod +x build_and_run.sh      # 首次
-./build_and_run.sh             # 默认 = clean+build+run；也支持 build / run / release / help
+# 方式 A：一键脚本（推荐）
+cd /path/to/qingyu
+chmod +x scripts/install.sh    # 首次
+./scripts/install.sh           # 默认 = 卸载旧版 + clean + build + 安装到 /Applications + 启动
+                               # 也支持 build / run / clean / release / package / help
+                               # 仅编译并运行（不安装）：./scripts/install.sh build && ./scripts/install.sh run
 
 # 方式 B：Xcode
 open Qingyu.xcodeproj         # 选 Qingyu scheme，Cmd+R
@@ -37,7 +39,7 @@ open Qingyu.xcodeproj         # 选 Qingyu scheme，Cmd+R
 xcodebuild -project Qingyu.xcodeproj -scheme Qingyu -configuration Debug build
 ```
 
-Debug 产物：`DerivedData/Build/Products/Debug/Qingyu.app`。
+Debug 产物：`DerivedData/Build/Products/Debug/Qingyu.app`；`./scripts/install.sh` 会把它安装到 `/Applications/Qingyu.app`。
 
 **跑测试**（两种，日常用 SPM 快）：
 
@@ -46,9 +48,9 @@ swift test                                                   # SPM 测试目标 
 xcodebuild test -project Qingyu.xcodeproj -scheme Qingyu # Xcode 测试计划
 ```
 
-> 注意：`build_and_run.sh` **没有** test 子命令，测试用上面两条命令。当前测试基线 **159 个测试全绿 / 25 个测试文件**。
+> 注意：`scripts/install.sh` **没有** test 子命令，测试用上面两条命令。当前测试基线 **159 个测试全绿 / 25 个测试文件**。
 
-**常见排障**（详见 `BUILD_README.md`）：
+**常见排障**（详见 `guides/build.md`）：
 
 ```bash
 sudo xcodebuild -license accept                 # 首次许可

@@ -234,7 +234,7 @@ if [[ "${UPLOAD}" -eq 1 ]]; then
     if [[ "${ADHOC}" -eq 1 ]]; then
         release_notes="ad-hoc 免签名、**未公证**版本。首次打开可能被 macOS 拦截，请在「系统设置 → 隐私与安全性」点「仍要打开」。"
     else
-        release_notes="见 [CHANGELOG.md](https://github.com/freeabyss/qingyu/blob/main/CHANGELOG.md)。"
+        release_notes="见 [docs/guides/changelog.md](https://github.com/freeabyss/qingyu/blob/main/docs/guides/changelog.md)。"
     fi
     if gh release view "${TAG}" >/dev/null 2>&1; then
         gh release upload "${TAG}" "${DMG_PATH}" "${DMG_PATH}.sha256" --clobber
