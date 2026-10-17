@@ -146,7 +146,7 @@ final class MagnifierGeometryTests: XCTestCase {
 
     // MARK: - 放大镜框位置
 
-    func testMagnifierFrameSitsAboveRightOfAnchorWhenRoomExists() {
+    func testMagnifierFrameSitsBelowRightOfAnchorWhenRoomExists() {
         let visible = CGRect(x: 0, y: 0, width: 1920, height: 1080)
         let frame = MagnifierGeometry.magnifierFrame(
             anchor: CGPoint(x: 500, y: 500),
@@ -154,14 +154,16 @@ final class MagnifierGeometryTests: XCTestCase {
             visibleFrame: visible,
             gap: 18
         )
+        // 默认右下：x = 500 + 18；y = 500 - 18 - 112（下边距 = 锚点 y - 间隙）。
         XCTAssertEqual(frame.origin.x, 518)
-        XCTAssertEqual(frame.origin.y, 518)
+        XCTAssertEqual(frame.origin.y, 500 - 18 - 112)
     }
 
-    func testMagnifierFrameFlipsNearRightAndTopEdges() {
+    func testMagnifierFrameFlipsToLeftAndTopWhenNoRoom() {
         let visible = CGRect(x: 0, y: 0, width: 1920, height: 1080)
         let size = CGSize(width: 112, height: 112)
 
+        // 右侧空间不足 → 翻到锚点左侧。
         let nearRight = MagnifierGeometry.magnifierFrame(
             anchor: CGPoint(x: 1900, y: 500),
             size: size,
@@ -170,13 +172,14 @@ final class MagnifierGeometryTests: XCTestCase {
         )
         XCTAssertEqual(nearRight.maxX, 1900 - 18)
 
-        let nearTop = MagnifierGeometry.magnifierFrame(
-            anchor: CGPoint(x: 500, y: 1070),
+        // 下方空间不足 → 翻到锚点上方。
+        let nearBottom = MagnifierGeometry.magnifierFrame(
+            anchor: CGPoint(x: 500, y: 60),
             size: size,
             visibleFrame: visible,
             gap: 18
         )
-        XCTAssertEqual(nearTop.maxY, 1070 - 18)
+        XCTAssertEqual(nearBottom.minY, 60 + 18)
     }
 
     func testMagnifierFrameStaysInsideVisibleFrameForNegativeOriginDisplay() {

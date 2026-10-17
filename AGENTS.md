@@ -10,5 +10,6 @@
 
 ## 测试门禁
 
-- 每次代码修改完毕、提交之前，必须运行 `./scripts/verify.sh`（全量单元测试 + `git diff --check`）；失败时必须修复后才能提交，不得跳过或删测试应付。
+- 每次代码修改完毕、提交之前，必须运行 `./scripts/verify.sh`（`git diff --check` + 测试文件登记检查 + 全量单元测试）；失败时必须修复后才能提交，不得跳过或删测试应付。
 - 涉及窗口、会话或悬浮层生命周期的改动，必须保留或新增对应回归用例；回归用例目录见 `docs/test/cases.md`（「截图会话生命周期回归」一节）。
+- 新增测试文件后，必须把它登记进 `Qingyu.xcodeproj` 的 `QingyuTests` 目标（`PBXFileReference` + 分组 children + Sources 阶段）；只把文件放进 `QingyuTests/` 目录**不会**让它被执行。`./scripts/verify.sh` 已把「测试目录里每个 `.swift` 都出现在 Sources 阶段」设为硬门禁（该缺陷已发生过两次：`PermissionServiceProtocolConformanceTests` 4 条、`ScreenshotOverlayAppearanceTests` 6 条用例长期未被执行，而测试报告始终全绿）。

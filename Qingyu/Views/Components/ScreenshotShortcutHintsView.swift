@@ -133,6 +133,10 @@ final class ScreenshotShortcutHintsView: NSView {
     }
 
     /// 在显示器可见区域左下角（16pt 边距）计算提示视图的推荐 frame。
+    ///
+    /// 返回的是**该显示器叠层内容视图的本地坐标**（叠层视图原点即显示器 `frame` 原点），
+    /// 调用方直接赋给子视图的 `frame`。这里**不得**再叠加 `display.frame` 的原点：
+    /// 副屏原点为负（例如主屏左侧的 `-2560`）时会算出屏外坐标，提示整块看不见。
     static func frame(in display: CaptureDisplay, hintCount: Int) -> NSRect {
         guard hintCount > 0 else { return .zero }
         let insets: NSEdgeInsets = {
@@ -150,8 +154,8 @@ final class ScreenshotShortcutHintsView: NSView {
         let estimatedWidth: CGFloat = 620
         let height: CGFloat = 24
         return NSRect(
-            x: display.frame.minX + insets.left + Self.edgeInset,
-            y: display.frame.minY + insets.bottom + Self.edgeInset,
+            x: insets.left + Self.edgeInset,
+            y: insets.bottom + Self.edgeInset,
             width: min(estimatedWidth, display.frame.width - insets.left - insets.right - Self.edgeInset * 2),
             height: height
         )

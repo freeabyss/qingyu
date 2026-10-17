@@ -71,11 +71,16 @@ final class ScreenshotToolbarController {
     /// 才会被识别 —— 因此天然不会与工具条按钮抢事件，也不会有「自己点自己」的歧义。
     private var gestureMonitor: Any?
 
-    private var window: ScreenshotPreviewWindow?
+    /// 当前工具条/预览窗口。`private(set)` 供测试断言窗口位置、可见性与复用情况。
+    private(set) var window: ScreenshotPreviewWindow?
     private var annotationWindow: AnnotationEditorWindow?
     private var overlayCancelObserver: NSObjectProtocol?
     private var toastWorkItem: DispatchWorkItem?
     private var regionCleanup: (() -> Void)?
+    /// 草稿态（区域已定、尚未捕获）的按需捕获闭包；nil 表示当前不是草稿态。
+    private var draftCapture: (() async throws -> ScreenshotResult)?
+    /// 是否正显示区域草稿工具条（选区已定、**尚未**捕获）。
+    private(set) var isShowingRegionDraft = false
 
     deinit {
         toastWorkItem?.cancel()
@@ -130,11 +135,15 @@ final class ScreenshotToolbarController {
     }
 
     /// Shows the region actions while the locked selection remains in place.
+    ///
+    /// 返回新建的视图模型：草稿态动作需要把同一个视图模型交给
+    /// `handle(action:result:viewModel:)` 继续走既有动作路径。
+    @discardableResult
     func showRegion(
         result: ScreenshotResult,
         selection: RegionCaptureSelection,
         onDismiss: @escaping () -> Void
-    ) {
+    ) -> ScreenshotPreviewViewModel {
         dismiss(reason: .superseded)
         regionCleanup = onDismiss
 
@@ -145,9 +154,154 @@ final class ScreenshotToolbarController {
                 self?.handle(action: action, result: result, viewModel: viewModel)
             }
         )
-        let toolbarSize = NSSize(width: 620, height: 64)
+        let window = makeRegionToolbarWindow(
+            rootView: view,
+            globalRect: selection.globalRect,
+            screenFrame: selection.screenFrame,
+            stealsKey: true
+        )
+        window.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+        self.window = window
+        logger.info("Region screenshot toolbar shown below locked selection")
+        return viewModel
+    }
+
+    // MARK: - Region toolbar: draft (deferred capture)
+
+    /// 区域「草稿」工具条：选区已定但**尚未捕获**，用户点动作时才按需抓屏。
+    ///
+    /// 与 `showRegion` 的区别只有两点：没有现成的 `ScreenshotResult`，且窗口**不夺 key**
+    /// ——会话仍在进行，活动叠层必须继续持有键盘（方向键微调、`Tab` 辅助线、`Enter`
+    /// 确认、`P` / `⌘S` 预设全部依赖它）。
+    ///
+    /// 重复调用（方向键微调后）只更新位置与捕获闭包，不重建窗口，避免闪烁。
+    func showRegionDraft(
+        globalRect: NSRect,
+        screenFrame: NSRect,
+        capture: @escaping () async throws -> ScreenshotResult,
+        onDismiss: @escaping () -> Void
+    ) {
+        // 已在草稿态：只更新位置与捕获闭包（微调后的选区由最新的闭包负责捕获），
+        // 不重建窗口，避免闪烁。
+        if isShowingRegionDraft, let window {
+            draftCapture = capture
+            window.setFrame(
+                ScreenshotGeometry.toolbarFrame(
+                    selection: globalRect,
+                    toolbarSize: regionToolbarSize,
+                    screenFrame: screenFrame
+                ),
+                display: true
+            )
+            return
+        }
+
+        // 先收掉上一块（`dismiss` 会清空草稿态字段），**之后**再写入本次的闭包，
+        // 否则刚写入就被清掉——表现是点工具条任何按钮都毫无反应。
+        dismiss(reason: .superseded)
+        draftCapture = capture
+        isShowingRegionDraft = true
+        regionCleanup = onDismiss
+
+        let viewModel = ScreenshotPreviewViewModel(result: nil)
+        let view = RegionScreenshotToolbarView(
+            viewModel: viewModel,
+            onAction: { [weak self] action in
+                self?.handleDraft(action: action)
+            }
+        )
+        let window = makeRegionToolbarWindow(
+            rootView: view,
+            globalRect: globalRect,
+            screenFrame: screenFrame,
+            stealsKey: false
+        )
+        // 只上屏、不 makeKey：见 `makeRegionToolbarWindow` 里对 `stealsKey` 的说明。
+        window.orderFrontRegardless()
+        self.window = window
+        logger.info("Region draft toolbar shown; capture deferred until an action")
+    }
+
+    /// 收起区域草稿工具条（选区已失效，例如显示器拓扑变化后重建叠层）。
+    /// **不**结束会话：会话自身仍在 targeting 态继续。
+    func dismissRegionDraft() {
+        guard isShowingRegionDraft else { return }
+        // 作废不是「用户放弃」，不该连带取消会话。
+        regionCleanup = nil
+        dismiss(reason: .superseded)
+    }
+
+    private func handleDraft(action: ScreenshotToolbarAction) {
+        switch action {
+        case .cancel, .dismiss:
+            // 放弃工具条 = 放弃这次框选：结束会话（收尾闭包由调用方提供）。
+            dismiss(reason: .cancel)
+        default:
+            Task { @MainActor in
+                await self.performDraftAction(action)
+            }
+        }
+    }
+
+    /// 草稿态动作：先按需捕获，再把「已捕获」的区域工具条换上去并执行同一动作，
+    /// 从而复用 copy / save / pin / annotate 的既有路径（含标注编辑器与手势）。
+    ///
+    /// 非 private：工具条按钮的点击无法在单测宿主里合成（SwiftUI 手势需要真实事件流），
+    /// 测试直接驱动这条链路，覆盖「点动作才抓屏」与失败收尾。
+    func performDraftAction(_ action: ScreenshotToolbarAction) async {
+        guard let capture = draftCapture else { return }
+        // 捕获前先让出屏幕：工具条是独立窗口，若压在选区内会被 `CGDisplayCreateImage`
+        // 一起拍进去（叠层已隐藏，但工具条不在叠层里）。
+        window?.orderOut(nil)
+        // 摘掉草稿态：`showRegion` 内部的 `dismiss(.superseded)` 不得再触发草稿的收尾
+        // 闭包——那会去 cancel 一个已经结束的会话，重复广播取消。
+        draftCapture = nil
+        isShowingRegionDraft = false
+        regionCleanup = nil
+
+        do {
+            let result = try await capture()
+            guard let selection = result.regionSelection else {
+                dismiss(reason: .action)
+                return
+            }
+            let resultViewModel = showRegion(result: result, selection: selection) { }
+            handle(action: action, result: result, viewModel: resultViewModel)
+        } catch {
+            // 捕获失败：错误提示与命令条恢复由捕获侧统一处理，这里只收掉工具条。
+            logger.error("Deferred region capture failed: \(error.localizedDescription, privacy: .public)")
+            dismiss(reason: .action)
+        }
+    }
+
+    /// 区域工具条尺寸：**由内容决定**，建窗时记录、重定位时复用（两处必须一致，
+    /// 否则工具条会与位置计算错位）。
+    private(set) var regionToolbarSize = NSSize(width: 620, height: 64)
+
+    /// 区域工具条窗口的公共构造。
+    ///
+    /// `stealsKey == false`（草稿态）时**禁止夺 key**：会话期间活动叠层必须保持 key，
+    /// 否则方向键微调、`Tab` 辅助线、`Enter` 确认、`P` / `⌘S` 预设全部失效。
+    /// `becomesKeyOnlyIfNeeded` 让普通按钮点击直接生效且不夺 key（只有文本框这类
+    /// 真正需要键盘的控件才会），因此不需要额外转发键盘事件。
+    private func makeRegionToolbarWindow<Content: View>(
+        rootView: Content,
+        globalRect: NSRect,
+        screenFrame: NSRect,
+        stealsKey: Bool
+    ) -> ScreenshotPreviewWindow {
+        let hosting = NSHostingView(rootView: rootView)
+        // 宽度必须跟着内容走：这条工具条有 17 个按钮，写死宽度会让两侧的
+        // 复制 / 保存 / 贴图 / 关闭落到窗口之外（看不见也点不到）。
+        let fitting = hosting.fittingSize
+        let size = NSSize(
+            width: min(max(fitting.width, 200), screenFrame.width),
+            height: max(fitting.height, 44)
+        )
+        regionToolbarSize = size
         let window = ScreenshotPreviewWindow(
-            contentRect: NSRect(origin: .zero, size: toolbarSize),
+            contentRect: NSRect(origin: .zero, size: size),
             styleMask: [.borderless, .fullSizeContentView],
             backing: .buffered,
             defer: false
@@ -158,22 +312,20 @@ final class ScreenshotToolbarController {
         window.level = NSWindow.Level(rawValue: NSWindow.Level.screenSaver.rawValue + 1)
         window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         window.isReleasedWhenClosed = false
+        window.becomesKeyOnlyIfNeeded = !stealsKey
         window.onEscape = { [weak self] in
             self?.dismiss(reason: .userEscape)
         }
-        window.contentView = NSHostingView(rootView: view)
+        window.contentView = hosting
         window.setFrame(
             ScreenshotGeometry.toolbarFrame(
-                selection: selection.globalRect,
-                toolbarSize: toolbarSize,
-                screenFrame: selection.screenFrame
+                selection: globalRect,
+                toolbarSize: size,
+                screenFrame: screenFrame
             ),
             display: true
         )
-        window.makeKeyAndOrderFront(nil)
-        NSApp.activate(ignoringOtherApps: true)
-        self.window = window
-        logger.info("Region screenshot toolbar shown below locked selection")
+        return window
     }
 
     private enum DismissReason {
@@ -186,6 +338,8 @@ final class ScreenshotToolbarController {
         toastWorkItem = nil
         annotationWindow?.close()
         annotationWindow = nil
+        draftCapture = nil
+        isShowingRegionDraft = false
         if let window {
             window.orderOut(nil)
             logger.debug("Screenshot preview dismissed (reason: \(String(describing: reason)))")
@@ -539,10 +693,12 @@ final class ScreenshotPreviewWindow: NSPanel {
 
 @MainActor
 final class ScreenshotPreviewViewModel: ObservableObject {
-    let result: ScreenshotResult
+    /// nil 表示「区域草稿」态：选区已定但尚未捕获，此时只有工具条与提示文案，
+    /// 没有可预览的画面（捕获在用户点动作时才发生）。
+    let result: ScreenshotResult?
     @Published var toastMessage: String?
 
-    init(result: ScreenshotResult) {
+    init(result: ScreenshotResult?) {
         self.result = result
     }
 
@@ -558,6 +714,12 @@ final class ScreenshotPreviewViewModel: ObservableObject {
 
 // MARK: - SwiftUI Preview
 
+/// 选区旁的区域工具条（草稿态与已捕获态共用）。
+///
+/// 一律用**紧凑图标按钮**：这条工具条横跨 17 个动作（复制/保存/贴图 + 13 个标注工具 + 关闭），
+/// 带文字的 72pt 按钮排下来有 1300pt 宽，会远超窗口宽度——两侧的复制/保存/贴图/关闭
+/// 直接落在窗口之外，看得见也点不到。图标态只有 ~590pt，正好一条紧凑色带。
+/// 名称仍通过悬停说明与辅助功能标签提供。
 private struct RegionScreenshotToolbarView: View {
     @ObservedObject var viewModel: ScreenshotPreviewViewModel
     let onAction: (ScreenshotToolbarAction) -> Void
@@ -565,29 +727,30 @@ private struct RegionScreenshotToolbarView: View {
     var body: some View {
         ZStack(alignment: .top) {
             HStack(spacing: JadeSpace.x1.value) {
-                ToolbarButton(systemName: "doc.on.doc", label: L10n.localized("screenshot.toolbar.copy")) {
+                ToolbarButton(systemName: "doc.on.doc", label: L10n.localized("screenshot.toolbar.copy"), isCompact: true) {
                     onAction(.copy)
                 }
-                ToolbarButton(systemName: "square.and.arrow.down", label: L10n.localized("screenshot.toolbar.save")) {
+                ToolbarButton(systemName: "square.and.arrow.down", label: L10n.localized("screenshot.toolbar.save"), isCompact: true) {
                     onAction(.save)
                 }
-                ToolbarButton(systemName: "pin", label: L10n.localized("screenshot.toolbar.pin")) {
+                ToolbarButton(systemName: "pin", label: L10n.localized("screenshot.toolbar.pin"), isCompact: true) {
                     onAction(.pin)
                 }
                 ForEach(AnnotationTool.allCases) { tool in
-                    ToolbarButton(systemName: tool.systemImage, label: tool.displayName) {
+                    ToolbarButton(systemName: tool.systemImage, label: tool.displayName, isCompact: true) {
                         onAction(.annotate(tool))
                     }
                 }
                 ToolbarButton(
                     systemName: "xmark",
                     label: L10n.localized("screenshot.toolbar.cancel"),
-                    tint: JadeColor.danger
+                    tint: JadeColor.danger,
+                    isCompact: true
                 ) {
                     onAction(.cancel)
                 }
             }
-            .padding(JadeSpace.x2.value)
+            .padding(JadeSpace.x1.value)
             .background(JadeMaterial.pill.material, in: Capsule(style: .continuous))
             .overlay(Capsule(style: .continuous).strokeBorder(JadeColor.border, lineWidth: 1))
             .jadeShadow(.md, radius: .xl)
@@ -597,7 +760,6 @@ private struct RegionScreenshotToolbarView: View {
                     .offset(y: -48)
             }
         }
-        .frame(width: 620, height: 64)
     }
 }
 
@@ -606,7 +768,7 @@ private struct ScreenshotPreviewView: View {
     let onAction: (ScreenshotToolbarAction) -> Void
 
     private var image: NSImage? {
-        NSImage(data: viewModel.result.imageData)
+        viewModel.result.flatMap { NSImage(data: $0.imageData) }
     }
 
     var body: some View {
@@ -650,22 +812,26 @@ private struct ScreenshotPreviewView: View {
     }
 
     /// Non-interactive badge (top-left) showing the capture source type.
+    /// 草稿态（尚无捕获结果）不显示。
+    @ViewBuilder
     private var sourceBadge: some View {
-        HStack(spacing: JadeSpace.x1.value) {
-            Image(systemName: iconName(for: viewModel.result.sourceType))
-                .font(.system(size: 11, weight: .semibold))
-                .accessibilityHidden(true)
-            Text(sourceLabel(for: viewModel.result.sourceType))
-                .font(JadeFont.caption)
-            Text("\(viewModel.result.width)×\(viewModel.result.height)")
-                .font(.system(size: 10, weight: .regular, design: .monospaced))
-                .opacity(0.75)
+        if let result = viewModel.result {
+            HStack(spacing: JadeSpace.x1.value) {
+                Image(systemName: iconName(for: result.sourceType))
+                    .font(.system(size: 11, weight: .semibold))
+                    .accessibilityHidden(true)
+                Text(sourceLabel(for: result.sourceType))
+                    .font(JadeFont.caption)
+                Text("\(result.width)×\(result.height)")
+                    .font(.system(size: 10, weight: .regular, design: .monospaced))
+                    .opacity(0.75)
+            }
+            .foregroundColor(.white)
+            .padding(.horizontal, JadeSpace.x3.value)
+            .padding(.vertical, JadeSpace.x2.value)
+            .background(Color.black.opacity(0.55), in: Capsule(style: .continuous))
+            .accessibilityElement(children: .combine)
         }
-        .foregroundColor(.white)
-        .padding(.horizontal, JadeSpace.x3.value)
-        .padding(.vertical, JadeSpace.x2.value)
-        .background(Color.black.opacity(0.55), in: Capsule(style: .continuous))
-        .accessibilityElement(children: .combine)
     }
 
     private var floatingToolbar: some View {
@@ -718,20 +884,30 @@ private struct ToolbarButton: View {
     let systemName: String
     let label: String
     var tint: Color? = nil
+    /// 紧凑态：只画图标（选区旁的横条动作多、空间窄），名称走悬停说明与辅助功能标签。
+    var isCompact: Bool = false
     let action: () -> Void
 
     @State private var hovering = false
 
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 3) {
-                Image(systemName: systemName)
-                    .font(.system(size: 15, weight: .medium))
-                Text(label)
-                    .font(JadeFont.caption)
+            Group {
+                if isCompact {
+                    Image(systemName: systemName)
+                        .font(.system(size: 14, weight: .medium))
+                        .frame(width: 30, height: 30)
+                } else {
+                    VStack(spacing: 3) {
+                        Image(systemName: systemName)
+                            .font(.system(size: 15, weight: .medium))
+                        Text(label)
+                            .font(JadeFont.caption)
+                    }
+                    .frame(width: 72, height: 40)
+                }
             }
             .foregroundColor(tint ?? JadeColor.textPrimary)
-            .frame(width: 72, height: 40)
             .background(
                 JadeRadius.md.shape
                     .fill(hovering ? JadeColor.surface3 : Color.clear)

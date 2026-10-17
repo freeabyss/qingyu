@@ -155,7 +155,6 @@ final class CaptureOverlayContentView: NSView {
     }
 
     fileprivate private(set) var hintsView: ScreenshotShortcutHintsView?
-    private var isMouseDown = false
     /// Task 014/06：本次拖拽的起点与锁定的长宽比。
     private var dragStartPoint: CGPoint?
     private var lockedAspectRatio: CGFloat?
@@ -317,14 +316,16 @@ final class CaptureOverlayContentView: NSView {
     // MARK: Events
 
     override func mouseMoved(with event: NSEvent) {
-        guard isActiveDisplay else { return }
         let global = globalPoint(convert(event.locationInWindow, from: nil))
+        // 非活动屏也必须上报指针：会话据此把「当前截图显示器」切到指针所在屏
+        // （压暗、高亮与提示随之切换）。放大镜只在活动屏取样，避免无谓抓屏。
         onEvent?(.pointerMoved(global))
-        requestMagnifierSample(at: global)
+        if isActiveDisplay {
+            requestMagnifierSample(at: global)
+        }
     }
 
     override func mouseDown(with event: NSEvent) {
-        isMouseDown = true
         let global = globalPoint(convert(event.locationInWindow, from: nil))
         // Task 014/06：每次拖拽重新捕获长宽比。
         dragStartPoint = global
@@ -333,7 +334,8 @@ final class CaptureOverlayContentView: NSView {
     }
 
     override func mouseDragged(with event: NSEvent) {
-        guard isMouseDown else { return }
+        // 拖拽可能跨屏：起点在本窗口、后续事件落在对侧窗口时，只有对侧能收到。
+        // 因此这里不按本窗口的按下状态过滤，是否处于拖拽一律由会话状态机判定。
         var global = globalPoint(convert(event.locationInWindow, from: nil))
 
         // Task 014/06：按住 ⇧ 锁定长宽比 —— 首次按下时以"当时的选区比例"为准，
@@ -357,8 +359,8 @@ final class CaptureOverlayContentView: NSView {
     }
 
     override func mouseUp(with event: NSEvent) {
-        guard isMouseDown else { return }
-        isMouseDown = false
+        // 同上：抬起可能落在另一个显示器的窗口上（拖拽跨屏），这里不再过滤。
+        // 会话状态机只在拖拽态响应抬起，窗口/整屏之外的杂散抬起天然被忽略。
         dragStartPoint = nil
         lockedAspectRatio = nil
         onEvent?(.mouseUp(globalPoint(convert(event.locationInWindow, from: nil))))
@@ -468,6 +470,11 @@ final class CaptureOverlayContentView: NSView {
 
     override func draw(_ dirtyRect: NSRect) {
         super.draw(dirtyRect)
+
+        // 只有当前指针所在显示器压暗，其他显示器保持原样：指针移到哪块屏，
+        // 哪块屏变暗、原屏恢复（跨屏由 `mouseMoved` 上报的 `.pointerMoved` 驱动）。
+        // 非活动屏仍保留窗口以接收指针事件，否则指针移过去时无人上报、会话卡在原屏。
+        guard isActiveDisplay else { return }
 
         NSColor.black.withAlphaComponent(0.3).set()
         dirtyRect.fill()

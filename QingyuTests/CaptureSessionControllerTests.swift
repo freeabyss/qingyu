@@ -448,6 +448,115 @@ final class CaptureSessionControllerTests: XCTestCase {
 }
 
 
+// MARK: - 区域工具条：松开即出（懒捕获）
+
+/// 产品决策（2026-10-17）：框选区域**松开后立即**展示工具条，不再等 `Enter`。
+/// 此时尚未捕获（点动作/`Enter` 才抓屏），因此会话必须继续持有叠层与键盘。
+extension CaptureSessionControllerTests {
+
+    /// 松开 → 立刻通知；拖拽途中不得通知（否则工具条会在拖拽中乱闪）。
+    func testDragReleaseNotifiesRegionAdjustableOnce() {
+        let (controller, _) = makeController()
+        var notifications: [(CGDirectDisplayID, CGRect)] = []
+        controller.onRegionAdjustable = { display, rect in notifications.append((display.id, rect)) }
+        controller.start()
+
+        controller.handle(.mouseDown(CGPoint(x: 10, y: 10)))
+        controller.handle(.mouseDragged(CGPoint(x: 110, y: 80)))
+        XCTAssertTrue(notifications.isEmpty, "拖拽中不应展示工具条")
+
+        controller.handle(.mouseUp(CGPoint(x: 110, y: 80)))
+
+        XCTAssertEqual(notifications.count, 1)
+        XCTAssertEqual(notifications.first?.0, leftDisplay.id)
+        XCTAssertEqual(notifications.first?.1, CGRect(x: 10, y: 10, width: 100, height: 70))
+        controller.finish()
+    }
+
+    /// 单击锁定窗口/整屏仍即时捕获，不进入可微调态，也就不该弹区域工具条。
+    func testClickLockDoesNotNotifyRegionAdjustable() {
+        let windowProvider = FakeWindowProvider()
+        windowProvider.candidates[CGPoint(x: 100, y: 100)] = leftWindow
+        let (controller, _) = makeController(windows: windowProvider)
+        var notifications = 0
+        controller.onRegionAdjustable = { _, _ in notifications += 1 }
+        controller.start()
+
+        controller.handle(.pointerMoved(CGPoint(x: 100, y: 100)))
+        controller.handle(.mouseDown(CGPoint(x: 100, y: 100)))
+        controller.handle(.mouseUp(CGPoint(x: 100, y: 100)))
+
+        XCTAssertEqual(notifications, 0, "窗口单击不需要像素级微调，不展示区域工具条")
+    }
+
+    /// 方向键微调后必须再通知一次：否则工具条会停在旧位置。
+    func testNudgeNotifiesRegionAdjustableWithMovedRect() {
+        let (controller, _) = makeController()
+        var notifications: [CGRect] = []
+        controller.onRegionAdjustable = { _, rect in notifications.append(rect) }
+        controller.start()
+
+        controller.handle(.mouseDown(CGPoint(x: 100, y: 100)))
+        controller.handle(.mouseDragged(CGPoint(x: 200, y: 180)))
+        controller.handle(.mouseUp(CGPoint(x: 200, y: 180)))
+        controller.handle(.nudgeSelection(axis: .horizontal, delta: 2, resize: false))
+
+        XCTAssertEqual(notifications.count, 2)
+        XCTAssertEqual(notifications.last, CGRect(x: 102, y: 100, width: 100, height: 80))
+        controller.cancel()
+    }
+
+    /// 套用预设同样直接进入可微调态 → 工具条应立刻跟上。
+    func testApplyingPresetNotifiesRegionAdjustable() {
+        let (controller, _) = makeController()
+        var notifications: [CGRect] = []
+        controller.onRegionAdjustable = { _, rect in notifications.append(rect) }
+        controller.start()
+
+        let rect = CGRect(x: 200, y: 300, width: 400, height: 250)
+        XCTAssertNil(controller.apply(preset: CapturePreset(name: "区域", kind: .region, displayID: "1", rect: rect)))
+
+        XCTAssertEqual(notifications.last, rect)
+        controller.finish()
+    }
+
+    /// 显示器拓扑变化会重建叠层并重置状态：旧选区作废，草稿工具条必须收起。
+    func testRebuildEndsRegionAdjustable() {
+        let (controller, _) = makeController()
+        var ended = 0
+        controller.onRegionAdjustableEnded = { ended += 1 }
+        controller.start()
+
+        controller.handle(.mouseDown(CGPoint(x: 10, y: 10)))
+        controller.handle(.mouseDragged(CGPoint(x: 110, y: 80)))
+        controller.handle(.mouseUp(CGPoint(x: 110, y: 80)))
+        XCTAssertEqual(ended, 0)
+
+        controller.rebuild()
+
+        XCTAssertEqual(ended, 1, "重建后选区作废，工具条必须收起")
+        XCTAssertEqual(controller.state.phase, .targetingWindow(nil))
+        controller.cancel()
+    }
+
+    /// 会话结束后不再通知（迟到的方向键/事件不得让工具条复活）。
+    func testRegionAdjustableNotNotifiedAfterSessionEnds() {
+        let (controller, _) = makeController()
+        var notifications = 0
+        controller.onRegionAdjustable = { _, _ in notifications += 1 }
+        controller.start()
+        controller.handle(.mouseDown(CGPoint(x: 10, y: 10)))
+        controller.handle(.mouseDragged(CGPoint(x: 110, y: 80)))
+        controller.handle(.mouseUp(CGPoint(x: 110, y: 80)))
+        XCTAssertEqual(notifications, 1)
+
+        controller.cancel()
+        controller.handle(.nudgeSelection(axis: .horizontal, delta: 1, resize: false))
+
+        XCTAssertEqual(notifications, 1, "会话结束后不得再展示工具条")
+    }
+}
+
 // MARK: - Task 015：预设套用与会话内清单
 
 extension CaptureSessionControllerTests {

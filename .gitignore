@@ -11,6 +11,8 @@ dist/
 *.ipa
 *.dSYM.zip
 *.dSYM
+# 覆盖率/剖析产物（跑 instrumented 二进制时落在仓库根）
+*.profraw
 
 # Swift Package Manager
 .build/

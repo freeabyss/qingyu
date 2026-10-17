@@ -173,7 +173,7 @@ protocol HotCornerMonitoring: AnyObject {
 
 | 子项 | 状态 | 说明 |
 |---|---|---|
-| 01 选区微调与辅助线 | ✅ 已交付 | 产品决策已确认（2026-10-13）：**圈选区域松开后进入可微调态**（新增 `CaptureSessionPhase.adjustingRegion`），方向键移动 1 物理像素、`⇧`+方向键沿轴对称伸缩、`Tab` 按住显示对齐辅助线、`Enter` 确认截取、`Esc` 取消。窗口/整屏单击仍即时锁定（它们本身不需要像素级微调）。`docs/prd/02-ui-spec.md` 与 `docs/tasks/README.md` 的产品规则已同步更新。 |
+| 01 选区微调与辅助线 | ✅ 已交付 | 产品决策已确认（2026-10-13）：**圈选区域松开后进入可微调态**（新增 `CaptureSessionPhase.adjustingRegion`），方向键移动 1 物理像素、`⇧`+方向键沿轴对称伸缩、`Tab` 按住显示对齐辅助线、`Enter` 确认截取、`Esc` 取消。窗口/整屏单击仍即时锁定（它们本身不需要像素级微调）。`docs/prd/02-ui-spec.md` 与 `docs/tasks/README.md` 的产品规则已同步更新。**2026-10-17 追加产品决策：松开即出工具条**（见文末「追加交付」）。 |
 | 02 笔宽与工具快捷键 | ✅ 已交付 | `[` / `]` 与滚轮在三档笔宽间步进（到边界不循环）。数字键 `1`-`9` 已被 Task 013 的工具条分组占用，因此**不做** `1` / `2` 数字预设（原计划的该部分取消，避免与工具选择冲突）。 |
 | 03 选区圆角/边框/阴影可配置 | ✅ 已交付 | 新增 `ScreenshotFrameStyle` + `CaptureCompletionHandlers.decorate` 挂载点，接入「复制/保存/快捷保存」；默认全关时逐字节保持原行为。顺带接上了此前无人消费的 `screenshot.includeShadow`。 |
 | 04 取色输出格式 | ✅ 已交付 | 落地入口已接通：标注窗口与白板内 `C` / `⇧C` 取色（采样自画布底图，不重新抓屏）；坐标换算含 y 翻转与 Retina 缩放并单测；设置页提供四项格式开关与实时预览。默认保持大写 `#RRGGBB`（不改变既有呈现），可一键切换为小写。 |
@@ -212,6 +212,32 @@ protocol HotCornerMonitoring: AnyObject {
   - `CaptureSessionControllerTests` 新增 2 项（拖拽进入可微调态后由 `confirmSelection` 交付目标、方向键事件驱动调整），另更新 3 项既有断言（区域锁定 / 提示跟随阶段 / 僵尸暗幕复现）；
   - `SelectionInteractionTests` 新增 17 项（长宽比投影 5 + 笔宽步进 3 + 取色格式 5 + 选区微调 4）。：长宽比投影 5 项（1:1 与任意比例、象限保持、非法比例与零位移、比例推导退化矩形）、笔宽步进 3 项（相邻档、边界钳制、方向 0）、取色格式 6 项（默认与既有呈现一致且与 `ColorString` 同源、大小写与省略 `#`、边界值补零、HSV/HSL 分量、分隔符、Codable 往返）。
 - 工程：2 个新文件加入 `Qingyu.xcodeproj/project.pbxproj`（app 1 + test 1）。
+
+## 追加交付（2026-10-17）：松开即出区域工具条（草稿态 + 懒捕获）
+
+**触发**：用户报告「截图区域框选成功后，没有弹出工具栏」。
+
+**产品决策**（用户确认，二选一中的「松开就立即出工具栏」）：框选**松开即出**工具条，不再等 `Enter`；选区仍可用方向键微调；`Enter` 仍确认截图。
+
+**关键设计约束（三条，缺一条就退回原缺陷或引入新缺陷）**：
+
+1. **草稿工具条不得夺 key**。截图会话仍在进行，活动叠层必须继续持有键盘 —— 一旦工具条成为 key 窗口，方向键微调、`Tab` 辅助线、`Enter` 确认、`P` / `⌘S` 预设全部失效。实现为 `window.becomesKeyOnlyIfNeeded = true` + `orderFrontRegardless()`，只有**已捕获态**（会话已结束）的工具条才正常拿 key。
+2. **懒捕获**：松开时**不抓屏**，点动作（复制/保存/贴图/打印）那一刻才按最新选区抓屏。预捕获不仅会在叠层仍可见时抓屏，更会让微调后的画面立刻过期。
+3. **位置更新而非重建**：方向键微调只 `setFrame` 挪窗口，不重建（重建会闪）。
+
+**实现要点**：
+
+- `CaptureSessionController` 新增回调 `onRegionAdjustable(display, rect)` / `onRegionAdjustableEnded()`，在**拖拽松开、方向键微调、套用预设**三处进入可微调态时各触发一次（幂等）；叠层重建（显示器拓扑变化）时触发 `onRegionAdjustableEnded`，因为旧选区随状态一起作废，草稿工具条若还挂着，点动作会截到一个已经不对应的区域。与 `onCancel` 的区别是会话**不结束**。
+- `ScreenshotToolbarController` 新增 `showRegionDraft` / `dismissRegionDraft` / `performDraftAction`；`ScreenshotPreviewViewModel.result` 改为可选以承载「草稿（未捕获）」态。
+- 视图模型驱动：`RegionScreenshotToolbarView` 的 17 个按钮改为紧凑图标按钮（30×30），窗口尺寸由内容 `fittingSize` 推导。
+
+**顺带修掉的一个既有缺陷（被本项暴露）**：区域工具条窗口宽度写死 620 pt，而 17 个带文字按钮实需约 1304 pt，导致复制/保存/贴图/关闭被渲染在窗口外**不可点击**（点上去毫无反应）。现由 `fittingSize` 推导，宽度 582×44，并加了「宽度必须容纳全部动作按钮」的断言防复发。
+
+**实施中踩到的一个坑（值得记住）**：`showRegionDraft` 初版先写 `draftCapture = capture`，之后才调用 `dismiss(reason: .superseded)` —— 而 `dismiss` 会清空草稿态字段，于是刚写进去的闭包立刻被清掉，表现是**点工具条任何按钮都毫无反应**。修法是把赋值移到 `dismiss` **之后**。
+
+**验证**：新增 `RegionDraftToolbarTests` 7 项（宽度容纳内容、松开即出且不预捕获、草稿态不夺 key、微调不重建窗口、作废收起但不结束会话、动作链路懒捕获一次并走通、捕获失败收摊），`CaptureSessionControllerTests` 新增 6 项（松开/单击锁定/微调/套用预设/重建/会话结束后各一次的回调契约）。第 12 节新增 **SHOT-LIFE-007**，原手工冒烟顺延为 **SHOT-LIFE-008**。
+
+**未自动化覆盖的一环**：SwiftUI 按钮的**真实点击**无法在单测里合成（`NSApp.sendEvent` / `window.sendEvent` 都到不了 SwiftUI 按钮），测试改为直接驱动按钮回调之后的链路（`performDraftAction`）。按钮点击由窗口层契约保证（不夺 key、点击直接落到按钮上），真实点击走 SHOT-LIFE-008 手工冒烟。
 
 ## 已知边界
 

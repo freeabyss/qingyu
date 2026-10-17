@@ -37,9 +37,11 @@
 | 2026-10-14 | Claude | Task 015 预设区域与尺寸：新增自动化用例 `CapturePresetTests`（18 条：区域落位含相对偏移语义、断屏 / 越界分支、尺寸居中与可见区钳制、上限、排序与稳定性、持久化往返、Codable）与 `CaptureSessionControllerTests` 新增 11 条（套用区域预设进入可微调态且不结束会话、断屏 / 越界内联提示、尺寸预设居中且不越屏、清单打开 / 移动回卷 / 关闭、空集合不响应、套用高亮项、保存区域 / 尺寸预设、未框选与满额提示）。套用预设会改变截图会话状态（进入可微调态）并让叠层承载清单，涉及叠层与会话生命周期，故纳入本节记录；叠层未新增窗口 / 定时器，会话结束时随既有 `closeAllWindows` 一并销毁，未新增 SHOT-LIFE 编号。顺带修复两处：协议扩展方法对存在类型静态派发导致替身实现不生效、`switchActiveDisplay(notifyState: false)` 会重置会话状态。 |
 | 2026-10-14 | Claude | Task 017/02–04 贴图交互增强：新增自动化用例 `PinInteractionTests`（14 条：光标命中取最前、有/无光标下贴图的穿透作用域、来回切换、穿透不持久化、缩放与不透明度上下限钳制、无目标时不响应、调整不改写原始图像数据、悬停提示未绑定项跳过/已绑定项出现/上限截断/开关关闭时不显示）。穿透态新增虚线描边标识；穿透键与三个显示参数键改为作用于光标下的贴图。本组只改贴图窗口的显示与命中行为，未改动窗口生命周期（新增的 `NSTrackingArea` 随视图销毁自然释放，无定时器/常驻监听），故第 12 节不新增 SHOT-LIFE 编号。 |
 | 2026-10-14 | Claude | Task 017/01 贴图拖动吸附：新增自动化用例 `PinSnappingTests`（12 条：参照物组装、阈值边界与关闭、最近者优先、首尾相邻贴合、中对中、屏幕边缘优先、尺寸不变、CG→AppKit 坐标换算）。本子项只在鼠标松开后调整贴图窗口原点，未改动窗口生命周期（新增的移动通知监听与待办定时器在 close/destroy/destroyAll 统一摘除，代码已覆盖），故第 12 节不新增 SHOT-LIFE 编号。 |
-| 2026-10-14 | Claude | Task 014/03 导出装饰（圆角/边框/阴影）：新增自动化用例 `ScreenshotFrameStyleTests`（13 条：钳制、几何含 2 倍屏折算、圆角透明/边框着色/阴影留白的像素断言、默认值读取、`decorated()` 的 id 与尺寸语义）与 `CaptureCompletionTests` 的 3 条挂载点用例（复制/保存套用装饰、贴图/打印不套用）。默认全关时导出结果逐字节不变，本改动不触及叠层与会话生命周期，故第 12 节不新增 SHOT-LIFE 编号；真实导出对比走既有 SHOT-LIFE-007 手工冒烟（其步骤已覆盖完成协调器）。 |
+| 2026-10-14 | Claude | Task 014/03 导出装饰（圆角/边框/阴影）：新增自动化用例 `ScreenshotFrameStyleTests`（13 条：钳制、几何含 2 倍屏折算、圆角透明/边框着色/阴影留白的像素断言、默认值读取、`decorated()` 的 id 与尺寸语义）与 `CaptureCompletionTests` 的 3 条挂载点用例（复制/保存套用装饰、贴图/打印不套用）。默认全关时导出结果逐字节不变，本改动不触及叠层与会话生命周期，故第 12 节不新增 SHOT-LIFE 编号；真实导出对比走既有 SHOT-LIFE-008 手工冒烟（其步骤已覆盖完成协调器）。 |
 | 2026-10-14 | Claude | **截图入口恢复**（`FeatureGate.screenshotEnabled = true`）：菜单项、搜索命令、全局快捷键 F1、设置页截图分区、欢迎向导屏幕录制段全部恢复暴露。原先「暂缓执行」的截图入口类用例恢复为当前行为断言，并按开启后的语义改写：`GlobalShortcutManagerTests` / `HotkeyConflictDetectorTests` / `OnboardingViewModelTests`（改为「授权或跳过」二选一门槛）/ `SettingsNavigationTests`（侧栏含截图页）/ `SystemCommandSourceTests`（截图命令可搜可执行）。 |
 | 2026-10-16 | Claude | **剪贴板默认开启 + 五语言界面 + 切语言即重启**：① 修掉「跳过设置」把剪贴板关掉的行为 —— 剪贴板历史本是产品默认开启的能力（`clipboard.enabled` 代码默认 `"true"`），而 `skipOnboarding()` 曾显式写 `false`，等于「跳过向导」反过来关掉默认能力；现在跳过只写热键与完成标记。② 语言从 2 种扩到 5 种：新增 **繁體中文（zh-Hant）/ 日本語（ja）/ Français（fr）**，`Localizable.xcstrings` 全量补齐（846 键，五种语言各 819 条），语言列表改为**用该语言自身的写法**展示（简体中文 / 繁體中文 / English / 日本語 / Français），不随界面语言翻译。③ 顺带清掉散落在代码里的硬编码中文（内置命令名、设置搜索路由、关键词启动前缀、反馈邮件正文、确认对话框默认按钮），全部改走本地化键；中英文别名保留为**搜索匹配别名**，保证双语/拼音搜索不随界面语言变化。④ **切换语言后自动重启**：写 `AppleLanguages` 后直接以 `createsNewApplicationInstance` 重启自身，不再弹「需要重启才能生效」提示（`SettingsViewModel` 的 `relaunch` 注入点让单测可替换空实现，避免测试真的重启宿主进程）。测试总数 557 → 575。 |
+| 2026-10-17 | Claude | **修复三处截图叠层缺陷**（用户报告）：① **按 F1 后所有屏幕一起变暗** —— 暗幕对所有显示器一次性全亮，现改为只有指针所在屏变暗，指针跨屏时暗幕随上下文迁移；② **拖拽时有个变暗方块跟着鼠标变大** —— 那是放大镜：放大区域与选区无交集时，遮罩（`evenOdd` 填充）没有任何边界可指示，整块被压成一块看不清内容的暗方块；同时其位置判定写反（默认右上、越界翻左下），看起来就像「贴着鼠标的暗块」。现改为**固定 112 pt** 放大光标周围区域、默认贴光标**右下**（右下空间不足才翻到左上），无交集时**不遮罩**，遮罩透明度 `0.45 → 0.18`（遮罩是边界指示，不是内容屏蔽）；③ **框选成功后工具条不出现** —— 原先要按 `Enter` 才出工具条，现改为**松开即出**（草稿态工具条），动作（复制/保存/贴图/打印/关闭）在点击那一刻才按最新选区抓屏（**懒捕获**），避免微调后画面过期。第 12 节新增 1 条自动化用例 **SHOT-LIFE-007**（草稿工具条窗口契约：可见性、不夺 key、跟随选区不重建、懒捕获、失败收摊），原手工冒烟顺延为 **SHOT-LIFE-008**。同时修掉一个被本条暴露的既有缺陷：区域工具条窗口宽度写死 620 pt，而 17 个带文字按钮实需约 1304 pt，导致复制/保存/贴图/关闭被渲染在窗口外**不可点击**——现改为紧凑图标按钮并由内容 `fittingSize` 推导窗口尺寸（582×44）。另修两处跨屏缺陷：**副屏（原点为负，如主屏左侧的 `-2560`）快捷键提示整块看不见** —— `frame(in:)` 把显示器原点重复叠加了一次，算出屏外坐标；**拖拽跨屏时后续事件被丢弃** —— 视图层用本窗口的 `isMouseDown` 过滤，而抬起事件落在对侧窗口上，现改为不按窗口过滤、一律由会话状态机判定，并让非活动屏也上报 `pointerMoved`（否则指针移过去后无人上报，压暗与高亮卡在原屏）。 |
+| 2026-10-17 | Claude | **测试门禁补第 2 步：测试文件登记检查（孤儿文件）**。本轮新增测试时再次撞上同一类缺陷 —— 文件放进 `QingyuTests/` 目录**不会**让它被执行，必须登记进 `Qingyu.xcodeproj` 的 `QingyuTests` 目标（`PBXFileReference` + 分组 children + Sources 阶段）。本轮新增的 `ScreenshotOverlayAppearanceTests`（6 条，压暗范围与选区透出的**画面**断言）起初也是孤儿；顺着查下去又发现 **4 个同类孤儿文件：`PermissionServiceProtocolConformanceTests`（4 条，此前已记录过却一直没修）、`ClipboardMonitorTests`（5 条）、`UpdateServiceTests`（2 条）、`UITestSupportTests`（22 条）**，合计 **33 条用例从未执行过**，而测试报告始终「全绿」——「全绿」因此具有欺骗性。已全部登记（登记后 631 项全绿，说明这些用例本身是对的，只是一直没跑），并把「测试目录里每个 `.swift` 都出现在 Sources 阶段」写进 `scripts/verify.sh` 硬门禁（按文件名匹配，容忍注释带不带 `QingyuTests/` 前缀两种写法），同步写入 `AGENTS.md`。测试总数 575 → 631。 |
 
 ---
 
@@ -1196,18 +1198,26 @@ MVP 暂不覆盖：
 #### SHOT-LIFE-006：区域选区「可微调态」进入与确认
 - **关联**：Task 014/01 选区微调 ｜ **优先级**：P0 ｜ **类型**：XCTest ｜ **文件**：`QingyuTests/CaptureSessionStateTests.swift`（`testRegionDragEntersAdjustingThenConfirmLocks` / `testNudgeMovesRegionInsideDisplay` / `testNudgeWithResizeGrowsSymmetrically` / `testNudgeClampsAtDisplayBoundsAndMinimumSize` / `testNudgeIsIgnoredOutsideAdjustingPhase` / `testSelectFullDisplayWorksFromAdjustingPhase`）、`QingyuTests/CaptureSessionControllerTests.swift`（`testDraggedEntersAdjustingThenConfirmDeliversRegionTarget` / `testNudgeSelectionEventAdjustsRegion`）
 - **步骤**：拖拽圈选 → 松开 → 断言进入 `adjustingRegion` 且**未**交付目标 → 方向键 / `⇧`+方向键调整 → `Enter` → 断言交付区域目标。
-- **预期结果**：松开不再自动截取；方向键每次移动 1 物理像素，`⇧` 沿轴对称伸缩且中心不变；越界贴屏幕边缘、缩到最小尺寸即停住；非可微调态忽略方向键；可微调态下 `⌘A` 仍可切整屏。窗口/整屏单击仍即时锁定。
+- **预期结果**：松开不再自动截取；方向键每次移动 1 物理像素，`⇧` 沿轴对称伸缩且中心不变；越界贴屏幕边缘、缩到最小尺寸即停住；非可微调态忽略方向键；可微调态下 `⌘A` 仍可切整屏。窗口/整屏单击仍即时锁定。松开同时触发 `onRegionAdjustable`（见 SHOT-LIFE-007），但**抓屏仍推迟到确认时**。
+
+#### SHOT-LIFE-007：区域草稿工具条（松开即出 / 不夺 key / 懒捕获）
+- **关联**：Task 014/01 选区微调（产品决策 2026-10-17：框选松开即出工具条）｜ **优先级**：P0 ｜ **类型**：XCTest ｜ **文件**：`QingyuTests/RegionDraftToolbarTests.swift`（7 条）、`QingyuTests/CaptureSessionControllerTests.swift`（`testDragReleaseNotifiesRegionAdjustableOnce` / `testClickLockDoesNotNotifyRegionAdjustable` / `testNudgeNotifiesRegionAdjustableWithMovedRect` / `testApplyingPresetNotifiesRegionAdjustable` / `testRebuildEndsRegionAdjustable` / `testRegionAdjustableNotNotifiedAfterSessionEnds`）
+- **步骤**：拖拽圈选 → 松开 → 断言立刻建出并**显示**工具条、位置贴选区下方居中、且捕获替身调用数为 0（未预捕获）；方向键微调 → 断言窗口实例不变、仅位置更新；断言草稿态 `becomesKeyOnlyIfNeeded == true`（已捕获态为 false）；点动作 → 断言此刻抓屏一次、动作走通（复制写入剪贴板）、工具条收起；捕获抛错 → 断言工具条收起而非留在「点了没反应」状态；选区作废（显示器拓扑变化重建叠层）→ 断言工具条收起但**不**结束会话；会话结束后 → 断言不再回调。
+- **预期结果**：用户报告过的「框选成功后没有工具栏」不再复现；工具条**绝不夺 key**，否则方向键微调 / `Tab` 辅助线 / `Enter` 确认 / `P`·`⌘S` 预设全部失效；微调只挪位置不重建窗口（重建会闪）；抓屏推迟到点动作那一刻，微调后画面不过期；窗口宽度由内容 `fittingSize` 推导，全部动作按钮可见可点。
 
 ### 12.2 手工验收用例（真实屏幕录制环境）
 
-#### SHOT-LIFE-007：真实交互冒烟
+#### SHOT-LIFE-008：真实交互冒烟
 - **优先级**：P0 ｜ **类型**：手工
 - **时机**：发版前，以及任何截图链路（叠层、会话、完成协调器）改动之后。
-- **步骤**：F1 或菜单「截图」进入截图状态，依次验证：屏幕压暗；悬停窗口出现高亮框；单击截取窗口；拖拽圈选自动截取区域；`⌘A` 截当前屏；悬停菜单栏/桌面空白出现整屏提示框且单击截全屏；`Esc` 随时退出；连续多次触发后取消不残留暗幕。
+- **步骤**：F1 或菜单「截图」进入截图状态，依次验证：**只有指针所在屏压暗**（把指针移到另一块屏，暗幕随之迁移、原屏恢复正常）；悬停窗口出现高亮框；单击截取窗口；拖拽圈选时**放大镜固定大小、跟在光标右下角**（右下空间不足时翻到左上角），拖拽不再出现随选区增大的变暗方块；**松开即出工具条**，且此时方向键仍能微调选区、工具条跟着走；点工具条「复制」后剪贴板有图（懒捕获在点击时发生）；`⌘A` 截当前屏；悬停菜单栏/桌面空白出现整屏提示框且单击截全屏；`Esc` 随时退出；连续多次触发后取消不残留暗幕。
 - **预期结果**：以上全部可用；任何一步无响应即为本节回归缺陷复发。
 
 ### 12.3 必跑门禁
 
-- 每次代码修改完毕、提交之前运行 `./scripts/verify.sh`（全量单元测试 + `git diff --check`），失败必须修复后提交；该要求已写入根目录 `AGENTS.md`「测试门禁」。
+- 每次代码修改完毕、提交之前运行 `./scripts/verify.sh`，失败必须修复后提交；该要求已写入根目录 `AGENTS.md`「测试门禁」。门禁三步：
+  1. `git diff --check`（空白错误 / 冲突标记）；
+  2. **测试文件登记检查** —— `QingyuTests/` 下每个 `.swift` 都必须出现在 `Qingyu.xcodeproj` 的 Sources 阶段，否则直接失败（防「孤儿文件」：文件在仓库里、测试全绿，用例却一条也没跑过；已发生过两次，共 33 条用例长期未执行）；
+  3. 全量单元测试 `QingyuTests`。
 
 ---

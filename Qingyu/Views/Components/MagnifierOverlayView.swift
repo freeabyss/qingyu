@@ -160,10 +160,15 @@ final class MagnifierOverlayView: NSView {
             width: relative.width * (drawnRect.width / CGFloat(sample.image.width)),
             height: relative.height * (drawnRect.height / CGFloat(sample.image.height))
         )
+        // 放大区域与选区**完全没有交集**时整块都在选区之外：此时遮罩没有任何可指示的
+        // 边界，只会把放大镜糊成一块看不出内容的暗方块（放大镜的本职是始终清晰显示
+        // 光标周围的像素）。因此无交集即不遮罩；有交集时才用它标出边界落在哪个像素。
+        guard inView.intersects(clip) else { return }
         let path = NSBezierPath(rect: clip)
         path.appendRect(inView)
         path.windingRule = .evenOdd
-        NSColor.black.withAlphaComponent(0.45).set()
+        // 0.45 → 0.18：遮罩是「边界指示」，不是「内容屏蔽」，压暗过重会让放大画面读不出来。
+        NSColor.black.withAlphaComponent(0.18).set()
         path.fill()
     }
 

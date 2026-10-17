@@ -120,6 +120,14 @@ final class CaptureSessionController {
     /// 用户取消（Esc）。控制器已关闭全部叠层。
     var onCancel: (() -> Void)?
 
+    /// 区域进入**可微调态**时回调（拖拽松开、方向键微调后、套用预设后各触发一次）：
+    /// 调用方据此在选区旁展示区域工具条。此时**尚未捕获**，动作触发时才按需抓屏
+    /// （懒捕获：预捕获会在叠层仍可见时抓屏，且微调后画面立即过期）。
+    var onRegionAdjustable: ((CaptureDisplay, CGRect) -> Void)?
+    /// 可微调态已失效（例如显示器拓扑变化后重建叠层）：调用方应收起草稿工具条。
+    /// 与 `onCancel` 的区别是会话**不结束**，只是选区作废、回到窗口选择态。
+    var onRegionAdjustableEnded: (() -> Void)?
+
     init(
         displayProvider: DisplayProviding,
         windowProvider: WindowCandidateProviding,
@@ -209,7 +217,11 @@ final class CaptureSessionController {
 
         switch event {
         case .pointerMoved(let point):
-            switchActiveDisplay(to: point, notifyState: true)
+            // 只有在「窗口选择」阶段才跟随指针切换当前显示器：拖拽/可微调期间选区已绑定
+            // 到它所属的显示器，此时切屏会把选区画到另一块屏上（坐标错位、看起来选区乱跳）。
+            if case .targetingWindow = state.phase {
+                switchActiveDisplay(to: point, notifyState: true)
+            }
             scheduleElementProbe(at: point)
 
         case .mouseDown(let point):
@@ -217,6 +229,11 @@ final class CaptureSessionController {
                 ?? display(for: activeDisplayID)
                 ?? displayProvider.displays.first
             guard let display else { return }
+            // 指针在非当前屏按下时，先把当前屏切到按下所在屏（不重置会话状态），
+            // 否则选区会被画在另一块屏上。指针瞬移（未经 mouseMoved）时这条是唯一保障。
+            if display.id != activeDisplayID {
+                focusActiveDisplay(on: display)
+            }
             state.mouseDown(at: point, display: display)
             syncOverlays()
 
@@ -233,6 +250,8 @@ final class CaptureSessionController {
                 isSessionActive = false
                 onLocked?(target)
             }
+            // 松开即进入可微调态：立刻把工具条交给调用方，不再等 `Enter`。
+            notifyRegionAdjustableIfNeeded()
 
         case .selectFullDisplay:
             if let display = display(for: activeDisplayID) ?? displayProvider.displays.first {
@@ -248,6 +267,8 @@ final class CaptureSessionController {
             // Task 014/01：仅在可微调态生效；无变化时不重绘。
             if state.nudgeRegion(axis: axis, delta: delta, resize: resize) {
                 syncOverlays()
+                // 工具条跟着新选区走（否则微调后工具条会停在旧位置）。
+                notifyRegionAdjustableIfNeeded()
             }
 
         case .confirmSelection:
@@ -283,8 +304,17 @@ final class CaptureSessionController {
         guard isSessionActive else { return }
         closeAllWindows()
         state = CaptureSessionState()
+        // 旧选区随状态一起作废：草稿工具条若还挂着，点动作会截到一个已经不对应的区域。
+        onRegionAdjustableEnded?()
         buildWindows()
         switchActiveDisplay(to: NSEvent.mouseLocation, notifyState: false)
+    }
+
+    /// 进入可微调态后通知调用方展示区域工具条（尚未捕获）。
+    /// 重复调用是幂等的：调用方只更新位置，不重建窗口。
+    private func notifyRegionAdjustableIfNeeded() {
+        guard case .adjustingRegion(let display, let rect) = state.phase else { return }
+        onRegionAdjustable?(display, rect)
     }
 
     // MARK: - Presets (Task 015)
@@ -341,6 +371,7 @@ final class CaptureSessionController {
                 // 焦点跟随到预设所在屏，但**不得**走 `switchActiveDisplay(notifyState: false)`：
                 // 那是 `start()` 的首帧语义，会把刚套用的状态整个重置掉。
                 focusActiveDisplay(on: display)
+                notifyRegionAdjustableIfNeeded()
                 return nil
             case .failure(.screenUnavailable):
                 return showNotice(L10n.localized("capture.preset.screenUnavailable"))
@@ -357,6 +388,7 @@ final class CaptureSessionController {
             let rect = PresetResolver.resolve(sizePreset: preset, pointerLocation: pointer, screen: screen)
             state.applyPresetRegion(rect, display: display)
             focusActiveDisplay(on: display)
+            notifyRegionAdjustableIfNeeded()
             return nil
         }
     }

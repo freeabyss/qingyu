@@ -132,7 +132,11 @@ enum MagnifierGeometry {
 
     // MARK: 放大镜框位置
 
-    /// 放大镜框：默认放在锚点右上方，越界时翻转到锚点左下方，最后整体钳制进可见区。
+    /// 放大镜框：默认放在锚点**右下方**，右侧或下方空间不足时各自翻转到对侧
+    /// （右→左、下→上，即空间不足时落到左上方），最后整体钳制进可见区。
+    ///
+    /// 默认右下而不是右上：光标在选区角上时，右下方向正是选区内侧，
+    /// 放大镜不会挡住用户接下来要圈的区域。
     ///
     /// 可见区小于放大镜时以可见区原点为准（保证框完整可见）。
     static func magnifierFrame(
@@ -145,9 +149,9 @@ enum MagnifierGeometry {
         if originX + size.width > visibleFrame.maxX {
             originX = anchor.x - gap - size.width
         }
-        var originY = anchor.y + gap
-        if originY + size.height > visibleFrame.maxY {
-            originY = anchor.y - gap - size.height
+        var originY = anchor.y - gap - size.height
+        if originY < visibleFrame.minY {
+            originY = anchor.y + gap
         }
 
         let minX = visibleFrame.minX

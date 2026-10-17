@@ -130,26 +130,48 @@ final class ScreenshotWindowController {
 
         session.onLocked = { [weak self, weak session] target in
             guard let self, let session else { return }
-            // Hide every overlay so it does not appear in the captured bitmap,
-            // then give WindowServer one tick before reading pixels.
-            session.hideForCapture()
             Task { @MainActor in
                 do {
-                    try? await Task.sleep(nanoseconds: 80_000_000)
-                    let result = try await self.container.screenshotService.captureTarget(target)
-                    // 截图成功 → 可选提示音（默认关，与接通前行为一致）。
-                    self.soundPlayer.playIfNeeded(self.postCapturePolicy.playsSoundOnCapture)
+                    let result = try await self.performCapture(
+                        target,
+                        session: session,
+                        restoreCommandBar: wasCommandBarVisible
+                    )
                     self.showPreview(for: result)
-                    session.finish()
                     // 截图会话到「预览」即告结束（预览阶段不占用会话状态）。
-                    self.isCapturing = false
                     self.logger.info("Capture completed, preview shown")
                 } catch {
-                    session.finish()
-                    self.isCapturing = false
-                    self.handleCaptureError(error, restoreCommandBar: wasCommandBarVisible)
+                    // 失败提示与命令条恢复已由 `performCapture` 统一处理。
                 }
             }
+        }
+
+        // 区域选区落定（拖拽松开 / 方向键微调 / 套用预设）后**立即**展示工具条：
+        // 此时尚未捕获，点动作或按 Enter 时才真正抓屏（懒捕获）。
+        session.onRegionAdjustable = { [weak self, weak session] display, rect in
+            guard let self, let session else { return }
+            self.toolbar.showRegionDraft(
+                globalRect: rect,
+                screenFrame: display.frame,
+                capture: { [weak self, weak session] in
+                    guard let self, let session else {
+                        throw SnapVaultError.screenshotFailed(reason: L10n.localized("error.serviceDeallocated"))
+                    }
+                    return try await self.performCapture(
+                        .region(display: display, globalRect: rect),
+                        session: session,
+                        restoreCommandBar: wasCommandBarVisible
+                    )
+                },
+                onDismiss: { [weak session] in
+                    // 用户放弃工具条（✕）：结束会话。会话若已因捕获结束，
+                    // `cancel()` 自身会早退，不会重复广播取消。
+                    session?.cancel()
+                }
+            )
+        }
+        session.onRegionAdjustableEnded = { [weak self] in
+            self?.toolbar.dismissRegionDraft()
         }
 
         session.onCancel = { [weak self] in
@@ -165,6 +187,33 @@ final class ScreenshotWindowController {
         session.start()
         // 让叠层窗口立即成为活动 key 窗口：鼠标首击直接进入拖拽，Esc 立即可用。
         NSApp.activate(ignoringOtherApps: true)
+    }
+
+    /// 执行一次捕获并收尾会话：隐藏叠层 → 让 WindowServer 走一帧 → 抓屏 → `finish()`。
+    ///
+    /// 窗口/整屏单击（`onLocked`）与区域懒捕获（工具条动作 / `Enter`）共用这一条路径，
+    /// 保证「隐藏叠层再抓屏」「失败也要结束会话」这两条规则只有一处实现。
+    private func performCapture(
+        _ target: CaptureTarget,
+        session: CaptureSessionController,
+        restoreCommandBar: Bool
+    ) async throws -> ScreenshotResult {
+        // 叠层必须先隐藏，否则会出现在位图里；再给 WindowServer 一帧时间刷新。
+        session.hideForCapture()
+        do {
+            try? await Task.sleep(nanoseconds: 80_000_000)
+            let result = try await container.screenshotService.captureTarget(target)
+            // 截图成功 → 可选提示音（默认关，与接通前行为一致）。
+            soundPlayer.playIfNeeded(postCapturePolicy.playsSoundOnCapture)
+            session.finish()
+            isCapturing = false
+            return result
+        } catch {
+            session.finish()
+            isCapturing = false
+            handleCaptureError(error, restoreCommandBar: restoreCommandBar)
+            throw error
+        }
     }
 
     private func showPreview(for result: ScreenshotResult) {
