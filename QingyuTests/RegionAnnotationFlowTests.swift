@@ -189,4 +189,57 @@ final class RegionAnnotationFlowTests: XCTestCase {
         XCTAssertTrue(host.finished, "动作完成后应收起标注画布")
         XCTAssertNotNil(pasteboard.data(forType: .png), "复制应把带标注的结果写进剪贴板")
     }
+
+    /// SHOT-LIFE-016：真实叠层必须真正进入标注态，并且选区内拖拽能落下图形。
+    ///
+    /// 用户报告（2026-10-18）：「选中方形后，无法画出方形」。根因是
+    /// CaptureOverlayWindowController.beginAnnotation 的签名与协议要求（返回 Bool）
+    /// 不一致：Swift 静默采用协议扩展里的默认实现（什么都不做、返回 false），
+    /// 会话却仍把 isAnnotating 置为 true。于是工具条一直以为在标注、点工具只换高亮，
+    /// 而内容视图的 annotationSession 为 nil，所有落笔都被忽略。
+    func testConcreteOverlayStartsAnnotationThroughProtocolAndAcceptsDrawing() throws {
+        let display = CaptureDisplay(
+            id: 7,
+            frame: CGRect(x: 0, y: 0, width: 800, height: 600),
+            pixelSize: CGSize(width: 800, height: 600)
+        )
+        let overlay = CaptureOverlayWindowController(display: display)
+        let region = CGRect(x: 100, y: 100, width: 400, height: 300)
+
+        let started = (overlay as CaptureOverlayWindow).beginAnnotation(
+            image: NSImage(size: region.size),
+            regionGlobal: region,
+            tool: .rectangle,
+            style: AnnotationStyle()
+        )
+
+        XCTAssertTrue(started, "协议派发必须到达真实叠层（不能落到默认实现的 false）")
+        XCTAssertTrue(overlay.isAnnotating, "内容视图必须进入标注态，否则落笔会被直接忽略")
+        let view = overlay.contentViewForTesting
+        XCTAssertTrue(view.acceptsFirstMouse(for: nil), "第一次点击就必须能落笔，而不是只激活窗口")
+
+        let down = try mouseEvent(.leftMouseDown, at: NSPoint(x: 150, y: 150))
+        let drag = try mouseEvent(.leftMouseDragged, at: NSPoint(x: 350, y: 300))
+        let up = try mouseEvent(.leftMouseUp, at: NSPoint(x: 350, y: 300))
+        view.mouseDown(with: down)
+        view.mouseDragged(with: drag)
+        view.mouseUp(with: up)
+
+        XCTAssertEqual(overlay.annotationShapes.count, 1, "选区内拖拽必须落下一个矩形")
+        XCTAssertEqual(overlay.annotationShapes.first?.tool, .rectangle)
+    }
+
+    private func mouseEvent(_ type: NSEvent.EventType, at point: NSPoint) throws -> NSEvent {
+        try XCTUnwrap(NSEvent.mouseEvent(
+            with: type,
+            location: point,
+            modifierFlags: [],
+            timestamp: ProcessInfo.processInfo.systemUptime,
+            windowNumber: 0,
+            context: nil,
+            eventNumber: 0,
+            clickCount: 1,
+            pressure: type == .leftMouseUp ? 0 : 1
+        ))
+    }
 }

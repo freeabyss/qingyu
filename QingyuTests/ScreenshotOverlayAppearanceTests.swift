@@ -101,6 +101,31 @@ final class ScreenshotOverlayAppearanceTests: XCTestCase {
         )
     }
 
+    /// 只重绘一条竖带时，**上一次选区留在画布上的透明挖空也必须一起重算**。
+    ///
+    /// 这是「暗色区域」的另一种形态：旧选区的挖空不在本次 dirtyRect 内时，
+    /// 若只清 dirtyRect，它会一直保持透明；等它应当被压暗时就成了边界笔直的
+    /// 亮/暗块。draw 现在先解除裁剪、整屏重算，因此旧挖空会被重新压暗。
+    func testPartialRedrawRefreshesHolesFromPreviousRegion() {
+        let oldRegion = CGRect(x: 200, y: 150, width: 400, height: 200)
+        let view = makeView(isActive: true, region: oldRegion)
+        guard let rep = view.bitmapImageRepForCachingDisplay(in: view.bounds) else {
+            return XCTFail("无法创建缓存位图")
+        }
+        view.cacheDisplay(in: view.bounds, to: rep)
+        XCTAssertEqual(alpha(rep, x: 400, y: 250), 0, accuracy: 0.05, "旧选区中心应为透明挖空")
+
+        // 选区移到左上角；只重绘中间一条竖带（旧挖空在这条带之外）。
+        view.regionFrame = CGRect(x: 20, y: 20, width: 100, height: 80)
+        let band = NSRect(x: 380, y: 0, width: 40, height: height)
+        view.cacheDisplay(in: band, to: rep)
+
+        XCTAssertEqual(
+            alpha(rep, x: 400, y: 250), 0.3, accuracy: 0.05,
+            "旧选区的透明挖空必须被重新压暗；否则会留下边界笔直的亮/暗块"
+        )
+    }
+
     // MARK: - 压暗范围
 
     func testInactiveDisplayIsNotDimmed() {

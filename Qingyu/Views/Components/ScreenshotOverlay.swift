@@ -63,8 +63,12 @@ final class CaptureOverlayWindowController: CaptureOverlayWindow {
     }
 
     func setActive(_ active: Bool) {
+        // 指针在活动屏上移动时 syncOverlays 每帧都会调到这里；只有「切换到本屏」
+        // 才需要 makeKeyAndOrderFront。此前无条件 makeKey，鼠标一动就重新排序窗口
+        // （实测约 150 次/秒），既浪费合成，也会让正在进行的拖拽/落笔抖动。
+        let wasActive = contentView.isActiveDisplay
+        guard wasActive != active else { return }
         contentView.isActiveDisplay = active
-        contentView.needsDisplay = true
         contentView.hintsView?.isHidden = !active
         // 只有活动显示器持有 key 窗口：Esc/⌘A 只路由到该屏，
         // 跨屏切换时旧屏让出 key，避免多窗互相争抢。
@@ -98,18 +102,33 @@ final class CaptureOverlayWindowController: CaptureOverlayWindow {
 
     /// 进入原地标注：叠层本身保持原样（压暗、边框、尺寸徽标都不变），
     /// 只在选区内新增一层可编辑的标注画布。
-    func beginAnnotation(image: NSImage, regionGlobal: CGRect, tool: AnnotationTool, style: AnnotationStyle) {
+    ///
+    /// **签名必须与 CaptureOverlayWindow 的协议要求完全一致（返回 Bool）**。
+    /// 曾经这里写成 -> Void：协议于是静默地用了扩展里的默认实现（直接返回 false、
+    /// 什么都不做），而会话仍然把 isAnnotating 置为 true —— 用户点方形后能进标注，
+    /// 但内容视图没有 annotationSession，怎么拖都画不出图形。回归见 SHOT-LIFE-016。
+    @discardableResult
+    func beginAnnotation(
+        image: NSImage,
+        regionGlobal: CGRect,
+        tool: AnnotationTool,
+        style: AnnotationStyle
+    ) -> Bool {
         contentView.beginAnnotation(
             image: image,
             regionGlobal: regionGlobal,
             tool: tool,
             style: style
         )
+        return contentView.isAnnotating
     }
 
     func updateAnnotationTool(_ tool: AnnotationTool, style: AnnotationStyle) {
         contentView.updateAnnotationTool(tool, style: style)
     }
+
+    /// 单测入口：落笔/命中都直接走内容视图的鼠标方法（测试宿主里无法合成真实全局事件）。
+    var contentViewForTesting: CaptureOverlayContentView { contentView }
 
     func undoAnnotation() { contentView.undoAnnotation() }
     func redoAnnotation() { contentView.redoAnnotation() }
@@ -167,15 +186,27 @@ final class CaptureOverlayWindowController: CaptureOverlayWindow {
 final class CaptureOverlayContentView: NSView {
     let display: CaptureDisplay
     var isActiveDisplay = false {
-        didSet { updateHintsVisibility() }
+        didSet {
+            guard isActiveDisplay != oldValue else { return }
+            updateHintsVisibility()
+            // 跨屏切换必须整屏重绘：新活动屏要压暗，旧活动屏要恢复透明。
+            needsDisplay = true
+        }
     }
-    var highlightFrame: NSRect?
+    var highlightFrame: NSRect? {
+        didSet { if highlightFrame != oldValue { needsDisplay = true } }
+    }
     /// Task 012：控件级高亮（AppKit 全局坐标）。
     var elementFrame: NSRect? {
-        didSet { needsDisplay = true }
+        didSet { if elementFrame != oldValue { needsDisplay = true } }
     }
+    /// 选区（AppKit 全局坐标）。**每一次变化都必须整屏重绘**：只重绘一条带会把
+    /// 上一次选区的「挖空」留在 backing store 里，画面上就是一块/一条更暗的区域。
     var regionFrame: NSRect? {
-        didSet { updateMagnifierMask() }
+        didSet {
+            if regionFrame != oldValue { needsDisplay = true }
+            updateMagnifierMask()
+        }
     }
     var onEvent: ((CaptureInputEvent) -> Void)?
     /// 已进入「原地标注」：选区已锁定，鼠标/键盘归属标注会话，不再上抛截图事件。
@@ -351,6 +382,13 @@ final class CaptureOverlayContentView: NSView {
 
     override var acceptsFirstResponder: Bool { true }
 
+    /// 第一次点击就要落到叠层上，而不是只被用来「激活窗口」。
+    ///
+    /// 区域工具条是独立窗口；用户点完某个工具（尤其是工具条短暂成为 key 时）
+    /// 再回选区内落笔，第一次按下会被 AppKit 当作激活窗口吃掉 —— 表现就是
+    /// 「选中方形后拖不出方形」。与旧标注窗 AnnotationCanvasNSView 同一处理。
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
+
     private func globalPoint(_ localPoint: NSPoint) -> CGPoint {
         CGPoint(
             x: localPoint.x + display.frame.minX,
@@ -480,6 +518,10 @@ final class CaptureOverlayContentView: NSView {
     }
 
     override func mouseDown(with event: NSEvent) {
+        // 落笔同时把叠层重新拿回 key：工具条/输入面板可能刚短暂夺过 key，
+        // 不拿回来则后续 Esc、⌘Z、方向键会落到工具条上。
+        window?.makeKey()
+        window?.makeFirstResponder(self)
         let global = globalPoint(convert(event.locationInWindow, from: nil))
         if isAnnotating, let session = annotationSession {
             guard session.contains(global: global) else { return }
@@ -696,6 +738,11 @@ final class CaptureOverlayContentView: NSView {
         // 清空必须在 `isActiveDisplay` 判断**之前**：非活动屏同样会收到 `needsDisplay`
         // （跨屏切换时原活动屏正是这样），若在这里早退，窗口会把上一次的压暗与挖空
         // 原样留在 backing store 里 —— 用户看到的就是「一块滞留的暗色区域」。
+        //
+        // **先解除 AppKit 的 dirtyRect 裁剪**：只清 dirtyRect 时，上一次选区挖空的
+        // 透明区域若不在这次 dirtyRect 内就会原样留着；等它变成压暗区时就成了
+        // 「一条贯穿全屏的竖向暗带」。整屏重算一次，压暗永远只有一层。
+        NSGraphicsContext.current?.cgContext.resetClip()
         NSColor.clear.set()
         bounds.fill(using: .copy)
 

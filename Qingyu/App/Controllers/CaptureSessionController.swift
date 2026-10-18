@@ -379,8 +379,20 @@ final class CaptureSessionController {
     func beginAnnotation(image: NSImage, regionGlobal: CGRect, tool: AnnotationTool, style: AnnotationStyle) -> Bool {
         guard case .adjustingRegion = state.phase, !isAnnotating else { return false }
         guard let overlay = overlay(for: regionGlobal) else { return false }
+        // 必须用**叠层实际是否进入标注**作为成功条件：这里曾忽略返回值，叠层协议
+        // 派发失败时会话仍把 isAnnotating 置 true，于是工具条以为在标注、画布却没有
+        // annotationSession —— 用户点方形后一笔也画不出来（SHOT-LIFE-016）。
+        guard overlay.beginAnnotation(
+            image: image,
+            regionGlobal: regionGlobal,
+            tool: tool,
+            style: style
+        ) else {
+            isAnnotating = false
+            logger.error("In-place annotation refused by overlay on display \(overlay.display.id)")
+            return false
+        }
         isAnnotating = true
-        overlay.beginAnnotation(image: image, regionGlobal: regionGlobal, tool: tool, style: style)
         // 标注期间叠层必须保持 key：Esc/⌘Z 走 `keyDown`，不能落到工具条上。
         (overlay as? CaptureOverlayWindowController)?.makeKey()
         if let handler = annotationTextInputHandler {
