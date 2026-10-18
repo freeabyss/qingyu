@@ -104,4 +104,62 @@ final class ScreenRecordingConsentTests: XCTestCase {
         XCTAssertTrue(granted)
         XCTAssertEqual(recorder.waits, 1, "第一次等待之后就应读到授权")
     }
+
+    // MARK: - 等待预算（用户报告 2026-10-18：「出现两个弹出申请授权」）
+
+    /// 等待预算必须按**人的反应速度**给足。
+    ///
+    /// 预算太短（曾是 6 × 0.5 s = 3 秒）时，用户还在读系统弹窗里的按钮，我们自己的
+    /// 引导窗就弹出来了 —— 用户看到的就是「同时弹出两个申请授权的窗」。
+    func testDefaultBudgetCoversAHumanAnsweringTheSystemDialog() {
+        let flow = ScreenRecordingConsentFlow.live()
+        let seconds = Double(flow.maxRechecks)
+            * Double(ScreenRecordingConsentFlow.recheckIntervalNanoseconds) / 1_000_000_000
+
+        XCTAssertGreaterThanOrEqual(
+            seconds, 15,
+            "预算 \(seconds) 秒太短：系统同意窗还挂着就会弹出我们的引导窗"
+        )
+    }
+
+    /// 用户想得久一点（在系统弹窗上停留十几秒）也必须能拿到授权，而不是被判成「没授权」。
+    func testLateGrantWithinDefaultBudgetIsDetected() async {
+        let recorder = Recorder()
+        recorder.authorizedAfterWaits = 24   // 约 12 秒后才点「允许」
+
+        let granted = await makeFlow(recorder, maxRechecks: 40).run()
+
+        XCTAssertTrue(granted)
+        XCTAssertEqual(recorder.waits, 24, "迟到但仍在预算内的授权必须被识别")
+    }
+
+    /// 取消（用户再次触发截图入口 = 认为系统没弹窗）必须**立即**返回，
+    /// 而不是把 20 秒预算跑满——否则用户再按一次也毫无反馈。
+    func testCancelledWaitReturnsWithoutRunningTheWholeBudget() async {
+        let counter = WaitCounter()
+        let flow = ScreenRecordingConsentFlow(
+            isAuthorized: { false },
+            requestLegacyPrompt: {},
+            triggerSystemConsent: {},
+            waitBeforeRecheck: {
+                counter.record()
+                try? await Task.sleep(nanoseconds: 10_000_000)
+            },
+            maxRechecks: 40
+        )
+
+        let task = Task { await flow.run() }
+        try? await Task.sleep(nanoseconds: 60_000_000)   // 让若干次复查先跑起来
+        task.cancel()
+        let granted = await task.value
+
+        XCTAssertFalse(granted)
+        XCTAssertLessThan(counter.count, 40, "取消后不得把整个预算跑满")
+    }
+
+    @MainActor
+    private final class WaitCounter {
+        private(set) var count = 0
+        func record() { count += 1 }
+    }
 }

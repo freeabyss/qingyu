@@ -59,8 +59,9 @@ final class AnnotationEditorWindow: NSWindowController, NSWindowDelegate {
         )
 
         let isRegionEditor = presentationFrame != nil
+        let targetContent = presentationFrame ?? computeWindowRect()
         let window = AnnotationEditorPanel(
-            contentRect: presentationFrame ?? computeWindowRect(),
+            contentRect: targetContent,
             styleMask: isRegionEditor ? [.borderless, .fullSizeContentView] : [.titled, .closable, .resizable, .miniaturizable, .fullSizeContentView],
             backing: .buffered,
             defer: false
@@ -71,6 +72,11 @@ final class AnnotationEditorWindow: NSWindowController, NSWindowDelegate {
             : .floating
         window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         window.contentViewController = NSHostingController(rootView: root)
+        // 赋 `contentViewController` 会把窗口尺寸改成内容的**固有尺寸**：画布是
+        // NSViewRepresentable（没有固有尺寸），只有上下工具条有，于是窗口会被缩成
+        // 一条约 312×132 的窄条。区域截图下这表现为「点标注后截图突然缩小了」——
+        // 窗口本该与选区严丝合缝。这里在赋完 VC 之后把尺寸钉回目标矩形（原点不动）。
+        window.setContentSize(targetContent.size)
         window.delegate = self
         window.isReleasedWhenClosed = false
         window.onEscape = { [weak self] in self?.cancel() }

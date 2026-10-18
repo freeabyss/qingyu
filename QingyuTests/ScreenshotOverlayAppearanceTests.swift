@@ -146,6 +146,22 @@ final class ScreenshotOverlayAppearanceTests: XCTestCase {
         XCTAssertEqual(luminance(rep, x: 80, y: 56), 255, accuracy: 8, "放大画面应保持清晰（右半）")
     }
 
+    /// 放大镜**不得有暗色底板**：它显示的就该是被放大的那几像素本身。
+    ///
+    /// 用户报告（2026-10-18）：「拖拽时还是有发暗的方块，应该去掉暗色方块」。
+    /// 成因是视图先铺一层 78% 黑的圆角底板、再把取样图内缩 6pt 画上去：取样未到
+    /// （或内容本身偏暗）时，整块就是一块看不出内容的暗方块。
+    func testMagnifierHasNoDarkPlateAroundTheSample() {
+        let view = makeMagnifier()
+        let rep = render(view, dump: "magnifier-no-plate")
+
+        // 取样图为纯白：留着底板时，四条内缩边带会明显发暗（约 56 而不是 255）。
+        XCTAssertEqual(luminance(rep, x: 4, y: 56), 255, accuracy: 8, "左边缘应是画面本身，不是暗色底板")
+        XCTAssertEqual(luminance(rep, x: 107, y: 56), 255, accuracy: 8, "右边缘应是画面本身，不是暗色底板")
+        XCTAssertEqual(luminance(rep, x: 56, y: 4), 255, accuracy: 8, "上边缘应是画面本身，不是暗色底板")
+        XCTAssertEqual(luminance(rep, x: 56, y: 107), 255, accuracy: 8, "下边缘应是画面本身，不是暗色底板")
+    }
+
     /// 选区边界落在取样窗口内时，仅「选区之外」的一侧轻微压暗，用来指示边界。
     func testMagnifierDimsOnlySlightlyOutsideSelection() {
         let view = makeMagnifier()

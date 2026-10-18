@@ -40,6 +40,7 @@ protocol PermissionServiceProtocol {
     /// 「等用户回应」两步，见 `ScreenRecordingConsentFlow`。
     ///
     /// - Returns: 用户回应（或超时）之后，本进程当前是否已获屏幕录制授权。
+    /// - Note: 最多等 20 秒；等待期间取消所在 `Task`（用户再次触发入口）会立即返回。
     @MainActor
     func requestScreenRecordingAccess() async -> Bool
 
@@ -138,6 +139,12 @@ enum ScreenRecordingRecovery {
 /// 第 3 步是必要的：系统同意窗是异步的，用户点「允许」之前状态一直是未授权；
 /// 若不等，就会在系统弹窗还挂着的时候弹出我们自己的引导窗，把用户推到
 /// 「到底点哪个」的混乱里。
+///
+/// 等待预算必须**按人的反应速度**给足：早期实现只等 3 秒，用户还在读系统弹窗里的
+/// 三个按钮，我们的引导窗就已经弹出来了 —— 用户看到的是「同时弹出两个申请授权的窗」。
+/// 默认 40 × 0.5 s = 20 秒，足够读完并点掉系统弹窗；用户若认为系统压根没弹窗，
+/// 再按一次截图入口即可立刻结束等待（调用方通过 `Task` 取消实现，见
+/// `ScreenshotWindowController.startCapture()`）。
 struct ScreenRecordingConsentFlow {
     /// 读取当前是否已授权（生产实现为 `CGPreflightScreenCaptureAccess()`）。
     var isAuthorized: () -> Bool
@@ -147,16 +154,30 @@ struct ScreenRecordingConsentFlow {
     var triggerSystemConsent: () -> Void
     /// 两次复查之间的等待。
     var waitBeforeRecheck: () async -> Void
-    /// 最多复查几次。默认 6 次 × 0.5 s = 约 3 秒，足够用户回应系统弹窗。
-    var maxRechecks: Int = 6
+    /// 最多复查几次。默认 40 次 × 0.5 s = 约 20 秒。
+    var maxRechecks: Int = 40
 
-    /// - Returns: 最终是否已授权。
+    /// 生产环境的两次复查间隔。
+    static let recheckIntervalNanoseconds: UInt64 = 500_000_000
+
+    /// 生产时序（真实系统调用 + 0.5 秒复查间隔）。
+    static func live() -> ScreenRecordingConsentFlow {
+        ScreenRecordingConsentFlow(
+            isAuthorized: { CGPreflightScreenCaptureAccess() },
+            requestLegacyPrompt: { _ = CGRequestScreenCaptureAccess() },
+            triggerSystemConsent: { PermissionService.triggerSystemConsentPrompt() },
+            waitBeforeRecheck: { try? await Task.sleep(nanoseconds: recheckIntervalNanoseconds) }
+        )
+    }
+
+    /// - Returns: 最终是否已授权。等待被取消（用户再次触发入口）时立即返回当前状态。
     func run() async -> Bool {
         if isAuthorized() { return true }
         requestLegacyPrompt()
         triggerSystemConsent()
         // 先等再查：系统同意窗需要一点时间才会出现，立刻查必然读到「未授权」。
         for _ in 0..<maxRechecks {
+            if Task.isCancelled { return isAuthorized() }
             await waitBeforeRecheck()
             if isAuthorized() { return true }
         }
@@ -203,13 +224,7 @@ final class PermissionService: PermissionServiceProtocol {
 
     @MainActor
     func requestScreenRecordingAccess() async -> Bool {
-        let flow = ScreenRecordingConsentFlow(
-            isAuthorized: { CGPreflightScreenCaptureAccess() },
-            requestLegacyPrompt: { _ = CGRequestScreenCaptureAccess() },
-            triggerSystemConsent: { Self.triggerSystemConsentPrompt() },
-            waitBeforeRecheck: { try? await Task.sleep(nanoseconds: 500_000_000) }
-        )
-        let granted = await flow.run()
+        let granted = await ScreenRecordingConsentFlow.live().run()
         logger.info("Screen recording access request finished: granted=\(granted, privacy: .public)")
         return granted
     }

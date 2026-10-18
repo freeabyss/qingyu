@@ -15,6 +15,11 @@ final class ScreenshotWindowController {
     private let soundPlayer = CaptureSoundPlayer()
     /// 防重入：会话进行中忽略重复触发（避免叠出两套全屏叠层）。
     private var isCapturing = false
+    /// 正在等待系统屏幕录制同意窗的用户回应；nil 表示不在等待。
+    ///
+    /// 等待期间再次触发截图入口 = 用户认为「系统根本没弹窗」，取消等待即可立刻
+    /// 进入引导（否则要干等满 `ScreenRecordingConsentFlow` 的 20 秒预算）。
+    private var consentTask: Task<Void, Never>?
     private unowned let container: AppContainer
 
     /// Task 011：放大镜配置。由 `AppContainer.syncRuntimeSettings()` 从设置同步；
@@ -66,6 +71,13 @@ final class ScreenshotWindowController {
             logger.info("FeatureGate: screenshot disabled, startCapture ignored")
             return
         }
+        // 正在等系统同意窗：再次触发入口表示用户认为系统没弹窗，立刻结束等待。
+        // 必须在下面的 `isCapturing` 防重入之前判断——等待期间它一直是 true。
+        if let consentTask {
+            logger.info("Consent wait aborted by a repeated trigger; showing guidance")
+            consentTask.cancel()
+            return
+        }
         // 防重入：会话进行中再次触发入口时忽略，避免叠出两套全屏叠层。
         guard !isCapturing else {
             logger.info("Screenshot ignored: a capture session is already active")
@@ -76,9 +88,11 @@ final class ScreenshotWindowController {
         // 未授权：先走一次系统同意流程，拿到授权就继续本次截图，拿不到再展示引导 ——
         // 不直接放弃。macOS 15 起 `CGRequestScreenCaptureAccess()` 已不弹窗、也不把本 App
         // 写进 TCC 列表，必须**真的抓一次屏**才会弹同意窗，见 `ScreenRecordingConsentFlow`。
+        // 等待预算 20 秒：够用户读完并点掉系统弹窗，不会在系统弹窗还挂着时就弹我们的引导。
         guard container.permissionService.status(for: .screenRecording).isAuthorized else {
-            Task { @MainActor in
+            consentTask = Task { @MainActor in
                 let granted = await container.permissionService.requestScreenRecordingAccess()
+                consentTask = nil
                 isCapturing = false
                 if granted {
                     logger.info("Screen recording granted during the consent flow; retrying capture")

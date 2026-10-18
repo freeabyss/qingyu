@@ -54,8 +54,9 @@ final class MagnifierOverlayView: NSView {
 
     private enum Metrics {
         static let borderWidth: CGFloat = 1
-        static let contentInset: CGFloat = 6
-        static let cornerRadius: CGFloat = 10
+        /// 徽标与画面边缘的间距。画面本身**满幅**（不留内边距），间距只用于放徽标。
+        static let labelInset: CGFloat = 4
+        static let cornerRadius: CGFloat = 8
         static let labelPadding: CGFloat = 5
         static let labelFontSize: CGFloat = 10
         static let minimumCellSizeForGrid: CGFloat = 3
@@ -64,20 +65,15 @@ final class MagnifierOverlayView: NSView {
     override func draw(_ dirtyRect: NSRect) {
         super.draw(dirtyRect)
 
-        let background = NSBezierPath(
-            roundedRect: bounds,
-            xRadius: Metrics.cornerRadius,
-            yRadius: Metrics.cornerRadius
-        )
-        NSColor.black.withAlphaComponent(0.78).set()
-        background.fill()
-        NSColor.white.withAlphaComponent(0.22).set()
-        background.lineWidth = Metrics.borderWidth
-        background.stroke()
-
+        // 放大镜**不画底板**：它显示的就是「被放大的那几像素」本身。
+        //
+        // 这里原先先铺一层 78% 黑的圆角底板、再把取样图内缩 6pt 画上去，于是
+        // 「取样尚未到达」或「取样内容本身偏暗」时，用户看到的就是一个跟着光标走、
+        // 看不出任何内容的**发暗方块** —— 正是用户报告的现象。底板没有任何信息价值，
+        // 只留一圈描边把画面从屏幕上托起来。
         guard let sample else { return }
 
-        let content = bounds.insetBy(dx: Metrics.contentInset, dy: Metrics.contentInset)
+        let content = bounds
         let imageWidth = CGFloat(sample.image.width)
         let imageHeight = CGFloat(sample.image.height)
         guard imageWidth > 0, imageHeight > 0, content.width > 0, content.height > 0 else { return }
@@ -101,12 +97,41 @@ final class MagnifierOverlayView: NSView {
             drawGrid(imageWidth: Int(imageWidth), imageHeight: Int(imageHeight), cell: cell, drawnRect: drawnRect)
         }
         drawCenterPixel(sample: sample, cell: cell, drawnRect: drawnRect)
-        drawLabels(sample: sample, content: content)
+        drawLabels(sample: sample, content: content.insetBy(dx: Metrics.labelInset, dy: Metrics.labelInset))
+        drawLensEdge()
+    }
+
+    /// 镜片边缘：一深一浅两条细描边。浅色画面靠深描边分界、深色画面靠浅描边分界，
+    /// 因此放大镜压在任何内容上都读得出来（底板去掉后，边界只能靠它）。
+    private func drawLensEdge() {
+        let lens = NSBezierPath(
+            roundedRect: bounds.insetBy(dx: Metrics.borderWidth / 2, dy: Metrics.borderWidth / 2),
+            xRadius: Metrics.cornerRadius,
+            yRadius: Metrics.cornerRadius
+        )
+        lens.lineWidth = Metrics.borderWidth
+        NSColor.black.withAlphaComponent(0.45).set()
+        lens.stroke()
+
+        let inner = NSBezierPath(
+            roundedRect: bounds.insetBy(dx: Metrics.borderWidth * 1.5, dy: Metrics.borderWidth * 1.5),
+            xRadius: Metrics.cornerRadius - Metrics.borderWidth,
+            yRadius: Metrics.cornerRadius - Metrics.borderWidth
+        )
+        inner.lineWidth = Metrics.borderWidth
+        NSColor.white.withAlphaComponent(0.7).set()
+        inner.stroke()
     }
 
     private func drawImage(_ image: CGImage, in rect: CGRect, clip: CGRect) {
         guard let context = NSGraphicsContext.current?.cgContext else { return }
         context.saveGState()
+        // 圆角裁切：画面满幅，圆角只能靠裁剪得到，否则四角会露出方角。
+        NSBezierPath(
+            roundedRect: bounds,
+            xRadius: Metrics.cornerRadius,
+            yRadius: Metrics.cornerRadius
+        ).addClip()
         context.clip(to: clip)
         // 最近邻：放大必须看到真实像素边界，插值会让边界失真。
         context.interpolationQuality = .none
