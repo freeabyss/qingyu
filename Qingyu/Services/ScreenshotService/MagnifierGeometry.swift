@@ -31,6 +31,12 @@ struct MagnifierConfiguration: Equatable, Sendable {
     static let viewSize: CGFloat = 112
     /// 放大镜与光标之间的间距（逻辑点）。
     static let anchorGap: CGFloat = 18
+    /// 选区外遮罩的压暗不透明度。
+    ///
+    /// 遮罩的语义是「指示选区边界落在放大画面的哪一侧」，不是「屏蔽内容」：
+    /// 拖拽时选区边界始终穿过镜心，镜面永远有一半被压暗，压得越重越像
+    /// 「一块跟着光标走的暗方块」（用户 2026-10-18 两次报告）。0.18 已能读出边界。
+    static let maskOpacity: CGFloat = 0.18
 
     var isEnabled: Bool
     var zoom: Int
@@ -132,11 +138,15 @@ enum MagnifierGeometry {
 
     // MARK: 放大镜框位置
 
-    /// 放大镜框：默认放在锚点**右下方**，右侧或下方空间不足时各自翻转到对侧
-    /// （右→左、下→上，即空间不足时落到左上方），最后整体钳制进可见区。
+    /// 放大镜框：默认放在锚点**正下方**（`anchor.x` 与镜体左边缘对齐），
+    /// 下方空间不足时翻到锚点上方；右侧空间不足时整体左移，最后钳制进可见区。
     ///
-    /// 默认右下而不是右上：光标在选区角上时，右下方向正是选区内侧，
-    /// 放大镜不会挡住用户接下来要圈的区域。
+    /// 为什么是「正下方」而不是「右下方」：右下方时，镜体左边缘离光标还有一整个
+    /// `gap`，视觉上像是「旁边一块独立的方块」；贴正下方才读得出「这是光标处的放大镜」。
+    /// 用户预期原文：「进入截图时……并且在光标下方显示放大镜」。
+    ///
+    /// 横向对齐到光标而不是居中：镜心正好落在光标右边，选区的右侧边界（拖拽时
+    /// 边界就压在光标上）会完整出现在镜面里，放大镜不会直接盖住正在看的那条边界。
     ///
     /// 可见区小于放大镜时以可见区原点为准（保证框完整可见）。
     static func magnifierFrame(
@@ -145,22 +155,18 @@ enum MagnifierGeometry {
         visibleFrame: CGRect,
         gap: CGFloat
     ) -> CGRect {
-        var originX = anchor.x + gap
-        if originX + size.width > visibleFrame.maxX {
-            originX = anchor.x - gap - size.width
-        }
-        var originY = anchor.y - gap - size.height
-        if originY < visibleFrame.minY {
-            originY = anchor.y + gap
-        }
-
         let minX = visibleFrame.minX
         let maxX = max(minX, visibleFrame.maxX - size.width)
         let minY = visibleFrame.minY
         let maxY = max(minY, visibleFrame.maxY - size.height)
 
+        let originX = min(max(anchor.x, minX), maxX)
+        var originY = anchor.y - gap - size.height
+        if originY < minY {
+            originY = anchor.y + gap
+        }
         return CGRect(
-            x: min(max(originX, minX), maxX),
+            x: originX,
             y: min(max(originY, minY), maxY),
             width: size.width,
             height: size.height

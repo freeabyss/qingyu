@@ -49,6 +49,28 @@ final class ScreenshotOverlayAppearanceTests: XCTestCase {
         return color.alphaComponent
     }
 
+    /// 同一块画布上重绘两次，压暗层**不得**叠加变深。
+    ///
+    /// 用户报告（2026-10-18）：「在选中区域外边有一层暗色的方块，位于左上角」。
+    /// 成因是 `draw` 直接在 dirtyRect 上铺 30% 黑：叠层是半透明窗口，合成结果留在
+    /// backing store 里，凡是被重绘过的矩形（旧窗口高亮、旧选区所在的左上角）就会
+    /// 再叠一层，越叠越黑。现在每次重绘先把整张画布清成透明再铺一次。
+    func testRedrawingDoesNotDeepenTheDimLayer() {
+        let view = makeView(isActive: true, region: CGRect(x: 120, y: 80, width: 200, height: 160))
+        guard let rep = view.bitmapImageRepForCachingDisplay(in: view.bounds) else {
+            return XCTFail("无法创建缓存位图")
+        }
+        // 第一次：选区在左下；第二次：选区挪到别处，原选区位置与全屏都重绘一遍。
+        view.cacheDisplay(in: view.bounds, to: rep)
+        let first = alpha(rep, x: 40, y: 40)
+        view.regionFrame = CGRect(x: 420, y: 300, width: 200, height: 160)
+        view.cacheDisplay(in: view.bounds, to: rep)
+        let second = alpha(rep, x: 40, y: 40)
+
+        XCTAssertEqual(first, 0.3, accuracy: 0.03, "压暗层应是 30% 黑")
+        XCTAssertEqual(second, 0.3, accuracy: 0.03, "重绘不得叠加压暗（会变成一块更黑的方块）")
+    }
+
     // MARK: - 压暗范围
 
     func testInactiveDisplayIsNotDimmed() {

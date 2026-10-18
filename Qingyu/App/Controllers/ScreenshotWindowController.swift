@@ -189,15 +189,34 @@ final class ScreenshotWindowController {
                         restoreCommandBar: wasCommandBarVisible
                     )
                 },
+                // 原地标注：叠层留在屏幕上（隐藏它就等于撤销了「选区外保持压暗」），
+                // 会话也**不**结束 —— 标注完成前用户仍可继续编辑或退出。
+                annotationCapture: { [weak self] in
+                    guard let self else {
+                        throw SnapVaultError.screenshotFailed(reason: L10n.localized("error.serviceDeallocated"))
+                    }
+                    return try await self.captureRegionKeepingOverlay(display: display, rect: rect)
+                },
                 onDismiss: { [weak session] in
                     // 用户放弃工具条（✕）：结束会话。会话若已因捕获结束，
                     // `cancel()` 自身会早退，不会重复广播取消。
                     session?.cancel()
-                }
+                },
+                // 原地标注：捕获时不隐藏叠层、不结束会话，选区与压暗一直留在屏幕上。
+                annotationHost: session
             )
         }
         session.onRegionAdjustableEnded = { [weak self] in
             self?.toolbar.dismissRegionDraft()
+        }
+        // 文字/提示框工具：叠层只上报落点，输入面板在这里弹（与标注编辑器同一套文案）。
+        session.annotationTextInputHandler = { [weak self] _, completion in
+            guard let self else { return }
+            self.toolbar.requestAnnotationTextInput(completion: completion)
+        }
+        // Esc 退出标注：工具条退回未选中形态，选区与压暗保持原样（会话继续）。
+        session.onAnnotationExit = { [weak self] in
+            self?.toolbar.exitAnnotationMode()
         }
 
         session.onCancel = { [weak self] in
@@ -240,6 +259,24 @@ final class ScreenshotWindowController {
             handleCaptureError(error, restoreCommandBar: restoreCommandBar)
             throw error
         }
+    }
+
+    /// 原地标注用的捕获：**保留叠层**（选区与压暗必须留在屏幕上）、**不结束会话**。
+    ///
+    /// 与 `performCapture` 的差别只有这两点，其余（等待一帧、失败上报）一致：
+    /// 叠层虽在，但 `CGDisplayCreateImage` 实测不会被本应用的清窗与暗幕污染
+    /// （选区亮度 243.66 vs 基线 243.13）；真正会污染位图的是放大镜与工具条，
+    /// 它们在调用前已分别被收起/挪走。
+    private func captureRegionKeepingOverlay(
+        display: CaptureDisplay,
+        rect: CGRect
+    ) async throws -> ScreenshotResult {
+        try? await Task.sleep(nanoseconds: 40_000_000)
+        let result = try await container.screenshotService.captureTarget(
+            .region(display: display, globalRect: rect)
+        )
+        soundPlayer.playIfNeeded(postCapturePolicy.playsSoundOnCapture)
+        return result
     }
 
     private func showPreview(for result: ScreenshotResult) {

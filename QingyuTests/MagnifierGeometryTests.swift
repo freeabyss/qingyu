@@ -146,7 +146,7 @@ final class MagnifierGeometryTests: XCTestCase {
 
     // MARK: - 放大镜框位置
 
-    func testMagnifierFrameSitsBelowRightOfAnchorWhenRoomExists() {
+    func testMagnifierFrameSitsDirectlyBelowAnchorWhenRoomExists() {
         let visible = CGRect(x: 0, y: 0, width: 1920, height: 1080)
         let frame = MagnifierGeometry.magnifierFrame(
             anchor: CGPoint(x: 500, y: 500),
@@ -154,8 +154,9 @@ final class MagnifierGeometryTests: XCTestCase {
             visibleFrame: visible,
             gap: 18
         )
-        // 默认右下：x = 500 + 18；y = 500 - 18 - 112（下边距 = 锚点 y - 间隙）。
-        XCTAssertEqual(frame.origin.x, 518)
+        // 默认正下方：左边缘与光标对齐（用户预期「在光标下方显示放大镜」）；
+        // 下边距 = 锚点 y - 间隙。
+        XCTAssertEqual(frame.origin.x, 500)
         XCTAssertEqual(frame.origin.y, 500 - 18 - 112)
     }
 
@@ -163,14 +164,15 @@ final class MagnifierGeometryTests: XCTestCase {
         let visible = CGRect(x: 0, y: 0, width: 1920, height: 1080)
         let size = CGSize(width: 112, height: 112)
 
-        // 右侧空间不足 → 翻到锚点左侧。
+        // 右侧空间不足 → 整体左移，仍完整可见（不再翻到光标左侧）。
         let nearRight = MagnifierGeometry.magnifierFrame(
             anchor: CGPoint(x: 1900, y: 500),
             size: size,
             visibleFrame: visible,
             gap: 18
         )
-        XCTAssertEqual(nearRight.maxX, 1900 - 18)
+        XCTAssertEqual(nearRight.maxX, visible.maxX)
+        XCTAssertEqual(nearRight.origin.x, visible.maxX - size.width)
 
         // 下方空间不足 → 翻到锚点上方。
         let nearBottom = MagnifierGeometry.magnifierFrame(

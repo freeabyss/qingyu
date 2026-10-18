@@ -192,8 +192,8 @@ final class MagnifierOverlayView: NSView {
         let path = NSBezierPath(rect: clip)
         path.appendRect(inView)
         path.windingRule = .evenOdd
-        // 0.45 → 0.18：遮罩是「边界指示」，不是「内容屏蔽」，压暗过重会让放大画面读不出来。
-        NSColor.black.withAlphaComponent(0.18).set()
+        // 遮罩是「边界指示」而非「内容屏蔽」，透明度集中定义在配置里（0.18）。
+        NSColor.black.withAlphaComponent(MagnifierConfiguration.maskOpacity).set()
         path.fill()
     }
 

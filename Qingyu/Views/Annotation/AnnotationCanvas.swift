@@ -154,7 +154,8 @@ final class AnnotationCanvasState: ObservableObject {
 
 final class AnnotationCanvasNSView: NSView {
     /// 命中容差（bps）：细线也要点得中，橡皮擦与悬停共用。
-    private static let hitTolerance: CGFloat = 3
+    /// 原地标注（叠层上编辑）复用同一份容差，两处手感必须一致。
+    static let hitTolerance: CGFloat = 3
 
     weak var state: AnnotationCanvasState?
     var onRequestTextInput: ((CGPoint, @escaping (String?) -> Void) -> Void)?

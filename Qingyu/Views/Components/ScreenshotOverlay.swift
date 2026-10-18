@@ -89,6 +89,43 @@ final class CaptureOverlayWindowController: CaptureOverlayWindow {
         contentView.needsDisplay = true
     }
 
+    // MARK: - 原地标注
+
+    /// 捕获前让位：只收放大镜（它压在选区里会被拍进位图），叠层本身不动。
+    func prepareForAnnotationCapture() {
+        contentView.prepareForAnnotationCapture()
+    }
+
+    /// 进入原地标注：叠层本身保持原样（压暗、边框、尺寸徽标都不变），
+    /// 只在选区内新增一层可编辑的标注画布。
+    func beginAnnotation(image: NSImage, regionGlobal: CGRect, tool: AnnotationTool, style: AnnotationStyle) {
+        contentView.beginAnnotation(
+            image: image,
+            regionGlobal: regionGlobal,
+            tool: tool,
+            style: style
+        )
+    }
+
+    func updateAnnotationTool(_ tool: AnnotationTool, style: AnnotationStyle) {
+        contentView.updateAnnotationTool(tool, style: style)
+    }
+
+    func undoAnnotation() { contentView.undoAnnotation() }
+    func redoAnnotation() { contentView.redoAnnotation() }
+    var annotationShapes: [AnnotationShape] { contentView.annotationShapes }
+    var isAnnotating: Bool { contentView.isAnnotating }
+
+    /// 离开标注态（Esc 退回微调、或动作收尾）。标注结果一并丢弃（会话结束不留状态）。
+    func endAnnotation() {
+        contentView.clearAnnotation()
+        contentView.needsDisplay = true
+    }
+
+    func setAnnotationTextRequestHandler(_ handler: @escaping (CGPoint, @escaping (String?) -> Void) -> Void) {
+        contentView.onAnnotationTextRequest = handler
+    }
+
     func updateHints(_ hintKeys: [String]) {
         contentView.updateHints(hintKeys)
     }
@@ -141,6 +178,14 @@ final class CaptureOverlayContentView: NSView {
         didSet { updateMagnifierMask() }
     }
     var onEvent: ((CaptureInputEvent) -> Void)?
+    /// 已进入「原地标注」：选区已锁定，鼠标/键盘归属标注会话，不再上抛截图事件。
+    ///
+    /// 标注期间叠层的一切外观（压暗、选区边框与尺寸徽标）保持不变 —— 用户点工具
+    /// 之后只该看到光标变化，这是 PRD「选中工具栏时页面无变化」的硬要求。
+    var isAnnotating = false
+    private var annotationSession: InPlaceAnnotationSession?
+    /// 文字/提示框工具需要输入框；由叠层上抛给工具条控制器去弹。
+    var onAnnotationTextRequest: ((CGPoint, @escaping (String?) -> Void) -> Void)?
 
     /// Task 015：预设清单（`selectedIndex` 为 nil 表示清单未打开）。
     var presetPickerItems: [String] = [] {
@@ -188,7 +233,7 @@ final class CaptureOverlayContentView: NSView {
     private func commonInit() {
         addTrackingArea(NSTrackingArea(
             rect: bounds,
-            options: [.mouseMoved, .activeAlways, .inVisibleRect],
+            options: [.mouseMoved, .mouseEnteredAndExited, .activeAlways, .inVisibleRect],
             owner: self
         ))
         let hints = ScreenshotShortcutHintsView()
@@ -313,10 +358,119 @@ final class CaptureOverlayContentView: NSView {
         )
     }
 
+    // MARK: - 原地标注（选区上直接编辑）
+
+    /// 进入原地标注：选区已锁定，叠层继续压暗、继续画选区边框，只在选区内加一层可绘制区域。
+    ///
+    /// - Parameters:
+    ///   - image: 选区的原始像素（懒捕获得到，不含放大镜）。
+    ///   - regionGlobal: 选区（AppKit 全局坐标）。
+    ///   - tool / style: 工具条上刚刚选中的工具与样式。
+    func beginAnnotation(
+        image: NSImage,
+        regionGlobal: NSRect,
+        tool: AnnotationTool,
+        style: AnnotationStyle
+    ) {
+        let session = InPlaceAnnotationSession(
+            image: image,
+            regionGlobalRect: regionGlobal,
+            displayFrame: display.frame
+        )
+        session.state.tool = tool
+        session.state.style = style
+        annotationSession = session
+        isAnnotating = true
+        regionFrame = regionGlobal
+        // 标注期间不再需要放大镜：它压在选区里会遮挡正在编辑的画面，
+        // 也会被后续的「复制/保存」渲染路径读到。标注模式由光标提示工具。
+        hideMagnifier()
+        Self.setAnnotationCursor(for: tool)
+        window?.invalidateCursorRects(for: self)
+        // 叠层上的一切（提示条、预设清单、内联提示）**保持原样**：
+        // 用户预期「点工具之后除了光标与工具高亮之外没有变化」。
+        needsDisplay = true
+    }
+
+    /// 切换工具：只换高亮与光标，画面其余部分一动不动。
+    func updateAnnotationTool(_ tool: AnnotationTool, style: AnnotationStyle) {
+        guard let session = annotationSession else { return }
+        session.state.tool = tool
+        session.state.style = style
+        Self.setAnnotationCursor(for: tool)
+    }
+
+    /// 当前标注结果（按选择顺序排列）。未进入标注时返回空。
+    var annotationShapes: [AnnotationShape] {
+        annotationSession?.state.shapes ?? []
+    }
+
+    /// 捕获前让位：只收放大镜。放大镜是本 App 自己的窗口、不在叠层之内，
+    /// 但会盖在选区上被 `CGDisplayCreateImage` 一起拍进去（实测亮度 243 → 215）。
+    func prepareForAnnotationCapture() {
+        hideMagnifier()
+    }
+
+    /// 离开标注态：丢弃本次标注（会话结束后不再保留任何状态）。
+    func clearAnnotation() {
+        annotationSession = nil
+        isAnnotating = false
+        window?.invalidateCursorRects(for: self)
+    }
+
+    /// 撤销/重做（工具条或 ⌘Z/⌘⇧Z）。
+    func undoAnnotation() {
+        annotationSession?.state.undo()
+        needsDisplay = true
+    }
+
+    func redoAnnotation() {
+        annotationSession?.state.redo()
+        needsDisplay = true
+    }
+
+    /// 光标：每个工具有自己的「十字准星 + 工具徽标」，且只在选区上出现。
+    private static func setAnnotationCursor(for tool: AnnotationTool) {
+        AnnotationToolCursor.cursor(for: tool).set()
+    }
+
+    /// 指针是否在选区内：标注光标只在选区内生效，选区外恢复箭头（用户预期第 2 条）。
+    private func updateAnnotationCursor(at global: CGPoint, inRegion: Bool) {
+        guard isAnnotating, let session = annotationSession else { return }
+        if inRegion {
+            AnnotationToolCursor.cursor(for: session.state.tool).set()
+        } else {
+            NSCursor.arrow.set()
+        }
+    }
+
     // MARK: Events
+
+    override func resetCursorRects() {
+        super.resetCursorRects()
+        // 标注期间：选区内用工具光标，选区外保持箭头（「光标只有在截图区域才会变化」）。
+        guard isAnnotating, let session = annotationSession else { return }
+        addCursorRect(session.localRect, cursor: AnnotationToolCursor.cursor(for: session.state.tool))
+    }
+
+    /// 光标离开叠层：标注光标不得粘在选区外（`resetCursorRects` 只覆盖选区，
+    /// 但显式 `set()` 过的光标不会自动回弹）。
+    override func mouseExited(with event: NSEvent) {
+        super.mouseExited(with: event)
+        guard isAnnotating else { return }
+        NSCursor.arrow.set()
+    }
 
     override func mouseMoved(with event: NSEvent) {
         let global = globalPoint(convert(event.locationInWindow, from: nil))
+        if isAnnotating, let session = annotationSession {
+            let inside = session.contains(global: global)
+            updateAnnotationCursor(at: global, inRegion: inside)
+            if session.mouseMoved(to: global) {
+                needsDisplay = true
+            }
+            return
+        }
         // 非活动屏也必须上报指针：会话据此把「当前截图显示器」切到指针所在屏
         // （压暗、高亮与提示随之切换）。放大镜只在活动屏取样，避免无谓抓屏。
         onEvent?(.pointerMoved(global))
@@ -327,6 +481,22 @@ final class CaptureOverlayContentView: NSView {
 
     override func mouseDown(with event: NSEvent) {
         let global = globalPoint(convert(event.locationInWindow, from: nil))
+        if isAnnotating, let session = annotationSession {
+            guard session.contains(global: global) else { return }
+            switch session.mouseDown(at: global) {
+            case .consumed:
+                needsDisplay = true
+            case .needsText(let local):
+                onAnnotationTextRequest?(local) { [weak self] text in
+                    guard let self, let text, let session = self.annotationSession else { return }
+                    session.appendText(at: local, text: text)
+                    self.needsDisplay = true
+                }
+            case .ignored:
+                break
+            }
+            return
+        }
         // Task 014/06：每次拖拽重新捕获长宽比。
         dragStartPoint = global
         lockedAspectRatio = nil
@@ -337,6 +507,13 @@ final class CaptureOverlayContentView: NSView {
         // 拖拽可能跨屏：起点在本窗口、后续事件落在对侧窗口时，只有对侧能收到。
         // 因此这里不按本窗口的按下状态过滤，是否处于拖拽一律由会话状态机判定。
         var global = globalPoint(convert(event.locationInWindow, from: nil))
+
+        if isAnnotating, let session = annotationSession {
+            if session.mouseDragged(to: global) {
+                needsDisplay = true
+            }
+            return
+        }
 
         // Task 014/06：按住 ⇧ 锁定长宽比 —— 首次按下时以"当时的选区比例"为准，
         // 之后沿该比例投影；松开 ⇧ 立即恢复自由拖拽。
@@ -361,6 +538,12 @@ final class CaptureOverlayContentView: NSView {
     override func mouseUp(with event: NSEvent) {
         // 同上：抬起可能落在另一个显示器的窗口上（拖拽跨屏），这里不再过滤。
         // 会话状态机只在拖拽态响应抬起，窗口/整屏之外的杂散抬起天然被忽略。
+        if isAnnotating, let session = annotationSession {
+            if session.mouseUp(at: globalPoint(convert(event.locationInWindow, from: nil))) {
+                needsDisplay = true
+            }
+            return
+        }
         dragStartPoint = nil
         lockedAspectRatio = nil
         onEvent?(.mouseUp(globalPoint(convert(event.locationInWindow, from: nil))))
@@ -377,6 +560,37 @@ final class CaptureOverlayContentView: NSView {
     }
 
     override func keyDown(with event: NSEvent) {
+        // 原地标注：Esc 退回「选区可微调」态，⌘Z/⌘⇧Z 撤销重做，
+        // `[` `]` 调笔宽；其余按键交回叠层原有语义。
+        if isAnnotating, let session = annotationSession {
+            switch event.keyCode {
+            case 53:
+                onEvent?(.cancelAnnotation)
+                return
+            case 6 where event.modifierFlags.contains(.command):      // ⌘Z
+                if event.modifierFlags.contains(.shift) {
+                    session.state.redo()
+                } else {
+                    session.state.undo()
+                }
+                needsDisplay = true
+                return
+            default:
+                break
+            }
+            if let characters = event.charactersIgnoringModifiers, !event.modifierFlags.contains(.command) {
+                if characters == "[" || characters == "]" {
+                    let step = AnnotationLineWidthStepper.step(
+                        session.state.style.lineWidth,
+                        direction: characters == "]" ? 1 : -1
+                    )
+                    session.state.style.lineWidth = step
+                    return
+                }
+            }
+            super.keyDown(with: event)
+            return
+        }
         // Task 015：清单打开时独占方向键 / Enter / Esc，避免与选区微调冲突。
         if presetPickerSelection != nil {
             switch event.keyCode {
@@ -476,8 +690,18 @@ final class CaptureOverlayContentView: NSView {
         // 非活动屏仍保留窗口以接收指针事件，否则指针移过去时无人上报、会话卡在原屏。
         guard isActiveDisplay else { return }
 
+        // 每一步都必须**只在干净的原始画布上**叠一次。此前直接用 `dirtyRect.fill()`
+        // 铺 30% 黑：叠层是半透明窗口，合成结果留在 backing store 里，下一次重绘
+        // 又在这一层之上再铺一次，于是被重绘过的区域越叠越黑 —— 用户看到的是
+        // 「选区左上角多出一块暗色方块」（旧窗口高亮/旧选区的那块矩形被重绘过两次以上）。
+        //
+        // 做法：先把本屏整张画布清成透明，再按 =30% 黑一次性铺满；之后所有挖空
+        // （`.copy` 填 clear）与边框、标注都只作用在这一层之上。
+        NSColor.clear.set()
+        bounds.fill(using: .copy)
+
         NSColor.black.withAlphaComponent(0.3).set()
-        dirtyRect.fill()
+        bounds.fill()
 
         // 活动屏：窗口高亮（穿透显示 + Jade 边框）。
         if isActiveDisplay, let highlight = highlightFrame {
@@ -521,9 +745,19 @@ final class CaptureOverlayContentView: NSView {
 
             drawDimensions(for: local)
 
-            // Task 014/01：`Tab` 按住时显示对齐辅助线。
-            if showsAlignmentGuides {
+            // Task 014/01：`Tab` 按住时显示对齐辅助线（标注期间不画，免得盖住编辑内容）。
+            if showsAlignmentGuides, !isAnnotating {
                 drawAlignmentGuides(for: local)
+            }
+
+            // 原地标注：形状坐标就是「选区局部点」，平移到选区左下角即可绘制。
+            if isAnnotating, let session = annotationSession {
+                let context = NSGraphicsContext.current?.cgContext
+                context?.saveGState()
+                context?.clip(to: local)
+                context?.translateBy(x: local.minX, y: local.minY)
+                session.draw()
+                context?.restoreGState()
             }
         }
 

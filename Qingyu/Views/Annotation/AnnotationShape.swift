@@ -209,7 +209,11 @@ enum AnnotationRenderer {
     private static let arrowHeadAngle: CGFloat = .pi / 6
     private static let mosaicScale: CGFloat = 10
 
-    static func draw(_ shapes: [AnnotationShape], sourceImage: NSImage?) {
+    /// - Parameter sourcePixelScale: 绘制坐标（点）与 `sourceImage` 像素坐标的比例。
+    ///   取 1 时（画布内实时绘制）两者同一尺度；导出到 Retina 位图时上下文已按
+    ///   2× 缩放，但 `sourceImage` 仍是原像素，马赛克/模糊的取样窗口必须按此比例换算，
+    ///   否则会取到左上四分之一的内容。
+    static func draw(_ shapes: [AnnotationShape], sourceImage: NSImage?, sourcePixelScale: CGFloat = 1) {
         for shape in shapes {
             switch shape.tool {
             case .pencil:
@@ -227,9 +231,9 @@ enum AnnotationRenderer {
             case .highlighter:
                 drawFreehand(shape, isHighlighter: true)
             case .mosaic:
-                drawMosaic(shape, sourceImage: sourceImage, style: .pixellate)
+                drawMosaic(shape, sourceImage: sourceImage, style: .pixellate, pixelScale: sourcePixelScale)
             case .gaussianBlur:
-                drawMosaic(shape, sourceImage: sourceImage, style: .gaussianBlur)
+                drawMosaic(shape, sourceImage: sourceImage, style: .gaussianBlur, pixelScale: sourcePixelScale)
             case .eraser:
                 break  // 橡皮擦不产生图形，只删除
             case .text:
@@ -421,7 +425,12 @@ enum AnnotationRenderer {
         case gaussianBlur
     }
 
-    private static func drawMosaic(_ shape: AnnotationShape, sourceImage: NSImage?, style: BlurStyle) {
+    private static func drawMosaic(
+        _ shape: AnnotationShape,
+        sourceImage: NSImage?,
+        style: BlurStyle,
+        pixelScale: CGFloat
+    ) {
         let target = shape.rect
         guard target.width > 1, target.height > 1 else { return }
         guard let image = sourceImage else {
@@ -436,6 +445,13 @@ enum AnnotationRenderer {
             return
         }
 
+        // 取样窗口在「图像像素」空间：绘制坐标乘像素比例才能覆盖同一块画面。
+        let pixelTarget = CGRect(
+            x: target.minX * pixelScale,
+            y: target.minY * pixelScale,
+            width: target.width * pixelScale,
+            height: target.height * pixelScale
+        )
         let input = CIImage(cgImage: cgImage)
         let output: CIImage?
         switch style {
@@ -444,7 +460,7 @@ enum AnnotationRenderer {
             filter?.setValue(input, forKey: kCIInputImageKey)
             // 马赛克块大小与模糊半径都由笔宽派生，保证两种模式覆盖范围一致。
             filter?.setValue(mosaicScale + shape.style.lineWidth.points, forKey: kCIInputScaleKey)
-            filter?.setValue(CIVector(x: target.midX, y: target.midY), forKey: kCIInputCenterKey)
+            filter?.setValue(CIVector(x: pixelTarget.midX, y: pixelTarget.midY), forKey: kCIInputCenterKey)
             output = filter?.outputImage
         case .gaussianBlur:
             let filter = CIFilter(name: "CIGaussianBlur")
@@ -454,7 +470,7 @@ enum AnnotationRenderer {
         }
         guard let output else { return }
         let context = CIContext(options: nil)
-        guard let cgOutput = context.createCGImage(output, from: target),
+        guard let cgOutput = context.createCGImage(output, from: pixelTarget),
               let graphics = NSGraphicsContext.current?.cgContext else { return }
         graphics.saveGState()
         graphics.draw(cgOutput, in: target)

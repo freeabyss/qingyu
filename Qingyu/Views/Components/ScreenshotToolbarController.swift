@@ -2,6 +2,34 @@ import Cocoa
 import SwiftUI
 import os.log
 
+// MARK: - Region annotation host
+
+/// 「在选区上原地标注」的宿主（由截图会话的叠层实现）。
+///
+/// 工具条只经由这组方法驱动标注：它不认识叠层、不认识窗口，也不知道压暗层怎么画。
+/// 这样单测里可以注入记录型替身，验证「点工具只换高亮、不动别处」的契约。
+@MainActor
+protocol RegionAnnotationHost: AnyObject {
+    /// 捕获前让出屏幕：隐藏放大镜等会污染位图的叠层内容。
+    /// **不**隐藏叠层本身、**不**结束会话 —— 标注期间选区与压暗必须留在屏幕上。
+    func prepareForAnnotationCapture()
+    /// 进入标注态；返回 false 表示当前状态不允许（调用方收尾）。
+    func beginAnnotation(
+        image: NSImage,
+        regionGlobal: CGRect,
+        tool: AnnotationTool,
+        style: AnnotationStyle
+    ) -> Bool
+    func updateAnnotationTool(_ tool: AnnotationTool, style: AnnotationStyle)
+    /// 当前标注形状（导出时合成）。
+    var annotationShapes: [AnnotationShape] { get }
+    /// 选区逻辑尺寸（形状坐标 → 位图像素的换算基准）。
+    var annotationRegionSize: CGSize { get }
+    var isAnnotating: Bool { get }
+    /// 动作完成：收起标注画布（选区与压暗层仍由会话统一收尾）。
+    func finishAnnotation()
+}
+
 // MARK: - Toolbar Action
 
 /// Actions a user can trigger from the P-05 screenshot preview toolbar.
@@ -77,6 +105,20 @@ final class ScreenshotToolbarController {
     private var overlayCancelObserver: NSObjectProtocol?
     private var toastWorkItem: DispatchWorkItem?
     private var regionCleanup: (() -> Void)?
+    /// 原地标注宿主：把「在选区上直接编辑」的实现（叠层）交给工具条。
+    private var annotationHost: RegionAnnotationHost?
+    /// 原地标注专用捕获（不隐藏叠层、不结束会话）；nil 时退回 `draftCapture`。
+    private var annotationCapture: (() async throws -> ScreenshotResult)?
+    /// 离开标注态（Esc）：工具条退回「未选中任何工具」的形态，窗口与位置不变。
+    func exitAnnotationMode() {
+        draftSelectedTool = nil
+        refreshDraftToolbarContent()
+    }
+
+    /// 标注态当前工具（工具条据此高亮；切工具不重建窗口）。
+    private var draftSelectedTool: AnnotationTool?
+    /// 标注样式（颜色/笔宽/字号）：原地编辑与导出共用同一份。
+    private var annotationStyle = AnnotationStyle()
     /// 草稿态（区域已定、尚未捕获）的按需捕获闭包；nil 表示当前不是草稿态。
     private var draftCapture: (() async throws -> ScreenshotResult)?
     /// 是否正显示区域草稿工具条（选区已定、**尚未**捕获）。
@@ -150,6 +192,7 @@ final class ScreenshotToolbarController {
         let viewModel = ScreenshotPreviewViewModel(result: result)
         let view = RegionScreenshotToolbarView(
             viewModel: viewModel,
+            selectedTool: nil,
             onAction: { [weak self] action in
                 self?.handle(action: action, result: result, viewModel: viewModel)
             }
@@ -176,12 +219,26 @@ final class ScreenshotToolbarController {
     /// 确认、`P` / `⌘S` 预设全部依赖它）。
     ///
     /// 重复调用（方向键微调后）只更新位置与捕获闭包，不重建窗口，避免闪烁。
+    ///
+    /// `annotationHost` 提供「在选区上原地标注」的实现（由截图会话侧的叠层提供）。
+    /// 没有它时（单测/无叠层宿主）`.annotate` 行为保持老样子：懒捕获后弹出编辑器。
+    ///
+    /// `annotationCapture` 是原地标注专用的捕获：**不得**隐藏叠层、**不得**结束会话
+    /// （选区与压暗层必须原样留在屏幕上）。缺省时退回 `capture`。
     func showRegionDraft(
         globalRect: NSRect,
         screenFrame: NSRect,
         capture: @escaping () async throws -> ScreenshotResult,
-        onDismiss: @escaping () -> Void
+        annotationCapture: (() async throws -> ScreenshotResult)? = nil,
+        onDismiss: @escaping () -> Void,
+        annotationHost: RegionAnnotationHost? = nil
     ) {
+        self.annotationHost = annotationHost
+        // 标注进行中再次进来（会话侧任何重同步）绝不能换掉标注捕获：
+        // 换掉之后下一次点复制会走「隐藏叠层 + 结束会话」的老闭包。
+        if !(annotationHost?.isAnnotating == true) {
+            self.annotationCapture = annotationCapture
+        }
         // 已在草稿态：只更新位置与捕获闭包（微调后的选区由最新的闭包负责捕获），
         // 不重建窗口，避免闪烁。
         if isShowingRegionDraft, let window {
@@ -207,6 +264,7 @@ final class ScreenshotToolbarController {
         let viewModel = ScreenshotPreviewViewModel(result: nil)
         let view = RegionScreenshotToolbarView(
             viewModel: viewModel,
+            selectedTool: draftSelectedTool,
             onAction: { [weak self] action in
                 self?.handleDraft(action: action)
             }
@@ -233,15 +291,207 @@ final class ScreenshotToolbarController {
     }
 
     private func handleDraft(action: ScreenshotToolbarAction) {
+        // 标注已在进行：切工具只换高亮与光标；其余动作照走（结果带上标注一起合成）。
+        if annotationHost?.isAnnotating == true {
+            if case .annotate(let tool) = action {
+                selectAnnotationTool(tool)
+                return
+            }
+            Task { @MainActor in
+                await self.performAnnotatedAction(action)
+            }
+            return
+        }
         switch action {
         case .cancel, .dismiss:
             // 放弃工具条 = 放弃这次框选：结束会话（收尾闭包由调用方提供）。
             dismiss(reason: .cancel)
+        case .annotate(let tool):
+            // 点标注工具 = 在选区上原地编辑，**不**换窗口、**不**动叠层外观。
+            Task { @MainActor in
+                await self.performDraftAnnotation(tool: tool)
+            }
         default:
             Task { @MainActor in
                 await self.performDraftAction(action)
             }
         }
+    }
+
+    /// 原地标注的文字/提示框输入面板。
+    ///
+    /// 它挂在**工具条窗口**上而不是叠层上：叠层是 `.screenSaver` 层级、且正在被编辑，
+    /// 在上面挂 sheet 会把选区状态搅乱；工具条是普通浮动窗口，回车即提交。
+    func requestAnnotationTextInput(completion: @escaping (String?) -> Void) {
+        let alert = NSAlert()
+        alert.messageText = L10n.localized("annotation.textInput.title")
+        alert.informativeText = L10n.localized("annotation.textInput.message")
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: L10n.localized("annotation.textInput.add"))
+        alert.addButton(withTitle: L10n.localized("annotation.textInput.cancel"))
+
+        let textField = NSTextField(frame: NSRect(x: 0, y: 0, width: 320, height: 24))
+        textField.placeholderString = L10n.localized("annotation.textInput.placeholder")
+        textField.bezelStyle = .roundedBezel
+        alert.accessoryView = textField
+
+        let finish: (NSApplication.ModalResponse) -> Void = { response in
+            completion(response == .alertFirstButtonReturn ? textField.stringValue : nil)
+        }
+        if let window {
+            alert.beginSheetModal(for: window, completionHandler: finish)
+        } else {
+            finish(alert.runModal())
+        }
+    }
+
+    /// 标注态动作：先让叠层压暗层离场（否则会被拍进「复制/保存」的位图），
+    /// 再把标注形状合成到已捕获的原始位图上，最后复用既有的复制/保存/贴图路径。
+    private func performAnnotatedAction(_ action: ScreenshotToolbarAction) async {
+        guard let host = annotationHost else {
+            await performDraftAction(action)
+            return
+        }
+        guard let capture = annotationCapture ?? draftCapture else { return }
+        let shapes = host.annotationShapes
+        let regionSize = host.annotationRegionSize
+
+        host.prepareForAnnotationCapture()
+        window?.orderOut(nil)
+
+        do {
+            let raw = try await capture()
+            let flattened = InPlaceAnnotationFlattener.flatten(
+                result: raw,
+                shapes: shapes,
+                regionSize: regionSize
+            )
+            // 形状已经烘进位图，叠层上的临时画布可以收了。
+            host.finishAnnotation()
+            draftCapture = nil
+            isShowingRegionDraft = false
+            draftSelectedTool = nil
+            let resultViewModel = ScreenshotPreviewViewModel(result: flattened)
+            handle(action: action, result: flattened, viewModel: resultViewModel)
+        } catch {
+            logger.error("Annotated action failed: \(error.localizedDescription, privacy: .public)")
+            dismiss(reason: .action)
+        }
+    }
+
+    /// 单测入口：工具条按钮的点击无法在测试宿主里合成，直接驱动同一段逻辑。
+    func selectAnnotationToolForTesting(_ tool: AnnotationTool) {
+        selectAnnotationTool(tool)
+    }
+
+    /// 单测入口：`performAnnotatedAction` 是私有实现细节，测试只关心它的外部效果。
+    func performAnnotatedActionForTesting(_ action: ScreenshotToolbarAction) async {
+        await performAnnotatedAction(action)
+    }
+
+    /// 已在标注态时选工具：只换工具与光标，不重复捕获、不重建工具条。
+    private func selectAnnotationTool(_ tool: AnnotationTool) {
+        draftSelectedTool = tool
+        annotationHost?.updateAnnotationTool(tool, style: annotationStyle)
+        // 工具条只重排高亮：窗口尺寸与位置都不变（用户预期第 4 条）。
+        refreshDraftToolbarContent()
+    }
+
+    /// 只替换工具条的内容（选中高亮），窗口实例、尺寸、位置一律不动。
+    private func refreshDraftToolbarContent() {
+        guard let hosting = window?.contentView as? NSHostingView<RegionScreenshotToolbarView> else { return }
+        let viewModel = ScreenshotPreviewViewModel(result: nil)
+        hosting.rootView = RegionScreenshotToolbarView(
+            viewModel: viewModel,
+            selectedTool: draftSelectedTool,
+            onAction: { [weak self] action in
+                self?.handleDraft(action: action)
+            }
+        )
+    }
+
+    /// 进入原地标注：懒捕获 → 把画面交给叠层 → 工具条留在原位并高亮选中工具。
+    ///
+    /// 关键顺序（每一步都对应一次用户可见的现象）：
+    /// 1. 先隐藏放大镜 —— 它压在选区里会被 `CGDisplayCreateImage` 拍进位图；
+    /// 2. 再让工具条让位 —— 同理，它是独立窗口；
+    /// 3. 捕获完成、叠层仍在上屏（**不** `hideForCapture`、**不** `finish`）；
+    /// 4. 叠层进入标注态、工具条重新上屏并贴着原位置。
+    func performDraftAnnotation(tool: AnnotationTool) async {
+        guard let annotationHost else {
+            // 没有原地标注宿主（无叠层场景）：退回老路径，懒捕获后开编辑器。
+            await performDraftAction(.annotate(tool))
+            return
+        }
+        guard let capture = annotationCapture ?? draftCapture else { return }
+        let wasSelected = tool
+
+        annotationHost.prepareForAnnotationCapture()
+        window?.orderOut(nil)
+        // 摘掉草稿态字段，但保留 `regionCleanup`：标注期间会话仍在进行。
+        draftCapture = nil
+        isShowingRegionDraft = false
+
+        do {
+            let result = try await capture()
+            guard let selection = result.regionSelection, let image = NSImage(data: result.imageData) else {
+                dismiss(reason: .action)
+                return
+            }
+            // 标注期间仍可再次点复制/保存：`draftCapture` 换成直接返回本次结果。
+            draftCapture = { result }
+            draftSelectedTool = wasSelected
+            annotationStyle = AnnotationStyle()
+            guard annotationHost.beginAnnotation(
+                image: image,
+                regionGlobal: selection.globalRect,
+                tool: wasSelected,
+                style: annotationStyle
+            ) else {
+                dismiss(reason: .action)
+                return
+            }
+            isShowingRegionDraft = true
+            showAnnotationToolbar(selection: selection, selectedTool: wasSelected)
+            logger.info("In-place annotation active for the locked region")
+        } catch {
+            logger.error("Annotation capture failed: \(error.localizedDescription, privacy: .public)")
+            dismiss(reason: .action)
+        }
+    }
+
+    /// 标注态工具条：与草稿态同尺寸、同位置、同层级，只是复制/保存/贴图点击后
+    /// 会把当前标注一起合成进结果。窗口不夺 key（叠层继续持有键盘）。
+    private func showAnnotationToolbar(selection: RegionCaptureSelection, selectedTool: AnnotationTool) {
+        let viewModel = ScreenshotPreviewViewModel(result: nil)
+        let view = RegionScreenshotToolbarView(
+            viewModel: viewModel,
+            selectedTool: selectedTool,
+            onAction: { [weak self] action in
+                self?.handleDraft(action: action)
+            }
+        )
+        if let window {
+            window.setFrame(
+                ScreenshotGeometry.toolbarFrame(
+                    selection: selection.globalRect,
+                    toolbarSize: regionToolbarSize,
+                    screenFrame: selection.screenFrame
+                ),
+                display: true
+            )
+            refreshDraftToolbarContent()
+            window.orderFrontRegardless()
+            return
+        }
+        let window = makeRegionToolbarWindow(
+            rootView: view,
+            globalRect: selection.globalRect,
+            screenFrame: selection.screenFrame,
+            stealsKey: false
+        )
+        window.orderFrontRegardless()
+        self.window = window
     }
 
     /// 草稿态动作：先按需捕获，再把「已捕获」的区域工具条换上去并执行同一动作，
@@ -722,6 +972,8 @@ final class ScreenshotPreviewViewModel: ObservableObject {
 /// 名称仍通过悬停说明与辅助功能标签提供。
 private struct RegionScreenshotToolbarView: View {
     @ObservedObject var viewModel: ScreenshotPreviewViewModel
+    /// 当前选中的标注工具：只有它高亮。点工具之后视觉上只允许这一处变化。
+    let selectedTool: AnnotationTool?
     let onAction: (ScreenshotToolbarAction) -> Void
 
     var body: some View {
@@ -737,7 +989,12 @@ private struct RegionScreenshotToolbarView: View {
                     onAction(.pin)
                 }
                 ForEach(AnnotationTool.allCases) { tool in
-                    ToolbarButton(systemName: tool.systemImage, label: tool.displayName, isCompact: true) {
+                    ToolbarButton(
+                        systemName: tool.systemImage,
+                        label: tool.displayName,
+                        isCompact: true,
+                        isSelected: tool == selectedTool
+                    ) {
                         onAction(.annotate(tool))
                     }
                 }
@@ -886,6 +1143,8 @@ private struct ToolbarButton: View {
     var tint: Color? = nil
     /// 紧凑态：只画图标（选区旁的横条动作多、空间窄），名称走悬停说明与辅助功能标签。
     var isCompact: Bool = false
+    /// 选中态：当前生效的工具用 Jade 底色与主色图标标出（唯一允许的视觉变化）。
+    var isSelected: Bool = false
     let action: () -> Void
 
     @State private var hovering = false
@@ -907,10 +1166,12 @@ private struct ToolbarButton: View {
                     .frame(width: 72, height: 40)
                 }
             }
-            .foregroundColor(tint ?? JadeColor.textPrimary)
+            .foregroundColor(isSelected ? JadeColor.primary : (tint ?? JadeColor.textPrimary))
             .background(
                 JadeRadius.md.shape
-                    .fill(hovering ? JadeColor.surface3 : Color.clear)
+                    .fill(isSelected
+                          ? JadeColor.primary.opacity(0.18)
+                          : (hovering ? JadeColor.surface3 : Color.clear))
             )
         }
         .buttonStyle(.plain)

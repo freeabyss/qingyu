@@ -25,6 +25,8 @@ enum CaptureInputEvent {
     case closePresetPicker
     /// Task 015：把当前微调中的选区保存为预设（`⌘S` 区域 / `⌘⇧S` 尺寸）。
     case saveCurrentSelectionAsPreset(kind: CapturePresetKind)
+    /// 原地区注：Esc 退出标注、回到「选区可微调」态（不结束会话）。
+    case cancelAnnotation
     case cancel
 }
 
@@ -60,6 +62,23 @@ protocol CaptureOverlayWindow: AnyObject {
     func orderFront()
     func hide()
     func close()
+
+    // MARK: - 原地标注
+
+    /// 在已锁定的选区上原地编辑：叠层外观（压暗 / 边框 / 尺寸徽标）保持不变，
+    /// 只在选区内加一层可绘制区域。用户预期：点工具后除了光标与工具高亮之外无变化。
+    @discardableResult
+    func beginAnnotation(image: NSImage, regionGlobal: CGRect, tool: AnnotationTool, style: AnnotationStyle) -> Bool
+    func updateAnnotationTool(_ tool: AnnotationTool, style: AnnotationStyle)
+    func undoAnnotation()
+    func redoAnnotation()
+    var annotationShapes: [AnnotationShape] { get }
+    var isAnnotating: Bool { get }
+    func endAnnotation()
+    /// 捕获前让出屏幕（隐藏放大镜）但不收起叠层。
+    func prepareForAnnotationCapture()
+    /// 文字/提示框工具需要输入框：叠层只上报「点在哪 + 输入完的回调」。
+    func setAnnotationTextRequestHandler(_ handler: @escaping (CGPoint, @escaping (String?) -> Void) -> Void)
 }
 
 extension CaptureOverlayWindow {
@@ -67,6 +86,43 @@ extension CaptureOverlayWindow {
     func updatePresetPicker(items: [String], selectedIndex: Int?) {}
 
     func updateNotice(_ text: String?) {}
+
+    func beginAnnotation(image: NSImage, regionGlobal: CGRect, tool: AnnotationTool, style: AnnotationStyle) -> Bool { false }
+    func updateAnnotationTool(_ tool: AnnotationTool, style: AnnotationStyle) {}
+    func undoAnnotation() {}
+    func redoAnnotation() {}
+    var annotationShapes: [AnnotationShape] { [] }
+    var isAnnotating: Bool { false }
+    func endAnnotation() {}
+    /// 捕获前让出屏幕（隐藏放大镜）但不收起叠层。
+    func prepareForAnnotationCapture() {}
+    func setAnnotationTextRequestHandler(_ handler: @escaping (CGPoint, @escaping (String?) -> Void) -> Void) {}
+}
+
+// MARK: - 原地标注宿主
+
+/// 会话即标注宿主：工具条只经由这组方法驱动选区上的编辑，
+/// 「捕获前让位」「进入/退出标注」「导出用的形状与尺寸」都收在这里。
+extension CaptureSessionController: RegionAnnotationHost {
+    /// 捕获前隐藏放大镜：它压在选区里会被 `CGDisplayCreateImage` 拍进位图
+    /// （实测取样窗口会把亮度从 243 拉到 215）。叠层本身必须留着。
+    func prepareForAnnotationCapture() {
+        for overlay in overlayWindows.values {
+            overlay.prepareForAnnotationCapture()
+        }
+    }
+
+    var annotationRegionSize: CGSize {
+        annotationRegionRect?.size ?? .zero
+    }
+
+    /// 动作完成：收起标注画布。会话由捕获路径 `finish()` 统一收尾。
+    func finishAnnotation() {
+        isAnnotating = false
+        for overlay in overlayWindows.values {
+            overlay.endAnnotation()
+        }
+    }
 }
 
 @MainActor
@@ -127,6 +183,17 @@ final class CaptureSessionController {
     /// 可微调态已失效（例如显示器拓扑变化后重建叠层）：调用方应收起草稿工具条。
     /// 与 `onCancel` 的区别是会话**不结束**，只是选区作废、回到窗口选择态。
     var onRegionAdjustableEnded: (() -> Void)?
+
+    /// 原地标注态（选区锁定、叠层保持压暗，鼠标归属标注画布）。
+    ///
+    /// 这是一个**子态**而不是新的 phase：选区、叠层、工具条全部沿用微调态那一套，
+    /// 只有「谁吃掉鼠标事件」与「工具条显示什么」变了。放进 phase 会逼着所有
+    /// 既有分支各补一个 case，而它们的行为在标注期间完全不变。
+    private(set) var isAnnotating = false
+    /// 文字/提示框工具的输入面板：由调用方提供（叠层自己不弹窗）。
+    var annotationTextInputHandler: ((CGPoint, @escaping (String?) -> Void) -> Void)?
+    /// 标注态已退出（Esc 或动作收尾）：调用方应把工具条收回「纯选区」形态。
+    var onAnnotationExit: (() -> Void)?
 
     init(
         displayProvider: DisplayProviding,
@@ -294,9 +361,78 @@ final class CaptureSessionController {
         case .saveCurrentSelectionAsPreset(let kind):
             saveCurrentSelectionAsPreset(kind: kind)
 
+        case .cancelAnnotation:
+            exitAnnotation()
+
         case .cancel:
             cancel()
         }
+    }
+
+    // MARK: - 原地标注
+
+    /// 进入标注态：选区必须已可微调（叠层仍在上屏、选区仍可见）。
+    ///
+    /// 标记会话为标注中后，叠层内层的标注画布接管鼠标（见 `CaptureOverlayContentView`）；
+    /// 叠层自身的压暗、选区边框与尺寸徽标一律不变 —— 这正是用户预期第 4 条。
+    @discardableResult
+    func beginAnnotation(image: NSImage, regionGlobal: CGRect, tool: AnnotationTool, style: AnnotationStyle) -> Bool {
+        guard case .adjustingRegion = state.phase, !isAnnotating else { return false }
+        guard let overlay = overlay(for: regionGlobal) else { return false }
+        isAnnotating = true
+        overlay.beginAnnotation(image: image, regionGlobal: regionGlobal, tool: tool, style: style)
+        // 标注期间叠层必须保持 key：Esc/⌘Z 走 `keyDown`，不能落到工具条上。
+        (overlay as? CaptureOverlayWindowController)?.makeKey()
+        if let handler = annotationTextInputHandler {
+            overlay.setAnnotationTextRequestHandler(handler)
+        }
+        logger.info("In-place annotation started on display \(overlay.display.id)")
+        return true
+    }
+
+    /// 切换标注工具：只改高亮与光标，叠层与其他像素不动。
+    func updateAnnotationTool(_ tool: AnnotationTool, style: AnnotationStyle) {
+        guard isAnnotating else { return }
+        annotationOverlay?.updateAnnotationTool(tool, style: style)
+    }
+
+    func undoAnnotation() { annotationOverlay?.undoAnnotation() }
+    func redoAnnotation() { annotationOverlay?.redoAnnotation() }
+
+    var annotationShapes: [AnnotationShape] { annotationOverlay?.annotationShapes ?? [] }
+    /// 标注选区（AppKit 全局坐标）与尺寸；供导出时换算像素。
+    var annotationRegionRect: CGRect? {
+        guard case .adjustingRegion(_, let rect) = state.phase else { return nil }
+        return rect
+    }
+
+    /// 退出标注态：叠层回到纯选区呈现，选区仍可微调（会话继续）。
+    func exitAnnotation() {
+        guard isAnnotating else { return }
+        let overlay = annotationOverlay
+        isAnnotating = false
+        overlay?.endAnnotation()
+        // 恢复叠层呈现（提示条、选区边框）并把选区工具条放回原位。
+        syncOverlays()
+        onAnnotationExit?()
+        notifyRegionAdjustableIfNeeded()
+    }
+
+    /// 标注所在显示器：以选区中心判定，回落到活动屏。
+    private var annotationOverlay: CaptureOverlayWindow? {
+        guard case .adjustingRegion(_, let rect) = state.phase else { return nil }
+        return overlay(for: rect)
+    }
+
+    /// 文字/提示框工具需要输入框：由叠层把「点在哪、输入完给谁」交给宿主，
+    /// 宿主（调用方）决定用哪种输入面板，叠层自己不弹窗。
+
+    private func overlay(for globalRect: CGRect) -> CaptureOverlayWindow? {
+        let center = CGPoint(x: globalRect.midX, y: globalRect.midY)
+        if let match = overlayWindows.values.first(where: { $0.display.frame.contains(center) }) {
+            return match
+        }
+        return activeDisplayID.flatMap { overlayWindows[$0] }
     }
 
     /// 显示器拓扑变化时重建叠层与坐标映射。
@@ -542,6 +678,9 @@ final class CaptureSessionController {
 
     /// 把当前状态同步到各叠层：仅活动屏显示高亮/区域/提示。
     private func syncOverlays() {
+        // 标注态下 `syncOverlays` 仍会被会话内部调用（例如拓扑重建）：此时**不得**重画
+        // 选区与提示，否则用户正编辑的画面会闪一下、甚至被重置。
+        if isAnnotating { return }
         for (displayID, window) in overlayWindows {
             let isActive = displayID == activeDisplayID
             window.setActive(isActive)

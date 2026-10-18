@@ -87,10 +87,16 @@ final class OnboardingViewModel: ObservableObject {
     /// 而不是老的 `requestScreenRecordingPrompt()`：macOS 15 起后者由 tccd 直接拒绝
     /// （`does not allow prompting`），既不弹窗也不把清羽写进 TCC，用户会卡在
     /// 「系统设置里找不到清羽」。详见 `ScreenRecordingConsentFlow`。
+    /// 防重入：等待系统同意窗期间重复点击不得叠加第二次等待（否则会连续弹两次引导）。
+    private var isRequestingScreenRecording = false
+
     func requestScreenRecording() {
+        guard !isRequestingScreenRecording else { return }
+        isRequestingScreenRecording = true
         Task {
             _ = await permissionService.requestScreenRecordingAccess()
             await refreshScreenRecordingStatus()
+            isRequestingScreenRecording = false
         }
     }
 
