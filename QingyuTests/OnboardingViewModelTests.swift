@@ -49,14 +49,24 @@ final class OnboardingViewModelTests: XCTestCase {
         XCTAssertTrue(viewModel.canStart)
     }
 
-    // ONB-V2-003: 点「授予屏幕录制权限」触发 requestScreenRecordingPrompt 恰好一次。
+    // ONB-V2-003: 点「授予屏幕录制权限」触发系统同意流程恰好一次。
     func test_requestScreenRecording_triggersPromptOnce() async throws {
         let viewModel = makeViewModel()
         XCTAssertEqual(permissions.requestScreenRecordingCallCount, 0)
 
         viewModel.requestScreenRecording()
+        // 同意流程本身是异步的（要等用户回应系统弹窗），断言前先等它落地。
+        await waitUntil { permissions.requestScreenRecordingCallCount == 1 }
 
         XCTAssertEqual(permissions.requestScreenRecordingCallCount, 1)
+    }
+
+    /// 轮询等待异步流程落地，避免用固定 `sleep` 造成的偶发失败。
+    private func waitUntil(timeout: TimeInterval = 1, _ condition: () -> Bool) async {
+        let deadline = Date().addingTimeInterval(timeout)
+        while !condition() && Date() < deadline {
+            try? await Task.sleep(nanoseconds: 5_000_000)
+        }
     }
 
     // PERM-OD-001: onboarding 全程不触发辅助功能 TCC。
@@ -236,6 +246,10 @@ final class MockPermissionService: PermissionServiceProtocol {
         callLog.append(.request(kind: .screenRecording))
         requestScreenRecordingCallCount += 1
         return requestScreenRecordingResult
+    }
+
+    func requestScreenRecordingAccess() async -> Bool {
+        requestScreenRecordingPrompt()
     }
 
     func onDemandAccessibilityCheck() -> Bool {

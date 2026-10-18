@@ -13981,6 +13981,42 @@
         }
       }
     },
+    "management.permission.screenRecording.manualAdd" : {
+      "comment" : "Shown when screen recording is not granted: since macOS 15 the app is not added to the list automatically",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Since macOS 15 the system no longer adds Qingyu to this list automatically. If it is missing, click “+” under the list and pick Qingyu, then relaunch the app."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS 15 起系统不再自动把清羽加入该列表。若列表里没有清羽，请点列表下方的「+」手动添加，然后重新启动清羽。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS 15 起系統不再自動把清羽加入該清單。若清單中沒有清羽，請點清單下方的「+」手動加入，然後重新啟動清羽。"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS 15 以降、システムは Qingyu をこの一覧に自動追加しません。一覧に無い場合は一覧下部の「+」で追加し、Qingyu を再起動してください。"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Depuis macOS 15, le système n'ajoute plus Qingyu à cette liste automatiquement. S'il est absent, cliquez sur « + » sous la liste et choisissez Qingyu, puis relancez l'app."
+          }
+        }
+      }
+    },
     "management.permission.screenRecording.description" : {
       "comment" : "US-015 management center",
       "extractionState" : "stale",
@@ -21376,37 +21412,37 @@
       }
     },
     "screenshot.permission.message" : {
-      "comment" : "Alert message: screen recording permission required, including the relaunch step",
+      "comment" : "Alert message: screen recording permission required; since macOS 15 the app must be added manually with the + button, then relaunched",
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Qingyu needs Screen Recording permission to take screenshots. Grant it in System Settings. macOS caches this decision for the running app, so use Relaunch Qingyu afterwards to make the grant take effect."
+            "value" : "Qingyu needs Screen Recording permission to take screenshots. Turn Qingyu on in System Settings → Privacy & Security → Screen & System Audio Recording. Since macOS 15 the system no longer shows the permission prompt by itself, so Qingyu may not be listed yet — click “+” under the list to add the app at the path below. Then choose “Relaunch Qingyu” so the grant takes effect."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "清羽需要屏幕录制权限才能截图。请在系统设置中授权。macOS 会缓存当前运行实例的授权判定，授权后请点「重新启动清羽」让授权生效。"
+            "value" : "清羽需要屏幕录制权限才能截图。请到「系统设置 → 隐私与安全性 → 屏幕与系统录音」打开清羽的开关；macOS 15 起系统不再自动弹出授权窗，列表里可能还没有清羽，请点列表下方的「+」手动添加下面这个应用。授权后请点「重新启动清羽」让授权生效。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "清羽需要螢幕錄製權限才能截圖。請在系統設定中授予。macOS 會快取目前執行中 App 的授權判定，授權後請點按「重新啟動清羽」讓授權生效。"
+            "value" : "清羽需要螢幕錄製權限才能截圖。請到「系統設定 → 隱私權與安全性 → 螢幕與系統音訊錄製」開啟清羽的開關；macOS 15 起系統不再自動彈出授權視窗，清單中可能還沒有清羽，請點清單下方的「+」手動加入下面這個 App。授權後請點按「重新啟動清羽」讓授權生效。"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Qingyu がスクリーンショットを撮るには画面収録権限が必要です。システム設定で許可してください。macOS は実行中のアプリに対する判定をキャッシュするため、許可したあとに「Qingyu を再起動」を実行して反映させてください。"
+            "value" : "Qingyu がスクリーンショットを撮るには画面収録権限が必要です。「システム設定 → プライバシーとセキュリティ → 画面とシステムオーディオの録音」で Qingyu をオンにしてください。macOS 15 以降はシステムが許可ダイアログを自動表示しないため、一覧に Qingyu がまだ無い場合は一覧下部の「+」で下記のアプリを追加してください。許可したあとは「Qingyu を再起動」を選んで反映させてください。"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Qingyu a besoin de l'autorisation Enregistrement de l'écran pour réaliser des captures d'écran. Accordez-la dans Réglages Système. macOS met en cache cette décision pour l'app en cours d'exécution, utilisez donc « Relancer Qingyu » ensuite pour que l'autorisation prenne effet."
+            "value" : "Qingyu a besoin de l'autorisation Enregistrement de l'écran pour réaliser des captures d'écran. Activez Qingyu dans Réglages Système → Confidentialité et sécurité → Enregistrement de l'écran et de l'audio du système. Depuis macOS 15, le système n'affiche plus la demande d'autorisation de lui-même : Qingyu peut donc ne pas encore figurer dans la liste — cliquez sur « + » sous la liste pour ajouter l'app indiquée ci-dessous. Choisissez ensuite « Relancer Qingyu » pour que l'autorisation prenne effet."
           }
         }
       }

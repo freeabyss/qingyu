@@ -28,8 +28,20 @@ protocol PermissionServiceProtocol {
     /// 触发屏幕录制权限申请，会促使系统首次注册本 App 到 TCC 数据库并加入设置候选列表。
     /// - Returns: 当前是否已授权(`CGRequestScreenCaptureAccess()` 的直接返回值)。
     /// - Note: 首次调用会弹出系统权限 UI；必须在主线程调用。参见 Issue #3、v1.1.0 architecture §4.1。
+    /// - Warning: **macOS 15 起本调用不再弹窗、也不再注册本 App**，详见
+    ///   `ScreenRecordingConsentFlow`；截图入口应改用 `requestScreenRecordingAccess()`。
     @MainActor
     func requestScreenRecordingPrompt() -> Bool
+
+    /// 触发系统的屏幕录制同意流程，并在用户回应后返回最终授权状态。
+    ///
+    /// 与 `requestScreenRecordingPrompt()` 的区别：后者只是一次性的老式申请，macOS 15 起
+    /// 已被系统拒绝（不弹窗、不注册）；本方法补齐了「真的抓一次屏让系统弹同意窗」与
+    /// 「等用户回应」两步，见 `ScreenRecordingConsentFlow`。
+    ///
+    /// - Returns: 用户回应（或超时）之后，本进程当前是否已获屏幕录制授权。
+    @MainActor
+    func requestScreenRecordingAccess() async -> Bool
 
     /// 按需检查辅助功能权限（v1.2，PRD FR-ONBOARD-ACCESSIBILITY-ONDEMAND / AC-7）。
     ///
@@ -104,6 +116,54 @@ enum ScreenRecordingRecovery {
     static let actions: [Action] = [.openSystemSettings, .relaunch, .cancel]
 }
 
+// MARK: - Screen-recording consent flow
+
+/// 触发屏幕录制同意流程的时序（依赖全部注入，便于单测）。
+///
+/// **为什么不能只调用 `CGRequestScreenCaptureAccess()`**：macOS 15 起该调用不再弹窗 ——
+/// tccd 直接记一行
+/// `Service kTCCServiceScreenCapture does not allow prompting; returning denied.`
+/// 然后返回未授权：**既不弹窗，也不把 App 写进 TCC 数据库**。于是用户在
+/// 「系统设置 → 隐私与安全性 → 屏幕与系统录音」里根本找不到清羽，无从授权 ——
+/// 用户报告的现象（「申请屏幕权限时列表里没有自动出现清羽」）正是如此。
+/// 本机实测（macOS 26.6.2、Apple Development 签名的正式安装包）确认了这条日志。
+///
+/// macOS 15 起系统只在**真的尝试抓屏**时才弹同意窗（Apple 在 Sequoia release notes 中把
+/// 「继续使用 `CGWindowListCreateImage` 等废弃捕获 API 会反复弹窗」列为已知行为），
+/// 因此正确的时序是：
+/// 1. 先按老系统的办法申请一次（macOS 15 之前靠它弹窗；之后是无害的 no-op）；
+/// 2. **真的抓一次屏**，给系统弹同意窗的机会；
+/// 3. 给用户几秒回应时间，期间一旦读到已授权就立刻放行。
+///
+/// 第 3 步是必要的：系统同意窗是异步的，用户点「允许」之前状态一直是未授权；
+/// 若不等，就会在系统弹窗还挂着的时候弹出我们自己的引导窗，把用户推到
+/// 「到底点哪个」的混乱里。
+struct ScreenRecordingConsentFlow {
+    /// 读取当前是否已授权（生产实现为 `CGPreflightScreenCaptureAccess()`）。
+    var isAuthorized: () -> Bool
+    /// 老系统的申请入口（生产实现为 `CGRequestScreenCaptureAccess()`）。
+    var requestLegacyPrompt: () -> Void
+    /// 真的抓一次屏以触发系统同意窗（结果丢弃）。
+    var triggerSystemConsent: () -> Void
+    /// 两次复查之间的等待。
+    var waitBeforeRecheck: () async -> Void
+    /// 最多复查几次。默认 6 次 × 0.5 s = 约 3 秒，足够用户回应系统弹窗。
+    var maxRechecks: Int = 6
+
+    /// - Returns: 最终是否已授权。
+    func run() async -> Bool {
+        if isAuthorized() { return true }
+        requestLegacyPrompt()
+        triggerSystemConsent()
+        // 先等再查：系统同意窗需要一点时间才会出现，立刻查必然读到「未授权」。
+        for _ in 0..<maxRechecks {
+            await waitBeforeRecheck()
+            if isAuthorized() { return true }
+        }
+        return isAuthorized()
+    }
+}
+
 /// Thin macOS API wrapper for Screen Recording and Accessibility privacy permissions.
 final class PermissionService: PermissionServiceProtocol {
     private let workspace: NSWorkspace
@@ -139,6 +199,34 @@ final class PermissionService: PermissionServiceProtocol {
     @MainActor
     func requestScreenRecordingPrompt() -> Bool {
         CGRequestScreenCaptureAccess()
+    }
+
+    @MainActor
+    func requestScreenRecordingAccess() async -> Bool {
+        let flow = ScreenRecordingConsentFlow(
+            isAuthorized: { CGPreflightScreenCaptureAccess() },
+            requestLegacyPrompt: { _ = CGRequestScreenCaptureAccess() },
+            triggerSystemConsent: { Self.triggerSystemConsentPrompt() },
+            waitBeforeRecheck: { try? await Task.sleep(nanoseconds: 500_000_000) }
+        )
+        let granted = await flow.run()
+        logger.info("Screen recording access request finished: granted=\(granted, privacy: .public)")
+        return granted
+    }
+
+    /// 真的抓一次屏，以触发系统的屏幕录制同意窗。
+    ///
+    /// 未授权时系统返回的是**桌面壁纸占位图**（不含任何窗口），这里刻意丢弃结果 ——
+    /// 本次调用的唯一目的是让系统有机会弹同意窗并把清羽写进 TCC（见
+    /// `ScreenRecordingConsentFlow` 的说明）。1×1 的裁剪框已经足够触发权限判定，
+    /// 不必抓整屏。
+    static func triggerSystemConsentPrompt() {
+        _ = CGWindowListCreateImage(
+            CGRect(x: 0, y: 0, width: 1, height: 1),
+            .optionOnScreenOnly,
+            kCGNullWindowID,
+            []
+        )
     }
 
     @MainActor

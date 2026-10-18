@@ -319,6 +319,14 @@ private struct GeneralPage: View {
                 Text(viewModel.permissionDescription(kind))
                     .font(JadeFont.caption)
                     .foregroundStyle(JadeColor.textSecondary)
+                // 屏幕录制未授权：macOS 15 起系统不再自动把本 App 加入列表，
+                // 不点明「+ 手动添加」用户会一直找不到清羽（见 `ScreenRecordingConsentFlow`）。
+                if !status.isAuthorized, kind == .screenRecording {
+                    Text(L10n.localized("management.permission.screenRecording.manualAdd"))
+                        .font(JadeFont.caption)
+                        .foregroundStyle(JadeColor.warning)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
                 // 未授权 + ad-hoc 构建：直接说明「为什么授权了还是没授权」，
                 // 避免用户反复授权却始终无效。
                 if !status.isAuthorized,

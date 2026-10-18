@@ -73,8 +73,20 @@ final class ScreenshotWindowController {
         }
         isCapturing = true
         logger.info("Screenshot capture triggered")
-        guard ensureScreenRecordingPermission() else {
-            isCapturing = false
+        // 未授权：先走一次系统同意流程，拿到授权就继续本次截图，拿不到再展示引导 ——
+        // 不直接放弃。macOS 15 起 `CGRequestScreenCaptureAccess()` 已不弹窗、也不把本 App
+        // 写进 TCC 列表，必须**真的抓一次屏**才会弹同意窗，见 `ScreenRecordingConsentFlow`。
+        guard container.permissionService.status(for: .screenRecording).isAuthorized else {
+            Task { @MainActor in
+                let granted = await container.permissionService.requestScreenRecordingAccess()
+                isCapturing = false
+                if granted {
+                    logger.info("Screen recording granted during the consent flow; retrying capture")
+                    startCapture()
+                } else {
+                    presentScreenRecordingGuidance()
+                }
+            }
             return
         }
 
@@ -251,14 +263,12 @@ final class ScreenshotWindowController {
     }
     #endif
 
-    private func ensureScreenRecordingPermission() -> Bool {
+    /// 屏幕录制授权未到位时的引导（系统同意流程已跑过，仍未拿到授权）。
+    ///
+    /// 文案必须点明「列表里可能还没有清羽，请用 + 手动添加」：macOS 15 起系统不再为屏幕
+    /// 录制弹授权窗（见 `ScreenRecordingConsentFlow`），用户按老经验去列表里找是找不到的。
+    private func presentScreenRecordingGuidance() {
         let permissionService = container.permissionService
-        guard !permissionService.status(for: .screenRecording).isAuthorized else { return true }
-
-        // 必须先触发一次系统申请：未调用过 `CGRequestScreenCaptureAccess()` 的进程
-        // 不会出现在「系统设置 → 屏幕录制」列表里，用户根本无从授权。
-        // 该调用只在尚未授权时弹系统 UI，重复触发是安全的。
-        _ = permissionService.requestScreenRecordingPrompt()
 
         let alert = NSAlert()
         alert.alertStyle = .warning
@@ -272,6 +282,8 @@ final class ScreenshotWindowController {
         ) {
             message += "\n\n" + L10n.localized(noteKey)
         }
+        // 手动添加时要在文件选择器里定位到本 App，路径直接给出（不本地化）。
+        message += "\n\n" + Bundle.main.bundleURL.path
         alert.informativeText = message
         for action in ScreenRecordingRecovery.actions {
             alert.addButton(withTitle: L10n.localized(action.localizationKey))
@@ -295,6 +307,5 @@ final class ScreenshotWindowController {
         case .cancel:
             break
         }
-        return false
     }
 }

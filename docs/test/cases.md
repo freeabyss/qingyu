@@ -42,6 +42,7 @@
 | 2026-10-16 | Claude | **剪贴板默认开启 + 五语言界面 + 切语言即重启**：① 修掉「跳过设置」把剪贴板关掉的行为 —— 剪贴板历史本是产品默认开启的能力（`clipboard.enabled` 代码默认 `"true"`），而 `skipOnboarding()` 曾显式写 `false`，等于「跳过向导」反过来关掉默认能力；现在跳过只写热键与完成标记。② 语言从 2 种扩到 5 种：新增 **繁體中文（zh-Hant）/ 日本語（ja）/ Français（fr）**，`Localizable.xcstrings` 全量补齐（846 键，五种语言各 819 条），语言列表改为**用该语言自身的写法**展示（简体中文 / 繁體中文 / English / 日本語 / Français），不随界面语言翻译。③ 顺带清掉散落在代码里的硬编码中文（内置命令名、设置搜索路由、关键词启动前缀、反馈邮件正文、确认对话框默认按钮），全部改走本地化键；中英文别名保留为**搜索匹配别名**，保证双语/拼音搜索不随界面语言变化。④ **切换语言后自动重启**：写 `AppleLanguages` 后直接以 `createsNewApplicationInstance` 重启自身，不再弹「需要重启才能生效」提示（`SettingsViewModel` 的 `relaunch` 注入点让单测可替换空实现，避免测试真的重启宿主进程）。测试总数 557 → 575。 |
 | 2026-10-17 | Claude | **修复三处截图叠层缺陷**（用户报告）：① **按 F1 后所有屏幕一起变暗** —— 暗幕对所有显示器一次性全亮，现改为只有指针所在屏变暗，指针跨屏时暗幕随上下文迁移；② **拖拽时有个变暗方块跟着鼠标变大** —— 那是放大镜：放大区域与选区无交集时，遮罩（`evenOdd` 填充）没有任何边界可指示，整块被压成一块看不清内容的暗方块；同时其位置判定写反（默认右上、越界翻左下），看起来就像「贴着鼠标的暗块」。现改为**固定 112 pt** 放大光标周围区域、默认贴光标**右下**（右下空间不足才翻到左上），无交集时**不遮罩**，遮罩透明度 `0.45 → 0.18`（遮罩是边界指示，不是内容屏蔽）；③ **框选成功后工具条不出现** —— 原先要按 `Enter` 才出工具条，现改为**松开即出**（草稿态工具条），动作（复制/保存/贴图/打印/关闭）在点击那一刻才按最新选区抓屏（**懒捕获**），避免微调后画面过期。第 12 节新增 1 条自动化用例 **SHOT-LIFE-007**（草稿工具条窗口契约：可见性、不夺 key、跟随选区不重建、懒捕获、失败收摊），原手工冒烟顺延为 **SHOT-LIFE-008**。同时修掉一个被本条暴露的既有缺陷：区域工具条窗口宽度写死 620 pt，而 17 个带文字按钮实需约 1304 pt，导致复制/保存/贴图/关闭被渲染在窗口外**不可点击**——现改为紧凑图标按钮并由内容 `fittingSize` 推导窗口尺寸（582×44）。另修两处跨屏缺陷：**副屏（原点为负，如主屏左侧的 `-2560`）快捷键提示整块看不见** —— `frame(in:)` 把显示器原点重复叠加了一次，算出屏外坐标；**拖拽跨屏时后续事件被丢弃** —— 视图层用本窗口的 `isMouseDown` 过滤，而抬起事件落在对侧窗口上，现改为不按窗口过滤、一律由会话状态机判定，并让非活动屏也上报 `pointerMoved`（否则指针移过去后无人上报，压暗与高亮卡在原屏）。 |
 | 2026-10-17 | Claude | **测试门禁补第 2 步：测试文件登记检查（孤儿文件）**。本轮新增测试时再次撞上同一类缺陷 —— 文件放进 `QingyuTests/` 目录**不会**让它被执行，必须登记进 `Qingyu.xcodeproj` 的 `QingyuTests` 目标（`PBXFileReference` + 分组 children + Sources 阶段）。本轮新增的 `ScreenshotOverlayAppearanceTests`（6 条，压暗范围与选区透出的**画面**断言）起初也是孤儿；顺着查下去又发现 **4 个同类孤儿文件：`PermissionServiceProtocolConformanceTests`（4 条，此前已记录过却一直没修）、`ClipboardMonitorTests`（5 条）、`UpdateServiceTests`（2 条）、`UITestSupportTests`（22 条）**，合计 **33 条用例从未执行过**，而测试报告始终「全绿」——「全绿」因此具有欺骗性。已全部登记（登记后 631 项全绿，说明这些用例本身是对的，只是一直没跑），并把「测试目录里每个 `.swift` 都出现在 Sources 阶段」写进 `scripts/verify.sh` 硬门禁（按文件名匹配，容忍注释带不带 `QingyuTests/` 前缀两种写法），同步写入 `AGENTS.md`。测试总数 575 → 631。 |
+| 2026-10-18 | Claude | **修复「申请屏幕录制权限时系统设置里没有自动出现清羽」**。查 tccd 日志拿到确凿证据：`CGRequestScreenCaptureAccess()` 之后紧跟一行 `Service kTCCServiceScreenCapture does not allow prompting; returning denied`（`AUTHREQ_CTX ... preflight=no` → `AUTHREQ_RESULT authValue=0 authReason=5`），且系统 TCC 库里**始终没有** `com.freeabyss.qingyu` 的 `kTCCServiceScreenCapture` 行 —— **macOS 15 起系统不再为屏幕录制弹 TCC 授权窗**，该调用既不弹窗也不把 App 写进列表，用户去「系统设置 → 隐私与安全性 → 屏幕与系统录音」自然找不到清羽（旧版 macOS 与本文档此前的描述均已过时）。系统改为**在 App 真的尝试抓屏时**弹同意窗（Apple Sequoia release notes 把「继续用 `CGWindowListCreateImage` 等废弃 API 会反复弹窗」列为已知行为）。因此新增 `ScreenRecordingConsentFlow`：申请一次 → **真的抓一次屏** → 等用户回应（6×0.5 s，授权一到即放行）→ 仍未授权才展示引导；引导文案改为明确告知「点列表下方的「+」手动添加（附 App 路径）→ 授权后点「重新启动清羽」」。新增 5 条自动化用例（`ScreenRecordingConsentTests`）与 1 条手工 E2E（**PERM-OD-004**）。 |
 
 ---
 
@@ -879,6 +880,12 @@ MVP 暂不覆盖：
 - **步骤**：断言 `PermissionServiceProtocol.onDemandAccessibilityCheck()` 在真实 PermissionService、MockPermissionService、StaticPermissionService 三 conformer 均实现且可调用。
 - **预期结果**：三 conformer 均实现（否则编译失败），Mock 可配返回/计数。
 
+#### PERM-OD-004：屏幕录制同意流程（macOS 15 起系统不再自动弹窗）
+- **关联**：用户报告 2026-10-18「打开截图申请屏幕权限时，系统设置里没有自动出现清羽」｜ **优先级**：P0 ｜ **类型**：swift + 手工 E2E ｜ **文件**：`QingyuTests/ScreenRecordingConsentTests.swift`
+- **步骤**：断言 `ScreenRecordingConsentFlow` 的时序 —— 已授权时零调用；未授权时**申请一次 + 真的抓一次屏 + 等用户回应**，授权一到即放行；始终未授权则跑满复查次数后返回 false（由调用方展示「+ 手动添加」引导）。
+- **预期结果**：截图入口在未授权时不会只弹一次注定无效的系统申请就放弃；引导文案明确告知用列表下方的「+」手动添加 App（附路径）并「重新启动清羽」。
+- **手工 E2E**：全新安装（TCC 无记录）下按 F1 → 应看到系统同意窗（若系统确实弹出）→ 允许后截图直接继续；若系统未弹窗，引导窗必须给出「+ 手动添加」路径，用户照做并重启后可正常截图。
+
 ### 11.12 CODE —— 死代码清理
 
 #### CODE-001：无 UnifiedSearch* 残留
@@ -1161,7 +1168,7 @@ MVP 暂不覆盖：
 | P0 中脚本/静态可自动化（entitlements/版本三源/grep 等，多可入 CI） | 6 |
 | P0 中纯手工 / E2E（系统权限/签名公证/真机截图等） | 6 |
 
-> 注：多数 TC 为「swift + 手工」混合（swift 覆盖逻辑层，手工覆盖系统交互），上表按是否含 swift 自动化成分归类，故三类之和大于「纯手工」列。确切通过数在开发完成后于 report.md v1.2.0 节记录。各模块 TC 数：TOK6 / BRAND7 / DATA5 / DI3 / SEARCH-F9 / SEARCH-E5 / SHOT-FS4 / SHOT-UI5 / ONB-V2 8 / PERM-OD3 / CODE5 / DIST6 / UPD3 / SHORTCUT4 / SETNEW5 / REG7 / BUILD2 / ROBUST2 / ACC5 / I18N4 = 98。
+> 注：多数 TC 为「swift + 手工」混合（swift 覆盖逻辑层，手工覆盖系统交互），上表按是否含 swift 自动化成分归类，故三类之和大于「纯手工」列。确切通过数在开发完成后于 report.md v1.2.0 节记录。各模块 TC 数：TOK6 / BRAND7 / DATA5 / DI3 / SEARCH-F9 / SEARCH-E5 / SHOT-FS4 / SHOT-UI5 / ONB-V2 8 / PERM-OD4 / CODE5 / DIST6 / UPD3 / SHORTCUT4 / SETNEW5 / REG7 / BUILD2 / ROBUST2 / ACC5 / I18N4 = 99。
 
 ---
 

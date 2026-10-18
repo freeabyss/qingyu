@@ -81,10 +81,17 @@ final class OnboardingViewModel: ObservableObject {
 
     // MARK: - 屏幕录制
 
-    /// 点击「授予屏幕录制权限」：触发 TCC 申请并刷新授权态。
+    /// 点击「授予屏幕录制权限」：触发系统同意流程并刷新授权态。
+    ///
+    /// 走 `requestScreenRecordingAccess()`（申请 → **真的抓一次屏** → 等用户回应），
+    /// 而不是老的 `requestScreenRecordingPrompt()`：macOS 15 起后者由 tccd 直接拒绝
+    /// （`does not allow prompting`），既不弹窗也不把清羽写进 TCC，用户会卡在
+    /// 「系统设置里找不到清羽」。详见 `ScreenRecordingConsentFlow`。
     func requestScreenRecording() {
-        _ = permissionService.requestScreenRecordingPrompt()
-        Task { await refreshScreenRecordingStatus() }
+        Task {
+            _ = await permissionService.requestScreenRecordingAccess()
+            await refreshScreenRecordingStatus()
+        }
     }
 
     /// 点击「暂不开启截图」：跳过屏幕录制，允许继续使用（截图按需申请）。

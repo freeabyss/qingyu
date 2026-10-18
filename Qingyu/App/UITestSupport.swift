@@ -134,6 +134,11 @@ final class UITestMockPermissionService: PermissionServiceProtocol {
     }
 
     @MainActor
+    func requestScreenRecordingAccess() async -> Bool {
+        screenRecordingAuthorized
+    }
+
+    @MainActor
     func onDemandAccessibilityCheck() -> Bool {
         false
     }
