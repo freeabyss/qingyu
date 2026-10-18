@@ -33,7 +33,7 @@ protocol RegionAnnotationHost: AnyObject {
 // MARK: - Toolbar Action
 
 /// Actions a user can trigger from the P-05 screenshot preview toolbar.
-enum ScreenshotToolbarAction {
+enum ScreenshotToolbarAction: Equatable {
     case copy
     case save
     /// ⌥-click on Save (or explicit "save as") — opens an NSSavePanel.
@@ -190,19 +190,17 @@ final class ScreenshotToolbarController {
         regionCleanup = onDismiss
 
         let viewModel = ScreenshotPreviewViewModel(result: result)
-        let view = RegionScreenshotToolbarView(
-            viewModel: viewModel,
-            selectedTool: nil,
-            onAction: { [weak self] action in
-                self?.handle(action: action, result: result, viewModel: viewModel)
-            }
-        )
         let window = makeRegionToolbarWindow(
-            rootView: view,
             globalRect: selection.globalRect,
             screenFrame: selection.screenFrame,
             stealsKey: true
         )
+        if let content = window.contentView as? RegionToolbarView {
+            content.onAction = { [weak self, weak viewModel] action in
+                guard let self, let viewModel else { return }
+                self.handle(action: action, result: result, viewModel: viewModel)
+            }
+        }
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
         self.window = window
@@ -261,16 +259,7 @@ final class ScreenshotToolbarController {
         isShowingRegionDraft = true
         regionCleanup = onDismiss
 
-        let viewModel = ScreenshotPreviewViewModel(result: nil)
-        let view = RegionScreenshotToolbarView(
-            viewModel: viewModel,
-            selectedTool: draftSelectedTool,
-            onAction: { [weak self] action in
-                self?.handleDraft(action: action)
-            }
-        )
         let window = makeRegionToolbarWindow(
-            rootView: view,
             globalRect: globalRect,
             screenFrame: screenFrame,
             stealsKey: false
@@ -397,19 +386,6 @@ final class ScreenshotToolbarController {
         refreshDraftToolbarContent()
     }
 
-    /// 只替换工具条的内容（选中高亮），窗口实例、尺寸、位置一律不动。
-    private func refreshDraftToolbarContent() {
-        guard let hosting = window?.contentView as? NSHostingView<RegionScreenshotToolbarView> else { return }
-        let viewModel = ScreenshotPreviewViewModel(result: nil)
-        hosting.rootView = RegionScreenshotToolbarView(
-            viewModel: viewModel,
-            selectedTool: draftSelectedTool,
-            onAction: { [weak self] action in
-                self?.handleDraft(action: action)
-            }
-        )
-    }
-
     /// 进入原地标注：懒捕获 → 把画面交给叠层 → 工具条留在原位并高亮选中工具。
     ///
     /// 关键顺序（每一步都对应一次用户可见的现象）：
@@ -463,14 +439,7 @@ final class ScreenshotToolbarController {
     /// 标注态工具条：与草稿态同尺寸、同位置、同层级，只是复制/保存/贴图点击后
     /// 会把当前标注一起合成进结果。窗口不夺 key（叠层继续持有键盘）。
     private func showAnnotationToolbar(selection: RegionCaptureSelection, selectedTool: AnnotationTool) {
-        let viewModel = ScreenshotPreviewViewModel(result: nil)
-        let view = RegionScreenshotToolbarView(
-            viewModel: viewModel,
-            selectedTool: selectedTool,
-            onAction: { [weak self] action in
-                self?.handleDraft(action: action)
-            }
-        )
+        draftSelectedTool = selectedTool
         if let window {
             window.setFrame(
                 ScreenshotGeometry.toolbarFrame(
@@ -485,7 +454,6 @@ final class ScreenshotToolbarController {
             return
         }
         let window = makeRegionToolbarWindow(
-            rootView: view,
             globalRect: selection.globalRect,
             screenFrame: selection.screenFrame,
             stealsKey: false
@@ -531,24 +499,18 @@ final class ScreenshotToolbarController {
 
     /// 区域工具条窗口的公共构造。
     ///
-    /// `stealsKey == false`（草稿态）时**禁止夺 key**：会话期间活动叠层必须保持 key，
-    /// 否则方向键微调、`Tab` 辅助线、`Enter` 确认、`P` / `⌘S` 预设全部失效。
-    /// `becomesKeyOnlyIfNeeded` 让普通按钮点击直接生效且不夺 key（只有文本框这类
-    /// 真正需要键盘的控件才会），因此不需要额外转发键盘事件。
-    private func makeRegionToolbarWindow<Content: View>(
-        rootView: Content,
+    /// `stealsKey == false`（草稿态与标注态）时**禁止夺 key**：会话期间活动叠层必须保持
+    /// key，否则方向键微调、`Tab` 辅助线、`Enter` 确认、`P` / `⌘S` 预设全部失效。
+    ///
+    /// 按钮用 AppKit 的 `NSButton`（见 `RegionToolbarView`）：SwiftUI `Button` 在非 key
+    /// 窗口里不会触发动作，用户看到的正是「只有复制/贴图能用」。
+    private func makeRegionToolbarWindow(
         globalRect: NSRect,
         screenFrame: NSRect,
         stealsKey: Bool
     ) -> ScreenshotPreviewWindow {
-        let hosting = NSHostingView(rootView: rootView)
-        // 宽度必须跟着内容走：这条工具条有 17 个按钮，写死宽度会让两侧的
-        // 复制 / 保存 / 贴图 / 关闭落到窗口之外（看不见也点不到）。
-        let fitting = hosting.fittingSize
-        let size = NSSize(
-            width: min(max(fitting.width, 200), screenFrame.width),
-            height: max(fitting.height, 44)
-        )
+        // 尺寸由按钮数量推导：写死宽度会让两侧的复制 / 保存 / 贴图 / 关闭落到窗口之外。
+        let size = RegionToolbarView.fittingSize()
         regionToolbarSize = size
         let window = ScreenshotPreviewWindow(
             contentRect: NSRect(origin: .zero, size: size),
@@ -566,7 +528,7 @@ final class ScreenshotToolbarController {
         window.onEscape = { [weak self] in
             self?.dismiss(reason: .userEscape)
         }
-        window.contentView = hosting
+        window.contentView = makeRegionToolbarContent()
         window.setFrame(
             ScreenshotGeometry.toolbarFrame(
                 selection: globalRect,
@@ -576,6 +538,21 @@ final class ScreenshotToolbarController {
             display: true
         )
         return window
+    }
+
+    /// 区域工具条的内容视图（AppKit 按钮条），点击回调统一走 `handleDraft`。
+    private func makeRegionToolbarContent() -> RegionToolbarView {
+        let view = RegionToolbarView(frame: NSRect(origin: .zero, size: RegionToolbarView.fittingSize()))
+        view.onAction = { [weak self] action in
+            self?.handleDraft(action: action)
+        }
+        view.updateSelection(selectedTool: draftSelectedTool)
+        return view
+    }
+
+    /// 只替换工具条的内容（选中高亮），窗口实例、尺寸、位置一律不动。
+    private func refreshDraftToolbarContent() {
+        (window?.contentView as? RegionToolbarView)?.updateSelection(selectedTool: draftSelectedTool)
     }
 
     private enum DismissReason {
@@ -917,6 +894,172 @@ final class ScreenshotToolbarController {
     }
 }
 
+// MARK: - Region Toolbar (AppKit)
+
+/// 区域工具条（草稿态与已捕获态共用）：**AppKit 原生按钮条**。
+///
+/// 为什么不用 SwiftUI `Button`：区域工具条必须在截图会话进行中**不夺 key**——
+/// 活动叠层要一直持着键盘（方向键微调、`Tab` 辅助线、`Enter` 确认、`P` / `⌘S` 预设）。
+/// 而 SwiftUI 的 `Button` 在非 key 窗口里只把点击当作「激活窗口」吃掉，动作不触发：
+/// 用户报告「除了复制/贴图，其他工具都不能用」，日志里能看到的正是
+/// `acceptsFirstMouse asked` 之后什么都没有。`NSButton` 走的是同一条 AppKit
+/// 鼠标追踪路径，非 key 窗口里的第一次点击就能直接触发 action。
+///
+/// 布局与外观延续原来的紧凑色带：17 个 30pt 图标按钮、4pt 间距、胶囊底。
+final class RegionToolbarView: NSView {
+    /// 工具条按钮：**第一次点击就触发**，即使窗口不是 key。
+    ///
+    /// 区域工具条在截图会话期间故意不夺 key（键盘留在叠层上），此时 AppKit 默认把
+    /// 落在非 key 窗口上的第一次点击当作「激活窗口」吃掉；实现 `acceptsFirstMouse`
+    /// 后按下事件直接进入按钮的追踪循环。SwiftUI 的 `Button` 没有这个开关。
+    private final class ToolbarButton: NSButton {
+        override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
+    }
+
+    /// 单个按钮的点击回调。用 `.tag` 携带索引，避免为每个动作各建一个 selector。
+    var onAction: ((ScreenshotToolbarAction) -> Void)?
+
+    private static let buttonSize: CGFloat = 30
+    private static let spacing: CGFloat = JadeSpace.x1.value
+    private static let padding: CGFloat = JadeSpace.x1.value
+    private static let buttonCount = 3 + AnnotationTool.allCases.count + 1
+
+    /// 工具条尺寸：**由按钮数量推导**，与 `regionToolbarSize` 共用同一来源。
+    static func fittingSize() -> NSSize {
+        let buttons = CGFloat(buttonCount) * buttonSize
+        let gaps = CGFloat(buttonCount - 1) * spacing
+        let insets = padding * 2
+        return NSSize(width: buttons + gaps + insets, height: buttonSize + insets * 2)
+    }
+
+    /// 每个按钮对应的动作，顺序即界面顺序：复制 / 保存 / 贴图 / 标注工具… / 关闭。
+    private static var actions: [ScreenshotToolbarAction] {
+        [.copy, .save, .pin] + AnnotationTool.allCases.map { .annotate($0) } + [.cancel]
+    }
+
+    private var buttons: [NSButton] = []
+    /// 当前高亮的标注工具（nil = 未选中）。
+    private var selectedTool: AnnotationTool? {
+        didSet { updateSelection() }
+    }
+
+    override init(frame frameRect: NSRect) {
+        super.init(frame: frameRect)
+        wantsLayer = true
+        buildButtons()
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    /// 只换选中高亮：窗口、尺寸、位置都不动（用户预期第 4 条）。
+    func updateSelection(selectedTool: AnnotationTool?) {
+        self.selectedTool = selectedTool
+    }
+
+    private func buildButtons() {
+        var x = Self.padding
+        let y = Self.padding
+        for (index, action) in Self.actions.enumerated() {
+            let button = ToolbarButton(frame: NSRect(x: x, y: y, width: Self.buttonSize, height: Self.buttonSize))
+            button.isBordered = false
+            button.bezelStyle = .regularSquare
+            button.imagePosition = .imageOnly
+            button.imageScaling = .scaleProportionallyDown
+            // 选中高亮靠 `layer.backgroundColor`：NSButton 默认不是 layer-backed，
+            // 不打开这一项时 `button.layer` 为 nil，高亮永远画不出来。
+            button.wantsLayer = true
+            button.image = Self.icon(for: action)
+            button.tag = index
+            button.target = self
+            button.action = #selector(buttonClicked(_:))
+            button.toolTip = Self.label(for: action)
+            button.setAccessibilityLabel(Self.label(for: action))
+            addSubview(button)
+            buttons.append(button)
+            x += Self.buttonSize + Self.spacing
+        }
+        updateSelection()
+    }
+
+    @objc private func buttonClicked(_ sender: NSButton) {
+        guard Self.actions.indices.contains(sender.tag) else { return }
+        onAction?(Self.actions[sender.tag])
+    }
+
+    /// 单测入口：按钮总数与按序取按钮。点击无法在测试宿主里合成真实全局事件，
+    /// 用例改为直接走 `mouseDown`（见 `RegionDraftToolbarTests`）。
+    var buttonCountForTesting: Int { buttons.count }
+    func buttonForTesting(_ index: Int) -> NSButton? {
+        buttons.indices.contains(index) ? buttons[index] : nil
+    }
+
+    private func updateSelection() {
+        for (index, action) in Self.actions.enumerated() where index < buttons.count {
+            let button = buttons[index]
+            let isTool: Bool
+            if case .annotate(let tool) = action {
+                isTool = tool == selectedTool
+            } else {
+                isTool = false
+            }
+            button.contentTintColor = isTool ? JadeColor.primaryNS : Self.tint(for: action)
+            button.layer?.backgroundColor = isTool
+                ? JadeColor.primaryNS.withAlphaComponent(0.18).cgColor
+                : NSColor.clear.cgColor
+            button.layer?.cornerRadius = JadeRadius.md.value
+        }
+    }
+
+    // MARK: - Appearance
+
+    private static func icon(for action: ScreenshotToolbarAction) -> NSImage? {
+        let name: String
+        switch action {
+        case .copy: name = "doc.on.doc"
+        case .save, .saveAs: name = "square.and.arrow.down"
+        case .pin: name = "pin"
+        case .annotate(let tool): name = tool.systemImage
+        case .cancel, .dismiss: name = "xmark"
+        }
+        let image = NSImage(systemSymbolName: name, accessibilityDescription: nil)
+        let configuration = NSImage.SymbolConfiguration(pointSize: 14, weight: .medium)
+        return image?.withSymbolConfiguration(configuration)
+    }
+
+    private static func label(for action: ScreenshotToolbarAction) -> String {
+        switch action {
+        case .copy: return L10n.localized("screenshot.toolbar.copy")
+        case .save, .saveAs: return L10n.localized("screenshot.toolbar.save")
+        case .pin: return L10n.localized("screenshot.toolbar.pin")
+        case .annotate(let tool): return tool.displayName
+        case .cancel, .dismiss: return L10n.localized("screenshot.toolbar.cancel")
+        }
+    }
+
+    private static func tint(for action: ScreenshotToolbarAction) -> NSColor {
+        switch action {
+        case .cancel, .dismiss: return .systemRed
+        default: return .labelColor
+        }
+    }
+
+    override func draw(_ dirtyRect: NSRect) {
+        super.draw(dirtyRect)
+        // 胶囊底与描边：与预览工具条同一套材质语言（半透明胶囊 + 细描边）。
+        let pill = NSBezierPath(roundedRect: bounds.insetBy(dx: 0.5, dy: 0.5),
+                                xRadius: bounds.height / 2,
+                                yRadius: bounds.height / 2)
+        NSColor.windowBackgroundColor.withAlphaComponent(0.82).setFill()
+        pill.fill()
+        JadeColor.borderNS.setStroke()
+        pill.lineWidth = 1
+        pill.stroke()
+    }
+}
+
 // MARK: - Preview Window
 
 final class ScreenshotPreviewWindow: NSPanel {
@@ -963,62 +1106,6 @@ final class ScreenshotPreviewViewModel: ObservableObject {
 }
 
 // MARK: - SwiftUI Preview
-
-/// 选区旁的区域工具条（草稿态与已捕获态共用）。
-///
-/// 一律用**紧凑图标按钮**：这条工具条横跨 17 个动作（复制/保存/贴图 + 13 个标注工具 + 关闭），
-/// 带文字的 72pt 按钮排下来有 1300pt 宽，会远超窗口宽度——两侧的复制/保存/贴图/关闭
-/// 直接落在窗口之外，看得见也点不到。图标态只有 ~590pt，正好一条紧凑色带。
-/// 名称仍通过悬停说明与辅助功能标签提供。
-private struct RegionScreenshotToolbarView: View {
-    @ObservedObject var viewModel: ScreenshotPreviewViewModel
-    /// 当前选中的标注工具：只有它高亮。点工具之后视觉上只允许这一处变化。
-    let selectedTool: AnnotationTool?
-    let onAction: (ScreenshotToolbarAction) -> Void
-
-    var body: some View {
-        ZStack(alignment: .top) {
-            HStack(spacing: JadeSpace.x1.value) {
-                ToolbarButton(systemName: "doc.on.doc", label: L10n.localized("screenshot.toolbar.copy"), isCompact: true) {
-                    onAction(.copy)
-                }
-                ToolbarButton(systemName: "square.and.arrow.down", label: L10n.localized("screenshot.toolbar.save"), isCompact: true) {
-                    onAction(.save)
-                }
-                ToolbarButton(systemName: "pin", label: L10n.localized("screenshot.toolbar.pin"), isCompact: true) {
-                    onAction(.pin)
-                }
-                ForEach(AnnotationTool.allCases) { tool in
-                    ToolbarButton(
-                        systemName: tool.systemImage,
-                        label: tool.displayName,
-                        isCompact: true,
-                        isSelected: tool == selectedTool
-                    ) {
-                        onAction(.annotate(tool))
-                    }
-                }
-                ToolbarButton(
-                    systemName: "xmark",
-                    label: L10n.localized("screenshot.toolbar.cancel"),
-                    tint: JadeColor.danger,
-                    isCompact: true
-                ) {
-                    onAction(.cancel)
-                }
-            }
-            .padding(JadeSpace.x1.value)
-            .background(JadeMaterial.pill.material, in: Capsule(style: .continuous))
-            .overlay(Capsule(style: .continuous).strokeBorder(JadeColor.border, lineWidth: 1))
-            .jadeShadow(.md, radius: .xl)
-
-            if let toast = viewModel.toastMessage {
-                JadeToast(toast, variant: .info)
-                    .offset(y: -48)
-            }
-        }
-    }
-}
 
 private struct ScreenshotPreviewView: View {
     @ObservedObject var viewModel: ScreenshotPreviewViewModel

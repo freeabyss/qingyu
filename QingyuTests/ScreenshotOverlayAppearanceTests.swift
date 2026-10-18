@@ -71,6 +71,36 @@ final class ScreenshotOverlayAppearanceTests: XCTestCase {
         XCTAssertEqual(second, 0.3, accuracy: 0.03, "重绘不得叠加压暗（会变成一块更黑的方块）")
     }
 
+    /// 局部重绘：只重绘一条竖带时，带内外亮度必须完全一致。
+    ///
+    /// 用户报告（2026-10-18）：「还是有暗色区域」。复核其后上传的截图可见一条**贯穿全屏
+    /// 高度（连菜单栏都覆盖）的竖直接缝**，接缝左侧亮度恰为右侧的 0.7 倍 —— 即压暗层
+    /// 被叠了两次。这正是 `draw` 直接用 `dirtyRect` 铺黑的结果：压暗的合成结果留在
+    /// backing store 里，哪块被重绘两次，哪块就更黑。
+    ///
+    /// 现在 `draw` 先把整张画布清成透明，因此「只重绘一条竖带」与「整屏重绘」结果相同。
+    func testPartialRedrawDoesNotDeepenTheDimLayer() {
+        let view = makeView(isActive: true)
+        guard let rep = view.bitmapImageRepForCachingDisplay(in: view.bounds) else {
+            return XCTFail("无法创建缓存位图")
+        }
+        view.cacheDisplay(in: view.bounds, to: rep)
+
+        // 只重绘中间一条竖带（真实场景：高亮框/光标所在列发生变化）。
+        let band = NSRect(x: 380, y: 0, width: 40, height: height)
+        view.setNeedsDisplay(band)
+        view.displayIfNeeded()
+        view.cacheDisplay(in: band, to: rep)
+
+        let insideBand = alpha(rep, x: 400, y: 40)
+        let outsideBand = alpha(rep, x: 40, y: 40)
+        XCTAssertEqual(outsideBand, 0.3, accuracy: 0.03, "带外应保持一次压暗")
+        XCTAssertEqual(
+            insideBand, outsideBand, accuracy: 0.02,
+            "局部重绘不得让该竖带比周围更黑（用户看到的就是这条更暗的竖带）"
+        )
+    }
+
     // MARK: - 压暗范围
 
     func testInactiveDisplayIsNotDimmed() {

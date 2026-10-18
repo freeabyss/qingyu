@@ -189,6 +189,78 @@ final class RegionDraftToolbarTests: XCTestCase {
         }
     }
 
+    /// 工具条的每一个按钮都必须**在非 key 窗口里第一次点击就触发**。
+    ///
+    /// 用户报告（2026-10-18）：「工具栏除了复制图片、贴到屏幕，其他工具栏都不能使用」。
+    /// 根因是 SwiftUI `Button` 在非 key 窗口里只把点击当作「激活窗口」吃掉、动作不触发，
+    /// 而草稿工具条为了不夺走叠层的键盘必须保持非 key。改用 AppKit `NSButton` 并实现
+    /// `acceptsFirstMouse` 后，按下事件直接进入按钮追踪循环。
+    ///
+    /// 断言两件事，缺一不可：
+    /// 1. **窗口派发层**：每个按钮的 `acceptsFirstMouse` 必须为 true —— 非 key 窗口把
+    ///    按下事件交给按钮之前查的就是它，默认 false 时这一次点击只会被吞掉；
+    /// 2. **接线层**：每个按钮的 `mouseDown → 追踪 → mouseUp` 必须发出对应的动作，
+    ///    顺序与 `AnnotationTool.allCases` 一一对应（点错位就是「点这个执行那个」）。
+    func testEveryToolbarButtonFiresOnFirstClickWhileWindowStaysNonKey() throws {
+        let controller = ScreenshotToolbarController()
+        var received: [ScreenshotToolbarAction] = []
+        controller.showRegionDraft(
+            globalRect: CGRect(x: 200, y: 300, width: 600, height: 400),
+            screenFrame: screenFrame,
+            capture: { throw SnapVaultError.screenshotFailed(reason: "unused") },
+            onDismiss: {}
+        )
+        let window = try XCTUnwrap(controller.window)
+        let content = try XCTUnwrap(window.contentView as? RegionToolbarView)
+        content.onAction = { received.append($0) }
+
+        let expected = [ScreenshotToolbarAction.copy, .save, .pin]
+            + AnnotationTool.allCases.map { .annotate($0) }
+            + [.cancel]
+        XCTAssertEqual(content.buttonCountForTesting, expected.count, "工具条必须包含全部动作按钮")
+
+        for index in expected.indices {
+            let button = try XCTUnwrap(content.buttonForTesting(index))
+            // 1. 窗口派发层：非 key 窗口的首次点击是否交给这个按钮。
+            XCTAssertTrue(
+                button.acceptsFirstMouse(for: nil),
+                "按钮 #\(index) 必须在非 key 窗口的首次点击就接受事件"
+            )
+            let pointInWindow = button.convert(
+                NSPoint(x: button.bounds.midX, y: button.bounds.midY),
+                to: nil
+            )
+            // 真实点击的事件序列：先排好抬起，再交给按钮的追踪循环消费。
+            let up = try XCTUnwrap(NSEvent.mouseEvent(
+                with: .leftMouseUp,
+                location: pointInWindow,
+                modifierFlags: [],
+                timestamp: ProcessInfo.processInfo.systemUptime,
+                windowNumber: window.windowNumber,
+                context: nil,
+                eventNumber: 0,
+                clickCount: 1,
+                pressure: 0
+            ))
+            let down = try XCTUnwrap(NSEvent.mouseEvent(
+                with: .leftMouseDown,
+                location: pointInWindow,
+                modifierFlags: [],
+                timestamp: ProcessInfo.processInfo.systemUptime,
+                windowNumber: window.windowNumber,
+                context: nil,
+                eventNumber: 0,
+                clickCount: 1,
+                pressure: 1
+            ))
+            NSApp.postEvent(up, atStart: false)
+            button.mouseDown(with: down)
+        }
+
+        XCTAssertEqual(received, expected, "每个按钮的第一次点击都必须触发对应动作")
+        XCTAssertFalse(window.isKeyWindow, "点按钮不得把工具条变成 key 窗口（键盘要留在叠层）")
+    }
+
     /// 捕获失败：收掉工具条，不把用户留在「点了没反应」的状态。
     func testDraftActionDismissesToolbarWhenCaptureFails() async {
         let controller = ScreenshotToolbarController()

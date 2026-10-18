@@ -685,11 +685,6 @@ final class CaptureOverlayContentView: NSView {
     override func draw(_ dirtyRect: NSRect) {
         super.draw(dirtyRect)
 
-        // 只有当前指针所在显示器压暗，其他显示器保持原样：指针移到哪块屏，
-        // 哪块屏变暗、原屏恢复（跨屏由 `mouseMoved` 上报的 `.pointerMoved` 驱动）。
-        // 非活动屏仍保留窗口以接收指针事件，否则指针移过去时无人上报、会话卡在原屏。
-        guard isActiveDisplay else { return }
-
         // 每一步都必须**只在干净的原始画布上**叠一次。此前直接用 `dirtyRect.fill()`
         // 铺 30% 黑：叠层是半透明窗口，合成结果留在 backing store 里，下一次重绘
         // 又在这一层之上再铺一次，于是被重绘过的区域越叠越黑 —— 用户看到的是
@@ -697,8 +692,17 @@ final class CaptureOverlayContentView: NSView {
         //
         // 做法：先把本屏整张画布清成透明，再按 =30% 黑一次性铺满；之后所有挖空
         // （`.copy` 填 clear）与边框、标注都只作用在这一层之上。
+        //
+        // 清空必须在 `isActiveDisplay` 判断**之前**：非活动屏同样会收到 `needsDisplay`
+        // （跨屏切换时原活动屏正是这样），若在这里早退，窗口会把上一次的压暗与挖空
+        // 原样留在 backing store 里 —— 用户看到的就是「一块滞留的暗色区域」。
         NSColor.clear.set()
         bounds.fill(using: .copy)
+
+        // 只有当前指针所在显示器压暗，其他显示器保持原样：指针移到哪块屏，
+        // 哪块屏变暗、原屏恢复（跨屏由 `mouseMoved` 上报的 `.pointerMoved` 驱动）。
+        // 非活动屏仍保留窗口以接收指针事件，否则指针移过去时无人上报、会话卡在原屏。
+        guard isActiveDisplay else { return }
 
         NSColor.black.withAlphaComponent(0.3).set()
         bounds.fill()
