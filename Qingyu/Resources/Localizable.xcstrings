@@ -6449,6 +6449,42 @@
         }
       }
     },
+    "annotation.tool.marker" : {
+      "comment" : "Annotation tool: opaque marker brush",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Marker"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "马克笔"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "馬克筆"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "マーカー"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Marqueur"
+          }
+        }
+      }
+    },
     "annotation.tool.gaussianBlur" : {
       "comment" : "Annotation tool: gaussian blur",
       "extractionState" : "manual",

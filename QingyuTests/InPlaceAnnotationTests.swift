@@ -169,7 +169,8 @@ final class InPlaceAnnotationTests: XCTestCase {
 
     /// 每个工具的光标互不相同（用户预期「光标随着选中的工具不同而变化」）。
     func testEachToolHasItsOwnCursor() {
-        let cursors = AnnotationTool.allCases.map { AnnotationToolCursor.cursor(for: $0) }
+        let style = AnnotationStyle()
+        let cursors = AnnotationTool.allCases.map { AnnotationToolCursor.cursor(for: $0, style: style) }
         for (index, cursor) in cursors.enumerated() {
             for other in cursors[(index + 1)...] {
                 XCTAssertFalse(cursor === other, "不同工具必须各有自己的光标")
@@ -187,6 +188,72 @@ final class InPlaceAnnotationTests: XCTestCase {
         XCTAssertFalse(session.contains(global: CGPoint(x: region.maxX + 1, y: region.midY)))
         XCTAssertFalse(session.contains(global: CGPoint(x: region.midX, y: region.maxY + 1)))
         XCTAssertLessThan(region.width, displayFrame.width, "游标区必须小于整屏")
+    }
+
+    // MARK: - 圆点笔刷（2026-10-19）
+
+    /// 线工具与笔刷工具共用三档，但笔刷映射到明显的圆点直径。
+    func testBrushDiameterMapsThreeSizes() {
+        XCTAssertEqual(AnnotationStyle(lineWidth: .thin).brushDiameter(for: .highlighter), 14)
+        XCTAssertEqual(AnnotationStyle(lineWidth: .medium).brushDiameter(for: .marker), 24)
+        XCTAssertEqual(AnnotationStyle(lineWidth: .thick).brushDiameter(for: .gaussianBlur), 40)
+        XCTAssertTrue(AnnotationTool.marker.isBrush, "马克笔是圆点笔刷")
+        XCTAssertTrue(AnnotationTool.gaussianBlur.isFreehand, "模糊改为笔刷轨迹")
+        XCTAssertFalse(AnnotationTool.rectangle.isBrush)
+    }
+
+    /// 笔刷单击也要留下一个圆点（而不是要求拖拽距离）。
+    func testBrushSingleClickLeavesADot() {
+        let session = makeSession(tool: .highlighter)
+        session.state.style = AnnotationStyle(lineWidth: .thick)
+        let point = CGPoint(x: region.midX, y: region.midY)
+        _ = session.mouseDown(at: point)
+        _ = session.mouseUp(at: point)
+
+        XCTAssertEqual(session.state.shapes.count, 1)
+        XCTAssertEqual(session.state.shapes.first?.points.count, 1, "圆点笔刷单击即一个采样点")
+    }
+
+    /// 模糊工具不再拖矩形：轨迹被记录成一条带点的形状，由渲染器按笔刷直径铺开。
+    func testBlurBrushRecordsStrokeInsteadOfRect() {
+        let session = makeSession(tool: .gaussianBlur)
+        session.state.style = AnnotationStyle(lineWidth: .medium)
+        let start = CGPoint(x: region.minX + 30, y: region.minY + 30)
+        let end = CGPoint(x: region.minX + 120, y: region.minY + 90)
+        _ = session.mouseDown(at: start)
+        _ = session.mouseDragged(to: end)
+        _ = session.mouseUp(at: end)
+
+        let shape = session.state.shapes.first
+        XCTAssertEqual(shape?.tool, .gaussianBlur)
+        XCTAssertGreaterThanOrEqual(shape?.points.count ?? 0, 2)
+    }
+
+    /// 橡皮擦是圆点笔刷：沿轨迹删除命中的整条标注。
+    func testEraserBrushDeletesShapesAlongTheStroke() {
+        let session = makeSession(tool: .rectangle)
+        let start = CGPoint(x: region.minX + 20, y: region.minY + 20)
+        let end = CGPoint(x: region.minX + 120, y: region.minY + 90)
+        _ = session.mouseDown(at: start)
+        _ = session.mouseDragged(to: end)
+        _ = session.mouseUp(at: end)
+        XCTAssertEqual(session.state.shapes.count, 1, "先画一个矩形")
+
+        session.state.tool = .eraser
+        session.state.style = AnnotationStyle(lineWidth: .thick)
+        _ = session.mouseDown(at: start)
+        XCTAssertTrue(session.state.shapes.isEmpty, "橡皮擦按下即擦除命中标注")
+    }
+
+    /// 原地输入提交时必须保留落笔时的工具与样式（输入期间工具条仍可切换）。
+    func testAppendTextUsesExplicitToolAndStyle() {
+        let session = makeSession(tool: .text)
+        let style = AnnotationStyle(color: .blue, lineWidth: .thin, textSize: .large)
+        session.appendText(at: CGPoint(x: 10, y: 10), text: "hello", tool: .tooltip, style: style)
+
+        XCTAssertEqual(session.state.shapes.first?.tool, .tooltip)
+        XCTAssertEqual(session.state.shapes.first?.text, "hello")
+        XCTAssertEqual(session.state.shapes.first?.style, style)
     }
 
     // MARK: - 导出

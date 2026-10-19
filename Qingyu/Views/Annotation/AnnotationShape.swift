@@ -15,6 +15,8 @@ enum AnnotationTool: String, Codable, CaseIterable, Identifiable {
     case rectangle
     case ellipse
     case highlighter
+    /// 不透明马克笔：与荧光笔一样按圆点涂抹，但颜色不透明。
+    case marker
     case mosaic
     case gaussianBlur
     case eraser
@@ -32,6 +34,7 @@ enum AnnotationTool: String, Codable, CaseIterable, Identifiable {
         [.polyline],
         [.rectangle, .ellipse],
         [.highlighter],
+        [.marker],
         [.mosaic, .gaussianBlur],
         [.eraser],
         [.text],
@@ -48,12 +51,29 @@ enum AnnotationTool: String, Codable, CaseIterable, Identifiable {
     }
 
     /// 自由手绘：拖拽过程累积采样点，落笔时做平滑。
-    var isFreehand: Bool { self == .pencil || self == .highlighter }
+    ///
+    /// 荧光笔/马克笔/马赛克/高斯模糊都是**圆点笔刷**：沿轨迹累积点，
+    /// 渲染时按笔刷直径铺开，而不是拖一个矩形选框。
+    var isFreehand: Bool {
+        switch self {
+        case .pencil, .highlighter, .marker, .mosaic, .gaussianBlur: return true
+        default: return false
+        }
+    }
+
+    /// 圆点笔刷类工具：高亮笔 / 马克笔 / 橡皮擦 / 马赛克 / 高斯模糊。
+    /// 它们的光标是「与实际笔刷等大的圆圈」。
+    var isBrush: Bool {
+        switch self {
+        case .highlighter, .marker, .eraser, .mosaic, .gaussianBlur: return true
+        default: return false
+        }
+    }
 
     /// 点击即完成的工具（不依赖拖拽距离）。
     var isClickPlaced: Bool {
         switch self {
-        case .text, .number, .tooltip, .eraser: return true
+        case .text, .number, .tooltip: return true
         default: return false
         }
     }
@@ -71,6 +91,7 @@ enum AnnotationTool: String, Codable, CaseIterable, Identifiable {
         case .rectangle: return "rectangle"
         case .ellipse: return "circle"
         case .highlighter: return "highlighter"
+        case .marker: return "pencil.line"
         case .mosaic: return "square.grid.3x3.square"
         case .gaussianBlur: return "drop.fill"
         case .eraser: return "eraser"
@@ -159,6 +180,22 @@ struct AnnotationStyle: Hashable, Codable {
     var textSize: AnnotationTextSize = .medium
 }
 
+extension AnnotationStyle {
+    /// 圆点笔刷的直径（点）。三档与线宽共用同一个选择，但笔刷需要更大的直径。
+    func brushDiameter(for tool: AnnotationTool) -> CGFloat {
+        switch lineWidth {
+        case .thin: return 14
+        case .medium: return 24
+        case .thick: return 40
+        }
+    }
+
+    /// 线工具用细/中/粗，笔刷工具用圆点直径。
+    func strokeWidth(for tool: AnnotationTool) -> CGFloat {
+        tool.isBrush ? brushDiameter(for: tool) : lineWidth.points
+    }
+}
+
 struct AnnotationShape: Identifiable, Hashable, Codable {
     var id: UUID = UUID()
     var tool: AnnotationTool
@@ -230,10 +267,14 @@ enum AnnotationRenderer {
                 drawEllipse(shape)
             case .highlighter:
                 drawFreehand(shape, isHighlighter: true)
-            case .mosaic:
-                drawMosaic(shape, sourceImage: sourceImage, style: .pixellate, pixelScale: sourcePixelScale)
-            case .gaussianBlur:
-                drawMosaic(shape, sourceImage: sourceImage, style: .gaussianBlur, pixelScale: sourcePixelScale)
+            case .marker:
+                drawFreehand(shape, isHighlighter: false)
+            case .mosaic, .gaussianBlur:
+                if shape.points.isEmpty {
+                    drawMosaic(shape, sourceImage: sourceImage, style: shape.tool == .mosaic ? .pixellate : .gaussianBlur, pixelScale: sourcePixelScale)
+                } else {
+                    drawBrushEffect(shape, sourceImage: sourceImage)
+                }
             case .eraser:
                 break  // 橡皮擦不产生图形，只删除
             case .text:
@@ -261,23 +302,134 @@ enum AnnotationRenderer {
         path.stroke()
     }
 
-    /// 铅笔与荧光笔共用一条自由手绘路径。
+    /// 铅笔 / 荧光笔 / 马克笔共用一条自由手绘路径。
     ///
-    /// - 铅笔：不透明、按所选笔宽。
-    /// - 荧光笔：半透明、约 3 倍笔宽，覆盖内容仍可辨识。
+    /// - 铅笔：不透明、按所选线宽。
+    /// - 荧光笔：半透明、按所选**圆点直径**铺开，覆盖内容仍可辨识。
+    /// - 马克笔：不透明、按所选圆点直径铺开。
     private static func drawFreehand(_ shape: AnnotationShape, isHighlighter: Bool) {
-        guard shape.points.count >= 2 else { return }
+        let isBrush = shape.tool == .highlighter || shape.tool == .marker
+        let width = isBrush ? shape.style.brushDiameter(for: shape.tool) : shape.style.lineWidth.points
+        let minimumPoints = isBrush ? 1 : 2
+        guard shape.points.count >= minimumPoints else { return }
+
+        let color = shape.style.color.nsColor
+        let strokeColor = isHighlighter ? color.withAlphaComponent(0.35) : color
+
+        // 单击一笔也要留下一个圆点（笔刷语义）。
+        if shape.points.count == 1, isBrush {
+            let center = shape.points[0]
+            let dot = CGRect(
+                x: center.x - width / 2,
+                y: center.y - width / 2,
+                width: width,
+                height: width
+            )
+            strokeColor.setFill()
+            NSBezierPath(ovalIn: dot).fill()
+            return
+        }
+
         let path = NSBezierPath()
-        path.lineWidth = isHighlighter ? shape.style.lineWidth.points * 3 : shape.style.lineWidth.points
+        path.lineWidth = width
         path.lineCapStyle = isHighlighter ? .square : .round
         path.lineJoinStyle = .round
-        let color = shape.style.color.nsColor
-        (isHighlighter ? color.withAlphaComponent(0.35) : color).setStroke()
+        strokeColor.setStroke()
         path.move(to: shape.points[0])
         for point in shape.points.dropFirst() {
             path.line(to: point)
         }
         path.stroke()
+    }
+
+    // MARK: - 圆点笔刷（马赛克 / 高斯模糊）
+
+    private static let brushContext = CIContext(options: nil)
+    private static var brushFilterCache: [String: CGImage] = [:]
+    private static let brushFilterCacheLimit = 12
+
+    /// 沿轨迹铺一排等直径的圆，作为笔刷覆盖区；单点即一个圆。
+    private static func brushAreaPath(points: [CGPoint], diameter: CGFloat) -> NSBezierPath {
+        let radius = diameter / 2
+        let path = NSBezierPath()
+        func addDot(_ point: CGPoint) {
+            path.appendOval(in: CGRect(
+                x: point.x - radius,
+                y: point.y - radius,
+                width: diameter,
+                height: diameter
+            ))
+        }
+        guard let first = points.first else { return path }
+        addDot(first)
+        guard points.count > 1 else { return path }
+        for index in 1..<points.count {
+            let start = points[index - 1]
+            let end = points[index]
+            let distance = hypot(end.x - start.x, end.y - start.y)
+            let steps = max(1, Int(ceil(distance / max(diameter / 3, 1))))
+            for step in 1...steps {
+                let t = CGFloat(step) / CGFloat(steps)
+                addDot(CGPoint(
+                    x: start.x + (end.x - start.x) * t,
+                    y: start.y + (end.y - start.y) * t
+                ))
+            }
+        }
+        return path
+    }
+
+    /// 笔刷式马赛克 / 高斯模糊：把整张源图过滤一次，再裁到笔刷覆盖区内绘制。
+    private static func drawBrushEffect(_ shape: AnnotationShape, sourceImage: NSImage?) {
+        let diameter = shape.style.brushDiameter(for: shape.tool)
+        let area = brushAreaPath(points: shape.points, diameter: diameter)
+
+        guard let sourceImage,
+              let cgImage = sourceImage.cgImage(forProposedRect: nil, context: nil, hints: nil),
+              let filtered = filteredBrushImage(cgImage, tool: shape.tool, diameter: diameter, sourceImage: sourceImage),
+              let graphics = NSGraphicsContext.current?.cgContext else {
+            NSColor.gray.withAlphaComponent(0.65).setFill()
+            area.fill()
+            return
+        }
+
+        graphics.saveGState()
+        area.addClip()
+        graphics.interpolationQuality = shape.tool == .mosaic ? .none : .default
+        graphics.draw(filtered, in: CGRect(origin: .zero, size: sourceImage.size))
+        graphics.restoreGState()
+    }
+
+    private static func filteredBrushImage(
+        _ cgImage: CGImage,
+        tool: AnnotationTool,
+        diameter: CGFloat,
+        sourceImage: NSImage
+    ) -> CGImage? {
+        let sourceScale = CGFloat(cgImage.width) / max(sourceImage.size.width, 1)
+        let key = "\(tool.rawValue)-\(Int(diameter))-\(Int(sourceScale * 100))-\(ObjectIdentifier(cgImage).hashValue)"
+        if let cached = brushFilterCache[key] { return cached }
+
+        let input = CIImage(cgImage: cgImage)
+        guard let filter = CIFilter(name: tool == .mosaic ? "CIPixellate" : "CIGaussianBlur") else {
+            return nil
+        }
+        filter.setValue(input, forKey: kCIInputImageKey)
+        if tool == .mosaic {
+            filter.setValue(max(6, diameter * 0.35) * sourceScale, forKey: kCIInputScaleKey)
+            filter.setValue(CIVector(x: input.extent.midX, y: input.extent.midY), forKey: kCIInputCenterKey)
+        } else {
+            filter.setValue(max(4, diameter * 0.25) * sourceScale, forKey: kCIInputRadiusKey)
+        }
+        guard let output = filter.outputImage,
+              let result = brushContext.createCGImage(output, from: input.extent) else {
+            return nil
+        }
+        if brushFilterCache.count >= brushFilterCacheLimit {
+            brushFilterCache.removeAll()
+        }
+        brushFilterCache[key] = result
+        return result
     }
 
     /// 序号徽标：实心圆 + 居中数字。

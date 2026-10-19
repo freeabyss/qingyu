@@ -187,14 +187,27 @@ final class MagnifierOverlayView: NSView {
         )
         // 放大区域与选区**完全没有交集**时整块都在选区之外：此时遮罩没有任何可指示的
         // 边界，只会把放大镜糊成一块看不出内容的暗方块（放大镜的本职是始终清晰显示
-        // 光标周围的像素）。因此无交集即不遮罩；有交集时才用它标出边界落在哪个像素。
+        // 光标周围的像素）。因此无交集即不遮罩；有交集时只**描边**边界。
         guard inView.intersects(clip) else { return }
-        let path = NSBezierPath(rect: clip)
-        path.appendRect(inView)
-        path.windingRule = .evenOdd
-        // 遮罩是「边界指示」而非「内容屏蔽」，透明度集中定义在配置里（0.18）。
-        NSColor.black.withAlphaComponent(MagnifierConfiguration.maskOpacity).set()
-        path.fill()
+
+        // 2026-10-19 用户复测：拖拽中/拖拽结束后把光标移到选区里，仍会出现一块暗色
+        // 区域 —— 正是这里的半透明黑色填充。放大镜的职责是显示真实像素，边界用一圈
+        // 描边就已足够；不要再压暗任何内容。
+        guard let context = NSGraphicsContext.current?.cgContext else { return }
+        context.saveGState()
+        NSBezierPath(
+            roundedRect: bounds,
+            xRadius: Metrics.cornerRadius,
+            yRadius: Metrics.cornerRadius
+        ).addClip()
+        let boundary = NSBezierPath(rect: inView)
+        boundary.lineWidth = 2
+        NSColor.black.withAlphaComponent(0.55).setStroke()
+        boundary.stroke()
+        boundary.lineWidth = 1
+        NSColor.white.withAlphaComponent(0.9).setStroke()
+        boundary.stroke()
+        context.restoreGState()
     }
 
     private func drawLabels(sample: MagnifierSample, content: CGRect) {

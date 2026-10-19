@@ -84,11 +84,15 @@ enum AnnotationHitTest {
 
     /// 单个标注是否被点命中。
     static func contains(point: CGPoint, in shape: AnnotationShape, tolerance: CGFloat) -> Bool {
-        // 命中容差随笔宽放宽：细线也要"点得中"。
-        let slack = tolerance + shape.style.lineWidth.points / 2
+        // 命中容差随笔宽放宽：细线也要"点得中"；笔刷工具按圆点半径放宽。
+        let slack = tolerance + (
+            shape.tool.isBrush
+                ? shape.style.brushDiameter(for: shape.tool) / 2
+                : shape.style.lineWidth.points / 2
+        )
 
         switch shape.tool {
-        case .rectangle, .ellipse, .mosaic, .gaussianBlur:
+        case .rectangle, .ellipse:
             return shape.rect.insetBy(dx: -slack, dy: -slack).contains(point)
 
         case .text, .tooltip:
@@ -98,8 +102,19 @@ enum AnnotationHitTest {
             guard let end = shape.endPoint else { return false }
             return distance(from: point, toSegment: shape.startPoint, end) <= slack
 
-        case .polyline, .pencil, .highlighter:
-            guard shape.points.count >= 2 else { return false }
+        case .polyline, .pencil, .highlighter, .marker, .mosaic, .gaussianBlur:
+            guard !shape.points.isEmpty else {
+                // 旧数据/矩形兜底：没有轨迹的模糊形状按矩形命中。
+                guard shape.tool == .mosaic || shape.tool == .gaussianBlur else { return false }
+                return shape.rect.insetBy(dx: -slack, dy: -slack).contains(point)
+            }
+            if shape.points.count == 1 {
+                // 只有圆点笔刷的「单点」才是可见圆点；铅笔单点仍是空笔画。
+                guard shape.tool.isBrush else { return false }
+                let dx = point.x - shape.points[0].x
+                let dy = point.y - shape.points[0].y
+                return (dx * dx + dy * dy).squareRoot() <= slack
+            }
             for index in 0..<(shape.points.count - 1) {
                 if distance(from: point, toSegment: shape.points[index], shape.points[index + 1]) <= slack {
                     return true

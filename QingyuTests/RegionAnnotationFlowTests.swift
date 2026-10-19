@@ -229,6 +229,45 @@ final class RegionAnnotationFlowTests: XCTestCase {
         XCTAssertEqual(overlay.annotationShapes.first?.tool, .rectangle)
     }
 
+    /// 文字工具在落点直接出现输入框（不是 NSAlert），回车提交成一条文字标注。
+    func testInlineTextAppearsAtCursorAndCommitsOnReturn() throws {
+        let display = CaptureDisplay(
+            id: 8,
+            frame: CGRect(x: 0, y: 0, width: 800, height: 600),
+            pixelSize: CGSize(width: 800, height: 600)
+        )
+        let overlay = CaptureOverlayWindowController(display: display)
+        let region = CGRect(x: 100, y: 100, width: 400, height: 300)
+        XCTAssertTrue((overlay as CaptureOverlayWindow).beginAnnotation(
+            image: NSImage(size: region.size),
+            regionGlobal: region,
+            tool: .text,
+            style: AnnotationStyle()
+        ))
+
+        let view = overlay.contentViewForTesting
+        view.mouseDown(with: try mouseEvent(.leftMouseDown, at: NSPoint(x: 160, y: 160)))
+
+        let field = try XCTUnwrap(
+            view.subviews.compactMap { $0 as? NSTextField }.first,
+            "文字工具必须在光标落点直接出现输入框，而不是弹系统对话框"
+        )
+        field.stringValue = "Hello"
+        _ = view.control(
+            field,
+            textView: NSTextView(),
+            doCommandBy: #selector(NSResponder.insertNewline(_:))
+        )
+
+        XCTAssertEqual(overlay.annotationShapes.count, 1)
+        XCTAssertEqual(overlay.annotationShapes.first?.tool, .text)
+        XCTAssertEqual(overlay.annotationShapes.first?.text, "Hello")
+        XCTAssertTrue(
+            view.subviews.compactMap { $0 as? NSTextField }.isEmpty,
+            "提交后输入框应被移除"
+        )
+    }
+
     private func mouseEvent(_ type: NSEvent.EventType, at point: NSPoint) throws -> NSEvent {
         try XCTUnwrap(NSEvent.mouseEvent(
             with: type,

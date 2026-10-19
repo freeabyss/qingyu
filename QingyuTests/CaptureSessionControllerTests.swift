@@ -629,6 +629,7 @@ extension CaptureSessionControllerTests {
 
     func testSizePresetCentersOnPointerAndStaysOnScreen() {
         let (controller, _) = makeController()
+        controller.pointerLocationProvider = { CGPoint(x: 500, y: 500) }
         controller.start()
 
         XCTAssertNil(controller.apply(preset: sizePreset(width: 400, height: 300)))

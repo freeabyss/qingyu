@@ -79,9 +79,19 @@ final class AnnotationHitTestTests: XCTestCase {
         }
     }
 
-    func testSinglePointFreehandIsNotHittable() {
-        let shape = freehand(.pencil, [CGPoint(x: 5, y: 5)])
-        XCTAssertFalse(AnnotationHitTest.contains(point: CGPoint(x: 5, y: 5), in: shape, tolerance: 5))
+    /// 铅笔单点仍然是空笔画；圆点笔刷的单点是一个真实可见的圆点，应当可命中。
+    func testSinglePointFreehandIsHittableOnlyForBrushTools() {
+        let point = CGPoint(x: 5, y: 5)
+        let pencil = freehand(.pencil, [point])
+        XCTAssertFalse(AnnotationHitTest.contains(point: point, in: pencil, tolerance: 5))
+
+        for tool in [AnnotationTool.highlighter, .marker, .gaussianBlur] {
+            let brush = freehand(tool, [point])
+            XCTAssertTrue(
+                AnnotationHitTest.contains(point: point, in: brush, tolerance: 0),
+                "(tool) 的单点圆点应可命中"
+            )
+        }
     }
 
     func testNumberHitsWithinBadgeRadius() {

@@ -183,7 +183,7 @@ final class CaptureOverlayWindowController: CaptureOverlayWindow {
 
 /// 统一叠层内容视图：压暗背景、窗口高亮、区域选框与快捷键提示。
 /// 本地坐标 → 全局 AppKit 坐标经 `display.frame.origin` 偏移后上抛事件。
-final class CaptureOverlayContentView: NSView {
+final class CaptureOverlayContentView: NSView, NSTextFieldDelegate {
     let display: CaptureDisplay
     var isActiveDisplay = false {
         didSet {
@@ -217,6 +217,11 @@ final class CaptureOverlayContentView: NSView {
     private var annotationSession: InPlaceAnnotationSession?
     /// 文字/提示框工具需要输入框；由叠层上抛给工具条控制器去弹。
     var onAnnotationTextRequest: ((CGPoint, @escaping (String?) -> Void) -> Void)?
+    /// 原地文字输入：直接在光标处放一个 NSTextField，不再弹系统对话框。
+    private var inlineTextEditor: NSTextField?
+    private var inlineTextPoint: CGPoint?
+    private var inlineTextTool: AnnotationTool?
+    private var inlineTextStyle: AnnotationStyle?
 
     /// Task 015：预设清单（`selectedIndex` 为 nil 表示清单未打开）。
     var presetPickerItems: [String] = [] {
@@ -242,6 +247,9 @@ final class CaptureOverlayContentView: NSView {
     private let magnifierSource: MagnifierSourcing?
     private let magnifierView = MagnifierOverlayView(frame: .zero)
     private var lastPointerGlobal: CGPoint?
+    /// 选区已落定（拖拽结束/进入标注）后不再显示放大镜：它会压在选区边缘上，
+    /// 用户会读成一块跟着光标走的暗色方块（2026-10-19 报告）。
+    private var magnifierSuppressed = false
 
     init(
         frame frameRect: NSRect,
@@ -422,8 +430,9 @@ final class CaptureOverlayContentView: NSView {
         regionFrame = regionGlobal
         // 标注期间不再需要放大镜：它压在选区里会遮挡正在编辑的画面，
         // 也会被后续的「复制/保存」渲染路径读到。标注模式由光标提示工具。
+        magnifierSuppressed = true
         hideMagnifier()
-        Self.setAnnotationCursor(for: tool)
+        Self.setAnnotationCursor(for: tool, style: style)
         window?.invalidateCursorRects(for: self)
         // 叠层上的一切（提示条、预设清单、内联提示）**保持原样**：
         // 用户预期「点工具之后除了光标与工具高亮之外没有变化」。
@@ -435,7 +444,7 @@ final class CaptureOverlayContentView: NSView {
         guard let session = annotationSession else { return }
         session.state.tool = tool
         session.state.style = style
-        Self.setAnnotationCursor(for: tool)
+        Self.setAnnotationCursor(for: tool, style: style)
     }
 
     /// 当前标注结果（按选择顺序排列）。未进入标注时返回空。
@@ -451,9 +460,97 @@ final class CaptureOverlayContentView: NSView {
 
     /// 离开标注态：丢弃本次标注（会话结束后不再保留任何状态）。
     func clearAnnotation() {
+        cancelInlineText()
         annotationSession = nil
         isAnnotating = false
         window?.invalidateCursorRects(for: self)
+    }
+
+    // MARK: - 原地文字输入
+
+    /// 文字 / 提示框：在当前落点处直接出现输入框，不再弹系统对话框。
+    ///
+    /// 输入框是叠层上的一个子视图，坐标用「选区局部点」；回车提交、Esc 取消、
+    /// 点到框外也提交。提交后由标注会话把文字追加成一条标注。
+    private func beginInlineText(at point: CGPoint, tool: AnnotationTool, style: AnnotationStyle) {
+        guard let session = annotationSession else { return }
+        commitInlineText()
+
+        let region = session.localRect
+        let fontSize = max(14, style.textSize.points)
+        let width = min(260, max(120, region.width - 12))
+        let height = max(24, fontSize + 12)
+        var origin = CGPoint(x: region.minX + point.x, y: region.minY + point.y)
+        origin.x = min(max(origin.x, region.minX + 4), max(region.minX + 4, region.maxX - width - 4))
+        origin.y = min(max(origin.y, region.minY + 4), max(region.minY + 4, region.maxY - height - 4))
+
+        let field = NSTextField(frame: NSRect(origin: origin, size: NSSize(width: width, height: height)))
+        field.isBordered = false
+        field.isBezeled = false
+        field.drawsBackground = true
+        field.backgroundColor = NSColor.black.withAlphaComponent(0.6)
+        field.textColor = style.color.nsColor
+        field.font = NSFont.systemFont(ofSize: fontSize, weight: .semibold)
+        field.focusRingType = .none
+        field.placeholderString = L10n.localized("annotation.textInput.placeholder")
+        field.lineBreakMode = .byClipping
+        field.usesSingleLineMode = true
+        field.delegate = self
+        addSubview(field)
+
+        inlineTextPoint = point
+        inlineTextTool = tool
+        inlineTextStyle = style
+        inlineTextEditor = field
+        window?.makeFirstResponder(field)
+    }
+
+    /// 提交输入框内容（空内容等于取消）。
+    private func commitInlineText() {
+        guard let field = inlineTextEditor else { return }
+        let text = field.stringValue
+        let point = inlineTextPoint
+        let tool = inlineTextTool
+        let style = inlineTextStyle
+        teardownInlineText()
+        guard let point, let tool, let style,
+              !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+              let session = annotationSession else { return }
+        session.appendText(at: point, text: text, tool: tool, style: style)
+        needsDisplay = true
+    }
+
+    private func cancelInlineText() {
+        teardownInlineText()
+    }
+
+    private func teardownInlineText() {
+        guard let field = inlineTextEditor else { return }
+        inlineTextEditor = nil
+        inlineTextPoint = nil
+        inlineTextTool = nil
+        inlineTextStyle = nil
+        field.removeFromSuperview()
+        window?.makeFirstResponder(self)
+    }
+
+    func control(_ control: NSControl, textView: NSTextView, doCommandBy commandSelector: Selector) -> Bool {
+        if commandSelector == #selector(NSResponder.insertNewline(_:)) {
+            commitInlineText()
+            return true
+        }
+        if commandSelector == #selector(NSResponder.cancelOperation(_:)) {
+            cancelInlineText()
+            return true
+        }
+        return false
+    }
+
+    func controlTextDidEndEditing(_ obj: Notification) {
+        // 失焦（例如点工具条）按提交处理；teardown 已清空时不再递归。
+        if inlineTextEditor != nil {
+            commitInlineText()
+        }
     }
 
     /// 撤销/重做（工具条或 ⌘Z/⌘⇧Z）。
@@ -468,15 +565,15 @@ final class CaptureOverlayContentView: NSView {
     }
 
     /// 光标：每个工具有自己的「十字准星 + 工具徽标」，且只在选区上出现。
-    private static func setAnnotationCursor(for tool: AnnotationTool) {
-        AnnotationToolCursor.cursor(for: tool).set()
+    private static func setAnnotationCursor(for tool: AnnotationTool, style: AnnotationStyle) {
+        AnnotationToolCursor.cursor(for: tool, style: style).set()
     }
 
     /// 指针是否在选区内：标注光标只在选区内生效，选区外恢复箭头（用户预期第 2 条）。
     private func updateAnnotationCursor(at global: CGPoint, inRegion: Bool) {
         guard isAnnotating, let session = annotationSession else { return }
         if inRegion {
-            AnnotationToolCursor.cursor(for: session.state.tool).set()
+            AnnotationToolCursor.cursor(for: session.state.tool, style: session.state.style).set()
         } else {
             NSCursor.arrow.set()
         }
@@ -488,7 +585,10 @@ final class CaptureOverlayContentView: NSView {
         super.resetCursorRects()
         // 标注期间：选区内用工具光标，选区外保持箭头（「光标只有在截图区域才会变化」）。
         guard isAnnotating, let session = annotationSession else { return }
-        addCursorRect(session.localRect, cursor: AnnotationToolCursor.cursor(for: session.state.tool))
+        addCursorRect(
+            session.localRect,
+            cursor: AnnotationToolCursor.cursor(for: session.state.tool, style: session.state.style)
+        )
     }
 
     /// 光标离开叠层：标注光标不得粘在选区外（`resetCursorRects` 只覆盖选区，
@@ -512,12 +612,17 @@ final class CaptureOverlayContentView: NSView {
         // 非活动屏也必须上报指针：会话据此把「当前截图显示器」切到指针所在屏
         // （压暗、高亮与提示随之切换）。放大镜只在活动屏取样，避免无谓抓屏。
         onEvent?(.pointerMoved(global))
-        if isActiveDisplay {
+        if isActiveDisplay, !magnifierSuppressed {
             requestMagnifierSample(at: global)
         }
     }
 
     override func mouseDown(with event: NSEvent) {
+        // 文字输入框还开着：点框外视为提交，不要在输入过程中误画图形。
+        if inlineTextEditor != nil {
+            commitInlineText()
+            return
+        }
         // 落笔同时把叠层重新拿回 key：工具条/输入面板可能刚短暂夺过 key，
         // 不拿回来则后续 Esc、⌘Z、方向键会落到工具条上。
         window?.makeKey()
@@ -529,17 +634,14 @@ final class CaptureOverlayContentView: NSView {
             case .consumed:
                 needsDisplay = true
             case .needsText(let local):
-                onAnnotationTextRequest?(local) { [weak self] text in
-                    guard let self, let text, let session = self.annotationSession else { return }
-                    session.appendText(at: local, text: text)
-                    self.needsDisplay = true
-                }
+                beginInlineText(at: local, tool: session.state.tool, style: session.state.style)
             case .ignored:
                 break
             }
             return
         }
         // Task 014/06：每次拖拽重新捕获长宽比。
+        magnifierSuppressed = false
         dragStartPoint = global
         lockedAspectRatio = nil
         onEvent?(.mouseDown(global))
@@ -589,6 +691,9 @@ final class CaptureOverlayContentView: NSView {
         dragStartPoint = nil
         lockedAspectRatio = nil
         onEvent?(.mouseUp(globalPoint(convert(event.locationInWindow, from: nil))))
+        // 选区已落定：收起放大镜，之后鼠标在选区里移动也不再弹出。
+        magnifierSuppressed = true
+        hideMagnifier()
     }
 
     /// 两点构成的标准化矩形（与控制器里的选区推导一致）。

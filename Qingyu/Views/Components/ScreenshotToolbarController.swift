@@ -373,6 +373,9 @@ final class ScreenshotToolbarController {
         selectAnnotationTool(tool)
     }
 
+    /// 单测入口：当前样式（颜色 / 线宽）。
+    var annotationStyleForTesting: AnnotationStyle { annotationStyle }
+
     /// 单测入口：`performAnnotatedAction` 是私有实现细节，测试只关心它的外部效果。
     func performAnnotatedActionForTesting(_ action: ScreenshotToolbarAction) async {
         await performAnnotatedAction(action)
@@ -417,7 +420,6 @@ final class ScreenshotToolbarController {
             // 标注期间仍可再次点复制/保存：`draftCapture` 换成直接返回本次结果。
             draftCapture = { result }
             draftSelectedTool = wasSelected
-            annotationStyle = AnnotationStyle()
             guard annotationHost.beginAnnotation(
                 image: image,
                 regionGlobal: selection.globalRect,
@@ -546,13 +548,27 @@ final class ScreenshotToolbarController {
         view.onAction = { [weak self] action in
             self?.handleDraft(action: action)
         }
+        view.onStyleChange = { [weak self] style in
+            self?.applyAnnotationStyle(style)
+        }
         view.updateSelection(selectedTool: draftSelectedTool)
+        view.updateStyle(annotationStyle)
         return view
     }
 
-    /// 只替换工具条的内容（选中高亮），窗口实例、尺寸、位置一律不动。
+    /// 只替换工具条的内容（选中高亮 + 样式），窗口实例、尺寸、位置一律不动。
     private func refreshDraftToolbarContent() {
-        (window?.contentView as? RegionToolbarView)?.updateSelection(selectedTool: draftSelectedTool)
+        guard let view = window?.contentView as? RegionToolbarView else { return }
+        view.updateSelection(selectedTool: draftSelectedTool)
+        view.updateStyle(annotationStyle)
+    }
+
+    /// 样式变更：草稿态只记住，标注态立即传给叠层（光标大小/颜色跟着变）。
+    private func applyAnnotationStyle(_ style: AnnotationStyle) {
+        annotationStyle = style
+        if let tool = draftSelectedTool {
+            annotationHost?.updateAnnotationTool(tool, style: style)
+        }
     }
 
     private enum DismissReason {
@@ -918,18 +934,31 @@ final class RegionToolbarView: NSView {
 
     /// 单个按钮的点击回调。用 `.tag` 携带索引，避免为每个动作各建一个 selector。
     var onAction: ((ScreenshotToolbarAction) -> Void)?
+    /// 样式行（颜色 / 粗细）的变更回调。
+    var onStyleChange: ((AnnotationStyle) -> Void)?
 
     private static let buttonSize: CGFloat = 30
     private static let spacing: CGFloat = JadeSpace.x1.value
     private static let padding: CGFloat = JadeSpace.x1.value
     private static let buttonCount = 3 + AnnotationTool.allCases.count + 1
+    /// 样式行：6 个颜色圆点 + 分隔线 + 3 档粗细。
+    private static let colorDotSize: CGFloat = 22
+    private static let colorDotSpacing: CGFloat = 6
+    private static let widthButtonSize = NSSize(width: 30, height: 22)
+    private static let widthButtonSpacing: CGFloat = 6
+    private static let separatorWidth: CGFloat = 1
+    private static let separatorGap: CGFloat = 6
 
-    /// 工具条尺寸：**由按钮数量推导**，与 `regionToolbarSize` 共用同一来源。
+    /// 工具条尺寸：**由按钮数量与样式行推导**，与 `regionToolbarSize` 共用同一来源。
     static func fittingSize() -> NSSize {
         let buttons = CGFloat(buttonCount) * buttonSize
         let gaps = CGFloat(buttonCount - 1) * spacing
         let insets = padding * 2
-        return NSSize(width: buttons + gaps + insets, height: buttonSize + insets * 2)
+        let mainWidth = buttons + gaps + insets
+        let styleWidth = styleRowWidth() + insets
+        // 两行：主按钮行 + 样式行，中间留一个 spacing。
+        let height = padding * 2 + buttonSize + spacing + colorDotSize
+        return NSSize(width: max(mainWidth, styleWidth), height: height)
     }
 
     /// 每个按钮对应的动作，顺序即界面顺序：复制 / 保存 / 贴图 / 标注工具… / 关闭。
@@ -938,6 +967,10 @@ final class RegionToolbarView: NSView {
     }
 
     private var buttons: [NSButton] = []
+    private var colorButtons: [NSButton] = []
+    private var widthButtons: [NSButton] = []
+    /// 当前样式（颜色 / 线宽或笔刷直径 / 字号）。
+    private var style = AnnotationStyle()
     /// 当前高亮的标注工具（nil = 未选中）。
     private var selectedTool: AnnotationTool? {
         didSet { updateSelection() }
@@ -957,6 +990,21 @@ final class RegionToolbarView: NSView {
     /// 只换选中高亮：窗口、尺寸、位置都不动（用户预期第 4 条）。
     func updateSelection(selectedTool: AnnotationTool?) {
         self.selectedTool = selectedTool
+    }
+
+    /// 同步外部样式（颜色 / 粗细）；不发回调，避免回环。
+    func updateStyle(_ style: AnnotationStyle) {
+        self.style = style
+        updateStyleSelection()
+        needsDisplay = true
+    }
+
+    private static func styleRowWidth() -> CGFloat {
+        let colorCount = CGFloat(AnnotationColor.allCases.count)
+        let widthCount = CGFloat(AnnotationLineWidth.allCases.count)
+        let colors = colorCount * colorDotSize + max(0, colorCount - 1) * colorDotSpacing
+        let widths = widthCount * widthButtonSize.width + max(0, widthCount - 1) * widthButtonSpacing
+        return colors + separatorGap * 2 + separatorWidth + widths
     }
 
     private func buildButtons() {
@@ -981,7 +1029,93 @@ final class RegionToolbarView: NSView {
             buttons.append(button)
             x += Self.buttonSize + Self.spacing
         }
+        buildStyleRow()
         updateSelection()
+        updateStyleSelection()
+    }
+
+    /// 样式行：6 个颜色圆点 + 分隔线 + 3 档粗细。
+    ///
+    /// 放在主按钮行的上方，工具条窗口因此变成两行；这样颜色/粗细始终可见，
+    /// 不需要额外的弹窗，也不会因为「选中工具后长出一条新行」而移动工具条。
+    private func buildStyleRow() {
+        let rowWidth = Self.styleRowWidth()
+        let y = Self.padding + Self.buttonSize + Self.spacing
+        var x = (bounds.width - rowWidth) / 2
+
+        for (index, color) in AnnotationColor.allCases.enumerated() {
+            let button = ToolbarButton(
+                frame: NSRect(x: x, y: y, width: Self.colorDotSize, height: Self.colorDotSize)
+            )
+            button.isBordered = false
+            button.bezelStyle = .regularSquare
+            button.title = ""
+            button.wantsLayer = true
+            button.layer?.backgroundColor = color.nsColor.cgColor
+            button.layer?.cornerRadius = Self.colorDotSize / 2
+            button.layer?.masksToBounds = true
+            button.layer?.borderWidth = 1
+            button.layer?.borderColor = NSColor.black.withAlphaComponent(0.25).cgColor
+            button.tag = index
+            button.target = self
+            button.action = #selector(colorClicked(_:))
+            button.toolTip = color.displayName
+            button.setAccessibilityLabel(color.displayName)
+            addSubview(button)
+            colorButtons.append(button)
+            x += Self.colorDotSize + Self.colorDotSpacing
+        }
+
+        x += Self.separatorGap
+        let separator = NSBox(frame: NSRect(
+            x: x,
+            y: y + 3,
+            width: Self.separatorWidth,
+            height: Self.colorDotSize - 6
+        ))
+        separator.boxType = .separator
+        addSubview(separator)
+        x += Self.separatorWidth + Self.separatorGap
+
+        let titles = ["S", "M", "L"]
+        for (index, width) in AnnotationLineWidth.allCases.enumerated() {
+            let button = ToolbarButton(frame: NSRect(
+                x: x,
+                y: y,
+                width: Self.widthButtonSize.width,
+                height: Self.widthButtonSize.height
+            ))
+            button.isBordered = false
+            button.bezelStyle = .regularSquare
+            button.title = titles.indices.contains(index) ? titles[index] : "?"
+            button.font = NSFont.systemFont(ofSize: 11, weight: .semibold)
+            button.wantsLayer = true
+            button.layer?.cornerRadius = 5
+            button.tag = index
+            button.target = self
+            button.action = #selector(widthClicked(_:))
+            button.toolTip = width.displayName
+            button.setAccessibilityLabel(width.displayName)
+            addSubview(button)
+            widthButtons.append(button)
+            x += Self.widthButtonSize.width + Self.widthButtonSpacing
+        }
+    }
+
+    @objc private func colorClicked(_ sender: NSButton) {
+        let colors = AnnotationColor.allCases
+        guard colors.indices.contains(sender.tag) else { return }
+        style.color = colors[sender.tag]
+        updateStyleSelection()
+        onStyleChange?(style)
+    }
+
+    @objc private func widthClicked(_ sender: NSButton) {
+        let widths = AnnotationLineWidth.allCases
+        guard widths.indices.contains(sender.tag) else { return }
+        style.lineWidth = widths[sender.tag]
+        updateStyleSelection()
+        onStyleChange?(style)
     }
 
     @objc private func buttonClicked(_ sender: NSButton) {
@@ -994,6 +1128,34 @@ final class RegionToolbarView: NSView {
     var buttonCountForTesting: Int { buttons.count }
     func buttonForTesting(_ index: Int) -> NSButton? {
         buttons.indices.contains(index) ? buttons[index] : nil
+    }
+
+    var styleForTesting: AnnotationStyle { style }
+    func colorButtonForTesting(_ index: Int) -> NSButton? {
+        colorButtons.indices.contains(index) ? colorButtons[index] : nil
+    }
+    func widthButtonForTesting(_ index: Int) -> NSButton? {
+        widthButtons.indices.contains(index) ? widthButtons[index] : nil
+    }
+
+    /// 颜色圆点用描边表示选中；粗细按钮用底色 + 主色文字表示选中。
+    private func updateStyleSelection() {
+        for (index, color) in AnnotationColor.allCases.enumerated() where index < colorButtons.count {
+            let selected = color == style.color
+            let button = colorButtons[index]
+            button.layer?.borderWidth = selected ? 2 : 1
+            button.layer?.borderColor = selected
+                ? JadeColor.primaryNS.cgColor
+                : NSColor.black.withAlphaComponent(0.25).cgColor
+        }
+        for (index, width) in AnnotationLineWidth.allCases.enumerated() where index < widthButtons.count {
+            let selected = width == style.lineWidth
+            let button = widthButtons[index]
+            button.layer?.backgroundColor = selected
+                ? JadeColor.primaryNS.withAlphaComponent(0.25).cgColor
+                : NSColor.clear.cgColor
+            button.contentTintColor = selected ? JadeColor.primaryNS : .labelColor
+        }
     }
 
     private func updateSelection() {

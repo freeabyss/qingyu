@@ -152,6 +152,9 @@ final class CaptureSessionController {
     var elementProbeOptions: ElementProbeOptions = .default
     /// 选区边缘吸附阈值（逻辑点）；<= 0 表示关闭吸附。
     var snapThreshold: CGFloat = 0
+    /// 指针位置来源。生产用系统指针；单测可注入固定点，避免真实鼠标所在屏
+    /// 让「尺寸预设居中」这类断言随测试机的鼠标位置抖动。
+    var pointerLocationProvider: () -> CGPoint = { NSEvent.mouseLocation }
     /// Task 015：本会话可用的预设（进入会话时由调用方从仓库装入，会话期只读）。
     var presets: [CapturePreset] = []
     /// Task 015：保存预设；返回 false 表示已达上限。
@@ -528,7 +531,7 @@ final class CaptureSessionController {
             }
 
         case .size:
-            let pointer = NSEvent.mouseLocation
+            let pointer = pointerLocationProvider()
             guard let display = displayProvider.display(containing: pointer) ?? displayProvider.displays.first else {
                 return showNotice(L10n.localized("capture.preset.screenUnavailable"))
             }

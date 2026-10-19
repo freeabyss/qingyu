@@ -239,8 +239,12 @@ final class ScreenshotOverlayAppearanceTests: XCTestCase {
         XCTAssertEqual(luminance(rep, x: 56, y: 107), 255, accuracy: 8, "下边缘应是画面本身，不是暗色底板")
     }
 
-    /// 选区边界落在取样窗口内时，仅「选区之外」的一侧轻微压暗，用来指示边界。
-    func testMagnifierDimsOnlySlightlyOutsideSelection() {
+    /// 选区边界落在取样窗口内时，只描出边界，**不得压暗**任何画面。
+    ///
+    /// 2026-10-19 用户复测：「暗色的区域在拖拽过程中，以及拖拽结束后，光标移到
+    /// 圈选区域时，会出现」—— 半透明黑色遮罩即使只有 0.18，压在放大镜边缘上仍
+    /// 会被读成一块暗色区域。边界现在只用一深一浅两条描边表示。
+    func testMagnifierMarksBoundaryWithoutDimmingContent() {
         let view = makeMagnifier()
         // 选区覆盖取样窗口左半（显示像素、左上原点）：左半在选区内，右半在选区外。
         view.maskRectInPixels = CGRect(x: 1000, y: 1000, width: 7, height: 14)
@@ -249,7 +253,6 @@ final class ScreenshotOverlayAppearanceTests: XCTestCase {
         let inside = luminance(rep, x: 30, y: 56)
         let outside = luminance(rep, x: 80, y: 56)
         XCTAssertEqual(inside, 255, accuracy: 8, "选区内一侧不应压暗")
-        XCTAssertLessThan(outside, inside, "选区外一侧应被压暗以指示边界")
-        XCTAssertGreaterThan(outside, 180, "压暗必须轻微，保证放大画面仍然可读")
+        XCTAssertEqual(outside, 255, accuracy: 8, "选区外一侧也不得压暗，只保留边界描边")
     }
 }

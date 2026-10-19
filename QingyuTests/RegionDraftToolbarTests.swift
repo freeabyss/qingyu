@@ -189,6 +189,35 @@ final class RegionDraftToolbarTests: XCTestCase {
         }
     }
 
+    /// 样式行（颜色 / 粗细）：改样式只更新样式，不触发任何工具或动作。
+    func testStyleRowChangesColorAndWidthWithoutTriggeringToolActions() throws {
+        let controller = ScreenshotToolbarController()
+        var actions: [ScreenshotToolbarAction] = []
+        controller.showRegionDraft(
+            globalRect: CGRect(x: 200, y: 300, width: 600, height: 400),
+            screenFrame: screenFrame,
+            capture: { throw SnapVaultError.screenshotFailed(reason: "unused") },
+            onDismiss: {}
+        )
+        let window = try XCTUnwrap(controller.window)
+        let content = try XCTUnwrap(window.contentView as? RegionToolbarView)
+        content.onAction = { actions.append($0) }
+
+        XCTAssertGreaterThan(content.bounds.height, 46, "样式行必须让工具条变成两行")
+        let blue = try XCTUnwrap(content.colorButtonForTesting(2))
+        XCTAssertTrue(blue.acceptsFirstMouse(for: nil), "非 key 窗口里第一次点击就要生效")
+        blue.performClick(nil)
+        XCTAssertEqual(content.styleForTesting.color, .blue)
+        XCTAssertEqual(controller.annotationStyleForTesting.color, .blue)
+
+        let thick = try XCTUnwrap(content.widthButtonForTesting(2))
+        thick.performClick(nil)
+        XCTAssertEqual(content.styleForTesting.lineWidth, .thick)
+        XCTAssertEqual(controller.annotationStyleForTesting.lineWidth, .thick)
+
+        XCTAssertTrue(actions.isEmpty, "改颜色/粗细不得触发复制、工具或关闭")
+    }
+
     /// 工具条的每一个按钮都必须**在非 key 窗口里第一次点击就触发**。
     ///
     /// 用户报告（2026-10-18）：「工具栏除了复制图片、贴到屏幕，其他工具栏都不能使用」。

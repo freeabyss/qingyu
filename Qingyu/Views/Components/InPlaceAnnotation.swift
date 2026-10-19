@@ -63,15 +63,9 @@ final class InPlaceAnnotationSession {
         let point = localPoint(global)
 
         if state.tool == .eraser {
-            dragStart = nil
-            if let hit = AnnotationHitTest.hit(
-                point: point,
-                shapes: state.shapes,
-                tolerance: AnnotationCanvasNSView.hitTolerance
-            ) {
-                state.erase(shapeID: hit)
-                state.hoveredShapeID = nil
-            }
+            // 橡皮擦是圆点笔刷：按下即擦，拖拽时继续沿轨迹擦除。
+            dragStart = point
+            eraseShapes(at: point)
             return .consumed
         }
 
@@ -95,6 +89,11 @@ final class InPlaceAnnotationSession {
     func mouseDragged(to global: CGPoint) -> Bool {
         guard let start = dragStart else { return false }
         let point = localPoint(global)
+        if state.tool == .eraser {
+            eraseShapes(at: point)
+            state.hoveredShapeID = nil
+            return true
+        }
         if state.tool.isFreehand {
             freehandPoints.append(point)
             state.draftShape = draftShape(at: start)
@@ -119,9 +118,18 @@ final class InPlaceAnnotationSession {
         }
         let point = localPoint(global)
 
+        if state.tool == .eraser {
+            return true
+        }
+
         if state.tool.isFreehand {
-            let smoothed = StrokeSmoother.finish(points: freehandPoints + [point])
-            guard smoothed.count >= 2 else { return true }
+            // 单击时 freehandPoints 已包含起点，末尾再补一次会变成两个重复点。
+            var points = freehandPoints
+            if points.last != point { points.append(point) }
+            let smoothed = StrokeSmoother.finish(points: points)
+            // 笔刷工具单击也要留下一个圆点；铅笔仍要求至少两个点。
+            let minimumPoints = state.tool.isBrush ? 1 : 2
+            guard smoothed.count >= minimumPoints else { return true }
             var shape = AnnotationShape(
                 tool: state.tool,
                 startPoint: smoothed[0],
@@ -154,24 +162,46 @@ final class InPlaceAnnotationSession {
             state.hoveredShapeID = nil
             return true
         }
+        let tolerance = state.tool == .eraser
+            ? state.style.brushDiameter(for: .eraser) / 2
+            : AnnotationCanvasNSView.hitTolerance
         let hit = AnnotationHitTest.hit(
             point: localPoint(global),
             shapes: state.shapes,
-            tolerance: AnnotationCanvasNSView.hitTolerance
+            tolerance: tolerance
         )
         guard hit != state.hoveredShapeID else { return false }
         state.hoveredShapeID = hit
         return true
     }
 
+    /// 圆点橡皮：按笔刷半径命中，删除最上层的一条标注。
+    private func eraseShapes(at point: CGPoint) {
+        let tolerance = state.style.brushDiameter(for: .eraser) / 2
+        if let hit = AnnotationHitTest.hit(
+            point: point,
+            shapes: state.shapes,
+            tolerance: tolerance
+        ) {
+            state.erase(shapeID: hit)
+            state.hoveredShapeID = nil
+        }
+    }
+
     func appendText(at point: CGPoint, text: String) {
+        appendText(at: point, text: text, tool: state.tool, style: state.style)
+    }
+
+    /// 原地输入框提交时显式带上落笔时的工具/样式：输入期间工具条仍可切换，
+    /// 但这条文字必须保留用户落笔那一刻的选择。
+    func appendText(at point: CGPoint, text: String, tool: AnnotationTool, style: AnnotationStyle) {
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
         state.append(AnnotationShape(
-            tool: state.tool,
+            tool: tool,
             startPoint: point,
             endPoint: nil,
             text: text,
-            style: state.style
+            style: style
         ))
     }
 
@@ -226,11 +256,44 @@ final class InPlaceAnnotationSession {
 /// 因此这里用十字准星托住工具图标自己合成。
 @MainActor
 enum AnnotationToolCursor {
-    private static var cache: [AnnotationTool: NSCursor] = [:]
+    private static var cache: [String: NSCursor] = [:]
 
-    static func cursor(for tool: AnnotationTool) -> NSCursor {
-        if let cached = cache[tool] { return cached }
+    /// 笔刷工具用「与实际笔刷等大的圆圈」；线工具用十字准星 + 工具徽标。
+    static func cursor(for tool: AnnotationTool, style: AnnotationStyle) -> NSCursor {
+        let diameter = tool.isBrush ? style.brushDiameter(for: tool) : 0
+        let key = "\(tool.rawValue)-\(Int(diameter))"
+        if let cached = cache[key] { return cached }
 
+        let cursor = tool.isBrush
+            ? brushCursor(diameter: diameter)
+            : crosshairCursor(for: tool)
+        cache[key] = cursor
+        return cursor
+    }
+
+    private static func brushCursor(diameter: CGFloat) -> NSCursor {
+        let size = diameter + 8
+        let image = NSImage(size: NSSize(width: size, height: size))
+        image.lockFocus()
+
+        let circle = NSBezierPath(ovalIn: NSRect(x: 4, y: 4, width: diameter, height: diameter))
+        circle.lineWidth = 3
+        NSColor.black.withAlphaComponent(0.75).setStroke()
+        circle.stroke()
+        circle.lineWidth = 1.5
+        NSColor.white.setStroke()
+        circle.stroke()
+
+        // 圆心小点：让「落点」在圆圈里也有参照。
+        let dot = NSRect(x: size / 2 - 1.5, y: size / 2 - 1.5, width: 3, height: 3)
+        NSColor.black.withAlphaComponent(0.6).setFill()
+        NSBezierPath(ovalIn: dot).fill()
+
+        image.unlockFocus()
+        return NSCursor(image: image, hotSpot: NSPoint(x: size / 2, y: size / 2))
+    }
+
+    private static func crosshairCursor(for tool: AnnotationTool) -> NSCursor {
         let size = NSSize(width: 36, height: 36)
         let image = NSImage(size: size)
         image.lockFocus()
@@ -263,9 +326,7 @@ enum AnnotationToolCursor {
 
         image.unlockFocus()
         // 热点在图像坐标（左上原点）的十字中心。
-        let cursor = NSCursor(image: image, hotSpot: NSPoint(x: center.x, y: size.height - center.y))
-        cache[tool] = cursor
-        return cursor
+        return NSCursor(image: image, hotSpot: NSPoint(x: center.x, y: size.height - center.y))
     }
 }
 
