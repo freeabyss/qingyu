@@ -256,6 +256,51 @@ final class InPlaceAnnotationTests: XCTestCase {
         XCTAssertEqual(session.state.shapes.first?.style, style)
     }
 
+    /// 文字默认背景透明、默认文字红色；设置背景后，文字下方出现背景色。
+    func testTextBackgroundDefaultsToClearAndCanBeFilled() throws {
+        XCTAssertEqual(AnnotationStyle().backgroundColor, .clear, "背景色默认透明")
+        XCTAssertEqual(AnnotationStyle().color, .red, "文字颜色默认红色")
+
+        let size = CGSize(width: 100, height: 100)
+        let source = makeImage(size: size, pixels: size, color: .gray)
+        let sourceData = try XCTUnwrap(NSBitmapImageRep(data: try XCTUnwrap(source.tiffRepresentation))?
+            .representation(using: .png, properties: [:]))
+        let result = ScreenshotResult(
+            imageData: sourceData,
+            width: 100,
+            height: 100,
+            captureDate: Date(),
+            sourceType: .region,
+            regionSelection: nil
+        )
+
+        func yellowPixelCount(background: AnnotationBackground) throws -> Int {
+            let style = AnnotationStyle(color: .red, lineWidth: .medium, textSize: .large, backgroundColor: background)
+            let shape = AnnotationShape(
+                tool: .text,
+                startPoint: CGPoint(x: 10, y: 50),
+                endPoint: nil,
+                text: "A",
+                style: style
+            )
+            let flat = InPlaceAnnotationFlattener.flatten(result: result, shapes: [shape], regionSize: size)
+            let rep = try XCTUnwrap(NSBitmapImageRep(data: flat.imageData))
+            var count = 0
+            for y in 0..<rep.pixelsHigh {
+                for x in 0..<rep.pixelsWide {
+                    guard let color = rep.colorAt(x: x, y: y) else { continue }
+                    if color.redComponent > 0.7, color.greenComponent > 0.7, color.blueComponent < 0.5 {
+                        count += 1
+                    }
+                }
+            }
+            return count
+        }
+
+        XCTAssertEqual(try yellowPixelCount(background: .clear), 0, "透明背景时不应铺任何底色")
+        XCTAssertGreaterThan(try yellowPixelCount(background: .yellow), 20, "黄色背景必须铺在文字下方")
+    }
+
     // MARK: - 导出
 
     /// 导出按「选区点 → 图像像素」整体缩放：2× 屏上画在右下角的图形，

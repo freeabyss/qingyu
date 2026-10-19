@@ -70,6 +70,20 @@ enum AnnotationTool: String, Codable, CaseIterable, Identifiable {
         }
     }
 
+    /// 选中工具后，样式行应当展示哪些选项。
+    var styleMode: AnnotationStyleMode {
+        switch self {
+        case .pencil, .arrow, .line, .polyline, .rectangle, .ellipse:
+            return .line
+        case .highlighter, .marker:
+            return .coloredBrush
+        case .eraser, .mosaic, .gaussianBlur:
+            return .sizeOnlyBrush
+        case .text, .number, .tooltip:
+            return .text
+        }
+    }
+
     /// 点击即完成的工具（不依赖拖拽距离）。
     var isClickPlaced: Bool {
         switch self {
@@ -95,11 +109,23 @@ enum AnnotationTool: String, Codable, CaseIterable, Identifiable {
         case .mosaic: return "square.grid.3x3.square"
         case .gaussianBlur: return "drop.fill"
         case .eraser: return "eraser"
-        case .text: return "textformat"
+        case .text: return "character"
         case .number: return "number.circle"
         case .tooltip: return "bubble.left"
         }
     }
+}
+
+/// 工具对应的样式行形态。
+enum AnnotationStyleMode {
+    /// 线工具：颜色 + 线条粗细。
+    case line
+    /// 有颜色的笔刷（荧光笔 / 马克笔）：颜色 + 圆点大小。
+    case coloredBrush
+    /// 无颜色的笔刷（橡皮擦 / 马赛克 / 模糊）：只有圆点大小。
+    case sizeOnlyBrush
+    /// 文字类（文字 / 序号 / 提示框）：文字颜色 + 背景色。
+    case text
 }
 
 enum AnnotationColor: String, Codable, CaseIterable, Identifiable {
@@ -127,6 +153,31 @@ enum AnnotationColor: String, Codable, CaseIterable, Identifiable {
         case .white: return L10n.localized("annotation.color.white")
         case .black: return L10n.localized("annotation.color.black")
         }
+    }
+}
+
+/// 文字 / 序号 / 提示框的背景色；`clear` 表示透明（默认）。
+enum AnnotationBackground: String, Codable, CaseIterable, Identifiable {
+    case clear, red, yellow, blue, green, white, black
+
+    var id: String { rawValue }
+
+    var color: AnnotationColor? {
+        switch self {
+        case .clear: return nil
+        case .red: return .red
+        case .yellow: return .yellow
+        case .blue: return .blue
+        case .green: return .green
+        case .white: return .white
+        case .black: return .black
+        }
+    }
+
+    var nsColor: NSColor? { color?.nsColor }
+
+    var displayName: String {
+        color?.displayName ?? L10n.localized("annotation.color.clear")
     }
 }
 
@@ -178,6 +229,8 @@ struct AnnotationStyle: Hashable, Codable {
     var color: AnnotationColor = .red
     var lineWidth: AnnotationLineWidth = .medium
     var textSize: AnnotationTextSize = .medium
+    /// 文字 / 序号 / 提示框的背景色；默认透明。
+    var backgroundColor: AnnotationBackground = .clear
 }
 
 extension AnnotationStyle {
@@ -443,12 +496,18 @@ enum AnnotationRenderer {
             width: radius * 2,
             height: radius * 2
         )
-        shape.style.color.nsColor.setFill()
-        NSBezierPath(ovalIn: circle).fill()
+        let background = shape.style.backgroundColor.nsColor
+        if let background {
+            background.setFill()
+            NSBezierPath(ovalIn: circle).fill()
+        }
 
+        let color = shape.style.color.nsColor
         let attributes: [NSAttributedString.Key: Any] = [
             .font: NSFont.systemFont(ofSize: radius * 1.1, weight: .bold),
-            .foregroundColor: NSColor.white
+            .foregroundColor: color,
+            .strokeColor: NSColor.black.withAlphaComponent(background == nil ? 0.35 : 0),
+            .strokeWidth: background == nil ? -2.0 : 0
         ]
         let value_ = "\(value)" as NSString
         let size = value_.size(withAttributes: attributes)
@@ -466,9 +525,8 @@ enum AnnotationRenderer {
         // 气泡几何与命中测试共用同一份推导，避免「看得见却点不中」。
         let body = AnnotationHitTest.tooltipBody(for: shape)
 
-        let fill = shape.style.color.nsColor
-        fill.setFill()
-        NSBezierPath(roundedRect: body, xRadius: 8, yRadius: 8).fill()
+        let textColor = shape.style.color.nsColor
+        let bodyPath = NSBezierPath(roundedRect: body, xRadius: 8, yRadius: 8)
 
         // 指向锚点的等腰三角。
         let tailPath = NSBezierPath()
@@ -476,11 +534,23 @@ enum AnnotationRenderer {
         tailPath.line(to: CGPoint(x: body.minX + 14, y: body.minY))
         tailPath.line(to: CGPoint(x: body.minX + 24, y: body.minY))
         tailPath.close()
-        tailPath.fill()
+
+        if let background = shape.style.backgroundColor.nsColor {
+            background.setFill()
+            bodyPath.fill()
+            tailPath.fill()
+        } else {
+            // 透明背景：只描一圈文字颜色的边，保证气泡在任意画面上都读得出来。
+            textColor.withAlphaComponent(0.9).setStroke()
+            bodyPath.lineWidth = 2
+            bodyPath.stroke()
+            tailPath.lineWidth = 2
+            tailPath.stroke()
+        }
 
         let textAttributes: [NSAttributedString.Key: Any] = [
             .font: bodyFont,
-            .foregroundColor: NSColor.white
+            .foregroundColor: textColor
         ]
         (text as NSString).draw(
             with: body.insetBy(dx: padding, dy: padding),
@@ -550,21 +620,46 @@ enum AnnotationRenderer {
 
     private static func drawText(_ shape: AnnotationShape) {
         guard let text = shape.text, !text.isEmpty else { return }
+        let background = shape.style.backgroundColor.nsColor
         let attributes: [NSAttributedString.Key: Any] = [
             .font: NSFont.systemFont(ofSize: shape.style.textSize.points, weight: .semibold),
             .foregroundColor: shape.style.color.nsColor,
-            .strokeColor: NSColor.black.withAlphaComponent(shape.style.color == .black ? 0 : 0.35),
-            .strokeWidth: -2.0
+            .strokeColor: NSColor.black.withAlphaComponent(background == nil && shape.style.color != .black ? 0.35 : 0),
+            .strokeWidth: background == nil ? -2.0 : 0
         ]
+        let attributed = NSAttributedString(string: text, attributes: attributes)
+        let textSize = attributed.size()
+        let padding: CGFloat = 4
+        let backgroundRect = CGRect(
+            x: shape.startPoint.x - padding,
+            y: shape.startPoint.y - padding / 2,
+            width: textSize.width + padding * 2,
+            height: textSize.height + padding
+        )
+
         guard shape.rotationRadians != 0 else {
-            NSAttributedString(string: text, attributes: attributes).draw(at: shape.startPoint)
+            if let background {
+                background.setFill()
+                NSBezierPath(roundedRect: backgroundRect, xRadius: 4, yRadius: 4).fill()
+            }
+            attributed.draw(at: shape.startPoint)
             return
         }
         guard let context = NSGraphicsContext.current?.cgContext else { return }
+        let localBackground = CGRect(
+            x: -padding,
+            y: -padding / 2,
+            width: textSize.width + padding * 2,
+            height: textSize.height + padding
+        )
         context.saveGState()
         context.translateBy(x: shape.startPoint.x, y: shape.startPoint.y)
         context.rotate(by: shape.rotationRadians)
-        NSAttributedString(string: text, attributes: attributes).draw(at: .zero)
+        if let background {
+            background.setFill()
+            NSBezierPath(roundedRect: localBackground, xRadius: 4, yRadius: 4).fill()
+        }
+        attributed.draw(at: .zero)
         context.restoreGState()
     }
 

@@ -487,8 +487,9 @@ final class CaptureOverlayContentView: NSView, NSTextFieldDelegate {
         let field = NSTextField(frame: NSRect(origin: origin, size: NSSize(width: width, height: height)))
         field.isBordered = false
         field.isBezeled = false
-        field.drawsBackground = true
-        field.backgroundColor = NSColor.black.withAlphaComponent(0.6)
+        // 输入框本身透明：用户要求“输入的时候输入框是透明的”。
+        field.drawsBackground = false
+        field.backgroundColor = .clear
         field.textColor = style.color.nsColor
         field.font = NSFont.systemFont(ofSize: fontSize, weight: .semibold)
         field.focusRingType = .none
@@ -1099,7 +1100,9 @@ enum ScreenshotGeometry {
         selection: NSRect,
         toolbarSize: NSSize,
         screenFrame: NSRect,
-        gap: CGFloat = 12
+        // 选区下方的尺寸徽标要占约 22pt；工具条至少留出这段距离，
+        // 否则两行工具条会被徽标压住（2026-10-19 实测）。
+        gap: CGFloat = 30
     ) -> NSRect {
         let minimumX = screenFrame.minX
         let maximumX = max(minimumX, screenFrame.maxX - toolbarSize.width)

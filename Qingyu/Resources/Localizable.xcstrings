@@ -5441,6 +5441,64 @@
         }
       }
     },
+    "annotation.color.clear" : {
+      "comment" : "Transparent background option",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transparent"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "透明"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "透明"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "透明"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transparent"
+          }
+        }
+      }
+    },
+    "annotation.style.textColor" : {
+      "comment" : "Style row label: text color",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Text" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "文字" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "文字" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "文字" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Texte" } }
+      }
+    },
+    "annotation.style.backgroundColor" : {
+      "comment" : "Style row label: text background color",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Background" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "背景" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "背景" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "背景" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Fond" } }
+      }
+    },
     "annotation.color.black" : {
       "comment" : "Annotation color preset: black",
       "extractionState" : "stale",

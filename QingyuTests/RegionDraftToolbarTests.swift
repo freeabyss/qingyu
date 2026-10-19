@@ -189,33 +189,56 @@ final class RegionDraftToolbarTests: XCTestCase {
         }
     }
 
-    /// 样式行（颜色 / 粗细）：改样式只更新样式，不触发任何工具或动作。
-    func testStyleRowChangesColorAndWidthWithoutTriggeringToolActions() throws {
-        let controller = ScreenshotToolbarController()
-        var actions: [ScreenshotToolbarAction] = []
-        controller.showRegionDraft(
-            globalRect: CGRect(x: 200, y: 300, width: 600, height: 400),
-            screenFrame: screenFrame,
-            capture: { throw SnapVaultError.screenshotFailed(reason: "unused") },
-            onDismiss: {}
-        )
-        let window = try XCTUnwrap(controller.window)
-        let content = try XCTUnwrap(window.contentView as? RegionToolbarView)
-        content.onAction = { actions.append($0) }
+    /// 样式行只在选中工具后出现，且按工具类型展示不同选项：
+    /// - 线工具：颜色 + 粗细
+    /// - 荧光笔/马克笔：颜色 + 大小
+    /// - 橡皮擦/马赛克/模糊：只有大小
+    /// - 文字/序号/提示框：文字颜色 + 背景色
+    func testStyleRowIsContextualToTheSelectedTool() throws {
+        func makeView(_ tool: AnnotationTool) -> RegionToolbarView {
+            let view = RegionToolbarView(
+                frame: NSRect(origin: .zero, size: RegionToolbarView.fittingSize(for: tool))
+            )
+            view.updateSelection(selectedTool: tool)
+            return view
+        }
 
-        XCTAssertGreaterThan(content.bounds.height, 46, "样式行必须让工具条变成两行")
-        let blue = try XCTUnwrap(content.colorButtonForTesting(2))
+        // 没选工具：没有样式行（草稿态只有一行）。
+        let draft = RegionToolbarView(frame: NSRect(origin: .zero, size: RegionToolbarView.fittingSize(for: nil)))
+        XCTAssertNil(draft.colorButtonForTesting(0), "未点工具时不应出现颜色选项")
+        XCTAssertEqual(draft.bounds.height, RegionToolbarView.fittingSize(for: nil).height)
+
+        // 线工具：颜色 + 粗细。
+        var received: [AnnotationStyle] = []
+        let line = makeView(.rectangle)
+        line.onStyleChange = { received.append($0) }
+        XCTAssertNotNil(line.colorButtonForTesting(0), "线工具必须有颜色选项")
+        XCTAssertNotNil(line.sizeButtonForTesting(0), "线工具必须有粗细选项")
+        XCTAssertNil(line.backgroundButtonForTesting(0), "线工具不应出现背景色选项")
+
+        let blue = try XCTUnwrap(line.colorButtonForTesting(2))
         XCTAssertTrue(blue.acceptsFirstMouse(for: nil), "非 key 窗口里第一次点击就要生效")
         blue.performClick(nil)
-        XCTAssertEqual(content.styleForTesting.color, .blue)
-        XCTAssertEqual(controller.annotationStyleForTesting.color, .blue)
-
-        let thick = try XCTUnwrap(content.widthButtonForTesting(2))
+        XCTAssertEqual(line.styleForTesting.color, .blue)
+        let thick = try XCTUnwrap(line.sizeButtonForTesting(2))
         thick.performClick(nil)
-        XCTAssertEqual(content.styleForTesting.lineWidth, .thick)
-        XCTAssertEqual(controller.annotationStyleForTesting.lineWidth, .thick)
+        XCTAssertEqual(line.styleForTesting.lineWidth, .thick)
+        XCTAssertEqual(received.last?.color, .blue)
+        XCTAssertEqual(received.last?.lineWidth, .thick)
 
-        XCTAssertTrue(actions.isEmpty, "改颜色/粗细不得触发复制、工具或关闭")
+        // 无颜色笔刷：只有大小。
+        let eraser = makeView(.eraser)
+        XCTAssertNil(eraser.colorButtonForTesting(0), "橡皮擦没有颜色选项")
+        XCTAssertNotNil(eraser.sizeButtonForTesting(0), "橡皮擦必须有大小时选项")
+
+        // 文字类：文字颜色 + 背景色，没有大小。
+        let text = makeView(.text)
+        XCTAssertNotNil(text.colorButtonForTesting(0), "文字必须有文字颜色选项")
+        XCTAssertNotNil(text.backgroundButtonForTesting(0), "文字必须有背景色选项")
+        XCTAssertNil(text.sizeButtonForTesting(0), "文字类不展示粗细/大小")
+        let background = try XCTUnwrap(text.backgroundButtonForTesting(2))
+        background.performClick(nil)
+        XCTAssertEqual(text.styleForTesting.backgroundColor, AnnotationBackground.allCases[2])
     }
 
     /// 工具条的每一个按钮都必须**在非 key 窗口里第一次点击就触发**。
@@ -243,10 +266,14 @@ final class RegionDraftToolbarTests: XCTestCase {
         let content = try XCTUnwrap(window.contentView as? RegionToolbarView)
         content.onAction = { received.append($0) }
 
-        let expected = [ScreenshotToolbarAction.copy, .save, .pin]
-            + AnnotationTool.allCases.map { .annotate($0) }
-            + [.cancel]
+        let expected: [ScreenshotToolbarAction] = AnnotationTool.allCases.map { .annotate($0) }
+            + [.copy, .save, .pin, .cancel]
         XCTAssertEqual(content.buttonCountForTesting, expected.count, "工具条必须包含全部动作按钮")
+
+        // 分组：工具在左、复制/保存/贴图/关闭在右，中间留出分隔线位置。
+        let lastTool = try XCTUnwrap(content.buttonForTesting(AnnotationTool.allCases.count - 1))
+        let firstAction = try XCTUnwrap(content.buttonForTesting(AnnotationTool.allCases.count))
+        XCTAssertLessThan(lastTool.frame.maxX, firstAction.frame.minX, "动作按钮必须在全部工具按钮的右侧")
 
         for index in expected.indices {
             let button = try XCTUnwrap(content.buttonForTesting(index))

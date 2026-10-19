@@ -18,6 +18,7 @@ final class RegionAnnotationFlowTests: XCTestCase {
         private(set) var prepareCalls = 0
         private(set) var beginCalls: [(tool: AnnotationTool, region: CGRect)] = []
         private(set) var toolUpdates: [AnnotationTool] = []
+        private(set) var styleUpdates: [AnnotationStyle] = []
         private(set) var finished = false
         var shapes: [AnnotationShape] = []
         var isAnnotating = false
@@ -37,6 +38,7 @@ final class RegionAnnotationFlowTests: XCTestCase {
 
         func updateAnnotationTool(_ tool: AnnotationTool, style: AnnotationStyle) {
             toolUpdates.append(tool)
+            styleUpdates.append(style)
         }
 
         var annotationShapes: [AnnotationShape] { shapes }
@@ -93,6 +95,7 @@ final class RegionAnnotationFlowTests: XCTestCase {
             annotationHost: host
         )
 
+        let draftToolbarSize = controller.regionToolbarSize
         await controller.performDraftAnnotation(tool: .rectangle)
 
         XCTAssertEqual(host.beginCalls.count, 1, "点工具应进入原地标注")
@@ -105,6 +108,11 @@ final class RegionAnnotationFlowTests: XCTestCase {
         let window = try XCTUnwrap(controller.window)
         XCTAssertTrue(window.isVisible, "工具条必须留在原处可见")
         XCTAssertTrue(window.becomesKeyOnlyIfNeeded, "工具条仍不得夺 key：叠层要继续持有键盘")
+        XCTAssertGreaterThan(
+            controller.regionToolbarSize.height,
+            draftToolbarSize.height,
+            "点工具后才出现样式行：工具条应变成两行"
+        )
         XCTAssertEqual(
             window.frame,
             ScreenshotGeometry.toolbarFrame(
@@ -112,8 +120,16 @@ final class RegionAnnotationFlowTests: XCTestCase {
                 toolbarSize: controller.regionToolbarSize,
                 screenFrame: screenFrame
             ),
-            "工具条位置不得因进入标注而改变"
+            "工具条仍应贴在选区下方（高度变化后重新定位）"
         )
+
+        let content = try XCTUnwrap(window.contentView as? RegionToolbarView)
+        XCTAssertNotNil(content.colorButtonForTesting(0), "矩形工具应出现颜色选项")
+        XCTAssertNotNil(content.sizeButtonForTesting(0), "矩形工具应出现粗细选项")
+        XCTAssertNil(content.backgroundButtonForTesting(0), "矩形工具不应出现背景色选项")
+
+        content.colorButtonForTesting(2)?.performClick(nil)
+        XCTAssertEqual(host.styleUpdates.last?.color, .blue, "标注中改颜色必须即时传给叠层")
     }
 
     /// 标注中换工具：只调用 `updateAnnotationTool`，不重新捕获、不移动工具条窗口。
@@ -252,6 +268,7 @@ final class RegionAnnotationFlowTests: XCTestCase {
             view.subviews.compactMap { $0 as? NSTextField }.first,
             "文字工具必须在光标落点直接出现输入框，而不是弹系统对话框"
         )
+        XCTAssertFalse(field.drawsBackground, "输入框必须是透明的（用户要求）")
         field.stringValue = "Hello"
         _ = view.control(
             field,

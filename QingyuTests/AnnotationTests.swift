@@ -51,7 +51,8 @@ final class AnnotationTests: XCTestCase {
             screenFrame: NSRect(x: 0, y: 0, width: 1440, height: 900)
         )
 
-        XCTAssertEqual(frame, NSRect(x: 390, y: 332, width: 320, height: 56))
+        // 工具条与选区之间要留出尺寸徽标的位置（gap = 30）。
+        XCTAssertEqual(frame, NSRect(x: 390, y: 314, width: 320, height: 56))
     }
 
     func testRegionToolbarMovesAboveSelectionNearBottomEdge() {
@@ -61,7 +62,8 @@ final class AnnotationTests: XCTestCase {
             screenFrame: NSRect(x: 0, y: 0, width: 1440, height: 900)
         )
 
-        XCTAssertEqual(frame, NSRect(x: 390, y: 132, width: 320, height: 56))
+        // 下方放不下时翻到选区上方，同样留 30pt。
+        XCTAssertEqual(frame, NSRect(x: 390, y: 150, width: 320, height: 56))
     }
 
     func testRegionToolbarClampsToBothHorizontalScreenEdges() {

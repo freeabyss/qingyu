@@ -48,6 +48,7 @@
 | 2026-10-18 | Claude | **区域工具条改 AppKit 原生按钮 + 锁住「局部重绘叠出暗带」**（用户装 0.3.70 复测：「1. 还是有暗色区域」「2. 工具栏除了复制图片、贴到屏幕，其他工具栏都不能使用」）。① **工具条按钮只有复制/贴图能用** —— 日志显示点击确实落在按钮上（`Region toolbar sendEvent … hit=NSHostingView<RegionScreenshotToolbarView>`），但之后**没有任何动作**；进程内探针复现了这一点：SwiftUI `Button` 在**非 key** 窗口里只把按下当作「激活窗口」吃掉，而 AppKit `NSButton` 在同一条鼠标追踪路径下第一次点击就触发（探针 `panelKey=false` 时两个按钮都收到 action）。区域工具条又**必须**保持非 key（叠层要一直持着键盘：方向键微调 / `Tab` 辅助线 / `Enter` 确认 / `P`·`⌘S` 预设），所以不是「让它夺 key」，而是换控件：工具条内容改为 AppKit 的 `RegionToolbarView`，按钮为覆写 `acceptsFirstMouse → true` 的 `NSButton`。② **「还是有暗色区域」** —— 复核用户后续上传的截图：存在一条**贯穿全屏高度（连菜单栏都在内）的竖直接缝**，接缝左侧亮度恰为右侧的 0.7 倍，即该区域被压暗了两次；这正是 `draw` 直接用 `dirtyRect` 铺黑、合成结果留在 backing store 里的叠加特征。02befa0「先清成透明再铺一次」已消除该机制，本轮再补一条**局部重绘**用例把「只重绘一条竖带」也锁住。第 12 节新增 **SHOT-LIFE-014**（17 个按钮逐个断言 `acceptsFirstMouse == true` 且点击依次触发、窗口全程非 key）、**SHOT-LIFE-015**（局部重绘后竖带内外 alpha 必须相等）；`ScreenshotToolbarAction` 补 `Equatable` 供断言使用。 |
 | 2026-10-18 | Claude | **修「选中方形后画不出方形」：协议签名不一致导致叠层从未真正进入标注**（用户复测同一条：「工具栏的工具不起作用。例如选中方形后，无法画出方形」）。根因用运行中的进程内 Mirror 坐实：点方形后日志有「In-place annotation started」，但叠层内容视图的 `isAnnotating == false`、`annotationSession == nil`。`CaptureOverlayWindow` 协议要求 `beginAnnotation(...) -> Bool`，而 `CaptureOverlayWindowController` 写成 `-> Void`；Swift 于是静默采用协议扩展里的默认实现（返回 false、不做事），会话却仍把 `isAnnotating` 置 true。结果是工具条一直以为在标注（点工具只换高亮、动作走「合成后复制」），画布却没有会话，所有落笔被忽略。① 让真实实现返回 `Bool` 并与协议签名完全一致；会话只在返回 true 时才置 `isAnnotating`，否则回滚并收摊。② 叠层内容视图补 `acceptsFirstMouse → true` 并在 `mouseDown` 重新 `makeKey`：工具条短暂成为 key 时，第一次落笔不再被「激活窗口」吃掉。③ 去掉每次指针移动都 `makeKeyAndOrderFront` 的窗口排序风暴（实测约 150 次/秒，仅切换活动屏时才需要），避免拖拽抖动与重合成。④ 暗色区域再加固：`draw` 先 `resetClip()` 再整屏清空重算（只清 dirtyRect 会把上一次选区的透明挖空留在画布外，变成边界笔直的亮/暗块），并让 `regionFrame` / `highlightFrame` 变化自身触发整屏重绘。第 12 节新增 **SHOT-LIFE-016**（真实叠层经协议进入标注并在选区内落出矩形）与 **SHOT-LIFE-017**（局部重绘必须把旧选区的挖空一起重算）。 |
 | 2026-10-19 | Claude | **标注工具条：颜色/粗细 + 圆点笔刷 + 原地文字输入 + 放大镜不再压暗**（用户 2026-10-19 四条需求）。① **线工具（铅笔/箭头/直线/折线/矩形/椭圆）可选颜色与粗细** —— 区域工具条改为两行：上行 6 个颜色圆点（红/黄/蓝/绿/白/黑）+ 分隔线 + 3 档粗细（S/M/L），下行仍是原有动作/工具按钮；样式行常驻，工具条高度 46 → 65，不因选中工具而移动。样式通过 AnnotationStyle 传给原地标注会话，切工具时保留。② **圆点笔刷** —— 荧光笔、新增马克笔、橡皮擦、马赛克、高斯模糊统一为「圆点 + 直径」语义：光标是与实际笔刷等大的圆圈（不再固定十字准星），三档直径 14/24/40 pt；荧光笔半透明、马克笔不透明，沿轨迹涂抹；马赛克/模糊把整张源图过滤一次后裁到笔刷覆盖区，不再拖矩形框；橡皮擦按下/拖拽沿轨迹删除命中的标注（矢量模型，整条删除）。单击也留下一个圆点。③ **文字/提示框原地输入** —— 不再弹 NSAlert：落点处直接出现 NSTextField（跟随当前颜色/字号），回车提交、Esc 取消、点框外提交；提交时显式带上落笔那一刻的工具与样式，输入期间切换工具不会串色。④ **暗色区域** —— 放大镜的黑色半透明遮罩改为「一深一浅两条边界描边」（不再压暗任何画面），并在拖拽结束/进入标注后隐藏放大镜、后续鼠标移动也不再弹出；这正是用户描述「拖拽中以及拖拽结束后光标移到圈选区域就出现」的那块暗色区域。第 12 节新增 **SHOT-LIFE-018**（样式行改色/改粗只更新样式）、**SHOT-LIFE-019**（圆点笔刷：直径映射/单击圆点/模糊轨迹/橡皮沿轨迹删除）、**SHOT-LIFE-020**（原地文字提交保留工具与样式）、**SHOT-LIFE-021**（放大镜边界只描边不压暗）。 |
+| 2026-10-19 | Claude | **工具条分组与按工具类型的样式选项**（用户第二轮细化四条）。① **分组** —— 主行改为「左侧全部标注工具｜右侧复制/保存/贴图/关闭」，中间一条竖向分隔线；工具条宽度按内容推导并取偶数（630pt），避免窗口居中时 0.5pt 偏移。② **样式行只在点击工具后出现** —— 草稿态（未选工具）只有一行；点击工具进入标注后才长出第二行，并按工具类型展示：线工具（铅笔/箭头/直线/折线/矩形/椭圆）颜色 + 粗细；荧光笔/马克笔颜色 + 大小；橡皮擦/马赛克/高斯模糊只有大小；文字/序号/提示框文字颜色 + 背景色。③ **文字类背景色** —— 新增 `AnnotationBackground`（透明 + 6 色），`AnnotationStyle.backgroundColor` 默认 `.clear`；文字/序号/提示框分别渲染背景（文字铺圆角底色、序号填充圆底、提示框填充气泡），默认仍是红字透明底。④ **输入框透明** —— 原地文字输入不再铺黑底，`drawsBackground = false`，直接叠在截图上输入。回归：**SHOT-LIFE-018** 改为「按工具类型出现样式行」、新增 **SHOT-LIFE-022**（工具条分组）、**SHOT-LIFE-023**（文字背景色 + 输入框透明）。测试总数 667，`./scripts/verify.sh` 全绿，版本 0.3.74（构建 374）。 |
 
 ---
 
@@ -1264,10 +1265,10 @@ MVP 暂不覆盖：
 - **步骤**：先整屏渲染（选区在中央，中心为透明挖空），把选区挪到左上角，然后**只**对中间一条 40 pt 竖带调用 `cacheDisplay`；读取旧选区中心的 alpha。
 - **预期结果**：旧选区中心必须变成 0.30（被重新压暗）。只清 AppKit 给的 dirtyRect 时，不在这次重绘范围内的旧挖空会一直保持透明；等它应当压暗时就成了一块边界笔直的亮/暗区域。现在 `draw` 先 `resetClip()` 再整屏清空重算，且选区/高亮 frame 变化自身就触发整屏重绘。
 
-#### SHOT-LIFE-018：样式行改颜色/粗细只更新样式
-- **关联**：用户需求 2026-10-19「铅笔、箭头、直线、折线、矩形、椭圆，支持选择线条粗细、线条颜色」｜ **优先级**：P1 ｜ **类型**：XCTest ｜ **文件**：`QingyuTests/RegionDraftToolbarTests.swift`（`testStyleRowChangesColorAndWidthWithoutTriggeringToolActions`）
-- **步骤**：建立区域草稿工具条 → 断言内容视图高度大于单行（46）；点第 3 个颜色圆点（蓝）→ 断言视图与控制器样式均为蓝；点第 3 档粗细（L）→ 断言线宽为 thick；全程记录 `onAction`。
-- **预期结果**：颜色/粗细按钮首次点击即生效，且**不触发**复制/保存/工具/关闭任何动作；样式行常驻，工具条位置不因选中工具而移动。
+#### SHOT-LIFE-018：样式行只在选中工具后出现，且按工具类型展示
+- **关联**：用户需求 2026-10-19「只有点击工具栏中的工具时，才出现颜色和线条粗细的选项；高亮笔、马赛克、橡皮擦、高斯模糊需要大小选项；文字、序号、提示框要有文字颜色与背景色」｜ **优先级**：P1 ｜ **类型**：XCTest ｜ **文件**：`QingyuTests/RegionDraftToolbarTests.swift`（`testStyleRowIsContextualToTheSelectedTool`）、`QingyuTests/RegionAnnotationFlowTests.swift`（`testPickingAToolEntersInPlaceAnnotationWithoutEndingTheSession`）
+- **步骤**：未选工具时断言没有颜色按钮且工具条只有一行；分别以矩形 / 橡皮擦 / 文字构造选中工具的工具条，断言样式按钮的存在性；点矩形工具颜色第 3 项与大小第 3 项，断言 `AnnotationStyle` 更新并通过 `onStyleChange` 发出；在真实标注流程中点工具后断言工具条高度变大、颜色/粗细选项出现，改颜色后宿主收到新的 style。
+- **预期结果**：草稿态没有样式行；点击工具后工具条变两行并出现**该工具适用**的选项 —— 线工具：颜色 + 粗细；荧光笔/马克笔：颜色 + 大小；橡皮擦/马赛克/模糊：只有大小；文字/序号/提示框：文字颜色 + 背景色。
 
 #### SHOT-LIFE-019：圆点笔刷（直径/单击/轨迹/橡皮）
 - **关联**：用户需求 2026-10-19「高亮笔、马克笔、橡皮擦、高斯模糊，选中之后出现圆点，支持圆点大小，通过圆点涂抹而不是框选」｜ **优先级**：P1 ｜ **类型**：XCTest ｜ **文件**：`QingyuTests/InPlaceAnnotationTests.swift`（`testBrushDiameterMapsThreeSizes` / `testBrushSingleClickLeavesADot` / `testBlurBrushRecordsStrokeInsteadOfRect` / `testEraserBrushDeletesShapesAlongTheStroke`）、`QingyuTests/AnnotationHitTestTests.swift`（单点圆点可命中、铅笔单点不可命中）
@@ -1283,6 +1284,16 @@ MVP 暂不覆盖：
 - **关联**：用户报告 2026-10-19「暗色的区域在拖拽过程中，以及拖拽结束后，光标移到圈选区域时，会出现」｜ **优先级**：P0 ｜ **类型**：XCTest（离屏渲染）｜ **文件**：`QingyuTests/ScreenshotOverlayAppearanceTests.swift`（`testMagnifierMarksBoundaryWithoutDimmingContent`）
 - **步骤**：给纯白取样位图设置一个横跨镜面的选区遮罩，分别读取选区内/外两侧的亮度；同时在真实会话里拖拽结束后把鼠标移回选区。
 - **预期结果**：遮罩只画一深一浅两条边界描边，选区内外都保持 255（不得再出现 0.18 黑填充）；拖拽结束/进入标注后放大镜隐藏，后续鼠标移动不再弹出，用户不会再看到跟着光标的暗色区域。
+
+#### SHOT-LIFE-022：工具条分组（左侧工具 / 右侧动作 / 中间分隔）
+- **关联**：用户需求 2026-10-19「工具栏分组，把复制、保存、贴图、关闭放到右侧；其余放左侧，中间用｜隔开」｜ **优先级**：P1 ｜ **类型**：XCTest ｜ **文件**：`QingyuTests/RegionDraftToolbarTests.swift`（`testEveryToolbarButtonFiresOnFirstClickWhileWindowStaysNonKey`）
+- **步骤**：建立区域工具条 → 按顺序取按钮 → 断言动作顺序为全部标注工具 + 复制/保存/贴图/关闭；断言最后一个工具按钮的 `maxX` 小于第一个动作按钮的 `minX`（动作全部在工具右侧），两者之间留出分隔线宽度。
+- **预期结果**：左侧是全部工具，右侧是复制/保存/贴图/关闭；中间有竖向分隔线；不改变任何按钮首次点击即生效的行为。
+
+#### SHOT-LIFE-023：文字/序号/提示框的文字色与背景色（输入框透明）
+- **关联**：用户需求 2026-10-19「文字、序号、提示框要有背景色和文字颜色选项，默认红色、背景色默认透明」「输入的时候输入框是透明的」｜ **优先级**：P1 ｜ **类型**：XCTest ｜ **文件**：`QingyuTests/InPlaceAnnotationTests.swift`（`testTextBackgroundDefaultsToClearAndCanBeFilled`）、`QingyuTests/RegionAnnotationFlowTests.swift`（`testInlineTextAppearsAtCursorAndCommitsOnReturn`）
+- **步骤**：断言 `AnnotationStyle()` 默认 `color == .red`、`backgroundColor == .clear`；用灰色源图分别以透明/黄色背景合成一条文字标注，统计“黄色像素”数量；打开原地文字输入框后断言 `drawsBackground == false`。
+- **预期结果**：默认红字透明底；设置黄色背景后文字下方铺满黄色；输入框本身透明（不遮挡截图），文字仍按所选颜色显示。
 
 ### 12.2 手工验收用例（真实屏幕录制环境）
 
