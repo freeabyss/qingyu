@@ -117,7 +117,7 @@ enum AnnotationTool: String, Codable, CaseIterable, Identifiable {
 }
 
 /// 工具对应的样式行形态。
-enum AnnotationStyleMode {
+enum AnnotationStyleMode: Equatable {
     /// 线工具：颜色 + 线条粗细。
     case line
     /// 有颜色的笔刷（荧光笔 / 马克笔）：颜色 + 圆点大小。

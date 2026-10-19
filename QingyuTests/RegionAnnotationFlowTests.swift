@@ -108,10 +108,10 @@ final class RegionAnnotationFlowTests: XCTestCase {
         let window = try XCTUnwrap(controller.window)
         XCTAssertTrue(window.isVisible, "工具条必须留在原处可见")
         XCTAssertTrue(window.becomesKeyOnlyIfNeeded, "工具条仍不得夺 key：叠层要继续持有键盘")
-        XCTAssertGreaterThan(
+        XCTAssertEqual(
             controller.regionToolbarSize.height,
             draftToolbarSize.height,
-            "点工具后才出现样式行：工具条应变成两行"
+            "工具条保持单行；颜色/粗细放在独立样式面板里"
         )
         XCTAssertEqual(
             window.frame,
@@ -120,16 +120,56 @@ final class RegionAnnotationFlowTests: XCTestCase {
                 toolbarSize: controller.regionToolbarSize,
                 screenFrame: screenFrame
             ),
-            "工具条仍应贴在选区下方（高度变化后重新定位）"
+            "工具条位置不得因选中工具而改变"
         )
 
         let content = try XCTUnwrap(window.contentView as? RegionToolbarView)
-        XCTAssertNotNil(content.colorButtonForTesting(0), "矩形工具应出现颜色选项")
-        XCTAssertNotNil(content.sizeButtonForTesting(0), "矩形工具应出现粗细选项")
-        XCTAssertNil(content.backgroundButtonForTesting(0), "矩形工具不应出现背景色选项")
+        let palette = try XCTUnwrap(controller.stylePaletteViewForTesting, "点工具后必须出现样式面板")
+        XCTAssertEqual(palette.modeForTesting, .line, "矩形工具应出现颜色 + 粗细面板")
+        XCTAssertNotNil(palette.colorButtonForTesting(0), "矩形工具应出现颜色选项")
+        XCTAssertNotNil(palette.sizeButtonForTesting(0), "矩形工具应出现粗细选项")
+        XCTAssertNil(palette.backgroundButtonForTesting(0), "矩形工具不应出现背景色选项")
 
-        content.colorButtonForTesting(2)?.performClick(nil)
+        // 面板贴在矩形按钮正下方，而不是铺满工具条。
+        let paletteWindow = try XCTUnwrap(controller.stylePaletteWindowForTesting)
+        let button = try XCTUnwrap(content.buttonFrame(forTool: .rectangle))
+        XCTAssertEqual(paletteWindow.frame.minX, window.frame.minX + button.minX, accuracy: 0.5)
+        XCTAssertEqual(paletteWindow.frame.maxY, window.frame.minY + button.minY - 6, accuracy: 0.5)
+
+        palette.colorButtonForTesting(2)?.performClick(nil)
         XCTAssertEqual(host.styleUpdates.last?.color, .blue, "标注中改颜色必须即时传给叠层")
+    }
+
+    /// 选中工具后可以继续切换别的工具：高亮跟着走、样式面板换形态并重新贴到新按钮下方。
+    func testSwitchingToolsMovesHighlightAndStylePalette() async throws {
+        let controller = ScreenshotToolbarController()
+        let host = AnnotationHostSpy()
+        let spy = CaptureSpy(screenFrame: screenFrame, selection: selection)
+
+        controller.showRegionDraft(
+            globalRect: selection,
+            screenFrame: screenFrame,
+            capture: { try await spy.capture() },
+            annotationCapture: { try await spy.capture() },
+            onDismiss: {},
+            annotationHost: host
+        )
+        await controller.performDraftAnnotation(tool: .rectangle)
+
+        controller.selectAnnotationToolForTesting(.eraser)
+
+        XCTAssertEqual(host.toolUpdates.last, .eraser, "换工具必须通知叠层")
+        XCTAssertEqual(controller.stylePaletteViewForTesting?.modeForTesting, .sizeOnlyBrush)
+        XCTAssertNil(controller.stylePaletteViewForTesting?.colorButtonForTesting(0), "橡皮擦面板没有颜色")
+        XCTAssertNotNil(controller.stylePaletteViewForTesting?.sizeButtonForTesting(0))
+
+        let content = try XCTUnwrap(controller.window?.contentView as? RegionToolbarView)
+        let eraserIndex = try XCTUnwrap(AnnotationTool.allCases.firstIndex(of: .eraser))
+        let highlightAlpha = content.buttonForTesting(eraserIndex)?.layer?.backgroundColor?.alpha ?? 0
+        XCTAssertGreaterThan(highlightAlpha, 0.1, "选中工具必须高亮")
+        let rectangleIndex = try XCTUnwrap(AnnotationTool.allCases.firstIndex(of: .rectangle))
+        let staleAlpha = content.buttonForTesting(rectangleIndex)?.layer?.backgroundColor?.alpha ?? 0
+        XCTAssertEqual(staleAlpha, 0, accuracy: 0.001, "旧工具的高亮必须撤掉")
     }
 
     /// 标注中换工具：只调用 `updateAnnotationTool`，不重新捕获、不移动工具条窗口。

@@ -189,28 +189,22 @@ final class RegionDraftToolbarTests: XCTestCase {
         }
     }
 
-    /// 样式行只在选中工具后出现，且按工具类型展示不同选项：
+    /// 样式面板按工具类型展示不同选项：
     /// - 线工具：颜色 + 粗细
     /// - 荧光笔/马克笔：颜色 + 大小
     /// - 橡皮擦/马赛克/模糊：只有大小
     /// - 文字/序号/提示框：文字颜色 + 背景色
-    func testStyleRowIsContextualToTheSelectedTool() throws {
-        func makeView(_ tool: AnnotationTool) -> RegionToolbarView {
-            let view = RegionToolbarView(
-                frame: NSRect(origin: .zero, size: RegionToolbarView.fittingSize(for: tool))
-            )
-            view.updateSelection(selectedTool: tool)
-            return view
-        }
-
-        // 没选工具：没有样式行（草稿态只有一行）。
-        let draft = RegionToolbarView(frame: NSRect(origin: .zero, size: RegionToolbarView.fittingSize(for: nil)))
-        XCTAssertNil(draft.colorButtonForTesting(0), "未点工具时不应出现颜色选项")
-        XCTAssertEqual(draft.bounds.height, RegionToolbarView.fittingSize(for: nil).height)
+    func testStylePaletteIsContextualToTheSelectedTool() throws {
+        // 工具条永远是单行：选项放到独立面板里，不把工具条撑成两行。
+        XCTAssertEqual(
+            RegionToolbarView.fittingSize(for: .rectangle).height,
+            RegionToolbarView.fittingSize(for: nil).height,
+            "工具条始终只有一行"
+        )
 
         // 线工具：颜色 + 粗细。
         var received: [AnnotationStyle] = []
-        let line = makeView(.rectangle)
+        let line = RegionStylePaletteView(style: AnnotationStyle(), mode: .line)
         line.onStyleChange = { received.append($0) }
         XCTAssertNotNil(line.colorButtonForTesting(0), "线工具必须有颜色选项")
         XCTAssertNotNil(line.sizeButtonForTesting(0), "线工具必须有粗细选项")
@@ -226,13 +220,19 @@ final class RegionDraftToolbarTests: XCTestCase {
         XCTAssertEqual(received.last?.color, .blue)
         XCTAssertEqual(received.last?.lineWidth, .thick)
 
-        // 无颜色笔刷：只有大小。
-        let eraser = makeView(.eraser)
+        // 有颜色的笔刷：颜色 + 大小。
+        let brush = RegionStylePaletteView(style: AnnotationStyle(), mode: .coloredBrush)
+        XCTAssertNotNil(brush.colorButtonForTesting(0))
+        XCTAssertNotNil(brush.sizeButtonForTesting(0))
+
+        // 无颜色笔刷：只有大小，且面板更矮。
+        let eraser = RegionStylePaletteView(style: AnnotationStyle(), mode: .sizeOnlyBrush)
         XCTAssertNil(eraser.colorButtonForTesting(0), "橡皮擦没有颜色选项")
         XCTAssertNotNil(eraser.sizeButtonForTesting(0), "橡皮擦必须有大小时选项")
+        XCTAssertLessThan(eraser.bounds.height, line.bounds.height, "只有大小的面板应更矮")
 
         // 文字类：文字颜色 + 背景色，没有大小。
-        let text = makeView(.text)
+        let text = RegionStylePaletteView(style: AnnotationStyle(), mode: .text)
         XCTAssertNotNil(text.colorButtonForTesting(0), "文字必须有文字颜色选项")
         XCTAssertNotNil(text.backgroundButtonForTesting(0), "文字必须有背景色选项")
         XCTAssertNil(text.sizeButtonForTesting(0), "文字类不展示粗细/大小")
