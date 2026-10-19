@@ -490,8 +490,8 @@ final class CaptureOverlayContentView: NSView, NSTextFieldDelegate {
         // 输入框本身透明：用户要求“输入的时候输入框是透明的”。
         field.drawsBackground = false
         field.backgroundColor = .clear
-        field.textColor = style.color.nsColor
-        field.font = NSFont.systemFont(ofSize: fontSize, weight: .semibold)
+        field.textColor = style.nsColor
+        field.font = style.font(ofSize: fontSize, weight: .semibold)
         field.focusRingType = .none
         field.placeholderString = L10n.localized("annotation.textInput.placeholder")
         field.lineBreakMode = .byClipping

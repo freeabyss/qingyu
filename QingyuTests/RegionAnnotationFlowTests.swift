@@ -164,10 +164,10 @@ final class RegionAnnotationFlowTests: XCTestCase {
         XCTAssertNotNil(controller.stylePaletteViewForTesting?.sizeButtonForTesting(0))
 
         let content = try XCTUnwrap(controller.window?.contentView as? RegionToolbarView)
-        let eraserIndex = try XCTUnwrap(AnnotationTool.allCases.firstIndex(of: .eraser))
+        let eraserIndex = try XCTUnwrap(AnnotationTool.toolbarTools.firstIndex(of: .eraser))
         let highlightAlpha = content.buttonForTesting(eraserIndex)?.layer?.backgroundColor?.alpha ?? 0
         XCTAssertGreaterThan(highlightAlpha, 0.1, "选中工具必须高亮")
-        let rectangleIndex = try XCTUnwrap(AnnotationTool.allCases.firstIndex(of: .rectangle))
+        let rectangleIndex = try XCTUnwrap(AnnotationTool.toolbarTools.firstIndex(of: .rectangle))
         let staleAlpha = content.buttonForTesting(rectangleIndex)?.layer?.backgroundColor?.alpha ?? 0
         XCTAssertEqual(staleAlpha, 0, accuracy: 0.001, "旧工具的高亮必须撤掉")
     }

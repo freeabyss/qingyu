@@ -154,7 +154,7 @@ enum AnnotationHitTest {
     /// 提示框气泡主体矩形（不含指向三角）；与渲染保持同一套推导规则。
     static func tooltipBody(for shape: AnnotationShape, maxTextWidth: CGFloat = 320) -> CGRect {
         let text = shape.text ?? ""
-        let font = NSFont.systemFont(ofSize: shape.style.textSize.points, weight: .medium)
+        let font = shape.style.font(ofSize: shape.style.textSize.points, weight: .medium)
         let bounding = (text as NSString).boundingRect(
             with: CGSize(width: maxTextWidth, height: .greatestFiniteMagnitude),
             options: [.usesLineFragmentOrigin, .usesFontLeading],

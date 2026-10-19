@@ -84,6 +84,11 @@ enum AnnotationTool: String, Codable, CaseIterable, Identifiable {
         }
     }
 
+    /// 区域标注工具条上展示的工具（按用户要求去掉左起第四个「折线」）。
+    static var toolbarTools: [AnnotationTool] {
+        allCases.filter { $0 != .polyline }
+    }
+
     /// 点击即完成的工具（不依赖拖拽距离）。
     var isClickPlaced: Bool {
         switch self {
@@ -153,6 +158,62 @@ enum AnnotationColor: String, Codable, CaseIterable, Identifiable {
         case .white: return L10n.localized("annotation.color.white")
         case .black: return L10n.localized("annotation.color.black")
         }
+    }
+}
+
+/// 可序列化的任意颜色（自定义颜色 / 取色器选中的颜色）。默认调色板之外的颜色走这里。
+struct CodableColor: Hashable, Codable {
+    var red: Double
+    var green: Double
+    var blue: Double
+    var alpha: Double
+
+    init(red: Double, green: Double, blue: Double, alpha: Double = 1) {
+        self.red = red
+        self.green = green
+        self.blue = blue
+        self.alpha = alpha
+    }
+
+    init?(nsColor: NSColor) {
+        guard let rgb = nsColor.usingColorSpace(.sRGB) ?? nsColor.usingColorSpace(.deviceRGB) else {
+            return nil
+        }
+        self.init(
+            red: Double(rgb.redComponent),
+            green: Double(rgb.greenComponent),
+            blue: Double(rgb.blueComponent),
+            alpha: Double(rgb.alphaComponent)
+        )
+    }
+
+    var nsColor: NSColor {
+        NSColor(srgbRed: CGFloat(red), green: CGFloat(green), blue: CGFloat(blue), alpha: CGFloat(alpha))
+    }
+}
+
+/// 文字 / 提示框可选字体（系统 / 圆体 / 衬线 / 等宽）。
+enum AnnotationTextFont: String, Codable, CaseIterable, Identifiable {
+    case system, rounded, serif, monospaced
+
+    var id: String { rawValue }
+
+    var displayName: String { L10n.localized("annotation.font.\(rawValue)") }
+
+    func font(ofSize size: CGFloat, weight: NSFont.Weight) -> NSFont {
+        let base = NSFont.systemFont(ofSize: size, weight: weight)
+        let design: NSFontDescriptor.SystemDesign
+        switch self {
+        case .system: return base
+        case .rounded: design = .rounded
+        case .serif: design = .serif
+        case .monospaced: design = .monospaced
+        }
+        guard let descriptor = base.fontDescriptor.withDesign(design),
+              let font = NSFont(descriptor: descriptor, size: size) else {
+            return base
+        }
+        return font
     }
 }
 
@@ -231,6 +292,25 @@ struct AnnotationStyle: Hashable, Codable {
     var textSize: AnnotationTextSize = .medium
     /// 文字 / 序号 / 提示框的背景色；默认透明。
     var backgroundColor: AnnotationBackground = .clear
+    /// 文字字体；默认系统字体。
+    var textFont: AnnotationTextFont = .system
+    /// 自定义颜色（取色器 / 颜色面板）。非 nil 时优先于预设 `color`。
+    var customColor: CodableColor?
+
+    /// 实际用于绘制的颜色：自定义颜色优先，否则用预设颜色。
+    var nsColor: NSColor { customColor?.nsColor ?? color.nsColor }
+
+    /// 按当前字体与字号取字体。
+    func font(ofSize size: CGFloat, weight: NSFont.Weight) -> NSFont {
+        textFont.font(ofSize: size, weight: weight)
+    }
+
+    /// 当前颜色是否偏黑：偏黑时文字不再加黑色描边。
+    var isDark: Bool {
+        guard let rgb = nsColor.usingColorSpace(.sRGB) else { return false }
+        let luminance = 0.2126 * rgb.redComponent + 0.7152 * rgb.greenComponent + 0.0722 * rgb.blueComponent
+        return luminance < 0.2
+    }
 }
 
 extension AnnotationStyle {
@@ -343,7 +423,7 @@ enum AnnotationRenderer {
     private static func drawRectangle(_ shape: AnnotationShape) {
         let path = NSBezierPath(rect: shape.rect)
         path.lineWidth = shape.style.lineWidth.points
-        shape.style.color.nsColor.setStroke()
+        shape.style.nsColor.setStroke()
         path.stroke()
     }
 
@@ -351,7 +431,7 @@ enum AnnotationRenderer {
     private static func drawEllipse(_ shape: AnnotationShape) {
         let path = NSBezierPath(ovalIn: shape.rect)
         path.lineWidth = shape.style.lineWidth.points
-        shape.style.color.nsColor.setStroke()
+        shape.style.nsColor.setStroke()
         path.stroke()
     }
 
@@ -366,7 +446,7 @@ enum AnnotationRenderer {
         let minimumPoints = isBrush ? 1 : 2
         guard shape.points.count >= minimumPoints else { return }
 
-        let color = shape.style.color.nsColor
+        let color = shape.style.nsColor
         let strokeColor = isHighlighter ? color.withAlphaComponent(0.35) : color
 
         // 单击一笔也要留下一个圆点（笔刷语义）。
@@ -502,9 +582,9 @@ enum AnnotationRenderer {
             NSBezierPath(ovalIn: circle).fill()
         }
 
-        let color = shape.style.color.nsColor
+        let color = shape.style.nsColor
         let attributes: [NSAttributedString.Key: Any] = [
-            .font: NSFont.systemFont(ofSize: radius * 1.1, weight: .bold),
+            .font: shape.style.font(ofSize: radius * 1.1, weight: .bold),
             .foregroundColor: color,
             .strokeColor: NSColor.black.withAlphaComponent(background == nil ? 0.35 : 0),
             .strokeWidth: background == nil ? -2.0 : 0
@@ -520,12 +600,12 @@ enum AnnotationRenderer {
     /// 提示框：多行文字气泡 + 指向 `startPoint` 的小三角。
     private static func drawTooltip(_ shape: AnnotationShape) {
         guard let text = shape.text, !text.isEmpty else { return }
-        let bodyFont = NSFont.systemFont(ofSize: shape.style.textSize.points, weight: .medium)
+        let bodyFont = shape.style.font(ofSize: shape.style.textSize.points, weight: .medium)
         let padding: CGFloat = 10
         // 气泡几何与命中测试共用同一份推导，避免「看得见却点不中」。
         let body = AnnotationHitTest.tooltipBody(for: shape)
 
-        let textColor = shape.style.color.nsColor
+        let textColor = shape.style.nsColor
         let bodyPath = NSBezierPath(roundedRect: body, xRadius: 8, yRadius: 8)
 
         // 指向锚点的等腰三角。
@@ -562,7 +642,7 @@ enum AnnotationRenderer {
     private static func drawArrow(_ shape: AnnotationShape) {
         guard let end = shape.endPoint else { return }
         let start = shape.startPoint
-        let color = shape.style.color.nsColor
+        let color = shape.style.nsColor
         let width = shape.style.lineWidth.points
         color.setStroke()
         color.setFill()
@@ -598,7 +678,7 @@ enum AnnotationRenderer {
         let path = NSBezierPath()
         path.lineWidth = shape.style.lineWidth.points
         path.lineCapStyle = .round
-        shape.style.color.nsColor.setStroke()
+        shape.style.nsColor.setStroke()
         path.move(to: shape.startPoint)
         path.line(to: end)
         path.stroke()
@@ -610,7 +690,7 @@ enum AnnotationRenderer {
         path.lineWidth = shape.style.lineWidth.points
         path.lineCapStyle = .round
         path.lineJoinStyle = .round
-        shape.style.color.nsColor.setStroke()
+        shape.style.nsColor.setStroke()
         path.move(to: shape.points[0])
         for point in shape.points.dropFirst() {
             path.line(to: point)
@@ -622,9 +702,9 @@ enum AnnotationRenderer {
         guard let text = shape.text, !text.isEmpty else { return }
         let background = shape.style.backgroundColor.nsColor
         let attributes: [NSAttributedString.Key: Any] = [
-            .font: NSFont.systemFont(ofSize: shape.style.textSize.points, weight: .semibold),
-            .foregroundColor: shape.style.color.nsColor,
-            .strokeColor: NSColor.black.withAlphaComponent(background == nil && shape.style.color != .black ? 0.35 : 0),
+            .font: shape.style.font(ofSize: shape.style.textSize.points, weight: .semibold),
+            .foregroundColor: shape.style.nsColor,
+            .strokeColor: NSColor.black.withAlphaComponent(background == nil && !shape.style.isDark ? 0.35 : 0),
             .strokeWidth: background == nil ? -2.0 : 0
         ]
         let attributed = NSAttributedString(string: text, attributes: attributes)

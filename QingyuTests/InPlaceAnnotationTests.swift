@@ -301,6 +301,22 @@ final class InPlaceAnnotationTests: XCTestCase {
         XCTAssertGreaterThan(try yellowPixelCount(background: .yellow), 20, "黄色背景必须铺在文字下方")
     }
 
+    /// 自定义颜色优先于预设颜色（支持取色器选出的任意色 + alpha）；
+    /// 区域工具条去掉左起第四个「折线」。
+    func testCustomColorOverridesPresetAndToolbarExcludesPolyline() {
+        XCTAssertFalse(AnnotationTool.toolbarTools.contains(.polyline), "折线必须从区域工具条移除")
+        XCTAssertEqual(AnnotationTool.toolbarTools.count, AnnotationTool.allCases.count - 1)
+
+        var style = AnnotationStyle()
+        XCTAssertEqual(style.nsColor, AnnotationColor.red.nsColor, "默认仍用预设红")
+        style.customColor = CodableColor(red: 0.1, green: 0.2, blue: 0.3, alpha: 0.5)
+        XCTAssertEqual(style.nsColor.redComponent, 0.1, accuracy: 0.01)
+        XCTAssertEqual(style.nsColor.alphaComponent, 0.5, accuracy: 0.01, "取色器/颜色面板要支持不透明度")
+
+        let font = AnnotationStyle(textFont: .monospaced).font(ofSize: 20, weight: .semibold)
+        XCTAssertEqual(font.pointSize, 20)
+    }
+
     // MARK: - 导出
 
     /// 导出按「选区点 → 图像像素」整体缩放：2× 屏上画在右下角的图形，

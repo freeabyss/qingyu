@@ -208,7 +208,10 @@ final class RegionDraftToolbarTests: XCTestCase {
         line.onStyleChange = { received.append($0) }
         XCTAssertNotNil(line.colorButtonForTesting(0), "线工具必须有颜色选项")
         XCTAssertNotNil(line.sizeButtonForTesting(0), "线工具必须有粗细选项")
+        XCTAssertNotNil(line.sizeButtonForTesting(0)?.image, "粗细用图标表示，不是 S/M/L 文字")
         XCTAssertNil(line.backgroundButtonForTesting(0), "线工具不应出现背景色选项")
+        XCTAssertNotNil(line.customColorButtonForTesting, "要有自定义颜色入口")
+        XCTAssertNotNil(line.eyedropperButtonForTesting, "要有取色器")
 
         let blue = try XCTUnwrap(line.colorButtonForTesting(2))
         XCTAssertTrue(blue.acceptsFirstMouse(for: nil), "非 key 窗口里第一次点击就要生效")
@@ -231,14 +234,22 @@ final class RegionDraftToolbarTests: XCTestCase {
         XCTAssertNotNil(eraser.sizeButtonForTesting(0), "橡皮擦必须有大小时选项")
         XCTAssertLessThan(eraser.bounds.height, line.bounds.height, "只有大小的面板应更矮")
 
-        // 文字类：文字颜色 + 背景色，没有大小。
+        // 文字类：文字颜色 + 背景色 + 字体 + 字号；不展示线宽/笔刷大小。
         let text = RegionStylePaletteView(style: AnnotationStyle(), mode: .text)
         XCTAssertNotNil(text.colorButtonForTesting(0), "文字必须有文字颜色选项")
         XCTAssertNotNil(text.backgroundButtonForTesting(0), "文字必须有背景色选项")
-        XCTAssertNil(text.sizeButtonForTesting(0), "文字类不展示粗细/大小")
+        XCTAssertNotNil(text.fontButtonForTesting(0), "文字必须能选字体")
+        XCTAssertNotNil(text.textSizeButtonForTesting(0), "文字必须能选字号")
+        XCTAssertNil(text.sizeButtonForTesting(0), "文字类不展示线宽/笔刷大小")
         let background = try XCTUnwrap(text.backgroundButtonForTesting(2))
         background.performClick(nil)
         XCTAssertEqual(text.styleForTesting.backgroundColor, AnnotationBackground.allCases[2])
+        let rounded = try XCTUnwrap(text.fontButtonForTesting(1))
+        rounded.performClick(nil)
+        XCTAssertEqual(text.styleForTesting.textFont, AnnotationTextFont.allCases[1])
+        let large = try XCTUnwrap(text.textSizeButtonForTesting(2))
+        large.performClick(nil)
+        XCTAssertEqual(text.styleForTesting.textSize, .large)
     }
 
     /// 工具条的每一个按钮都必须**在非 key 窗口里第一次点击就触发**。
@@ -252,7 +263,7 @@ final class RegionDraftToolbarTests: XCTestCase {
     /// 1. **窗口派发层**：每个按钮的 `acceptsFirstMouse` 必须为 true —— 非 key 窗口把
     ///    按下事件交给按钮之前查的就是它，默认 false 时这一次点击只会被吞掉；
     /// 2. **接线层**：每个按钮的 `mouseDown → 追踪 → mouseUp` 必须发出对应的动作，
-    ///    顺序与 `AnnotationTool.allCases` 一一对应（点错位就是「点这个执行那个」）。
+    ///    顺序与 `AnnotationTool.toolbarTools` 一一对应（点错位就是「点这个执行那个」）。
     func testEveryToolbarButtonFiresOnFirstClickWhileWindowStaysNonKey() throws {
         let controller = ScreenshotToolbarController()
         var received: [ScreenshotToolbarAction] = []
@@ -266,13 +277,13 @@ final class RegionDraftToolbarTests: XCTestCase {
         let content = try XCTUnwrap(window.contentView as? RegionToolbarView)
         content.onAction = { received.append($0) }
 
-        let expected: [ScreenshotToolbarAction] = AnnotationTool.allCases.map { .annotate($0) }
+        let expected: [ScreenshotToolbarAction] = AnnotationTool.toolbarTools.map { .annotate($0) }
             + [.copy, .save, .pin, .cancel]
         XCTAssertEqual(content.buttonCountForTesting, expected.count, "工具条必须包含全部动作按钮")
 
         // 分组：工具在左、复制/保存/贴图/关闭在右，中间留出分隔线位置。
-        let lastTool = try XCTUnwrap(content.buttonForTesting(AnnotationTool.allCases.count - 1))
-        let firstAction = try XCTUnwrap(content.buttonForTesting(AnnotationTool.allCases.count))
+        let lastTool = try XCTUnwrap(content.buttonForTesting(AnnotationTool.toolbarTools.count - 1))
+        let firstAction = try XCTUnwrap(content.buttonForTesting(AnnotationTool.toolbarTools.count))
         XCTAssertLessThan(lastTool.frame.maxX, firstAction.frame.minX, "动作按钮必须在全部工具按钮的右侧")
 
         for index in expected.indices {

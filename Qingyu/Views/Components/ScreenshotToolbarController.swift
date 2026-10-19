@@ -600,6 +600,8 @@ final class ScreenshotToolbarController {
             existing.updateStyle(annotationStyle)
             view = existing
         } else {
+            // 换形态会换掉视图：先把旧视图可能打开的系统颜色面板收掉。
+            RegionStylePaletteView.closeSystemColorPanel()
             let fresh = RegionStylePaletteView(style: annotationStyle, mode: mode)
             fresh.onStyleChange = { [weak self] style in
                 self?.applyAnnotationStyle(style)
@@ -673,6 +675,7 @@ final class ScreenshotToolbarController {
 
     private func hideStylePalette() {
         stylePaletteWindow?.orderOut(nil)
+        RegionStylePaletteView.closeSystemColorPanel()
     }
 
     private enum DismissReason {
@@ -1046,7 +1049,7 @@ final class RegionToolbarView: NSView {
 
     /// 左侧：全部标注工具。
     static var toolActions: [ScreenshotToolbarAction] {
-        AnnotationTool.allCases.map { .annotate($0) }
+        AnnotationTool.toolbarTools.map { .annotate($0) }
     }
 
     /// 右侧：复制 / 保存 / 贴图 / 关闭。
@@ -1246,6 +1249,9 @@ final class RegionToolbarView: NSView {
 ///
 /// 与工具条分开成窗：工具条保持一行、位置固定；面板按工具类型换内容并跟随按钮移动，
 /// 不占工具条空间，也就不会把「点工具后才出现选项」变成整条工具条变形。
+/// 选中工具后贴在**该工具按钮正下方**的样式面板（颜色 / 粗细 / 大小 / 字体字号 / 背景色）。
+///
+/// 与工具条分开成窗：工具条保持一行、位置固定；面板按工具类型换内容并跟随按钮移动。
 final class RegionStylePaletteView: NSView {
     private final class PaletteButton: NSButton {
         override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
@@ -1256,16 +1262,24 @@ final class RegionStylePaletteView: NSView {
     let mode: AnnotationStyleMode
     private(set) var style: AnnotationStyle
 
-    private static let swatchSize: CGFloat = 22
-    private static let swatchSpacing: CGFloat = 6
-    private static let sizeWidth: CGFloat = 30
+    private static let swatchSize: CGFloat = 16
+    private static let swatchSpacing: CGFloat = 5
+    private static let rowHeight: CGFloat = 18
     private static let panelPadding: CGFloat = 10
-    private static let rowGap: CGFloat = 8
-    private static let labelGap: CGFloat = 5
+    private static let rowGap: CGFloat = 6
+    private static let labelGap: CGFloat = 4
+    private static let sizeWidth: CGFloat = 24
+    private static let fontWidth: CGFloat = 30
+    private static let textSizeWidth: CGFloat = 26
 
     private var colorButtons: [NSButton] = []
     private var backgroundButtons: [NSButton] = []
     private var sizeButtons: [NSButton] = []
+    private var fontButtons: [NSButton] = []
+    private var textSizeButtons: [NSButton] = []
+    private var customColorButton: NSButton?
+    private var eyedropperButton: NSButton?
+    private var colorSampler: NSColorSampler?
 
     init(style: AnnotationStyle, mode: AnnotationStyleMode) {
         self.style = style
@@ -1280,22 +1294,29 @@ final class RegionStylePaletteView: NSView {
         fatalError("init(coder:) has not been implemented")
     }
 
+    deinit {
+        // 只清 action/target，不关闭用户可能还开着的面板（会话结束由控制器统一关闭）。
+        NSColorPanel.shared.setTarget(nil)
+        NSColorPanel.shared.setAction(nil)
+    }
+
     static func fittingSize(for mode: AnnotationStyleMode) -> NSSize {
         switch mode {
         case .sizeOnlyBrush:
-            return NSSize(
-                width: sizeRowWidth + panelPadding * 2,
-                height: panelPadding * 2 + swatchSize
-            )
+            return NSSize(width: sizeRowWidth + panelPadding * 2, height: panelPadding * 2 + rowHeight)
         case .line, .coloredBrush:
             return NSSize(
                 width: max(colorRowWidth, sizeRowWidth) + panelPadding * 2,
-                height: panelPadding * 2 + swatchSize * 2 + rowGap
+                height: panelPadding * 2 + rowHeight * 2 + rowGap
             )
         case .text:
+            let width = max(
+                max(textColorRowWidth, backgroundRowWidthWithLabel),
+                max(fontRowWidthWithLabel, sizeRowWidthWithLabel)
+            )
             return NSSize(
-                width: max(textColorRowWidth, backgroundRowWidthWithLabel) + panelPadding * 2,
-                height: panelPadding * 2 + swatchSize * 2 + rowGap
+                width: width + panelPadding * 2,
+                height: panelPadding * 2 + rowHeight * 4 + rowGap * 3
             )
         }
     }
@@ -1305,29 +1326,51 @@ final class RegionStylePaletteView: NSView {
         updateSelection()
     }
 
+    /// 关闭可能打开的系统颜色面板（会话结束时调用）。
+    static func closeSystemColorPanel() {
+        let panel = NSColorPanel.shared
+        panel.setTarget(nil)
+        panel.setAction(nil)
+        panel.orderOut(nil)
+    }
+
     // MARK: - Layout
 
     private func build() {
         switch mode {
         case .sizeOnlyBrush:
-            let y = (bounds.height - Self.swatchSize) / 2
+            let y = (bounds.height - Self.rowHeight) / 2
             _ = addSizeButtons(at: Self.panelPadding, y: y)
 
         case .line, .coloredBrush:
-            let top = bounds.height - Self.panelPadding - Self.swatchSize
+            let top = bounds.height - Self.panelPadding - Self.rowHeight
             let bottom = Self.panelPadding
-            _ = addColorSwatches(at: Self.panelPadding, y: top)
+            _ = addColorRow(at: Self.panelPadding, y: top)
             _ = addSizeButtons(at: Self.panelPadding, y: bottom)
 
         case .text:
-            let top = bounds.height - Self.panelPadding - Self.swatchSize
-            let bottom = Self.panelPadding
-            var x = addLabel(L10n.localized("annotation.style.textColor"), at: Self.panelPadding, y: top)
+            let padding = Self.panelPadding
+            let row = Self.rowHeight + Self.rowGap
+            let backgroundY = padding
+            let fontY = backgroundY + row
+            let textColorY = backgroundY + row * 2
+            let sizeY = backgroundY + row * 3
+
+            var x = addLabel(L10n.localized("annotation.style.textColor"), at: padding, y: textColorY)
             x += Self.labelGap
-            _ = addColorSwatches(at: x, y: top)
-            var bx = addLabel(L10n.localized("annotation.style.backgroundColor"), at: Self.panelPadding, y: bottom)
+            _ = addColorRow(at: x, y: textColorY)
+
+            var bx = addLabel(L10n.localized("annotation.style.backgroundColor"), at: padding, y: backgroundY)
             bx += Self.labelGap
-            _ = addBackgroundSwatches(at: bx, y: bottom)
+            _ = addBackgroundSwatches(at: bx, y: backgroundY)
+
+            var fx = addLabel(L10n.localized("annotation.style.font"), at: padding, y: fontY)
+            fx += Self.labelGap
+            _ = addFontButtons(at: fx, y: fontY)
+
+            var sx = addLabel(L10n.localized("annotation.style.textSize"), at: padding, y: sizeY)
+            sx += Self.labelGap
+            _ = addTextSizeButtons(at: sx, y: sizeY)
         }
         updateSelection()
     }
@@ -1335,12 +1378,20 @@ final class RegionStylePaletteView: NSView {
     @discardableResult
     private func addLabel(_ text: String, at x: CGFloat, y: CGFloat) -> CGFloat {
         let label = NSTextField(labelWithString: text)
-        label.font = NSFont.systemFont(ofSize: 10, weight: .medium)
+        label.font = NSFont.systemFont(ofSize: 9, weight: .medium)
         label.textColor = .secondaryLabelColor
         label.sizeToFit()
-        label.frame.origin = NSPoint(x: x, y: y + (Self.swatchSize - label.frame.height) / 2)
+        label.frame.origin = NSPoint(x: x, y: y + (Self.rowHeight - label.frame.height) / 2)
         addSubview(label)
         return x + label.frame.width
+    }
+
+    @discardableResult
+    private func addColorRow(at x: CGFloat, y: CGFloat) -> CGFloat {
+        var cursor = addColorSwatches(at: x, y: y)
+        cursor += Self.swatchSpacing
+        cursor = addCustomControls(at: cursor, y: y)
+        return cursor
     }
 
     @discardableResult
@@ -1382,6 +1433,49 @@ final class RegionStylePaletteView: NSView {
         return cursor - Self.swatchSpacing
     }
 
+    /// 自定义颜色（打开系统颜色面板，支持取色器与不透明度）+ 屏幕取色器。
+    @discardableResult
+    private func addCustomControls(at x: CGFloat, y: CGFloat) -> CGFloat {
+        let custom = PaletteButton(frame: NSRect(x: x, y: y, width: Self.swatchSize, height: Self.swatchSize))
+        custom.isBordered = false
+        custom.bezelStyle = .regularSquare
+        custom.wantsLayer = true
+        custom.layer?.cornerRadius = 4
+        custom.layer?.masksToBounds = true
+        custom.layer?.borderWidth = 1
+        custom.layer?.borderColor = NSColor.black.withAlphaComponent(0.25).cgColor
+        custom.tag = -1
+        custom.target = self
+        custom.action = #selector(customColorClicked(_:))
+        custom.toolTip = L10n.localized("annotation.color.custom")
+        custom.setAccessibilityLabel(L10n.localized("annotation.color.custom"))
+        custom.image = Self.symbolImage("paintpalette.fill", pointSize: 10)
+        custom.imagePosition = .imageOnly
+        addSubview(custom)
+        customColorButton = custom
+
+        let eyedropper = PaletteButton(frame: NSRect(
+            x: custom.frame.maxX + Self.swatchSpacing,
+            y: y,
+            width: Self.swatchSize,
+            height: Self.swatchSize
+        ))
+        eyedropper.isBordered = false
+        eyedropper.bezelStyle = .regularSquare
+        eyedropper.wantsLayer = true
+        eyedropper.layer?.cornerRadius = 4
+        eyedropper.image = Self.symbolImage("eyedropper", pointSize: 11)
+        eyedropper.imagePosition = .imageOnly
+        eyedropper.contentTintColor = .labelColor
+        eyedropper.toolTip = L10n.localized("annotation.color.picker")
+        eyedropper.setAccessibilityLabel(L10n.localized("annotation.color.picker"))
+        eyedropper.target = self
+        eyedropper.action = #selector(eyedropperClicked(_:))
+        addSubview(eyedropper)
+        eyedropperButton = eyedropper
+        return eyedropper.frame.maxX
+    }
+
     private func makeSwatchButton(
         fill: NSColor,
         tag: Int,
@@ -1396,7 +1490,7 @@ final class RegionStylePaletteView: NSView {
         button.title = ""
         button.wantsLayer = true
         button.layer?.backgroundColor = fill.cgColor
-        button.layer?.cornerRadius = Self.swatchSize / 2
+        button.layer?.cornerRadius = 4
         button.layer?.masksToBounds = true
         button.layer?.borderWidth = 1
         button.layer?.borderColor = NSColor.black.withAlphaComponent(0.25).cgColor
@@ -1408,18 +1502,19 @@ final class RegionStylePaletteView: NSView {
         return button
     }
 
+    /// 粗细 / 大小：用「不同粗细的线」或「不同大小的圆点」图标表示，不再用 S/M/L 文字。
     @discardableResult
     private func addSizeButtons(at x: CGFloat, y: CGFloat) -> CGFloat {
-        let titles = ["S", "M", "L"]
         var cursor = x
         for (index, width) in AnnotationLineWidth.allCases.enumerated() {
-            let button = PaletteButton(frame: NSRect(x: cursor, y: y, width: Self.sizeWidth, height: Self.swatchSize))
+            let button = PaletteButton(frame: NSRect(x: cursor, y: y, width: Self.sizeWidth, height: Self.rowHeight))
             button.isBordered = false
             button.bezelStyle = .regularSquare
-            button.title = titles.indices.contains(index) ? titles[index] : "?"
-            button.font = NSFont.systemFont(ofSize: 11, weight: .semibold)
+            button.title = ""
+            button.image = Self.sizeIcon(for: width, mode: mode)
+            button.imagePosition = .imageOnly
             button.wantsLayer = true
-            button.layer?.cornerRadius = 5
+            button.layer?.cornerRadius = 4
             button.tag = index
             button.target = self
             button.action = #selector(sizeClicked(_:))
@@ -1432,10 +1527,65 @@ final class RegionStylePaletteView: NSView {
         return cursor - Self.swatchSpacing
     }
 
+    @discardableResult
+    private func addFontButtons(at x: CGFloat, y: CGFloat) -> CGFloat {
+        var cursor = x
+        for (index, font) in AnnotationTextFont.allCases.enumerated() {
+            let button = PaletteButton(frame: NSRect(x: cursor, y: y, width: Self.fontWidth, height: Self.rowHeight))
+            button.isBordered = false
+            button.bezelStyle = .regularSquare
+            button.attributedTitle = NSAttributedString(string: "Aa", attributes: [
+                .font: font.font(ofSize: 11, weight: .semibold),
+                .foregroundColor: NSColor.labelColor
+            ])
+            button.wantsLayer = true
+            button.layer?.cornerRadius = 4
+            button.tag = index
+            button.target = self
+            button.action = #selector(fontClicked(_:))
+            button.toolTip = font.displayName
+            button.setAccessibilityLabel(font.displayName)
+            addSubview(button)
+            fontButtons.append(button)
+            cursor += Self.fontWidth + Self.swatchSpacing
+        }
+        return cursor - Self.swatchSpacing
+    }
+
+    @discardableResult
+    private func addTextSizeButtons(at x: CGFloat, y: CGFloat) -> CGFloat {
+        let points: [CGFloat] = [11, 14, 18]
+        var cursor = x
+        for (index, size) in AnnotationTextSize.allCases.enumerated() {
+            let button = PaletteButton(frame: NSRect(x: cursor, y: y, width: Self.textSizeWidth, height: Self.rowHeight))
+            button.isBordered = false
+            button.bezelStyle = .regularSquare
+            let pointSize = points.indices.contains(index) ? points[index] : 14
+            button.attributedTitle = NSAttributedString(string: "A", attributes: [
+                .font: style.font(ofSize: pointSize, weight: .semibold),
+                .foregroundColor: NSColor.labelColor
+            ])
+            button.wantsLayer = true
+            button.layer?.cornerRadius = 4
+            button.tag = index
+            button.target = self
+            button.action = #selector(textSizeClicked(_:))
+            button.toolTip = size.displayName
+            button.setAccessibilityLabel(size.displayName)
+            addSubview(button)
+            textSizeButtons.append(button)
+            cursor += Self.textSizeWidth + Self.swatchSpacing
+        }
+        return cursor - Self.swatchSpacing
+    }
+
+    // MARK: - Actions
+
     @objc private func colorClicked(_ sender: NSButton) {
         let colors = AnnotationColor.allCases
         guard colors.indices.contains(sender.tag) else { return }
         style.color = colors[sender.tag]
+        style.customColor = nil
         updateSelection()
         onStyleChange?(style)
     }
@@ -1456,28 +1606,86 @@ final class RegionStylePaletteView: NSView {
         onStyleChange?(style)
     }
 
+    @objc private func fontClicked(_ sender: NSButton) {
+        let fonts = AnnotationTextFont.allCases
+        guard fonts.indices.contains(sender.tag) else { return }
+        style.textFont = fonts[sender.tag]
+        updateSelection()
+        onStyleChange?(style)
+    }
+
+    @objc private func textSizeClicked(_ sender: NSButton) {
+        let sizes = AnnotationTextSize.allCases
+        guard sizes.indices.contains(sender.tag) else { return }
+        style.textSize = sizes[sender.tag]
+        updateSelection()
+        onStyleChange?(style)
+    }
+
+    @objc private func customColorClicked(_ sender: NSButton) {
+        let panel = NSColorPanel.shared
+        panel.showsAlpha = true
+        panel.color = style.customColor?.nsColor ?? style.nsColor
+        panel.setTarget(self)
+        panel.setAction(#selector(colorPanelChanged(_:)))
+        panel.orderFront(nil)
+    }
+
+    @objc private func colorPanelChanged(_ sender: NSColorPanel) {
+        guard let codable = CodableColor(nsColor: sender.color) else { return }
+        style.customColor = codable
+        updateSelection()
+        onStyleChange?(style)
+    }
+
+    @objc private func eyedropperClicked(_ sender: NSButton) {
+        let sampler = NSColorSampler()
+        colorSampler = sampler
+        sampler.show { [weak self] color in
+            guard let self else { return }
+            defer { self.colorSampler = nil }
+            guard let color, let codable = CodableColor(nsColor: color) else { return }
+            self.style.customColor = codable
+            self.updateSelection()
+            self.onStyleChange?(self.style)
+        }
+    }
+
     private func updateSelection() {
         for (index, color) in AnnotationColor.allCases.enumerated() where index < colorButtons.count {
-            let selected = color == style.color
-            colorButtons[index].layer?.borderWidth = selected ? 2 : 1
-            colorButtons[index].layer?.borderColor = selected
-                ? JadeColor.primaryNS.cgColor
-                : NSColor.black.withAlphaComponent(0.25).cgColor
+            let selected = style.customColor == nil && color == style.color
+            applySelectionRing(to: colorButtons[index], selected: selected)
         }
         for (index, background) in AnnotationBackground.allCases.enumerated() where index < backgroundButtons.count {
-            let selected = background == style.backgroundColor
-            backgroundButtons[index].layer?.borderWidth = selected ? 2 : 1
-            backgroundButtons[index].layer?.borderColor = selected
-                ? JadeColor.primaryNS.cgColor
-                : NSColor.black.withAlphaComponent(0.25).cgColor
+            applySelectionRing(to: backgroundButtons[index], selected: background == style.backgroundColor)
+        }
+        if let customColorButton {
+            let custom = style.customColor?.nsColor
+            customColorButton.layer?.backgroundColor = (custom ?? NSColor.controlBackgroundColor).cgColor
+            customColorButton.image = custom == nil ? Self.symbolImage("paintpalette.fill", pointSize: 10) : nil
+            customColorButton.contentTintColor = custom == nil ? .labelColor : .clear
+            applySelectionRing(to: customColorButton, selected: custom != nil)
         }
         for (index, width) in AnnotationLineWidth.allCases.enumerated() where index < sizeButtons.count {
             let selected = width == style.lineWidth
             sizeButtons[index].layer?.backgroundColor = selected
-                ? JadeColor.primaryNS.withAlphaComponent(0.25).cgColor
+                ? JadeColor.primaryNS.withAlphaComponent(0.22).cgColor
                 : NSColor.clear.cgColor
             sizeButtons[index].contentTintColor = selected ? JadeColor.primaryNS : .labelColor
         }
+        for (index, font) in AnnotationTextFont.allCases.enumerated() where index < fontButtons.count {
+            applySelectionRing(to: fontButtons[index], selected: font == style.textFont)
+        }
+        for (index, size) in AnnotationTextSize.allCases.enumerated() where index < textSizeButtons.count {
+            applySelectionRing(to: textSizeButtons[index], selected: size == style.textSize)
+        }
+    }
+
+    private func applySelectionRing(to button: NSButton, selected: Bool) {
+        button.layer?.borderWidth = selected ? 2 : 1
+        button.layer?.borderColor = selected
+            ? JadeColor.primaryNS.cgColor
+            : NSColor.black.withAlphaComponent(0.25).cgColor
     }
 
     // MARK: - 单测入口
@@ -1493,12 +1701,20 @@ final class RegionStylePaletteView: NSView {
     func sizeButtonForTesting(_ index: Int) -> NSButton? {
         sizeButtons.indices.contains(index) ? sizeButtons[index] : nil
     }
+    func fontButtonForTesting(_ index: Int) -> NSButton? {
+        fontButtons.indices.contains(index) ? fontButtons[index] : nil
+    }
+    func textSizeButtonForTesting(_ index: Int) -> NSButton? {
+        textSizeButtons.indices.contains(index) ? textSizeButtons[index] : nil
+    }
+    var customColorButtonForTesting: NSButton? { customColorButton }
+    var eyedropperButtonForTesting: NSButton? { eyedropperButton }
 
     // MARK: - Geometry / appearance
 
     private static var colorRowWidth: CGFloat {
-        let count = CGFloat(AnnotationColor.allCases.count)
-        return count * swatchSize + max(0, count - 1) * swatchSpacing
+        let count = CGFloat(AnnotationColor.allCases.count) + 2 // 自定义 + 取色器
+        return count * swatchSize + (count - 1) * swatchSpacing
     }
 
     private static var backgroundRowWidth: CGFloat {
@@ -1511,6 +1727,16 @@ final class RegionStylePaletteView: NSView {
         return count * sizeWidth + max(0, count - 1) * swatchSpacing
     }
 
+    private static var fontRowWidth: CGFloat {
+        let count = CGFloat(AnnotationTextFont.allCases.count)
+        return count * fontWidth + max(0, count - 1) * swatchSpacing
+    }
+
+    private static var textSizeRowWidth: CGFloat {
+        let count = CGFloat(AnnotationTextSize.allCases.count)
+        return count * textSizeWidth + max(0, count - 1) * swatchSpacing
+    }
+
     private static var textColorRowWidth: CGFloat {
         labelWidth("annotation.style.textColor") + labelGap + colorRowWidth
     }
@@ -1519,10 +1745,54 @@ final class RegionStylePaletteView: NSView {
         labelWidth("annotation.style.backgroundColor") + labelGap + backgroundRowWidth
     }
 
+    private static var fontRowWidthWithLabel: CGFloat {
+        labelWidth("annotation.style.font") + labelGap + fontRowWidth
+    }
+
+    private static var sizeRowWidthWithLabel: CGFloat {
+        labelWidth("annotation.style.textSize") + labelGap + textSizeRowWidth
+    }
+
     private static func labelWidth(_ key: String) -> CGFloat {
         (L10n.localized(key) as NSString).size(withAttributes: [
-            .font: NSFont.systemFont(ofSize: 10, weight: .medium)
+            .font: NSFont.systemFont(ofSize: 9, weight: .medium)
         ]).width
+    }
+
+    private static func symbolImage(_ name: String, pointSize: CGFloat) -> NSImage? {
+        let configuration = NSImage.SymbolConfiguration(pointSize: pointSize, weight: .medium)
+        return NSImage(systemSymbolName: name, accessibilityDescription: nil)?
+            .withSymbolConfiguration(configuration)
+    }
+
+    private static func sizeIcon(for width: AnnotationLineWidth, mode: AnnotationStyleMode) -> NSImage {
+        let size = NSSize(width: sizeWidth, height: rowHeight)
+        let image = NSImage(size: size)
+        image.lockFocus()
+        NSColor.black.setFill()
+        NSColor.black.setStroke()
+        switch mode {
+        case .line:
+            let thickness: CGFloat = width == .thin ? 2 : (width == .medium ? 4 : 7)
+            let path = NSBezierPath()
+            path.lineWidth = thickness
+            path.lineCapStyle = .round
+            path.move(to: NSPoint(x: 3, y: size.height / 2))
+            path.line(to: NSPoint(x: size.width - 3, y: size.height / 2))
+            path.stroke()
+        default:
+            let diameter: CGFloat = width == .thin ? 5 : (width == .medium ? 10 : 15)
+            let rect = NSRect(
+                x: (size.width - diameter) / 2,
+                y: (size.height - diameter) / 2,
+                width: diameter,
+                height: diameter
+            )
+            NSBezierPath(ovalIn: rect).fill()
+        }
+        image.unlockFocus()
+        image.isTemplate = true
+        return image
     }
 
     private static func checkerImage() -> NSImage {

@@ -5441,6 +5441,94 @@
         }
       }
     },
+    "annotation.color.custom" : {
+      "comment" : "Open the system color panel for a custom color",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Custom color" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "自定义颜色" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "自訂顏色" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "カスタムカラー" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Couleur personnalisée" } }
+      }
+    },
+    "annotation.color.picker" : {
+      "comment" : "Screen color picker (eyedropper)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Pick a color" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "取色器" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "取色器" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "スポイト" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Pipette" } }
+      }
+    },
+    "annotation.font.system" : {
+      "comment" : "System font option",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "System" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "系统" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "系統" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "システム" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Système" } }
+      }
+    },
+    "annotation.font.rounded" : {
+      "comment" : "Rounded font option",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Rounded" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "圆体" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "圓體" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "丸ゴシック" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Arrondie" } }
+      }
+    },
+    "annotation.font.serif" : {
+      "comment" : "Serif font option",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Serif" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "衬线" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "襯線" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "セリフ" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Serif" } }
+      }
+    },
+    "annotation.font.monospaced" : {
+      "comment" : "Monospaced font option",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Mono" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "等宽" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "等寬" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "等幅" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Mono" } }
+      }
+    },
+    "annotation.style.font" : {
+      "comment" : "Style panel label: font family",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Font" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "字体" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "字型" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "フォント" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Police" } }
+      }
+    },
+    "annotation.style.textSize" : {
+      "comment" : "Style panel label: text size",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Size" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "字号" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "字級" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "サイズ" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Taille" } }
+      }
+    },
     "annotation.color.clear" : {
       "comment" : "Transparent background option",
       "extractionState" : "manual",
