@@ -55,6 +55,9 @@ struct ClipboardDetailPane: View {
     /// 放大预览空占位高度：240pt，仅用于剪贴板详情放大预览在无内容时的透明占位高度，与空占位宽度成组出现；不并入 JadeSpace，那是间距档位，不是占位尺寸。
     private static let maximizedPreviewPlaceholderHeight: CGFloat = 240
 
+    /// 文件卡片边框线宽：1pt，仅用于剪贴板详情文件卡片的描边；不并入 JadeSpace，那是间距档位，不是线宽。
+    private static let fileCardBorderLineWidth: CGFloat = 1
+
     var body: some View {
         Group {
             if let item {
@@ -327,7 +330,7 @@ struct ClipboardDetailPane: View {
         .jadePadding(.x3)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(JadeColor.surface2)
-        .overlay(JadeRadius.md.shape.strokeBorder(JadeColor.border, lineWidth: 1))
+        .overlay(JadeRadius.md.shape.strokeBorder(JadeColor.border, lineWidth: Self.fileCardBorderLineWidth))
         .jadeRadius(.md)
     }
 
