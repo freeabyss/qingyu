@@ -67,6 +67,8 @@ public enum JadeColor {
     public static let resultSelectionBorder = primary.opacity(0.3)
     /// 危险按钮按下色：danger 85% 不透明，用于 JadeButton destructive 按下状态；与 primary 的 0.85 选中轮廓和 accentColor 的 0.85 穿透描边数值相同但底色与角色不同，不合并。
     public static let dangerPressed = danger.opacity(0.85)
+    /// 填充按钮浅色描边：白色 12% 不透明，用于 primary / destructive 深色填充上的细亮边；与 secondary 的 border 和 edgeHighlight 角色不同，不合并。
+    public static let filledButtonBorder = Color.white.opacity(0.12)
 
     /// NSColor 版本（供 AppKit 场景使用）
     public static let primaryNS = jade500NS

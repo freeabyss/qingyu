@@ -93,7 +93,7 @@ private struct JadeButtonBody: View {
     private var borderOverlay: some View {
         switch variant {
         case .primary, .destructive:
-            JadeRadius.md.shape.strokeBorder(Color.white.opacity(0.12), lineWidth: 1)
+            JadeRadius.md.shape.strokeBorder(JadeColor.filledButtonBorder, lineWidth: 1)
         case .secondary:
             JadeRadius.md.shape.strokeBorder(JadeColor.border, lineWidth: 1)
                 .overlay {
