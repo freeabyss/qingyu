@@ -197,13 +197,16 @@ private struct IconTextButton: View {
     let action: () -> Void
     @State private var hovering = false
 
+    /// 按钮高度：30pt，仅用于标注工具栏的文字按钮；只定高，宽度由文字与水平内边距决定，与正方形磁贴的 tileSize 角色不同。
+    private static let buttonHeight: CGFloat = 30
+
     var body: some View {
         Button(action: action) {
             Text(label)
                 .font(JadeFont.subhead)
                 .foregroundColor(prominent ? .white : tint)
                 .jadePadding(.horizontal, .x3)
-                .frame(height: 30)
+                .frame(height: Self.buttonHeight)
                 .background(
                     Capsule(style: .continuous)
                         .fill(prominent ? JadeColor.primary : (hovering ? JadeColor.surface3 : Color.clear))
