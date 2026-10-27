@@ -84,6 +84,9 @@ final class ScreenshotToolbarController {
     /// 样式调色板回退居中除数：2，仅用于 paletteFrame 回退 rect 按选区中心水平居中，宽的一半；不并入 JadeSpace，那是通用间距档位，不是居中除数。
     private static let paletteCenterDivisor: CGFloat = 2
 
+    /// 定位后预览窗口屏幕内缩量：80pt，仅用于 position(window:for:) 从屏幕可见区域宽高各减去同一内缩量，得到预览窗口最大宽高；不并入 JadeSpace，那是通用间距档位，不是窗口定位内缩量。
+    private static let positionedPreviewScreenInset: CGFloat = 80
+
     /// Task 007: all terminal actions flow through the completion coordinator;
     /// successful outcomes only end the current capture session (no history).
     private let completionCoordinator: CaptureCompletionCoordinator
@@ -735,8 +738,8 @@ final class ScreenshotToolbarController {
             return
         }
         let visible = screen.visibleFrame
-        let maxWidth = min(860, visible.width - 80)
-        let maxHeight = min(640, visible.height - 80)
+        let maxWidth = min(860, visible.width - Self.positionedPreviewScreenInset)
+        let maxHeight = min(640, visible.height - Self.positionedPreviewScreenInset)
         let imageAspect = result.height > 0 ? CGFloat(result.width) / CGFloat(result.height) : 1
         let chromeHeight: CGFloat = 112
         let targetImageHeight = min(maxHeight - chromeHeight, max(240, maxWidth / max(imageAspect, 0.1)))
