@@ -141,6 +141,9 @@ private struct ColorSwatch: View {
     /// 磁贴边长：30pt 正方形，按钮外框与选中色环共用同一外框尺寸，色环贴着磁贴边缘；不并入 JadeSpace，那是间距档位，不是磁贴尺寸。
     private static let tileSize: CGFloat = 30
 
+    /// 选中色环线宽：2pt，仅用于颜色色块的选中态色环；不并入 JadeSpace，那是间距档位，不是线宽。
+    private static let selectedRingLineWidth: CGFloat = 2
+
     var body: some View {
         Button(action: action) {
             Circle()
@@ -148,7 +151,7 @@ private struct ColorSwatch: View {
                 .frame(width: Self.swatchSize, height: Self.swatchSize)
                 .overlay(Circle().stroke(JadeColor.border, lineWidth: color == .white ? 1 : 0))
                 // 选中态：Jade 2pt 色环，直径 30pt。
-                .overlay(Circle().stroke(selected ? JadeColor.primary : Color.clear, lineWidth: 2).frame(width: Self.tileSize, height: Self.tileSize))
+                .overlay(Circle().stroke(selected ? JadeColor.primary : Color.clear, lineWidth: Self.selectedRingLineWidth).frame(width: Self.tileSize, height: Self.tileSize))
                 .shadow(color: .black.opacity(hovering ? 0.35 : 0.12), radius: hovering ? 3 : 1)
         }
         .buttonStyle(.plain)
