@@ -43,6 +43,9 @@ struct ClipboardDetailPane: View {
     /// 放大预览最小高度：640pt，仅用于剪贴板详情放大预览 sheet 的最小尺寸约束，与最小宽度成组出现；不并入 JadeSpace，那是间距档位，不是窗口尺寸。
     private static let maximizedPreviewMinHeight: CGFloat = 640
 
+    /// 富文本内容最小高度：160pt，仅用于剪贴板详情的 RTF 文本区；不并入 JadeSpace，那是间距档位，不是内容区高度。
+    private static let richTextContentMinHeight: CGFloat = 160
+
     var body: some View {
         Group {
             if let item {
@@ -261,7 +264,7 @@ struct ClipboardDetailPane: View {
     private func richTextContent(for item: ClipboardRecordSnapshot) -> some View {
         if let rtfAttributed {
             RTFTextView(attributedString: rtfAttributed)
-                .frame(maxWidth: .infinity, minHeight: 160)
+                .frame(maxWidth: .infinity, minHeight: Self.richTextContentMinHeight)
                 .jadePadding(.x3)
         } else if isRichTextLoading {
             ProgressView()
