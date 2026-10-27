@@ -6,11 +6,14 @@ import SwiftUI
 struct SettingsSidebarIcon: View {
     let systemImage: String
 
+    /// 侧栏图标边长：18pt 正方形，仅用于设置侧栏图标；不并入 JadeSpace，那是间距档位，不是图标尺寸。
+    private static let iconSize: CGFloat = 18
+
     var body: some View {
         Image(systemName: systemImage)
             .font(JadeFont.settingsSidebarIcon)
             .foregroundStyle(JadeColor.textSecondary)
-            .frame(width: 18, height: 18)
+            .frame(width: Self.iconSize, height: Self.iconSize)
             .accessibilityHidden(true)
     }
 }
