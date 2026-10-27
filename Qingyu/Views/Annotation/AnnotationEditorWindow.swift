@@ -53,6 +53,9 @@ final class AnnotationEditorWindow: NSWindowController, NSWindowDelegate {
     /// 标注编辑器窗口缩放上限：1，仅用于 computeWindowRect 的缩放计算，图片只缩小不放大；不并入 JadeSpace，那是间距档位，不是窗口比例。
     private static let maxScale: CGFloat = 1
 
+    /// 无主屏时回退窗口原点：100pt，仅用于 computeWindowRect 无 NSScreen.main 时的回退 rect，x 与 y 同值；不并入 JadeSpace，那是间距档位，不是窗口位置。
+    private static let fallbackWindowOrigin: CGFloat = 100
+
     init(
         image: NSImage,
         captureDate: Date,
@@ -166,7 +169,7 @@ final class AnnotationEditorWindow: NSWindowController, NSWindowDelegate {
 
     private func computeWindowRect() -> NSRect {
         guard let screen = NSScreen.main else {
-            return NSRect(x: 100, y: 100, width: Self.fallbackWindowWidth, height: Self.fallbackWindowHeight)
+            return NSRect(x: Self.fallbackWindowOrigin, y: Self.fallbackWindowOrigin, width: Self.fallbackWindowWidth, height: Self.fallbackWindowHeight)
         }
         let visible = screen.visibleFrame
         let maxW = min(Self.maxWindowWidth, visible.width * Self.visibleFrameFraction)
