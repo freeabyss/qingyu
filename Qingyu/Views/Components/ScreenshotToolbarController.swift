@@ -72,6 +72,9 @@ final class ScreenshotToolbarController {
     /// 截图预览窗口初始内容高度：560pt，仅用于 ScreenshotPreviewWindow 的初始 contentRect；不并入 JadeSpace，那是间距档位，不是窗口尺寸。
     private static let previewWindowHeight: CGFloat = 560
 
+    /// 样式调色板与工具条按钮间距：6pt，仅用于 paletteFrame 计算调色板与对应按钮的贴合距离，下方与翻到上方共用；不并入 JadeSpace，那是通用间距档位，不是调色板定位间距。
+    private static let paletteButtonGap: CGFloat = 6
+
     /// Task 007: all terminal actions flow through the completion coordinator;
     /// successful outcomes only end the current capture session (no history).
     private let completionCoordinator: CaptureCompletionCoordinator
@@ -677,10 +680,10 @@ final class ScreenshotToolbarController {
             height: buttonFrame.height
         )
         var x = buttonOnScreen.minX
-        var y = buttonOnScreen.minY - 6 - size.height
+        var y = buttonOnScreen.minY - Self.paletteButtonGap - size.height
         if y < screen.minY + 4 {
             // 下方放不下就翻到工具条上方，仍然贴着同一个按钮。
-            y = buttonOnScreen.maxY + 6
+            y = buttonOnScreen.maxY + Self.paletteButtonGap
         }
         x = min(max(x, screen.minX + 4), screen.maxX - size.width - 4)
         return NSRect(x: x, y: y, width: size.width, height: size.height)
