@@ -98,7 +98,7 @@ struct ClipboardDetailPane: View {
     private var placeholder: some View {
         VStack(spacing: JadeSpace.x2.value) {
             Image(systemName: "doc.on.clipboard")
-                .font(.system(size: 32))
+                .font(JadeFont.detailEmptyIcon)
                 .foregroundStyle(JadeColor.textTertiary)
                 .accessibilityHidden(true)
             Text(L10n.localized("clipboard.detail.empty"))
@@ -225,7 +225,7 @@ struct ClipboardDetailPane: View {
     private var missingImagePlaceholder: some View {
         VStack(spacing: JadeSpace.x2.value) {
             Image(systemName: "photo.badge.exclamationmark")
-                .font(.system(size: 36))
+                .font(JadeFont.detailMissingImageIcon)
                 .foregroundStyle(JadeColor.warning)
                 .accessibilityHidden(true)
             Text(L10n.localized("preview.imageNotAvailable"))

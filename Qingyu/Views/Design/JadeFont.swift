@@ -78,6 +78,12 @@ public enum JadeFont {
     /// 命令栏无结果图标：30pt regular（固定），用于命令栏无结果状态的 questionmark.circle 图标，与 40pt 的 placeholderIcon 及详情 32/36pt 占位图标区分，颜色仍由各处自定。
     public static let commandBarNoResultsIcon = Font.system(size: 30, weight: .regular)
 
+    /// 详情空态图标：32pt regular（固定），用于详情页空态占位 doc.on.clipboard 图标，颜色仍由各处自定。
+    public static let detailEmptyIcon = Font.system(size: 32, weight: .regular)
+
+    /// 详情缺图图标：36pt regular（固定），用于详情页缺图占位 photo.badge.exclamationmark 图标，与 32pt 空态图标区分，颜色仍由各处自定。
+    public static let detailMissingImageIcon = Font.system(size: 36, weight: .regular)
+
     public static let commandBarInput = Font.system(size: 19, weight: .regular)
 }
 
@@ -126,6 +132,8 @@ extension JadeFont {
                 Text("onboardingLogoIcon · 28 light").font(JadeFont.onboardingLogoIcon)
                 Text("onboardingCardIcon · 18 medium").font(JadeFont.onboardingCardIcon)
                 Text("commandBarNoResultsIcon · 30 regular").font(JadeFont.commandBarNoResultsIcon)
+                Text("detailEmptyIcon · 32 regular").font(JadeFont.detailEmptyIcon)
+                Text("detailMissingImageIcon · 36 regular").font(JadeFont.detailMissingImageIcon)
                 Text("commandBarInput · 19 regular").font(JadeFont.commandBarInput)
             }
             .foregroundStyle(JadeColor.textPrimary)
