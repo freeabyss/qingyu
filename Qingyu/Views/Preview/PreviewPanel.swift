@@ -111,7 +111,7 @@ struct PreviewPanel: View {
 
     private var textPreview: some View {
         Text(item.plainText ?? item.summary ?? L10n.localized("preview.empty"))
-            .font(.system(size: 14, design: .monospaced))
+            .font(JadeFont.previewTextMono)
             .textSelection(.enabled)
             .frame(maxWidth: .infinity, alignment: .leading)
             .jadePadding(.x3)
