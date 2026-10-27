@@ -160,7 +160,7 @@ struct ClipboardHistoryView: View {
                     richTextProvider: { await viewModel.richTextAttributed(for: $0) },
                     fileImageProvider: { await viewModel.fileImageData(for: $0) }
                 )
-                .frame(width: 360)
+                .frame(width: Self.detailPaneWidth)
                 .frame(maxHeight: .infinity)
             }
         }
