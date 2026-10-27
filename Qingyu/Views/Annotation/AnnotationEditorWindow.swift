@@ -35,6 +35,12 @@ final class AnnotationEditorWindow: NSWindowController, NSWindowDelegate {
     /// 标注编辑器窗口最大高度：820pt，仅用于 computeWindowRect 对可见区域的高度上限；不并入 JadeSpace，那是间距档位，不是窗口尺寸。
     private static let maxWindowHeight: CGFloat = 820
 
+    /// 标注编辑器窗口最小宽度：680pt，仅用于 computeWindowRect 的宽度下限；不并入 JadeSpace，那是间距档位，不是窗口尺寸。
+    private static let minWindowWidth: CGFloat = 680
+
+    /// 标注编辑器窗口最小高度：480pt，仅用于 computeWindowRect 的高度下限；不并入 JadeSpace，那是间距档位，不是窗口尺寸。
+    private static let minWindowHeight: CGFloat = 480
+
     init(
         image: NSImage,
         captureDate: Date,
@@ -156,8 +162,8 @@ final class AnnotationEditorWindow: NSWindowController, NSWindowDelegate {
         let imageSize = state.imageSize
         let chromeHeight: CGFloat = 118
         let scale = min(maxW / max(imageSize.width, 1), (maxH - chromeHeight) / max(imageSize.height, 1), 1)
-        let width = max(680, min(maxW, imageSize.width * scale + 40))
-        let height = max(480, min(maxH, imageSize.height * scale + chromeHeight))
+        let width = max(Self.minWindowWidth, min(maxW, imageSize.width * scale + 40))
+        let height = max(Self.minWindowHeight, min(maxH, imageSize.height * scale + chromeHeight))
         return NSRect(x: visible.midX - width / 2, y: visible.midY - height / 2, width: width, height: height)
     }
 
