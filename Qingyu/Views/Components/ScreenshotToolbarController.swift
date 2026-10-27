@@ -59,6 +59,13 @@ enum ScreenshotToolbarAction: Equatable {
 @MainActor
 final class ScreenshotToolbarController {
     private let logger = Logger.screenshot
+
+    /// 文字输入弹框 accessory 文本框宽度：320pt，仅用于 NSAlert accessoryView 的 NSTextField；不并入 JadeSpace，那是间距档位，不是控件尺寸。
+    private static let textInputFieldWidth: CGFloat = 320
+
+    /// 文字输入弹框 accessory 文本框高度：24pt，仅用于 NSAlert accessoryView 的 NSTextField；不并入 JadeSpace，那是间距档位，不是控件尺寸。
+    private static let textInputFieldHeight: CGFloat = 24
+
     /// Task 007: all terminal actions flow through the completion coordinator;
     /// successful outcomes only end the current capture session (no history).
     private let completionCoordinator: CaptureCompletionCoordinator
@@ -321,7 +328,7 @@ final class ScreenshotToolbarController {
         alert.addButton(withTitle: L10n.localized("annotation.textInput.add"))
         alert.addButton(withTitle: L10n.localized("annotation.textInput.cancel"))
 
-        let textField = NSTextField(frame: NSRect(x: 0, y: 0, width: 320, height: 24))
+        let textField = NSTextField(frame: NSRect(x: 0, y: 0, width: Self.textInputFieldWidth, height: Self.textInputFieldHeight))
         textField.placeholderString = L10n.localized("annotation.textInput.placeholder")
         textField.bezelStyle = .roundedBezel
         alert.accessoryView = textField
