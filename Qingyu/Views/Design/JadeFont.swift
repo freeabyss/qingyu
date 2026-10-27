@@ -44,6 +44,9 @@ public enum JadeFont {
     /// 快捷键提示 / 徽章 / tab 计数:≈10pt medium（随 caption 缩放）
     public static let caption = Font.caption.weight(.medium)
 
+    /// 全幅占位插图：40pt regular（固定），用于空态、禁用、不可用与权限引导的大图标，颜色仍由各处自定。
+    public static let placeholderIcon = Font.system(size: 40, weight: .regular)
+
     /// 命令栏输入框:19pt regular（固定,配合 48px 输入行高）
     public static let commandBarInput = Font.system(size: 19, weight: .regular)
 }
@@ -82,6 +85,7 @@ extension JadeFont {
                 Text("toolbarIconLabeled · 15 medium").font(JadeFont.toolbarIconLabeled)
                 Text("subhead · 11 medium").font(JadeFont.subhead)
                 Text("caption · 10 medium").font(JadeFont.caption)
+                Text("placeholderIcon · 40 regular").font(JadeFont.placeholderIcon)
                 Text("commandBarInput · 19 regular").font(JadeFont.commandBarInput)
             }
             .foregroundStyle(JadeColor.textPrimary)

@@ -169,7 +169,7 @@ struct PreviewPanel: View {
             } else {
                 VStack(spacing: JadeSpace.x2.value) {
                     Image(systemName: "photo")
-                        .font(.system(size: 40))
+                        .font(JadeFont.placeholderIcon)
                         .foregroundStyle(JadeColor.textSecondary)
                     Text(L10n.localized("preview.imageNotAvailable"))
                         .font(JadeFont.body)
@@ -214,7 +214,7 @@ struct PreviewPanel: View {
             } else {
                 VStack(spacing: JadeSpace.x2.value) {
                     Image(systemName: "doc")
-                        .font(.system(size: 40))
+                        .font(JadeFont.placeholderIcon)
                         .foregroundStyle(JadeColor.textSecondary)
                     Text(L10n.localized("preview.fileNotAvailable"))
                         .font(JadeFont.body)

@@ -274,7 +274,7 @@ struct ClipboardHistoryView: View {
     private var emptyState: some View {
         VStack(spacing: JadeSpace.x3.value) {
             Image(systemName: viewModel.isSearching ? "questionmark.circle" : "tray")
-                .font(.system(size: 40))
+                .font(JadeFont.placeholderIcon)
                 .foregroundStyle(JadeColor.textSecondary)
                 .accessibilityHidden(true)
             Text(viewModel.isSearching
@@ -294,7 +294,7 @@ struct ClipboardHistoryView: View {
     private var disabledState: some View {
         VStack(spacing: JadeSpace.x3.value) {
             Image(systemName: "hand.raised.slash")
-                .font(.system(size: 40))
+                .font(JadeFont.placeholderIcon)
                 .foregroundStyle(JadeColor.textSecondary)
                 .accessibilityHidden(true)
             Text(L10n.localized("clipboard.empty.disabled.title"))

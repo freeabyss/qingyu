@@ -34,7 +34,7 @@ public struct PermissionGate: View {
     public var body: some View {
         VStack(spacing: JadeSpace.x3.value) {
             Image(systemName: systemImage)
-                .font(.system(size: 40, weight: .regular))
+                .font(JadeFont.placeholderIcon)
                 .foregroundStyle(JadeColor.textTertiary)
 
             Text(title)

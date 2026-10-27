@@ -286,7 +286,7 @@ struct ClipboardDetailPane: View {
                 }
             } else {
                 Image(systemName: "doc")
-                    .font(.system(size: 40))
+                    .font(JadeFont.placeholderIcon)
                     .foregroundStyle(JadeColor.textSecondary)
                 Text(item.summary ?? item.plainText ?? L10n.localized("preview.fileNotAvailable"))
                     .font(JadeFont.body)
