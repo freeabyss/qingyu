@@ -61,7 +61,7 @@ struct PinWindowView: View {
                         .font(.caption.monospaced())
                         .foregroundStyle(.white)
                         .jadePadding(.x1)
-                        .background(.black.opacity(0.6), in: JadeRadius.sm.shape)
+                        .background(JadeColor.pinColorScrim, in: JadeRadius.sm.shape)
                         .jadePadding(.x2)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }

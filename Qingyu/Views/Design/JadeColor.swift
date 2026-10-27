@@ -69,6 +69,8 @@ public enum JadeColor {
     public static let dangerPressed = danger.opacity(0.85)
     /// 填充按钮浅色描边：白色 12% 不透明，用于 primary / destructive 深色填充上的细亮边；与 secondary 的 border 和 edgeHighlight 角色不同，不合并。
     public static let filledButtonBorder = Color.white.opacity(0.12)
+    /// 贴图颜色标签衬底：黑色 60% 不透明，用于颜色载荷十六进制文字在任意贴图颜色上的可读衬底；与 overlay 的 0.4 黑色遮罩角色不同，不合并。
+    public static let pinColorScrim = Color.black.opacity(0.6)
 
     /// NSColor 版本（供 AppKit 场景使用）
     public static let primaryNS = jade500NS
