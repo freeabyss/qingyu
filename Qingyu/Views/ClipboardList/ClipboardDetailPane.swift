@@ -28,6 +28,9 @@ struct ClipboardDetailPane: View {
     /// 放大按钮磁贴边长：24pt 正方形，仅用于详情头部的放大按钮；不并入 JadeSpace，那是间距档位，不是磁贴尺寸。
     private static let maximizeButtonSize: CGFloat = 24
 
+    /// 文件图标边长：48pt 正方形，仅用于文件详情的文件图标；不并入 JadeSpace，那是间距档位，不是图标尺寸。
+    private static let fileIconSize: CGFloat = 48
+
     var body: some View {
         Group {
             if let item {
@@ -270,7 +273,7 @@ struct ClipboardDetailPane: View {
                 HStack(alignment: .top, spacing: JadeSpace.x3.value) {
                     Image(nsImage: NSWorkspace.shared.icon(forFile: path))
                         .resizable()
-                        .frame(width: 48, height: 48)
+                        .frame(width: Self.fileIconSize, height: Self.fileIconSize)
                         .accessibilityHidden(true)
 
                     VStack(alignment: .leading, spacing: JadeSpace.x1.value) {
