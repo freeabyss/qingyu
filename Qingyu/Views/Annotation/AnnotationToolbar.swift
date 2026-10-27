@@ -7,6 +7,9 @@ import SwiftUI
 struct AnnotationTopToolbar: View {
     @ObservedObject var state: AnnotationCanvasState
 
+    /// 悬浮 pill 边框线宽：1pt，仅用于顶部工具栏悬浮 pill 的描边；不并入 JadeSpace，那是间距档位，不是线宽。
+    private static let pillBorderLineWidth: CGFloat = 1
+
     var body: some View {
         HStack(spacing: JadeSpace.x1.value) {
             // 一个按钮对应一组工具：矩形/椭圆、马赛克/高斯模糊共用按钮，重复点击在组内切换。
@@ -22,7 +25,7 @@ struct AnnotationTopToolbar: View {
         }
         .jadePadding(.x2)
         .background(JadeMaterial.pill.material, in: Capsule(style: .continuous))
-        .overlay(Capsule(style: .continuous).strokeBorder(JadeColor.border, lineWidth: 1))
+        .overlay(Capsule(style: .continuous).strokeBorder(JadeColor.border, lineWidth: Self.pillBorderLineWidth))
         .jadeShadow(.md, radius: .xl)
     }
 
