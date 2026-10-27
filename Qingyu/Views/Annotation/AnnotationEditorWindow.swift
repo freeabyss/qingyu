@@ -56,6 +56,9 @@ final class AnnotationEditorWindow: NSWindowController, NSWindowDelegate {
     /// 无主屏时回退窗口原点：100pt，仅用于 computeWindowRect 无 NSScreen.main 时的回退 rect，x 与 y 同值；不并入 JadeSpace，那是间距档位，不是窗口位置。
     private static let fallbackWindowOrigin: CGFloat = 100
 
+    /// 标注编辑器图片最小尺寸：1pt，仅用于 computeWindowRect 缩放计算中防止图片宽高为零导致除零，宽高同值；不并入 JadeSpace，那是间距档位，不是图片尺寸。
+    private static let minImageDimension: CGFloat = 1
+
     init(
         image: NSImage,
         captureDate: Date,
@@ -175,7 +178,7 @@ final class AnnotationEditorWindow: NSWindowController, NSWindowDelegate {
         let maxW = min(Self.maxWindowWidth, visible.width * Self.visibleFrameFraction)
         let maxH = min(Self.maxWindowHeight, visible.height * Self.visibleFrameFraction)
         let imageSize = state.imageSize
-        let scale = min(maxW / max(imageSize.width, 1), (maxH - Self.chromeHeight) / max(imageSize.height, 1), Self.maxScale)
+        let scale = min(maxW / max(imageSize.width, Self.minImageDimension), (maxH - Self.chromeHeight) / max(imageSize.height, Self.minImageDimension), Self.maxScale)
         let width = max(Self.minWindowWidth, min(maxW, imageSize.width * scale + Self.horizontalChromeWidth))
         let height = max(Self.minWindowHeight, min(maxH, imageSize.height * scale + Self.chromeHeight))
         return NSRect(x: visible.midX - width / 2, y: visible.midY - height / 2, width: width, height: height)
