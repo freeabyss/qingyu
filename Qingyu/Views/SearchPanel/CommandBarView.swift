@@ -235,6 +235,9 @@ struct CommandBarResultRow: View {
     let isDangerous: Bool
     @State private var isHovering = false
 
+    /// 结果行图标磁贴边长：32pt 正方形，应用图标与系统符号磁贴共用同一尺寸；不并入 JadeSpace（那是间距档位，不是磁贴尺寸）。
+    private static let iconTileSize: CGFloat = 32
+
     var body: some View {
         HStack(spacing: JadeSpace.x3.value) {
             iconTile
@@ -308,7 +311,7 @@ struct CommandBarResultRow: View {
             Image(nsImage: NSWorkspace.shared.icon(forFile: url.path))
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .frame(width: 32, height: 32)
+                .frame(width: Self.iconTileSize, height: Self.iconTileSize)
         case .systemSymbol(let name):
             symbolTile(name)
         case .thumbnail, .none:
@@ -324,7 +327,7 @@ struct CommandBarResultRow: View {
                 .font(JadeFont.resultTileIcon)
                 .foregroundStyle(isSelected ? JadeColor.primary : JadeColor.textSecondary)
         }
-        .frame(width: 32, height: 32)
+        .frame(width: Self.iconTileSize, height: Self.iconTileSize)
     }
 }
 
