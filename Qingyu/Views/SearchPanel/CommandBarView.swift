@@ -272,7 +272,7 @@ struct CommandBarResultRow: View {
         )
         .overlay(
             JadeRadius.lg.shape
-                .strokeBorder(isSelected ? JadeColor.primary.opacity(0.3) : Color.clear, lineWidth: 1)
+                .strokeBorder(isSelected ? JadeColor.resultSelectionBorder : Color.clear, lineWidth: 1)
         )
         .contentShape(Rectangle())
         .onHover { isHovering = $0 }
