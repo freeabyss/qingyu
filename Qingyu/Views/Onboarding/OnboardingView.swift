@@ -58,6 +58,9 @@ struct OnboardingView: View {
         }
     }
 
+    /// 欢迎页 Logo 磁贴边长：56pt 正方形，仅用于头部 leaf 图标磁贴；不并入 JadeSpace（那是间距档位，不是磁贴尺寸）。
+    private static let logoTileSize: CGFloat = 56
+
     // MARK: - Header
 
     private var header: some View {
@@ -65,7 +68,7 @@ struct OnboardingView: View {
             Image(systemName: "leaf")
                 .font(JadeFont.onboardingLogoIcon)
                 .foregroundStyle(JadeColor.textPrimary)
-                .frame(width: 56, height: 56)
+                .frame(width: Self.logoTileSize, height: Self.logoTileSize)
                 .background(JadeColor.settingsCard, in: JadeRadius.xl.shape)
                 .jadeRadiusBorder(.xl)
                 .jadeShadow(.sm, radius: .xl)
