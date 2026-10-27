@@ -66,6 +66,12 @@ final class ScreenshotToolbarController {
     /// 文字输入弹框 accessory 文本框高度：24pt，仅用于 NSAlert accessoryView 的 NSTextField；不并入 JadeSpace，那是间距档位，不是控件尺寸。
     private static let textInputFieldHeight: CGFloat = 24
 
+    /// 截图预览窗口初始内容宽度：780pt，仅用于 ScreenshotPreviewWindow 的初始 contentRect；不并入 JadeSpace，那是间距档位，不是窗口尺寸。
+    private static let previewWindowWidth: CGFloat = 780
+
+    /// 截图预览窗口初始内容高度：560pt，仅用于 ScreenshotPreviewWindow 的初始 contentRect；不并入 JadeSpace，那是间距档位，不是窗口尺寸。
+    private static let previewWindowHeight: CGFloat = 560
+
     /// Task 007: all terminal actions flow through the completion coordinator;
     /// successful outcomes only end the current capture session (no history).
     private let completionCoordinator: CaptureCompletionCoordinator
@@ -153,7 +159,7 @@ final class ScreenshotToolbarController {
         )
 
         let window = ScreenshotPreviewWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 780, height: 560),
+            contentRect: NSRect(x: 0, y: 0, width: Self.previewWindowWidth, height: Self.previewWindowHeight),
             styleMask: [.borderless, .fullSizeContentView],
             backing: .buffered,
             defer: false
