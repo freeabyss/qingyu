@@ -22,6 +22,9 @@ struct ClipboardHistoryView: View {
     /// 筛选标签选中下划线高度：2pt，仅用于剪贴板历史筛选标签底部的选中指示条；不并入 JadeSpace，那是间距档位，不是线条粗细。
     private static let filterChipUnderlineHeight: CGFloat = 2
 
+    /// 搜索栏最小高度：40pt，仅用于剪贴板历史顶部的搜索输入框；宽度撑满，只保底高度，不并入 JadeSpace，那是间距档位，不是控件高度。
+    private static let searchInputMinHeight: CGFloat = 40
+
     @FocusState private var searchFocused: Bool
 
     /// Primary type filters shown as compact chips (全部 / 文本 / 图片 / 文件).
@@ -101,7 +104,7 @@ struct ClipboardHistoryView: View {
             }
         }
         .jadePadding(.horizontal, .x3)
-        .frame(maxWidth: .infinity, minHeight: 40)
+        .frame(maxWidth: .infinity, minHeight: Self.searchInputMinHeight)
         .background(JadeColor.surface2, in: JadeRadius.lg.shape)
         .overlay(
             JadeRadius.lg.shape
