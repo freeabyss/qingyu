@@ -12,7 +12,7 @@ struct PinWindowView: View {
     ///
     /// 穿透后贴图不再响应鼠标，用户无法用点击或悬停找到它；因此给一个克制但
     /// 明确的提示，避免"贴图消失了"。刻意不改变不透明度等其他观感。
-    static let passthroughBorderColor = Color.accentColor.opacity(0.85)
+    static let passthroughBorderColor = JadeColor.passthroughBorder
     /// 穿透描边图案：线宽与虚线段长是描边图案本身（非间距 token）；
     /// 圆角对齐 Jade 最小圆角 sm（6pt 连续曲率），此前 4pt 低于 Jade 下限。
     static let passthroughBorderLineWidth: CGFloat = 2

@@ -73,6 +73,8 @@ public enum JadeColor {
     public static let pinColorScrim = Color.black.opacity(0.6)
     /// 主按钮顶部高光：白色 7% 不透明，仅用于 JadeButton primary 填充顶部的渐变起点；按下时改用透明，与原先白色 0% 透明度在视觉上等价。
     public static let primaryButtonHighlight = Color.white.opacity(0.07)
+    /// 贴图穿透描边：accentColor 85% 不透明，用于贴图穿透态的虚线描边；与 primary 的 0.85 选中轮廓和 danger 的 0.85 按下色数值相同但底色与角色不同，不合并。
+    public static let passthroughBorder = Color.accentColor.opacity(0.85)
 
     /// NSColor 版本（供 AppKit 场景使用）
     public static let primaryNS = jade500NS
