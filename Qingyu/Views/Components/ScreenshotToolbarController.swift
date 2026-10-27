@@ -1919,13 +1919,14 @@ private struct ScreenshotPreviewView: View {
     private var sourceBadge: some View {
         if let result = viewModel.result {
             HStack(spacing: JadeSpace.x1.value) {
+                // 徽标内只用 medium 一种字重：图标 11pt、标签与尺寸 10pt，层级靠字号与尺寸的 0.75 不透明度区分，不再混用 semibold / medium / regular 三种字重。
                 Image(systemName: iconName(for: result.sourceType))
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(JadeFont.subhead)
                     .accessibilityHidden(true)
                 Text(sourceLabel(for: result.sourceType))
                     .font(JadeFont.caption)
                 Text("\(result.width)×\(result.height)")
-                    .font(.system(size: 10, weight: .regular, design: .monospaced))
+                    .font(JadeFont.caption.monospaced())
                     .opacity(0.75)
             }
             .foregroundColor(.white)

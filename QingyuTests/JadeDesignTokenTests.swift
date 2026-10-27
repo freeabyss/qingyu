@@ -39,6 +39,15 @@ final class JadeDesignTokenTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(JadeFont.appKitCaptionMedium.pointSize, 10)
     }
 
+    func testOverlayBadgeFontsFollowJadeCaptionAndSubhead() {
+        // 截图来源徽标（SwiftUI：subhead / caption.monospaced）与放大镜徽标
+        // （AppKit：appKitCaptionMedium）共用 caption 10pt / subhead 11pt 两个字阶：
+        // 徽标内层级只靠 1pt 字号差与不透明度，不靠字重混用。
+        XCTAssertEqual(JadeFont.appKitCaptionMedium.pointSize, 10)
+        XCTAssertEqual(JadeFont.appKitSubheadMedium.pointSize, 11)
+        XCTAssertEqual(JadeFont.appKitSubheadMedium.pointSize - JadeFont.appKitCaptionMedium.pointSize, 1)
+    }
+
     func testBrandTextContrastMeetsWCAGAA() {
         XCTAssertGreaterThanOrEqual(contrast(0x4D6487, 0xFCFCFD), 4.5, "浅色品牌文字 on surface1")
         XCTAssertGreaterThanOrEqual(contrast(0xB2C4DF, 0x202226), 4.5, "深色品牌文字 on surface1")

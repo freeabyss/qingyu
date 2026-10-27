@@ -58,7 +58,6 @@ final class MagnifierOverlayView: NSView {
         static let labelInset: CGFloat = 4
         static let cornerRadius: CGFloat = JadeRadius.md.value
         static let labelPadding: CGFloat = 5
-        static let labelFontSize: CGFloat = 10
         static let minimumCellSizeForGrid: CGFloat = 3
     }
 
@@ -222,7 +221,8 @@ final class MagnifierOverlayView: NSView {
 
     private func drawBadge(text: String, alignRight: Bool, content: CGRect) {
         let attributes: [NSAttributedString.Key: Any] = [
-            .font: NSFont.systemFont(ofSize: Metrics.labelFontSize, weight: .medium),
+            // 放大镜徽标字体即 Jade caption 桥接（10pt medium），与截图来源徽标的尺寸文字同一字阶，不再另起本地字号。
+            .font: JadeFont.appKitCaptionMedium,
             .foregroundColor: NSColor.white
         ]
         let textSize = text.size(withAttributes: attributes)
