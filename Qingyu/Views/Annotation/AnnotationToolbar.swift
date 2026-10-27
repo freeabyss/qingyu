@@ -135,11 +135,14 @@ private struct ColorSwatch: View {
     let action: () -> Void
     @State private var hovering = false
 
+    /// 色块直径：24pt，仅用于颜色色块本身的圆形；不并入 JadeSpace，那是间距档位，不是色块尺寸，且与外圈 30pt 角色不同。
+    private static let swatchSize: CGFloat = 24
+
     var body: some View {
         Button(action: action) {
             Circle()
                 .fill(Color(nsColor: color.nsColor))
-                .frame(width: 24, height: 24)
+                .frame(width: Self.swatchSize, height: Self.swatchSize)
                 .overlay(Circle().stroke(JadeColor.border, lineWidth: color == .white ? 1 : 0))
                 // 选中态：Jade 2pt 色环，直径 30pt。
                 .overlay(Circle().stroke(selected ? JadeColor.primary : Color.clear, lineWidth: 2).frame(width: 30, height: 30))
