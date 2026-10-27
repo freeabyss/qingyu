@@ -19,6 +19,9 @@ struct ClipboardHistoryView: View {
     /// 状态栏高度：36pt，仅用于剪贴板历史窗口底部的状态栏；只定高，宽度随窗口而定，不并入 JadeSpace，那是间距档位，不是状态栏高度。
     private static let statusBarHeight: CGFloat = 36
 
+    /// 筛选标签选中下划线高度：2pt，仅用于剪贴板历史筛选标签底部的选中指示条；不并入 JadeSpace，那是间距档位，不是线条粗细。
+    private static let filterChipUnderlineHeight: CGFloat = 2
+
     @FocusState private var searchFocused: Bool
 
     /// Primary type filters shown as compact chips (全部 / 文本 / 图片 / 文件).
@@ -134,7 +137,7 @@ struct ClipboardHistoryView: View {
                 .overlay(alignment: .bottom) {
                     Rectangle()
                         .fill(isSelected ? JadeColor.primary : Color.clear)
-                        .frame(height: 2)
+                        .frame(height: Self.filterChipUnderlineHeight)
                 }
         }
         .buttonStyle(.plain)
