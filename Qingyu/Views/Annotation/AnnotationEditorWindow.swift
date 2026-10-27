@@ -59,6 +59,9 @@ final class AnnotationEditorWindow: NSWindowController, NSWindowDelegate {
     /// 标注编辑器图片最小尺寸：1pt，仅用于 computeWindowRect 缩放计算中防止图片宽高为零导致除零，宽高同值；不并入 JadeSpace，那是间距档位，不是图片尺寸。
     private static let minImageDimension: CGFloat = 1
 
+    /// 标注编辑器窗口居中除数：2，仅用于 computeWindowRect 将窗口居中于可见区域，宽高各半；不并入 JadeSpace，那是间距档位，不是窗口位置。
+    private static let centerDivisor: CGFloat = 2
+
     init(
         image: NSImage,
         captureDate: Date,
@@ -181,7 +184,7 @@ final class AnnotationEditorWindow: NSWindowController, NSWindowDelegate {
         let scale = min(maxW / max(imageSize.width, Self.minImageDimension), (maxH - Self.chromeHeight) / max(imageSize.height, Self.minImageDimension), Self.maxScale)
         let width = max(Self.minWindowWidth, min(maxW, imageSize.width * scale + Self.horizontalChromeWidth))
         let height = max(Self.minWindowHeight, min(maxH, imageSize.height * scale + Self.chromeHeight))
-        return NSRect(x: visible.midX - width / 2, y: visible.midY - height / 2, width: width, height: height)
+        return NSRect(x: visible.midX - width / Self.centerDivisor, y: visible.midY - height / Self.centerDivisor, width: width, height: height)
     }
 
     private func undo() {
