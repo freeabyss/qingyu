@@ -16,6 +16,9 @@ struct ClipboardHistoryView: View {
     /// Fixed detail-pane width (independent of content size).
     private static let detailPaneWidth: CGFloat = 360
 
+    /// 状态栏高度：36pt，仅用于剪贴板历史窗口底部的状态栏；只定高，宽度随窗口而定，不并入 JadeSpace，那是间距档位，不是状态栏高度。
+    private static let statusBarHeight: CGFloat = 36
+
     @FocusState private var searchFocused: Bool
 
     /// Primary type filters shown as compact chips (全部 / 文本 / 图片 / 文件).
@@ -38,7 +41,7 @@ struct ClipboardHistoryView: View {
             Divider().overlay(JadeColor.border)
 
             statusBar
-                .frame(height: 36)
+                .frame(height: Self.statusBarHeight)
                 .jadePadding(.horizontal, .x4)
         }
         .frame(minWidth: 720, minHeight: 420)
