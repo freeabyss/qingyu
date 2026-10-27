@@ -63,7 +63,7 @@ struct OnboardingView: View {
     private var header: some View {
         HStack(alignment: .center, spacing: JadeSpace.x4.value) {
             Image(systemName: "leaf")
-                .font(.system(size: 28, weight: .light))
+                .font(JadeFont.onboardingLogoIcon)
                 .foregroundStyle(JadeColor.textPrimary)
                 .frame(width: 56, height: 56)
                 .background(JadeColor.settingsCard, in: JadeRadius.xl.shape)
@@ -268,7 +268,7 @@ struct OnboardingView: View {
     private func cardLabel(icon: String, title: String, subtitle: String) -> some View {
         HStack(spacing: JadeSpace.x3.value) {
             Image(systemName: icon)
-                .font(.system(size: 18, weight: .medium))
+                .font(JadeFont.onboardingCardIcon)
                 .foregroundStyle(JadeColor.textSecondary)
                 .frame(width: 24)
                 .accessibilityHidden(true)
