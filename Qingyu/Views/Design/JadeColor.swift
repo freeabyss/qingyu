@@ -178,7 +178,7 @@ extension NSColor {
                         .strokeBorder(JadeColor.border, lineWidth: 1)
                 )
             Text(name)
-                .font(.system(size: 10))
+                .font(JadeFont.caption)
                 .foregroundStyle(JadeColor.textSecondary)
         }
     }
