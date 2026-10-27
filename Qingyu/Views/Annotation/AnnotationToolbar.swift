@@ -150,12 +150,15 @@ private struct ColorSwatch: View {
     /// 选中色环线宽：2pt，仅用于颜色色块的选中态色环；不并入 JadeSpace，那是间距档位，不是线宽。
     private static let selectedRingLineWidth: CGFloat = 2
 
+    /// 白色色块边框线宽：1pt，仅用于白色色块在浅色背景上可见的描边，非白色色块无描边；不并入 JadeSpace，那是间距档位，不是线宽。
+    private static let whiteSwatchBorderLineWidth: CGFloat = 1
+
     var body: some View {
         Button(action: action) {
             Circle()
                 .fill(Color(nsColor: color.nsColor))
                 .frame(width: Self.swatchSize, height: Self.swatchSize)
-                .overlay(Circle().stroke(JadeColor.border, lineWidth: color == .white ? 1 : 0))
+                .overlay(Circle().stroke(JadeColor.border, lineWidth: color == .white ? Self.whiteSwatchBorderLineWidth : 0))
                 // 选中态：Jade 2pt 色环，直径 30pt。
                 .overlay(Circle().stroke(selected ? JadeColor.primary : Color.clear, lineWidth: Self.selectedRingLineWidth).frame(width: Self.tileSize, height: Self.tileSize))
                 .shadow(color: .black.opacity(hovering ? 0.35 : 0.12), radius: hovering ? 3 : 1)
