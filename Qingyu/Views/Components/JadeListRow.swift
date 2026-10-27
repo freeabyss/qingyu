@@ -110,7 +110,7 @@ public struct JadeListRow<Content: View>: View {
         .jadeRadius(.lg)
         .overlay {
             if selected {
-                JadeRadius.lg.shape.strokeBorder(JadeColor.primary.opacity(0.85), lineWidth: 1)
+                JadeRadius.lg.shape.strokeBorder(JadeColor.rowSelectionBorder, lineWidth: 1)
             }
         }
         .contentShape(JadeRadius.lg.shape)

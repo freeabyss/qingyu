@@ -61,6 +61,8 @@ public enum JadeColor {
     public static let primaryFill = jade50
     /// 搜索输入聚焦描边：主色 65% 不透明，用于命令栏输入分隔线与剪贴板历史搜索框描边，与未聚焦的 border 区分。
     public static let focusBorder = primary.opacity(0.65)
+    /// 列表行选中描边：主色 85% 不透明，用于 JadeListRow 选中状态的轮廓，与结果行 0.3 的柔和选中描边区分，也与危险按下和穿透描边的 0.85 区分，数值相同但底色与角色不同，不合并。
+    public static let rowSelectionBorder = primary.opacity(0.85)
 
     /// NSColor 版本（供 AppKit 场景使用）
     public static let primaryNS = jade500NS
