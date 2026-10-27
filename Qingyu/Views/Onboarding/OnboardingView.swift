@@ -11,6 +11,9 @@ struct OnboardingView: View {
 
     private let privacyURL = URL(string: "https://github.com/freeabyss/qingyu/blob/main/docs/guides/privacy.md")
 
+    /// 卡片标签图标列宽：24pt，仅用于引导页卡片标签的图标列，让多行标题对齐；只定宽，高度随字号而定，不并入 JadeSpace，那是间距档位，不是图标列宽。
+    private static let cardLabelIconWidth: CGFloat = 24
+
     init(viewModel: OnboardingViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
     }
@@ -273,7 +276,7 @@ struct OnboardingView: View {
             Image(systemName: icon)
                 .font(JadeFont.onboardingCardIcon)
                 .foregroundStyle(JadeColor.textSecondary)
-                .frame(width: 24)
+                .frame(width: Self.cardLabelIconWidth)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: JadeSpace.x1.value) {
                 Text(title)
