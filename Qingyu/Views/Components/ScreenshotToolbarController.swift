@@ -1285,6 +1285,9 @@ final class RegionStylePaletteView: NSView {
     private static let fontWidth: CGFloat = 30
     private static let textSizeWidth: CGFloat = 26
 
+    /// 透明棋盘格单格尺寸：4pt，仅用于 checkerImage 的棋盘格绘制，两个对角格共用同一单格尺寸；不并入 JadeSpace，那是间距档位，不是图案尺寸。
+    private static let checkerCellSize: CGFloat = 4
+
     private var colorButtons: [NSButton] = []
     private var backgroundButtons: [NSButton] = []
     private var sizeButtons: [NSButton] = []
@@ -1815,8 +1818,8 @@ final class RegionStylePaletteView: NSView {
         NSColor.white.setFill()
         NSRect(origin: .zero, size: size).fill()
         NSColor(white: 0.78, alpha: 1).setFill()
-        NSRect(x: 0, y: 0, width: 4, height: 4).fill()
-        NSRect(x: 4, y: 4, width: 4, height: 4).fill()
+        NSRect(x: 0, y: 0, width: Self.checkerCellSize, height: Self.checkerCellSize).fill()
+        NSRect(x: Self.checkerCellSize, y: Self.checkerCellSize, width: Self.checkerCellSize, height: Self.checkerCellSize).fill()
         image.unlockFocus()
         return image
     }
