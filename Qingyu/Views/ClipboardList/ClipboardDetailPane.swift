@@ -31,6 +31,9 @@ struct ClipboardDetailPane: View {
     /// 文件图标边长：48pt 正方形，仅用于文件详情的文件图标；不并入 JadeSpace，那是间距档位，不是图标尺寸。
     private static let fileIconSize: CGFloat = 48
 
+    /// 详情头部高度：44pt，仅用于详情内容的头部行；不并入 JadeSpace，那是间距档位，不是行高。
+    private static let headerHeight: CGFloat = 44
+
     var body: some View {
         Group {
             if let item {
@@ -120,7 +123,7 @@ struct ClipboardDetailPane: View {
     private func detail(for item: ClipboardRecordSnapshot) -> some View {
         VStack(spacing: 0) {
             header(for: item)
-                .frame(height: 44)
+                .frame(height: Self.headerHeight)
             Divider().overlay(JadeColor.border)
             ScrollView {
                 content(for: item)
