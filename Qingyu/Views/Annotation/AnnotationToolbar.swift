@@ -159,7 +159,7 @@ private struct IconButton: View {
     var body: some View {
         Button(action: action) {
             Image(systemName: systemName)
-                .font(.system(size: 14, weight: .medium))
+                .font(JadeFont.toolbarIcon)
                 .frame(width: 30, height: 30)
                 .foregroundColor(disabled ? JadeColor.textTertiary : JadeColor.textPrimary)
                 .background(

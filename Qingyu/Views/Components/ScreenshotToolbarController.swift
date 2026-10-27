@@ -2000,12 +2000,12 @@ private struct ToolbarButton: View {
             Group {
                 if isCompact {
                     Image(systemName: systemName)
-                        .font(.system(size: 14, weight: .medium))
+                        .font(JadeFont.toolbarIcon)
                         .frame(width: 30, height: 30)
                 } else {
                     VStack(spacing: 3) {
                         Image(systemName: systemName)
-                            .font(.system(size: 15, weight: .medium))
+                            .font(JadeFont.toolbarIconLabeled)
                         Text(label)
                             .font(JadeFont.caption)
                     }

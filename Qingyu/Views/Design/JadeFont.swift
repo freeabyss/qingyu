@@ -32,6 +32,12 @@ public enum JadeFont {
     /// 工具图标 / 快捷键提示：≈12pt medium（随 callout 缩放），与 AppKit appKitCalloutMedium 对应。
     public static let calloutMedium = Font.callout.weight(.medium)
 
+    /// 独立图标按钮：14pt medium（固定），用于 30pt 命中区的单图标按钮（标注 IconButton、截图紧凑工具条）。
+    public static let toolbarIcon = Font.system(size: 14, weight: .medium)
+
+    /// 带标签图标按钮：15pt medium（固定），用于截图预览工具条图标加 caption 标签的竖排单元格，与 30pt 独立图标按钮区分。
+    public static let toolbarIconLabeled = Font.system(size: 15, weight: .medium)
+
     /// 副标题 / 元信息 / breadcrumb:≈11pt medium（随 subheadline 缩放）
     public static let subhead = Font.subheadline.weight(.medium)
 
@@ -72,6 +78,8 @@ extension JadeFont {
                 Text("body · 13 regular").font(JadeFont.body)
                 Text("callout · 12 regular").font(JadeFont.callout)
                 Text("calloutMedium · 12 medium").font(JadeFont.calloutMedium)
+                Text("toolbarIcon · 14 medium").font(JadeFont.toolbarIcon)
+                Text("toolbarIconLabeled · 15 medium").font(JadeFont.toolbarIconLabeled)
                 Text("subhead · 11 medium").font(JadeFont.subhead)
                 Text("caption · 10 medium").font(JadeFont.caption)
                 Text("commandBarInput · 19 regular").font(JadeFont.commandBarInput)
