@@ -59,6 +59,6 @@ extension View {
             }
         }
     }
-    .padding(24)
+    .padding(JadeSpace.x6.value)
     .frame(width: 280)
 }

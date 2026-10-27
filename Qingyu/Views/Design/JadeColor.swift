@@ -220,7 +220,7 @@ extension NSColor {
             }
             .font(JadeFont.body)
         }
-        .padding(24)
+        .padding(JadeSpace.x6.value)
     }
     .frame(width: 360, height: 520)
 }
