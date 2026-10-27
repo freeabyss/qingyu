@@ -18,6 +18,9 @@ public struct JadeTextField: View {
 
     @FocusState private var isFocused: Bool
 
+    /// 纵向内边距：刻意取 9pt，与横向 x3=12 组成文档注明的 12x9 内边；9 不在 JadeSpace 4pt 档位上，故命名此组件内例外，而非强行并入 token 或以裸数字出现。
+    private static let verticalPadding: CGFloat = 9
+
     /// - Parameters:
     ///   - placeholder: 占位文案（本地化 key）。
     ///   - text: 绑定的文本。
@@ -60,7 +63,7 @@ public struct JadeTextField: View {
             }
         }
         .jadePadding(.horizontal, .x3)
-        .padding(.vertical, 9)
+        .padding(.vertical, Self.verticalPadding)
         .background(JadeColor.surface2)
         .jadeRadius(.md)
         .overlay(
