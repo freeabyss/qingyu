@@ -45,6 +45,9 @@ struct AnnotationBottomToolbar: View {
     /// 分组分隔线高度：24pt，仅用于底部工具栏的分组分隔线；不并入 JadeSpace，那是间距档位，不是分隔线高度。
     private static let dividerHeight: CGFloat = 24
 
+    /// 线宽选择器宽度：132pt，仅用于底部工具栏的线宽分段选择器；不并入 JadeSpace，那是间距档位，不是控件宽度。
+    private static let lineWidthPickerWidth: CGFloat = 132
+
     var body: some View {
         HStack(spacing: JadeSpace.x2.value) {
             IconButton(systemName: "arrow.uturn.backward", tooltip: L10n.localized("annotation.undo.help"), disabled: !state.canUndo, action: onUndo)
@@ -68,7 +71,7 @@ struct AnnotationBottomToolbar: View {
                 }
             }
             .pickerStyle(.segmented)
-            .frame(width: 132)
+            .frame(width: Self.lineWidthPickerWidth)
             .help(L10n.localized("annotation.lineWidth.help"))
 
             Divider().frame(height: Self.dividerHeight)
