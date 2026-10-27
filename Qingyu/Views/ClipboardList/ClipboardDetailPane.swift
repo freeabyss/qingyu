@@ -49,6 +49,12 @@ struct ClipboardDetailPane: View {
     /// 预览内容最小高度：120pt，仅用于剪贴板详情里图片、加载、缺失占位等预览内容区的保底高度，防止内容区塌陷；不并入 JadeSpace，那是间距档位，不是内容区高度。
     private static let previewContentMinHeight: CGFloat = 120
 
+    /// 放大预览空占位宽度：320pt，仅用于剪贴板详情放大预览在无内容时的透明占位宽度，与空占位高度成组出现；不并入 JadeSpace，那是间距档位，不是占位尺寸。
+    private static let maximizedPreviewPlaceholderWidth: CGFloat = 320
+
+    /// 放大预览空占位高度：240pt，仅用于剪贴板详情放大预览在无内容时的透明占位高度，与空占位宽度成组出现；不并入 JadeSpace，那是间距档位，不是占位尺寸。
+    private static let maximizedPreviewPlaceholderHeight: CGFloat = 240
+
     var body: some View {
         Group {
             if let item {
@@ -113,7 +119,7 @@ struct ClipboardDetailPane: View {
                     .hidden()
             )
         } else {
-            Color.clear.frame(width: 320, height: 240)
+            Color.clear.frame(width: Self.maximizedPreviewPlaceholderWidth, height: Self.maximizedPreviewPlaceholderHeight)
         }
     }
 
