@@ -56,8 +56,8 @@ private struct JadeButtonBody: View {
             .onHover { hovering in
                 if isEnabled { isHovering = hovering }
             }
-            .animation(JadeAccessibility.animation(.easeInOut(duration: 0.12)), value: isHovering)
-            .animation(JadeAccessibility.animation(.easeInOut(duration: 0.12)), value: configuration.isPressed)
+            .jadeAnimation(.easeInOut(duration: 0.12), value: isHovering)
+            .jadeAnimation(.easeInOut(duration: 0.12), value: configuration.isPressed)
     }
 
     private var pressed: Bool { configuration.isPressed }
@@ -129,7 +129,7 @@ private struct JadeButtonGallery: View {
             row("destructive", style: .jadeDestructive)
             row("ghost", style: .jadeGhost)
         }
-        .padding(JadeSpace.x6.value)
+        .jadePadding(.x6)
         .frame(width: 340)
         .background(JadeColor.surface1)
     }

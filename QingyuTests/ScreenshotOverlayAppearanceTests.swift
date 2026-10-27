@@ -43,9 +43,13 @@ final class ScreenshotOverlayAppearanceTests: XCTestCase {
         return rep
     }
 
-    /// 位图坐标（左上原点）取样点的 alpha。
+    /// 位图坐标（左上原点）取样点的 alpha。x/y 是逻辑点：colorAt 取像素下标，
+    /// 而 bitmapImageRepForCachingDisplay 在 Retina 屏上返回 2 倍 backing 像素
+    /// （800x500 视图得到 1600x1000 位图），不换算就会在半程取样，落在选区外或边框上。
     private func alpha(_ rep: NSBitmapImageRep, x: Int, y: Int) -> CGFloat {
-        guard let color = rep.colorAt(x: x, y: y) else { return -1 }
+        let px = Int((CGFloat(x) * CGFloat(rep.pixelsWide) / width).rounded())
+        let py = Int((CGFloat(y) * CGFloat(rep.pixelsHigh) / height).rounded())
+        guard let color = rep.colorAt(x: px, y: py) else { return -1 }
         return color.alphaComponent
     }
 

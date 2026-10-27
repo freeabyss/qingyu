@@ -56,7 +56,7 @@ final class MagnifierOverlayView: NSView {
         static let borderWidth: CGFloat = 1
         /// 徽标与画面边缘的间距。画面本身**满幅**（不留内边距），间距只用于放徽标。
         static let labelInset: CGFloat = 4
-        static let cornerRadius: CGFloat = 8
+        static let cornerRadius: CGFloat = JadeRadius.md.value
         static let labelPadding: CGFloat = 5
         static let labelFontSize: CGFloat = 10
         static let minimumCellSizeForGrid: CGFloat = 3

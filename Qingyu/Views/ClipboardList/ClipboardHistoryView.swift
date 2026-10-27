@@ -26,9 +26,9 @@ struct ClipboardHistoryView: View {
     var body: some View {
         VStack(spacing: 0) {
             header
-                .padding(.horizontal, JadeSpace.x4.value)
-                .padding(.top, JadeSpace.x3.value)
-                .padding(.bottom, JadeSpace.x2.value)
+                .jadePadding(.horizontal, .x4)
+                .jadePadding(.top, .x3)
+                .jadePadding(.bottom, .x2)
 
             Divider().overlay(JadeColor.border)
 
@@ -39,7 +39,7 @@ struct ClipboardHistoryView: View {
 
             statusBar
                 .frame(height: 36)
-                .padding(.horizontal, JadeSpace.x4.value)
+                .jadePadding(.horizontal, .x4)
         }
         .frame(minWidth: 720, minHeight: 420)
         .jadeWindowSurface(radius: .xxl)
@@ -94,7 +94,7 @@ struct ClipboardHistoryView: View {
                 .accessibilityLabel(Text("a11y.commandBar.clear"))
             }
         }
-        .padding(.horizontal, JadeSpace.x3.value)
+        .jadePadding(.horizontal, .x3)
         .frame(maxWidth: .infinity, minHeight: 40)
         .background(JadeColor.surface2, in: JadeRadius.lg.shape)
         .overlay(
@@ -106,7 +106,7 @@ struct ClipboardHistoryView: View {
         )
         .contentShape(JadeRadius.lg.shape)
         .onTapGesture { searchFocused = true }
-        .animation(JadeAccessibility.animation(.easeInOut(duration: 0.12)), value: searchFocused)
+        .jadeAnimation(.easeInOut(duration: 0.12), value: searchFocused)
     }
 
     private var filterTabs: some View {
@@ -127,7 +127,7 @@ struct ClipboardHistoryView: View {
             Text(filter.title)
                 .font(JadeFont.caption.weight(isSelected ? .semibold : .regular))
                 .foregroundStyle(isSelected ? JadeColor.primary : JadeColor.textSecondary)
-                .padding(.vertical, JadeSpace.x1.value)
+                .jadePadding(.vertical, .x1)
                 .overlay(alignment: .bottom) {
                     Rectangle()
                         .fill(isSelected ? JadeColor.primary : Color.clear)
@@ -175,8 +175,8 @@ struct ClipboardHistoryView: View {
                             .id(item.id)
                     }
                 }
-                .padding(.horizontal, JadeSpace.x3.value)
-                .padding(.vertical, JadeSpace.x2.value)
+                .jadePadding(.horizontal, .x3)
+                .jadePadding(.vertical, .x2)
             }
             .background(JadeColor.surface1)
             .onChange(of: viewModel.selectedIndex) { _ in

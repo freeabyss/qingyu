@@ -54,7 +54,7 @@ public struct PermissionGate: View {
             .buttonStyle(.jadePrimary)
             .padding(.top, JadeSpace.x1.value)
         }
-        .padding(JadeSpace.x8.value)
+        .jadePadding(.x8)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(JadeColor.surface1)
     }

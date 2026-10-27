@@ -59,7 +59,7 @@ public struct JadeTextField: View {
                 .accessibilityLabel(Text("a11y.commandBar.clear"))
             }
         }
-        .padding(.horizontal, 12)
+        .jadePadding(.horizontal, .x3)
         .padding(.vertical, 9)
         .background(JadeColor.surface2)
         .jadeRadius(.md)
@@ -70,7 +70,7 @@ public struct JadeTextField: View {
                     lineWidth: isFocused ? 1.5 : 1
                 )
         )
-        .animation(JadeAccessibility.animation(.easeInOut(duration: 0.12)), value: isFocused)
+        .jadeAnimation(.easeInOut(duration: 0.12), value: isFocused)
         .contentShape(JadeRadius.md.shape)
         .onTapGesture { isFocused = true }
     }
@@ -90,7 +90,7 @@ private struct JadeTextFieldGallery: View {
             JadeTextField("搜索…", text: $iconField,
                           icon: Image(systemName: "magnifyingglass"))
         }
-        .padding(JadeSpace.x6.value)
+        .jadePadding(.x6)
         .frame(width: 320)
         .background(JadeColor.surface2)
     }

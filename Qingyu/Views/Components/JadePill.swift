@@ -119,7 +119,7 @@ private struct JadePillGallery: View {
                 JadePill("保存", style: .success, size: .toolbar)
             }
         }
-        .padding(JadeSpace.x6.value)
+        .jadePadding(.x6)
         .frame(width: 340)
         .background(JadeColor.surface1)
     }

@@ -44,15 +44,15 @@ public enum JadeFont {
     ScrollView {
         VStack(alignment: .leading, spacing: 12) {
             Group {
-                Text("display · 40 bold").font(JadeFont.display)
-                Text("title1 · 28 semibold").font(JadeFont.title1)
+                Text("display · 32 semibold").font(JadeFont.display)
+                Text("title1 · 26 semibold").font(JadeFont.title1)
                 Text("title2 · 22 semibold").font(JadeFont.title2)
                 Text("title3 · 17 semibold").font(JadeFont.title3)
                 Text("body · 13 regular").font(JadeFont.body)
                 Text("callout · 12 regular").font(JadeFont.callout)
                 Text("subhead · 11 medium").font(JadeFont.subhead)
                 Text("caption · 10 medium").font(JadeFont.caption)
-                Text("commandBarInput · 20 regular").font(JadeFont.commandBarInput)
+                Text("commandBarInput · 19 regular").font(JadeFont.commandBarInput)
             }
             .foregroundStyle(JadeColor.textPrimary)
         }

@@ -55,21 +55,21 @@ struct PinWindowView: View {
                     Text(ColorString.hex(red: red, green: green, blue: blue))
                         .font(.caption.monospaced())
                         .foregroundStyle(.white)
-                        .padding(4)
-                        .background(.black.opacity(0.6), in: RoundedRectangle(cornerRadius: 6))
+                        .jadePadding(.x1)
+                        .background(.black.opacity(0.6), in: JadeRadius.sm.shape)
                         .padding(6)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
         case .attributedText(let attributed):
             Text(AttributedString(attributed))
                 .textSelection(.enabled)
-                .padding(8)
+                .jadePadding(.x2)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         case .text(let text):
             Text(text)
                 .font(.body)
                 .textSelection(.enabled)
-                .padding(8)
+                .jadePadding(.x2)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
     }

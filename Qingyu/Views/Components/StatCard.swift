@@ -47,11 +47,11 @@ public struct StatCard: View {
                 .foregroundStyle(JadeColor.textSecondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(JadeSpace.x4.value)
+        .jadePadding(.x4)
         .background(isHovering ? JadeColor.surface3 : JadeColor.surface2)
         .jadeRadius(.lg)
         .onHover { hovering in isHovering = hovering }
-        .animation(.easeInOut(duration: 0.12), value: isHovering)
+        .jadeAnimation(.easeInOut(duration: 0.12), value: isHovering)
         // VoiceOver：合并为 "标题: 数值"。
         .accessibilityElement(children: .combine)
     }
@@ -69,7 +69,7 @@ private struct StatCardGallery: View {
             StatCard(icon: Image(systemName: "magnifyingglass"),
                      title: "搜索次数", value: "512", tint: JadeColor.success)
         }
-        .padding(JadeSpace.x6.value)
+        .jadePadding(.x6)
         .frame(width: 460)
         .background(JadeColor.surface1)
     }

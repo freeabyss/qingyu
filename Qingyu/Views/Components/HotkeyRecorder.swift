@@ -40,16 +40,16 @@ public struct HotkeyRecorder: View {
             KeyboardShortcuts.Recorder(for: name) { _ in
                 // 录制结果变更由外部（T-008）监听并更新冲突态；此处不处理。
             }
-            .padding(.horizontal, JadeSpace.x2.value)
-            .padding(.vertical, JadeSpace.x1.value)
+            .jadePadding(.horizontal, .x2)
+            .jadePadding(.vertical, .x1)
             .background(JadeColor.surface1)
             .jadeRadius(.md)
             .overlay(
                 JadeRadius.md.shape
                     .strokeBorder(borderColor, lineWidth: isFocused || isConflicting ? 1.5 : 1)
             )
-            .animation(.easeInOut(duration: 0.12), value: isFocused)
-            .animation(.easeInOut(duration: 0.12), value: isConflicting)
+            .jadeAnimation(.easeInOut(duration: 0.12), value: isFocused)
+            .jadeAnimation(.easeInOut(duration: 0.12), value: isConflicting)
             .onHover { hovering in
                 // Recorder 无直接 focus 回调，用 hover 近似高亮反馈。
                 isFocused = hovering
@@ -93,7 +93,7 @@ private struct HotkeyRecorderGallery: View {
                 )
             }
         }
-        .padding(JadeSpace.x6.value)
+        .jadePadding(.x6)
         .frame(width: 320)
         .background(JadeColor.surface1)
     }

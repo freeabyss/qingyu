@@ -69,15 +69,15 @@ struct ClipboardDetailPane: View {
                     .buttonStyle(.plain)
                     .accessibilityLabel(Text("a11y.commandBar.clear"))
                 }
-                .padding(.horizontal, JadeSpace.x4.value)
-                .padding(.vertical, JadeSpace.x3.value)
+                .jadePadding(.horizontal, .x4)
+                .jadePadding(.vertical, .x3)
 
                 Divider().overlay(JadeColor.border)
 
                 // Large scrolling body — same content rendering as the side pane.
                 ScrollView {
                     content(for: item)
-                        .padding(JadeSpace.x6.value)
+                        .jadePadding(.x6)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
@@ -106,7 +106,7 @@ struct ClipboardDetailPane: View {
                 .foregroundStyle(JadeColor.textSecondary)
                 .multilineTextAlignment(.center)
         }
-        .padding(JadeSpace.x6.value)
+        .jadePadding(.x6)
     }
 
     // MARK: - Detail
@@ -118,7 +118,7 @@ struct ClipboardDetailPane: View {
             Divider().overlay(JadeColor.border)
             ScrollView {
                 content(for: item)
-                    .padding(JadeSpace.x4.value)
+                    .jadePadding(.x4)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
@@ -180,8 +180,8 @@ struct ClipboardDetailPane: View {
                 .accessibilityIdentifier("clipboard.detail.maximize")
             }
         }
-        .padding(.horizontal, JadeSpace.x4.value)
-        .padding(.vertical, JadeSpace.x3.value)
+        .jadePadding(.horizontal, .x4)
+        .jadePadding(.vertical, .x3)
     }
 
     @ViewBuilder
@@ -217,7 +217,7 @@ struct ClipboardDetailPane: View {
             .lineSpacing(5)
             .textSelection(.enabled)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(JadeSpace.x3.value)
+            .jadePadding(.x3)
             .background(JadeColor.surface2)
             .jadeRadius(.md)
     }
@@ -234,7 +234,7 @@ struct ClipboardDetailPane: View {
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity, minHeight: 120)
-        .padding(JadeSpace.x4.value)
+        .jadePadding(.x4)
         .background(JadeColor.surface2)
         .jadeRadius(.md)
     }
@@ -244,7 +244,7 @@ struct ClipboardDetailPane: View {
         if let rtfAttributed {
             RTFTextView(attributedString: rtfAttributed)
                 .frame(maxWidth: .infinity, minHeight: 160)
-                .padding(JadeSpace.x3.value)
+                .jadePadding(.x3)
         } else if isRichTextLoading {
             ProgressView()
                 .frame(maxWidth: .infinity, minHeight: 120)
@@ -294,7 +294,7 @@ struct ClipboardDetailPane: View {
                     .textSelection(.enabled)
             }
         }
-        .padding(JadeSpace.x3.value)
+        .jadePadding(.x3)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(JadeColor.surface2)
         .overlay(JadeRadius.md.shape.strokeBorder(JadeColor.border, lineWidth: 1))

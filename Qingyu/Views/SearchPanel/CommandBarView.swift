@@ -36,7 +36,7 @@ struct CommandBarView: View {
         VStack(spacing: 0) {
             inputBar
                 .frame(height: CommandBarMetrics.inputRowHeight)
-                .padding(.horizontal, JadeSpace.x3.value)
+                .jadePadding(.horizontal, .x3)
 
             content
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -108,14 +108,14 @@ struct CommandBarView: View {
                 .accessibilityLabel(Text("a11y.commandBar.clear"))
             }
         }
-        .padding(.horizontal, JadeSpace.x2.value)
+        .jadePadding(.horizontal, .x2)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .overlay(alignment: .bottom) {
             if viewModel.hasQuery {
                 inputHairline
             }
         }
-        .animation(JadeAccessibility.animation(.easeInOut(duration: 0.12)), value: isInputFocused)
+        .jadeAnimation(.easeInOut(duration: 0.12), value: isInputFocused)
     }
 
     /// 输入区与结果区之间唯一的分隔与焦点反馈：静止 1pt 描边，聚焦加厚为 2pt 强调色。
@@ -159,8 +159,8 @@ struct CommandBarView: View {
                         }
                     }
                 }
-                .padding(.horizontal, JadeSpace.x2.value)
-                .padding(.vertical, JadeSpace.x2.value)
+                .jadePadding(.horizontal, .x2)
+                .jadePadding(.vertical, .x2)
                 .accessibilityIdentifier("commandBar.resultList")
             }
             .onChange(of: viewModel.selectedIndex) { _ in
@@ -190,7 +190,7 @@ struct CommandBarView: View {
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(JadeSpace.x6.value)
+        .jadePadding(.x6)
     }
 
     // MARK: - Keyboard shortcuts (⌘1-6 / ⌘K / ⌘C / ⌘,)
@@ -264,7 +264,7 @@ struct CommandBarResultRow: View {
             }
 
         }
-        .padding(.horizontal, JadeSpace.x3.value)
+        .jadePadding(.horizontal, .x3)
         .frame(height: 52)
         .background(
             isSelected ? JadeColor.primaryFill : (isHovering ? JadeColor.surface2 : Color.clear),
@@ -276,7 +276,7 @@ struct CommandBarResultRow: View {
         )
         .contentShape(Rectangle())
         .onHover { isHovering = $0 }
-        .animation(JadeAccessibility.animation(.easeInOut(duration: 0.12)), value: isHovering)
+        .jadeAnimation(.easeInOut(duration: 0.12), value: isHovering)
         // VoiceOver：把整行合并成单个可读元素——标题 + 副标题 + 类型，
         // 选中/危险状态通过 value/hint 补充（PRD §9.8）。
         .accessibilityElement(children: .ignore)

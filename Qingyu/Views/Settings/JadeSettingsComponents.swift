@@ -42,7 +42,7 @@ struct JadeSettingsCard<Content: View>: View {
             content
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(JadeSpace.x4.value)
+        .jadePadding(.x4)
         .background(JadeColor.settingsCard)
         .jadeRadius(.lg)
         .jadeRadiusBorder(.lg)
@@ -133,7 +133,7 @@ private var settingsComponentsGallery: some View {
                 }
             }
         }
-        .padding(JadeSpace.x6.value)
+        .jadePadding(.x6)
         .frame(maxWidth: .infinity, alignment: .leading)
     }
     .frame(width: 460, height: 320)

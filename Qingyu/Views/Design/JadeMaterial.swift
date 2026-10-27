@@ -73,7 +73,7 @@ private struct JadeMaterialModifier: ViewModifier {
         )
         .ignoresSafeArea()
 
-        VStack(spacing: 20) {
+        VStack(spacing: JadeSpace.x5.value) {
             ForEach(JadeMaterial.allCases, id: \.self) { m in
                 Text(String(describing: m))
                     .font(JadeFont.title3)

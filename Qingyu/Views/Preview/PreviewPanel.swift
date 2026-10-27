@@ -33,7 +33,7 @@ struct PreviewPanel: View {
 
             ScrollView {
                 contentArea
-                    .padding(JadeSpace.x4.value)
+                    .jadePadding(.x4)
             }
 
             Divider()
@@ -89,8 +89,8 @@ struct PreviewPanel: View {
             }
             .buttonStyle(.plain)
         }
-        .padding(.horizontal, JadeSpace.x4.value)
-        .padding(.vertical, JadeSpace.x3.value)
+        .jadePadding(.horizontal, .x4)
+        .jadePadding(.vertical, .x3)
     }
 
     // MARK: - Content Area
@@ -114,7 +114,7 @@ struct PreviewPanel: View {
             .font(.system(size: 14, design: .monospaced))
             .textSelection(.enabled)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(JadeSpace.x3.value)
+            .jadePadding(.x3)
             .background(Color(NSColor.textBackgroundColor))
             .jadeRadius(.md)
             .jadeRadiusBorder(.md)
@@ -125,7 +125,7 @@ struct PreviewPanel: View {
         if let rtfAttributed {
             RTFTextView(attributedString: rtfAttributed)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(JadeSpace.x3.value)
+                .jadePadding(.x3)
                 .background(Color(NSColor.textBackgroundColor))
                 .jadeRadius(.md)
                 .jadeRadiusBorder(.md)
@@ -134,7 +134,7 @@ struct PreviewPanel: View {
                 .font(JadeFont.body)
                 .textSelection(.enabled)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(JadeSpace.x3.value)
+                .jadePadding(.x3)
                 .background(Color(NSColor.textBackgroundColor))
                 .jadeRadius(.md)
         }
@@ -200,7 +200,7 @@ struct PreviewPanel: View {
                         fileInfoRow(label: L10n.localized("preview.fileType"), value: type)
                     }
                 }
-                .padding(JadeSpace.x3.value)
+                .jadePadding(.x3)
                 .background(Color(NSColor.textBackgroundColor))
                 .jadeRadius(.md)
                 .jadeRadiusBorder(.md)
@@ -273,8 +273,8 @@ struct PreviewPanel: View {
             }
             .buttonStyle(.jadePrimary)
         }
-        .padding(.horizontal, JadeSpace.x4.value)
-        .padding(.vertical, JadeSpace.x3.value)
+        .jadePadding(.horizontal, .x4)
+        .jadePadding(.vertical, .x3)
     }
 
     // MARK: - Helpers

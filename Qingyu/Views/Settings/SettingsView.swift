@@ -78,8 +78,8 @@ struct ManagementCenterView: View {
     private var sidebar: some View {
         VStack(spacing: 0) {
             SettingsBrandHeader()
-                .padding(.horizontal, JadeSpace.x4.value)
-                .padding(.vertical, JadeSpace.x3.value)
+                .jadePadding(.horizontal, .x4)
+                .jadePadding(.vertical, .x3)
             Divider()
                 .overlay(JadeColor.border)
             List(selection: sidebarSelection) {
@@ -455,7 +455,7 @@ private struct FeedbackSection: View {
             TextEditor(text: $details)
                 .font(JadeFont.body)
                 .frame(minHeight: 90)
-                .padding(JadeSpace.x1.value)
+                .jadePadding(.x1)
                 .background(JadeColor.surface1)
                 .jadeRadius(.md)
                 .jadeRadiusBorder(.md)
@@ -585,7 +585,7 @@ struct PrivacyPolicySheet: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
-        .padding(JadeSpace.x6.value)
+        .jadePadding(.x6)
         .frame(width: 640, height: 560)
         .background(JadeColor.surface1)
     }
@@ -615,7 +615,7 @@ struct SettingsScrollPage<Content: View>: View {
             }
             .frame(maxWidth: 760, alignment: .leading)
             .frame(maxWidth: .infinity)
-            .padding(JadeSpace.x6.value)
+            .jadePadding(.x6)
         }
     }
 }
@@ -706,7 +706,7 @@ struct JadeSwitchRow: View {
                     }
                 }
             }
-            .padding(.vertical, JadeSpace.x1.value)
+            .jadePadding(.vertical, .x1)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .toggleStyle(.switch)

@@ -40,8 +40,8 @@ public enum JadeRowSize {
 
 /// 统一列表行。契约来源：PRD §9.5 通用组件规范。
 ///
-/// - 选中态：`JadeColor.primaryFill` 底 + `JadeRadius.lg` 圆角。
-/// - 操作：`alwaysShowsActions` 为 true 时始终显示右侧 actions；否则 hover 浮现。
+/// - 选中态：浅底 + 品牌色描边（仅浅底对比度约 1.1-1.3，不足以辨识选中）。
+/// - 操作：始终显示，或 hover / 键盘焦点时浮现（避免仅 hover 可见对键盘用户不可达）。
 /// - 行高由 `rowSize` 决定（44 / 64）。
 ///
 /// 全部尺寸 / 颜色 / 圆角走 Jade token，禁止硬编码。
@@ -53,7 +53,9 @@ public struct JadeListRow<Content: View>: View {
     private let alwaysShowsActions: Bool
     private let content: Content
 
+    static var actionHitSize: CGFloat { 32 } // 泛型类型不支持 static 存储属性，改用计算属性，API 不变
     @State private var isHovering = false
+    @FocusState private var isFocused: Bool
 
     public init(selected: Bool = false,
                 rowSize: JadeRowSize = .comfortable,
@@ -74,7 +76,7 @@ public struct JadeListRow<Content: View>: View {
     }
 
     private var showsActions: Bool {
-        alwaysShowsActions || isHovering
+        alwaysShowsActions || isHovering || isFocused
     }
 
     public var body: some View {
@@ -91,7 +93,7 @@ public struct JadeListRow<Content: View>: View {
                             Image(systemName: action.systemImage)
                                 .font(JadeFont.body)
                                 .foregroundStyle(action.isDestructive ? JadeColor.danger : JadeColor.textSecondary)
-                                .frame(width: 26, height: 26)
+                                .frame(width: Self.actionHitSize, height: Self.actionHitSize)
                                 .background(JadeColor.surface3)
                                 .jadeRadius(.sm)
                         }
@@ -102,14 +104,22 @@ public struct JadeListRow<Content: View>: View {
                 .transition(.opacity)
             }
         }
-        .padding(.horizontal, JadeSpace.x3.value)
+        .jadePadding(.horizontal, .x3)
         .frame(height: rowSize.height)
         .background(backgroundColor)
         .jadeRadius(.lg)
+        .overlay {
+            if selected {
+                JadeRadius.lg.shape.strokeBorder(JadeColor.primary.opacity(0.85), lineWidth: 1)
+            }
+        }
         .contentShape(JadeRadius.lg.shape)
+        .focusable()
+        .focused($isFocused) // onFocusChange 在本 SDK 的 View 上不存在，改用 FocusState（macOS 12+）
         .onHover { hovering in isHovering = hovering }
-        .animation(.easeInOut(duration: 0.12), value: isHovering)
-        .animation(.easeInOut(duration: 0.12), value: selected)
+        .jadeAnimation(.easeInOut(duration: 0.12), value: isHovering)
+        .jadeAnimation(.easeInOut(duration: 0.12), value: selected)
+        .jadeAnimation(.easeInOut(duration: 0.12), value: isFocused)
     }
 }
 
@@ -142,7 +152,7 @@ private struct JadeListRowGallery: View {
                 Text("紧凑 · 44").font(JadeFont.body).foregroundStyle(JadeColor.textPrimary)
             }
         }
-        .padding(JadeSpace.x3.value)
+        .jadePadding(.x3)
         .frame(width: 340)
         .background(JadeColor.surface1)
     }

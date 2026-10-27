@@ -1,4 +1,5 @@
 import AppKit
+import ImageIO
 import Foundation
 import UniformTypeIdentifiers
 import os.log
@@ -382,18 +383,18 @@ final class ClipboardService: ClipboardServiceProtocol {
         return (Int(image.size.width), Int(image.size.height))
     }
 
+    // maxPixelSize 是像素上限，不是点：旧实现用 lockFocus 绘制，Retina 下
+    // backing 是 2 倍，256pt 缩略图会导出 512px PNG，违背参数名与测试上限，
+    // 且缩略图体积翻倍。ImageIO 缩略图按像素精确缩放，与屏幕倍率无关。
     static func thumbnailPNGData(from data: Data, maxPixelSize: CGFloat) -> Data? {
-        guard let image = NSImage(data: data) else { return nil }
-        let originalSize = image.size
-        guard originalSize.width > 0, originalSize.height > 0 else { return nil }
-        let scale = min(maxPixelSize / originalSize.width, maxPixelSize / originalSize.height, 1.0)
-        let targetSize = NSSize(width: max(1, originalSize.width * scale), height: max(1, originalSize.height * scale))
-        let thumbnail = NSImage(size: targetSize)
-        thumbnail.lockFocus()
-        NSGraphicsContext.current?.imageInterpolation = .high
-        image.draw(in: NSRect(origin: .zero, size: targetSize), from: NSRect(origin: .zero, size: originalSize), operation: .copy, fraction: 1.0)
-        thumbnail.unlockFocus()
-        return thumbnail.pngData()
+        guard let source = CGImageSourceCreateWithData(data as CFData, nil) else { return nil }
+        let options: [CFString: Any] = [
+            kCGImageSourceCreateThumbnailFromImageAlways: true,
+            kCGImageSourceCreateThumbnailWithTransform: true,
+            kCGImageSourceThumbnailMaxPixelSize: Int(maxPixelSize)
+        ]
+        guard let cgImage = CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary) else { return nil }
+        return NSBitmapImageRep(cgImage: cgImage).representation(using: .png, properties: [:])
     }
 }
 

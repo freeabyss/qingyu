@@ -29,6 +29,11 @@ final class PersistenceController {
 
     private static let _defaultShared = PersistenceController()
 
+    /// Serializes every store load in this process.
+    /// Two controllers loading at once mutate Core Data global entity registration
+    /// while another load enumerates it, surfacing as Collection was mutated.
+    private static let loadLock = NSLock()
+
     #if DEBUG
     /// DEBUG-only override for UITest data isolation. Must be set before any code
     /// accesses `shared` (i.e. at the very start of `applicationDidFinishLaunching`).
@@ -107,6 +112,8 @@ final class PersistenceController {
     /// Loads the persistent store, creates required Application Support
     /// directories, and inserts default AppSetting rows if they are missing.
     func load() throws {
+        Self.loadLock.lock()
+        defer { Self.loadLock.unlock() }
         try fileSystem.ensureDirectoryStructure()
 
         var loadError: Error?
@@ -122,20 +129,33 @@ final class PersistenceController {
 
     /// Creates all default AppSetting rows without overwriting existing user values.
     func initializeDefaultSettings(in context: NSManagedObjectContext) throws {
-        for (key, value) in AssistantSettingDefaults.values {
-            let request = CDAppSetting.fetchRequest()
-            request.fetchLimit = 1
-            request.predicate = NSPredicate(format: "key == %@", key)
-            if try context.count(for: request) == 0 {
-                let setting = CDAppSetting(context: context)
-                setting.key = key
-                setting.value = value
-                setting.updatedAt = Date()
+        /// One fetch, explicit model entity, and queue-correct access.
+        /// Per-key count enumerated a set another load could mutate, and
+        /// CDAppSetting(context:) resolves via the global class registry.
+        var capturedError: Error?
+        context.performAndWait {
+            do {
+                let request = CDAppSetting.fetchRequest()
+                let existingKeys = Set(try context.fetch(request).map { $0.key })
+                guard let entity = NSEntityDescription.entity(forEntityName: "AppSetting", in: context) else {
+                    capturedError = NSError(domain: "PersistenceController", code: 1, userInfo: [NSLocalizedDescriptionKey: "Missing AppSetting entity"])
+                    return
+                }
+                for (key, value) in AssistantSettingDefaults.values where !existingKeys.contains(key) {
+                    let setting = CDAppSetting(entity: entity, insertInto: context)
+                    setting.key = key
+                    setting.value = value
+                    setting.updatedAt = Date()
+                }
+                if context.hasChanges {
+                    try context.save()
+                }
+            } catch {
+                capturedError = error
             }
         }
-
-        if context.hasChanges {
-            try context.save()
+        if let capturedError {
+            throw capturedError
         }
     }
 

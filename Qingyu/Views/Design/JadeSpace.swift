@@ -10,6 +10,8 @@ public enum JadeSpace: CGFloat, CaseIterable {
     case x3 = 12
     /// 16px
     case x4 = 16
+    /// 20px：填补 16 与 24 之间的断档，避免视图各自硬编码 20。
+    case x5 = 20
     /// 24px
     case x6 = 24
     /// 32px

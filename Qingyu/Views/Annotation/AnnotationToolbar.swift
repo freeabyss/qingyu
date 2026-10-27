@@ -20,7 +20,7 @@ struct AnnotationTopToolbar: View {
                 }
             }
         }
-        .padding(JadeSpace.x2.value)
+        .jadePadding(.x2)
         .background(JadeMaterial.pill.material, in: Capsule(style: .continuous))
         .overlay(Capsule(style: .continuous).strokeBorder(JadeColor.border, lineWidth: 1))
         .jadeShadow(.md, radius: .xl)
@@ -74,7 +74,7 @@ struct AnnotationBottomToolbar: View {
             IconTextButton(label: L10n.localized("annotation.copy"), action: onCopy)
             IconTextButton(label: L10n.localized("annotation.save"), tint: JadeColor.primary, prominent: true, action: onSave)
         }
-        .padding(JadeSpace.x2.value)
+        .jadePadding(.x2)
         .background(JadeMaterial.pill.material, in: Capsule(style: .continuous))
         .overlay(Capsule(style: .continuous).strokeBorder(JadeColor.border, lineWidth: 1))
         .jadeShadow(.md, radius: .xl)
@@ -106,8 +106,8 @@ private struct ToolPill: View {
                     .font(JadeFont.subhead)
             }
             .foregroundColor(selected ? .white : JadeColor.textPrimary)
-            .padding(.horizontal, JadeSpace.x2.value)
-            .padding(.vertical, JadeSpace.x1.value + 1)
+            .jadePadding(.horizontal, .x2)
+            .jadePadding(.vertical, .x2)
             .background(
                 Capsule(style: .continuous)
                     .fill(selected ? JadeColor.primary : (hovering ? JadeColor.surface3 : Color.clear))
@@ -118,6 +118,7 @@ private struct ToolPill: View {
         .accessibilityLabel(Text(tool.displayName))
         .accessibilityAddTraits(selected ? [.isButton, .isSelected] : .isButton)
         .onHover { hovering = $0 }
+        .jadeAnimation(.easeInOut(duration: 0.12), value: hovering)
     }
 }
 
@@ -131,18 +132,19 @@ private struct ColorSwatch: View {
         Button(action: action) {
             Circle()
                 .fill(Color(nsColor: color.nsColor))
-                .frame(width: 20, height: 20)
+                .frame(width: 24, height: 24)
                 .overlay(Circle().stroke(JadeColor.border, lineWidth: color == .white ? 1 : 0))
-                // 选中态：Jade 2pt 色环，直径 26pt。
-                .overlay(Circle().stroke(selected ? JadeColor.primary : Color.clear, lineWidth: 2).frame(width: 26, height: 26))
+                // 选中态：Jade 2pt 色环，直径 30pt。
+                .overlay(Circle().stroke(selected ? JadeColor.primary : Color.clear, lineWidth: 2).frame(width: 30, height: 30))
                 .shadow(color: .black.opacity(hovering ? 0.35 : 0.12), radius: hovering ? 3 : 1)
         }
         .buttonStyle(.plain)
-        .frame(width: 26, height: 26)
+        .frame(width: 30, height: 30)
         .help(color.displayName)
         .accessibilityLabel(Text(color.displayName))
         .accessibilityAddTraits(selected ? [.isButton, .isSelected] : .isButton)
         .onHover { hovering = $0 }
+        .jadeAnimation(.easeInOut(duration: 0.12), value: hovering)
     }
 }
 
@@ -168,6 +170,7 @@ private struct IconButton: View {
         .help(tooltip)
         .accessibilityLabel(Text(tooltip))
         .onHover { hovering = $0 }
+        .jadeAnimation(.easeInOut(duration: 0.12), value: hovering)
     }
 }
 
@@ -183,7 +186,7 @@ private struct IconTextButton: View {
             Text(label)
                 .font(JadeFont.subhead)
                 .foregroundColor(prominent ? .white : tint)
-                .padding(.horizontal, JadeSpace.x3.value)
+                .jadePadding(.horizontal, .x3)
                 .frame(height: 30)
                 .background(
                     Capsule(style: .continuous)
@@ -193,5 +196,6 @@ private struct IconTextButton: View {
         .buttonStyle(.plain)
         .help(label)
         .onHover { hovering = $0 }
+        .jadeAnimation(.easeInOut(duration: 0.12), value: hovering)
     }
 }

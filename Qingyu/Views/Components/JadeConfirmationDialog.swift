@@ -62,7 +62,7 @@ private struct JadeConfirmationDialogGallery: View {
             Button("删除全部历史") { showDialog = true }
                 .buttonStyle(.jadeDestructive)
         }
-        .padding(JadeSpace.x8.value)
+        .jadePadding(.x8)
         .frame(width: 320, height: 220)
         .background(JadeColor.surface1)
         .jadeConfirmationDialog(

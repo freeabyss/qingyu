@@ -63,8 +63,8 @@ public struct JadeToast: View {
                 .multilineTextAlignment(.leading)
                 .lineLimit(3)
         }
-        .padding(.horizontal, JadeSpace.x4.value)
-        .padding(.vertical, JadeSpace.x3.value)
+        .jadePadding(.horizontal, .x4)
+        .jadePadding(.vertical, .x3)
         .background(JadeColor.surface1, in: JadeRadius.lg.shape)
         .jadeShadow(.md, radius: .lg)
     }
@@ -146,7 +146,7 @@ private struct JadeToastGallery: View {
             JadeToast("保存成功", variant: .success)
             JadeToast("操作失败,请重试", variant: .error)
         }
-        .padding(JadeSpace.x6.value)
+        .jadePadding(.x6)
         .frame(width: 320, height: 260)
         .background(JadeColor.surface2)
     }
