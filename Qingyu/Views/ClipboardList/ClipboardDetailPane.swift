@@ -63,7 +63,7 @@ struct ClipboardDetailPane: View {
                         isMaximized = false
                     } label: {
                         Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 18))
+                            .font(JadeFont.dismissIcon)
                             .foregroundStyle(JadeColor.textSecondary)
                     }
                     .buttonStyle(.plain)

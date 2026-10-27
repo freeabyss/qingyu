@@ -48,6 +48,9 @@ public enum JadeFont {
     public static let placeholderIcon = Font.system(size: 40, weight: .regular)
 
     /// 命令栏输入框:19pt regular（固定,配合 48px 输入行高）
+    /// 清除 / 关闭图标：18pt regular（固定），用于 xmark.circle.fill 清除与关闭按钮（命令栏、剪贴板搜索、详情最大化关闭），颜色仍由各处自定。
+    public static let dismissIcon = Font.system(size: 18, weight: .regular)
+
     public static let commandBarInput = Font.system(size: 19, weight: .regular)
 }
 
@@ -86,6 +89,7 @@ extension JadeFont {
                 Text("subhead · 11 medium").font(JadeFont.subhead)
                 Text("caption · 10 medium").font(JadeFont.caption)
                 Text("placeholderIcon · 40 regular").font(JadeFont.placeholderIcon)
+                Text("dismissIcon · 18 regular").font(JadeFont.dismissIcon)
                 Text("commandBarInput · 19 regular").font(JadeFont.commandBarInput)
             }
             .foregroundStyle(JadeColor.textPrimary)

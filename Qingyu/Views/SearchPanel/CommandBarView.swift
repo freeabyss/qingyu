@@ -101,7 +101,7 @@ struct CommandBarView: View {
                     isInputFocused = true
                 } label: {
                     Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 18))
+                        .font(JadeFont.dismissIcon)
                         .foregroundStyle(JadeColor.textTertiary)
                 }
                 .buttonStyle(.plain)
