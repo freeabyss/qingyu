@@ -30,7 +30,9 @@ public struct JadePill: View {
             }
         }
 
-        var fill: Color { foreground.opacity(0.15) }
+        /// 胶囊填充透明度：前景色 15% 不透明，六种语义胶囊共用同色浅底；因底色随 foreground 变化，不能做成 JadeColor 固定色 token，故放在 Style 内。
+        static let fillOpacity: Double = 0.15
+        var fill: Color { foreground.opacity(Self.fillOpacity) }
     }
 
     public enum Size {
