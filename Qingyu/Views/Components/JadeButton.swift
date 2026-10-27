@@ -39,6 +39,9 @@ private struct JadeButtonBody: View {
     @Environment(\.isEnabled) private var isEnabled
     @State private var isHovering = false
 
+    /// 禁用态整体透明度：isEnabled 为 false 时按钮整体降至 40%，与 JadeColor.overlay 的 0.4 黑色遮罩数值相同但角色不同（视图透明度 vs 遮罩颜色），不合并。
+    private static let disabledOpacity: Double = 0.4
+
     var body: some View {
         configuration.label
             .font(JadeFont.callout.weight(.medium))
@@ -51,7 +54,7 @@ private struct JadeButtonBody: View {
             .overlay(borderOverlay)
             .shadow(color: variant == .ghost || pressed ? .clear : JadeColor.controlShadow,
                     radius: 1, x: 0, y: 1)
-            .opacity(isEnabled ? 1 : 0.4)
+            .opacity(isEnabled ? 1 : Self.disabledOpacity)
             .contentShape(JadeRadius.md.shape)
             .onHover { hovering in
                 if isEnabled { isHovering = hovering }
