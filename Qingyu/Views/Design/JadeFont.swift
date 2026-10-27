@@ -60,6 +60,9 @@ public enum JadeFont {
     /// 预览纯文本正文：14pt 等宽（固定），用于预览面板纯文本内容的可选文本展示，与 12pt 等宽的文件元信息值区分。
     public static let previewTextMono = Font.system(size: 14, design: .monospaced)
 
+    /// 命令栏结果贴片图标：15pt semibold（固定），用于 32x32 结果贴片内的符号图标，与 15pt medium 的 toolbarIconLabeled 区分，颜色仍由各处自定。
+    public static let resultTileIcon = Font.system(size: 15, weight: .semibold)
+
     public static let commandBarInput = Font.system(size: 19, weight: .regular)
 }
 
@@ -102,6 +105,7 @@ extension JadeFont {
                 Text("fileValueMono · 12 monospaced").font(JadeFont.fileValueMono)
                 Text("smallIconSemibold · 12 semibold").font(JadeFont.smallIconSemibold)
                 Text("previewTextMono · 14 monospaced").font(JadeFont.previewTextMono)
+                Text("resultTileIcon · 15 semibold").font(JadeFont.resultTileIcon)
                 Text("commandBarInput · 19 regular").font(JadeFont.commandBarInput)
             }
             .foregroundStyle(JadeColor.textPrimary)

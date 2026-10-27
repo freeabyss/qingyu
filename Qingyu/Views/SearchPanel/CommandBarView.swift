@@ -321,7 +321,7 @@ struct CommandBarResultRow: View {
             JadeRadius.md.shape
                 .fill(isSelected ? JadeColor.primaryFill : JadeColor.surface2)
             Image(systemName: name)
-                .font(.system(size: 15, weight: .semibold))
+                .font(JadeFont.resultTileIcon)
                 .foregroundStyle(isSelected ? JadeColor.primary : JadeColor.textSecondary)
         }
         .frame(width: 32, height: 32)
