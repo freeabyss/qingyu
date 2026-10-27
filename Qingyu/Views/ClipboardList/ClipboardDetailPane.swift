@@ -58,6 +58,9 @@ struct ClipboardDetailPane: View {
     /// 文件卡片边框线宽：1pt，仅用于剪贴板详情文件卡片的描边；不并入 JadeSpace，那是间距档位，不是线宽。
     private static let fileCardBorderLineWidth: CGFloat = 1
 
+    /// 纯文本行距：5pt，仅用于剪贴板详情纯文本内容的行距；不并入 JadeSpace，那是布局间距档位，不是文本行距。
+    private static let plainTextLineSpacing: CGFloat = 5
+
     var body: some View {
         Group {
             if let item {
@@ -247,7 +250,7 @@ struct ClipboardDetailPane: View {
     private func plainTextContent(_ item: ClipboardRecordSnapshot) -> some View {
         Text(item.plainText ?? item.summary ?? L10n.localized("preview.empty"))
             .font(JadeFont.body)
-            .lineSpacing(5)
+            .lineSpacing(Self.plainTextLineSpacing)
             .textSelection(.enabled)
             .frame(maxWidth: .infinity, alignment: .leading)
             .jadePadding(.x3)
