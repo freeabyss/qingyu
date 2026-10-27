@@ -25,6 +25,9 @@ struct ClipboardDetailPane: View {
     @State private var fileImageLoadFinished = false
     @State private var isMaximized = false
 
+    /// 放大按钮磁贴边长：24pt 正方形，仅用于详情头部的放大按钮；不并入 JadeSpace，那是间距档位，不是磁贴尺寸。
+    private static let maximizeButtonSize: CGFloat = 24
+
     var body: some View {
         Group {
             if let item {
@@ -170,7 +173,7 @@ struct ClipboardDetailPane: View {
                     Image(systemName: "arrow.up.left.and.arrow.down.right")
                         .font(JadeFont.smallIconSemibold)
                         .foregroundStyle(JadeColor.textSecondary)
-                        .frame(width: 24, height: 24)
+                        .frame(width: Self.maximizeButtonSize, height: Self.maximizeButtonSize)
                         .background(JadeColor.surface2)
                         .jadeRadius(.sm)
                 }
