@@ -1288,6 +1288,9 @@ final class RegionStylePaletteView: NSView {
     /// 透明棋盘格单格尺寸：4pt，仅用于 checkerImage 的棋盘格绘制，两个对角格共用同一单格尺寸；不并入 JadeSpace，那是间距档位，不是图案尺寸。
     private static let checkerCellSize: CGFloat = 4
 
+    /// 透明棋盘格图像尺寸：8pt，仅用于 checkerImage 的棋盘格图像整体尺寸，宽高同值；不并入 JadeSpace，那是间距档位，不是图案尺寸。
+    private static let checkerImageSize: CGFloat = 8
+
     private var colorButtons: [NSButton] = []
     private var backgroundButtons: [NSButton] = []
     private var sizeButtons: [NSButton] = []
@@ -1812,7 +1815,7 @@ final class RegionStylePaletteView: NSView {
     }
 
     private static func checkerImage() -> NSImage {
-        let size = NSSize(width: 8, height: 8)
+        let size = NSSize(width: Self.checkerImageSize, height: Self.checkerImageSize)
         let image = NSImage(size: size)
         image.lockFocus()
         NSColor.white.setFill()
