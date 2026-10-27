@@ -111,6 +111,9 @@ final class ScreenshotToolbarController {
     /// 定位后预览窗口最小宽高比：0.1，仅用于 position(window:for:) 在由最大宽度推导目标图片高度时对宽高比取下限，防止极窄图片导致高度过大；不并入 JadeSpace，那是通用间距档位，不是比例下限。
     private static let positionedPreviewMinAspectRatio: CGFloat = 0.1
 
+    /// 定位后预览窗口兜底宽高比：1，仅用于 position(window:for:) 在结果高度无效时以正方形宽高比兜底；不并入 JadeSpace，那是通用间距档位，不是比例兜底值。
+    private static let positionedPreviewFallbackAspectRatio: CGFloat = 1
+
     /// Task 007: all terminal actions flow through the completion coordinator;
     /// successful outcomes only end the current capture session (no history).
     private let completionCoordinator: CaptureCompletionCoordinator
@@ -764,7 +767,7 @@ final class ScreenshotToolbarController {
         let visible = screen.visibleFrame
         let maxWidth = min(Self.positionedPreviewMaxWidth, visible.width - Self.positionedPreviewScreenInset)
         let maxHeight = min(Self.positionedPreviewMaxHeight, visible.height - Self.positionedPreviewScreenInset)
-        let imageAspect = result.height > 0 ? CGFloat(result.width) / CGFloat(result.height) : 1
+        let imageAspect = result.height > 0 ? CGFloat(result.width) / CGFloat(result.height) : Self.positionedPreviewFallbackAspectRatio
         let targetImageHeight = min(maxHeight - Self.positionedPreviewChromeHeight, max(Self.positionedPreviewMinImageHeight, maxWidth / max(imageAspect, Self.positionedPreviewMinAspectRatio)))
         let targetWidth = min(maxWidth, max(Self.positionedPreviewMinTargetWidth, targetImageHeight * imageAspect + Self.positionedPreviewHorizontalChromeWidth))
         let targetHeight = min(maxHeight, targetImageHeight + Self.positionedPreviewChromeHeight)
