@@ -313,7 +313,7 @@ struct PreviewPanel: View {
                 .foregroundStyle(JadeColor.textSecondary)
                 .frame(width: 80, alignment: .trailing)
             Text(value)
-                .font(.system(size: 12, design: .monospaced))
+                .font(JadeFont.fileValueMono)
                 .textSelection(.enabled)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }

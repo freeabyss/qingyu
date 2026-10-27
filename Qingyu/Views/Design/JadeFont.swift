@@ -51,6 +51,9 @@ public enum JadeFont {
     /// 清除 / 关闭图标：18pt regular（固定），用于 xmark.circle.fill 清除与关闭按钮（命令栏、剪贴板搜索、详情最大化关闭），颜色仍由各处自定。
     public static let dismissIcon = Font.system(size: 18, weight: .regular)
 
+    /// 文件元信息值：12pt 等宽（固定），用于文件路径、大小、类型等文件系统值的展示，与正文区分，颜色仍由各处自定。
+    public static let fileValueMono = Font.system(size: 12, design: .monospaced)
+
     public static let commandBarInput = Font.system(size: 19, weight: .regular)
 }
 
@@ -90,6 +93,7 @@ extension JadeFont {
                 Text("caption · 10 medium").font(JadeFont.caption)
                 Text("placeholderIcon · 40 regular").font(JadeFont.placeholderIcon)
                 Text("dismissIcon · 18 regular").font(JadeFont.dismissIcon)
+                Text("fileValueMono · 12 monospaced").font(JadeFont.fileValueMono)
                 Text("commandBarInput · 19 regular").font(JadeFont.commandBarInput)
             }
             .foregroundStyle(JadeColor.textPrimary)

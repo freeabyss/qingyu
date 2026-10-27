@@ -276,7 +276,7 @@ struct ClipboardDetailPane: View {
                             .foregroundStyle(JadeColor.textPrimary)
                             .lineLimit(2)
                         Text(path)
-                            .font(.system(size: 12, design: .monospaced))
+                            .font(JadeFont.fileValueMono)
                             .foregroundStyle(JadeColor.textSecondary)
                             .textSelection(.enabled)
                             .lineLimit(4)
