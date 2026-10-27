@@ -34,6 +34,9 @@ struct ClipboardDetailPane: View {
     /// 详情头部高度：44pt，仅用于详情内容的头部行；不并入 JadeSpace，那是间距档位，不是行高。
     private static let headerHeight: CGFloat = 44
 
+    /// 详情面板最小宽度：280pt，仅用于剪贴板详情面板本体的最小宽度约束；不并入 JadeSpace，那是间距档位，不是面板宽度。
+    private static let detailPaneMinWidth: CGFloat = 280
+
     var body: some View {
         Group {
             if let item {
@@ -45,7 +48,7 @@ struct ClipboardDetailPane: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(JadeColor.surface1)
-        .frame(minWidth: 280)
+        .frame(minWidth: Self.detailPaneMinWidth)
         .sheet(isPresented: $isMaximized) {
             maximizedPreview(for: item)
         }
