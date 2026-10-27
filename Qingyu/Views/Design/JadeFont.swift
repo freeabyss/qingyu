@@ -75,6 +75,9 @@ public enum JadeFont {
     /// 引导卡片标签图标：18pt medium（固定），用于引导卡片标签 24 宽图标，与 18pt semibold 的 settingsHeaderIcon 和 18pt regular 的 dismissIcon 区分，颜色仍由各处自定。
     public static let onboardingCardIcon = Font.system(size: 18, weight: .medium)
 
+    /// 命令栏无结果图标：30pt regular（固定），用于命令栏无结果状态的 questionmark.circle 图标，与 40pt 的 placeholderIcon 及详情 32/36pt 占位图标区分，颜色仍由各处自定。
+    public static let commandBarNoResultsIcon = Font.system(size: 30, weight: .regular)
+
     public static let commandBarInput = Font.system(size: 19, weight: .regular)
 }
 
@@ -122,6 +125,7 @@ extension JadeFont {
                 Text("settingsHeaderIcon · 18 semibold").font(JadeFont.settingsHeaderIcon)
                 Text("onboardingLogoIcon · 28 light").font(JadeFont.onboardingLogoIcon)
                 Text("onboardingCardIcon · 18 medium").font(JadeFont.onboardingCardIcon)
+                Text("commandBarNoResultsIcon · 30 regular").font(JadeFont.commandBarNoResultsIcon)
                 Text("commandBarInput · 19 regular").font(JadeFont.commandBarInput)
             }
             .foregroundStyle(JadeColor.textPrimary)

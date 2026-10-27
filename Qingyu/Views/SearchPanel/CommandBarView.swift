@@ -178,7 +178,7 @@ struct CommandBarView: View {
     private var noResultsState: some View {
         VStack(spacing: JadeSpace.x2.value) {
             Image(systemName: "questionmark.circle")
-                .font(.system(size: 30))
+                .font(JadeFont.commandBarNoResultsIcon)
                 .foregroundStyle(JadeColor.textTertiary)
                 .accessibilityHidden(true)
             Text(L10n.localized("commandBar.noResults.title"))
