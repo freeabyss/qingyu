@@ -349,7 +349,7 @@ struct ClipboardHistoryView: View {
         .buttonStyle(.plain)
         .keyboardShortcut(key, modifiers: modifiers)
         .frame(width: 0, height: 0)
-        .opacity(0)
+        .jadeHiddenShortcut()
     }
 }
 

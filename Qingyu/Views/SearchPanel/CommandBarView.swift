@@ -208,7 +208,7 @@ struct CommandBarView: View {
             Button("") { viewModel.openSettings() }
                 .keyboardShortcut(",", modifiers: .command)
         }
-        .opacity(0)
+        .jadeHiddenShortcut()
         .allowsHitTesting(false)
         .accessibilityHidden(true)
     }

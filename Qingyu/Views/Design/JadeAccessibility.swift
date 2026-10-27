@@ -44,3 +44,16 @@ extension View {
         animation(JadeAccessibility.animation(standard), value: value)
     }
 }
+
+// MARK: - 隐藏快捷键载体
+
+extension View {
+    /// 隐藏的键盘快捷键载体：仅保留快捷键响应，视图本身完全不可见。
+    ///
+    /// 命令栏、剪贴板历史、设置三处的快捷键按钮共用此语义：它们不是视觉元素。
+    /// 实现就是原来的 opacity(0)，不引入其他隐藏方式的语义变化；各处原有的
+    /// allowsHitTesting / accessibilityHidden / frame(0) 保持不变。
+    public func jadeHiddenShortcut() -> some View {
+        opacity(0)
+    }
+}

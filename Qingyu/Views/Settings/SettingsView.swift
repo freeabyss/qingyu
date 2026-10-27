@@ -160,7 +160,7 @@ struct ManagementCenterView: View {
             Button("") { NSApp.keyWindow?.performClose(nil) }
                 .keyboardShortcut(.cancelAction)
         }
-        .opacity(0)
+        .jadeHiddenShortcut()
         .frame(width: 0, height: 0)
         .accessibilityHidden(true)
     }
