@@ -105,6 +105,9 @@ final class ScreenshotToolbarController {
     /// 定位后预览窗口水平 chrome 宽度：64pt，仅用于 position(window:for:) 由目标图片宽度加上该 chrome 宽度得到目标窗口宽度；不并入 JadeSpace，那是通用间距档位，不是窗口 chrome 尺寸。
     private static let positionedPreviewHorizontalChromeWidth: CGFloat = 64
 
+    /// 定位后预览窗口居中除数：2，仅用于 position(window:for:) 由可见区域中心减去目标尺寸的一半得到窗口原点；不并入 JadeSpace，那是通用间距档位，不是居中计算除数。
+    private static let positionedPreviewCenterDivisor: CGFloat = 2
+
     /// Task 007: all terminal actions flow through the completion coordinator;
     /// successful outcomes only end the current capture session (no history).
     private let completionCoordinator: CaptureCompletionCoordinator
@@ -763,8 +766,8 @@ final class ScreenshotToolbarController {
         let targetWidth = min(maxWidth, max(Self.positionedPreviewMinTargetWidth, targetImageHeight * imageAspect + Self.positionedPreviewHorizontalChromeWidth))
         let targetHeight = min(maxHeight, targetImageHeight + Self.positionedPreviewChromeHeight)
         let frame = NSRect(
-            x: visible.midX - targetWidth / 2,
-            y: visible.midY - targetHeight / 2,
+            x: visible.midX - targetWidth / Self.positionedPreviewCenterDivisor,
+            y: visible.midY - targetHeight / Self.positionedPreviewCenterDivisor,
             width: targetWidth,
             height: targetHeight
         )
