@@ -54,6 +54,9 @@ public enum JadeFont {
     /// 文件元信息值：12pt 等宽（固定），用于文件路径、大小、类型等文件系统值的展示，与正文区分，颜色仍由各处自定。
     public static let fileValueMono = Font.system(size: 12, design: .monospaced)
 
+    /// 小尺寸图标：12pt semibold（固定），用于 12pt 级小图标，保证小字号下笔画可辨，颜色仍由各处自定。
+    public static let smallIconSemibold = Font.system(size: 12, weight: .semibold)
+
     public static let commandBarInput = Font.system(size: 19, weight: .regular)
 }
 
@@ -94,6 +97,7 @@ extension JadeFont {
                 Text("placeholderIcon · 40 regular").font(JadeFont.placeholderIcon)
                 Text("dismissIcon · 18 regular").font(JadeFont.dismissIcon)
                 Text("fileValueMono · 12 monospaced").font(JadeFont.fileValueMono)
+                Text("smallIconSemibold · 12 semibold").font(JadeFont.smallIconSemibold)
                 Text("commandBarInput · 19 regular").font(JadeFont.commandBarInput)
             }
             .foregroundStyle(JadeColor.textPrimary)

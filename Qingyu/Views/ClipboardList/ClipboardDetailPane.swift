@@ -168,7 +168,7 @@ struct ClipboardDetailPane: View {
                     isMaximized = true
                 } label: {
                     Image(systemName: "arrow.up.left.and.arrow.down.right")
-                        .font(.system(size: 12, weight: .semibold))
+                        .font(JadeFont.smallIconSemibold)
                         .foregroundStyle(JadeColor.textSecondary)
                         .frame(width: 24, height: 24)
                         .background(JadeColor.surface2)

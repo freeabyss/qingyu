@@ -258,7 +258,7 @@ struct CommandBarResultRow: View {
 
             if isDangerous {
                 Image(systemName: "exclamationmark.triangle.fill")
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(JadeFont.smallIconSemibold)
                     .foregroundStyle(JadeColor.warning)
                     .accessibilityHidden(true)
             }
