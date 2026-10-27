@@ -23,6 +23,12 @@ final class AnnotationEditorWindow: NSWindowController, NSWindowDelegate {
     /// 文字输入弹框 accessory 文本框高度：24pt，仅用于 NSAlert accessoryView 的 NSTextField；不并入 JadeSpace，那是间距档位，不是控件尺寸。
     private static let textInputFieldHeight: CGFloat = 24
 
+    /// 无主屏时回退窗口宽度：900pt，仅用于 computeWindowRect 无 NSScreen.main 时的回退 rect；不并入 JadeSpace，那是间距档位，不是窗口尺寸。
+    private static let fallbackWindowWidth: CGFloat = 900
+
+    /// 无主屏时回退窗口高度：650pt，仅用于 computeWindowRect 无 NSScreen.main 时的回退 rect；不并入 JadeSpace，那是间距档位，不是窗口尺寸。
+    private static let fallbackWindowHeight: CGFloat = 650
+
     init(
         image: NSImage,
         captureDate: Date,
@@ -136,7 +142,7 @@ final class AnnotationEditorWindow: NSWindowController, NSWindowDelegate {
 
     private func computeWindowRect() -> NSRect {
         guard let screen = NSScreen.main else {
-            return NSRect(x: 100, y: 100, width: 900, height: 650)
+            return NSRect(x: 100, y: 100, width: Self.fallbackWindowWidth, height: Self.fallbackWindowHeight)
         }
         let visible = screen.visibleFrame
         let maxW = min(1100, visible.width * 0.86)
