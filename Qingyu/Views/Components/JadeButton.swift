@@ -81,7 +81,7 @@ private struct JadeButtonBody: View {
                                    startPoint: .top, endPoint: .bottom)
                 }
         case .destructive:
-            JadeColor.danger.opacity(pressed ? 0.85 : 1)
+            (pressed ? JadeColor.dangerPressed : JadeColor.danger)
         case .secondary:
             (isHovering || pressed ? JadeColor.surface3 : JadeColor.settingsCard)
         case .ghost:
