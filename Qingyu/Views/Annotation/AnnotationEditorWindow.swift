@@ -17,6 +17,12 @@ final class AnnotationEditorWindow: NSWindowController, NSWindowDelegate {
     /// Task 014/04：取色后的轻量反馈（复用了预览阶段「短提示」的做法）。
     private let toast = AnnotationToastModel()
 
+    /// 文字输入弹框 accessory 文本框宽度：320pt，仅用于 NSAlert accessoryView 的 NSTextField；不并入 JadeSpace，那是间距档位，不是控件尺寸。
+    private static let textInputFieldWidth: CGFloat = 320
+
+    /// 文字输入弹框 accessory 文本框高度：24pt，仅用于 NSAlert accessoryView 的 NSTextField；不并入 JadeSpace，那是间距档位，不是控件尺寸。
+    private static let textInputFieldHeight: CGFloat = 24
+
     init(
         image: NSImage,
         captureDate: Date,
@@ -188,7 +194,7 @@ final class AnnotationEditorWindow: NSWindowController, NSWindowDelegate {
         alert.addButton(withTitle: L10n.localized("annotation.textInput.add"))
         alert.addButton(withTitle: L10n.localized("annotation.textInput.cancel"))
 
-        let textField = NSTextField(frame: NSRect(x: 0, y: 0, width: 320, height: 24))
+        let textField = NSTextField(frame: NSRect(x: 0, y: 0, width: Self.textInputFieldWidth, height: Self.textInputFieldHeight))
         textField.placeholderString = L10n.localized("annotation.textInput.placeholder")
         textField.bezelStyle = .roundedBezel
         alert.accessoryView = textField
