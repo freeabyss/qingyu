@@ -22,11 +22,14 @@ struct SettingsSidebarIcon: View {
 struct SettingsHeaderIcon: View {
     let systemImage: String
 
+    /// 页首图标边长：28pt 正方形，仅用于设置页首图标；不并入 JadeSpace，那是间距档位，不是图标尺寸。
+    private static let iconSize: CGFloat = 28
+
     var body: some View {
         Image(systemName: systemImage)
             .font(JadeFont.settingsHeaderIcon)
             .foregroundStyle(JadeColor.primary)
-            .frame(width: 28, height: 28)
+            .frame(width: Self.iconSize, height: Self.iconSize)
             .accessibilityHidden(true)
     }
 }
