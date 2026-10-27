@@ -31,6 +31,9 @@ struct ClipboardHistoryView: View {
     /// 窗口最小高度：420pt，仅用于剪贴板历史窗口的最小尺寸约束，与最小宽度成组出现；不并入 JadeSpace，那是间距档位，不是窗口尺寸。
     private static let windowMinHeight: CGFloat = 420
 
+    /// 隐藏快捷键按钮尺寸：0pt，仅用于只承载键盘快捷键、不占布局空间的不可见按钮；不是视觉尺寸，不并入 JadeSpace，那是间距档位，不是按钮尺寸。
+    private static let hiddenShortcutSize: CGFloat = 0
+
     @FocusState private var searchFocused: Bool
 
     /// Primary type filters shown as compact chips (全部 / 文本 / 图片 / 文件).
@@ -363,7 +366,7 @@ struct ClipboardHistoryView: View {
         } label: { EmptyView() }
         .buttonStyle(.plain)
         .keyboardShortcut(key, modifiers: modifiers)
-        .frame(width: 0, height: 0)
+        .frame(width: Self.hiddenShortcutSize, height: Self.hiddenShortcutSize)
         .jadeHiddenShortcut()
     }
 }
