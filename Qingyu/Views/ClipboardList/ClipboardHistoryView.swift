@@ -25,6 +25,12 @@ struct ClipboardHistoryView: View {
     /// 搜索栏最小高度：40pt，仅用于剪贴板历史顶部的搜索输入框；宽度撑满，只保底高度，不并入 JadeSpace，那是间距档位，不是控件高度。
     private static let searchInputMinHeight: CGFloat = 40
 
+    /// 窗口最小宽度：720pt，仅用于剪贴板历史窗口的最小尺寸约束，与最小高度成组出现；不并入 JadeSpace，那是间距档位，不是窗口尺寸。
+    private static let windowMinWidth: CGFloat = 720
+
+    /// 窗口最小高度：420pt，仅用于剪贴板历史窗口的最小尺寸约束，与最小宽度成组出现；不并入 JadeSpace，那是间距档位，不是窗口尺寸。
+    private static let windowMinHeight: CGFloat = 420
+
     @FocusState private var searchFocused: Bool
 
     /// Primary type filters shown as compact chips (全部 / 文本 / 图片 / 文件).
@@ -50,7 +56,7 @@ struct ClipboardHistoryView: View {
                 .frame(height: Self.statusBarHeight)
                 .jadePadding(.horizontal, .x4)
         }
-        .frame(minWidth: 720, minHeight: 420)
+        .frame(minWidth: Self.windowMinWidth, minHeight: Self.windowMinHeight)
         .jadeWindowSurface(radius: .xxl)
         .jadeShadow(.xl, radius: .xxl)
         .tint(JadeColor.primary)
