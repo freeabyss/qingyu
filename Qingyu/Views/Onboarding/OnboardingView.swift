@@ -17,6 +17,15 @@ struct OnboardingView: View {
     /// 区块顶部分隔线高度：1pt，仅用于引导页区块顶部的细分隔线；不并入 JadeSpace，那是间距档位，不是线条厚度。
     private static let sectionDividerHeight: CGFloat = 1
 
+    /// 引导页窗口宽度：720pt，仅用于引导页整屏的最小与理想宽度；不并入 JadeSpace，那是间距档位，不是窗口尺寸。
+    private static let windowWidth: CGFloat = 720
+
+    /// 引导页窗口最小高度：520pt，仅用于引导页整屏的最小高度；不并入 JadeSpace，那是间距档位，不是窗口尺寸。
+    private static let windowMinHeight: CGFloat = 520
+
+    /// 引导页窗口理想高度：620pt，仅用于引导页整屏的理想高度；不并入 JadeSpace，那是间距档位，不是窗口尺寸。
+    private static let windowIdealHeight: CGFloat = 620
+
     init(viewModel: OnboardingViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
     }
@@ -43,8 +52,8 @@ struct OnboardingView: View {
             footer
         }
         .jadePadding(.x8)
-        .frame(minWidth: 720, idealWidth: 720, maxWidth: .infinity,
-               minHeight: 520, idealHeight: 620, maxHeight: .infinity)
+        .frame(minWidth: Self.windowWidth, idealWidth: Self.windowWidth, maxWidth: .infinity,
+               minHeight: Self.windowMinHeight, idealHeight: Self.windowIdealHeight, maxHeight: .infinity)
         .background(JadeColor.surface1)
         .jadeRadius(.xl)
         .jadeShadow(.xl, radius: .xl)
