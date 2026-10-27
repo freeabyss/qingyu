@@ -42,12 +42,15 @@ struct AnnotationBottomToolbar: View {
     let onCopy: () -> Void
     let onSave: () -> Void
 
+    /// 分组分隔线高度：24pt，仅用于底部工具栏的分组分隔线；不并入 JadeSpace，那是间距档位，不是分隔线高度。
+    private static let dividerHeight: CGFloat = 24
+
     var body: some View {
         HStack(spacing: JadeSpace.x2.value) {
             IconButton(systemName: "arrow.uturn.backward", tooltip: L10n.localized("annotation.undo.help"), disabled: !state.canUndo, action: onUndo)
             IconButton(systemName: "arrow.uturn.forward", tooltip: L10n.localized("annotation.redo.help"), disabled: !state.canRedo, action: onRedo)
 
-            Divider().frame(height: 24)
+            Divider().frame(height: Self.dividerHeight)
 
             HStack(spacing: JadeSpace.x2.value) {
                 ForEach(AnnotationColor.allCases) { color in
@@ -57,7 +60,7 @@ struct AnnotationBottomToolbar: View {
                 }
             }
 
-            Divider().frame(height: 24)
+            Divider().frame(height: Self.dividerHeight)
 
             Picker("", selection: Binding(get: { state.style.lineWidth }, set: { state.style.lineWidth = $0 })) {
                 ForEach(AnnotationLineWidth.allCases) { width in
@@ -68,7 +71,7 @@ struct AnnotationBottomToolbar: View {
             .frame(width: 132)
             .help(L10n.localized("annotation.lineWidth.help"))
 
-            Divider().frame(height: 24)
+            Divider().frame(height: Self.dividerHeight)
 
             IconTextButton(label: L10n.localized("annotation.cancel"), tint: JadeColor.danger, action: onCancel)
             IconTextButton(label: L10n.localized("annotation.copy"), action: onCopy)
