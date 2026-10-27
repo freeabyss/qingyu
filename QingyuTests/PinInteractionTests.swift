@@ -236,4 +236,20 @@ final class PinInteractionTests: XCTestCase {
         container.mouseEntered(with: NSEvent())
         XCTAssertTrue(container.isHoverHintVisible)
     }
+
+    /// 贴图视觉 token 回归：穿透描边圆角、悬停提示字体与 inset 必须跟 Jade 走，
+    /// 不得悄悄回到 4pt 圆角、6pt 网格外 inset 或非桥接字号。
+    func testPinVisualTokensFollowJade() {
+        let container = PinEventContainerView(
+            item: PinItem(payload: .text("hello")),
+            size: NSSize(width: 200, height: 100)
+        )
+        XCTAssertEqual(PinWindowView.passthroughBorderRadius, JadeRadius.sm)
+        XCTAssertEqual(PinWindowView.passthroughBorderLineWidth, 2)
+        XCTAssertEqual(PinWindowView.passthroughDashPattern, [6, 4])
+        XCTAssertEqual(PinEventContainerView.hoverHintInset, JadeSpace.x2.value)
+        XCTAssertEqual(PinEventContainerView.hoverHintHeight, 18)
+        XCTAssertEqual(container.hoverHintFont?.pointSize, JadeFont.appKitSubheadMedium.pointSize)
+        XCTAssertEqual(container.hoverHintFont?.fontName, JadeFont.appKitSubheadMedium.fontName)
+    }
 }

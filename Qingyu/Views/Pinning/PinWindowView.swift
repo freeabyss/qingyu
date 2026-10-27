@@ -13,6 +13,11 @@ struct PinWindowView: View {
     /// 穿透后贴图不再响应鼠标，用户无法用点击或悬停找到它；因此给一个克制但
     /// 明确的提示，避免"贴图消失了"。刻意不改变不透明度等其他观感。
     static let passthroughBorderColor = Color.accentColor.opacity(0.85)
+    /// 穿透描边图案：线宽与虚线段长是描边图案本身（非间距 token）；
+    /// 圆角对齐 Jade 最小圆角 sm（6pt 连续曲率），此前 4pt 低于 Jade 下限。
+    static let passthroughBorderLineWidth: CGFloat = 2
+    static let passthroughDashPattern: [CGFloat] = [6, 4]
+    static let passthroughBorderRadius = JadeRadius.sm
 
     var body: some View {
         content
@@ -24,10 +29,10 @@ struct PinWindowView: View {
             .rotationEffect(.degrees(Double(item.transform.quarterTurns) * 90))
             .overlay {
                 if item.ignoresMouseEvents {
-                    RoundedRectangle(cornerRadius: 4)
+                    Self.passthroughBorderRadius.shape
                         .strokeBorder(
                             Self.passthroughBorderColor,
-                            style: StrokeStyle(lineWidth: 2, dash: [6, 4])
+                            style: StrokeStyle(lineWidth: Self.passthroughBorderLineWidth, dash: Self.passthroughDashPattern)
                         )
                         .allowsHitTesting(false)
                 }
@@ -57,7 +62,7 @@ struct PinWindowView: View {
                         .foregroundStyle(.white)
                         .jadePadding(.x1)
                         .background(.black.opacity(0.6), in: JadeRadius.sm.shape)
-                        .padding(6)
+                        .jadePadding(.x2)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
         case .attributedText(let attributed):
@@ -100,6 +105,10 @@ enum PinKeyAction: Equatable {
 final class PinEventContainerView: NSView {
     static let zoomStep: CGFloat = 1.1
     static let opacityStep: CGFloat = 0.1
+    /// 悬停提示布局：18pt 高容纳 11pt 提示文字；四边 inset 对齐 JadeSpace.x2（8pt），
+    /// 此前 6pt 不在 4pt 间距网格上。
+    static let hoverHintHeight: CGFloat = 18
+    static let hoverHintInset = JadeSpace.x2.value
 
     var onScale: ((CGFloat) -> Void)?                 // 滚轮 / `+/-`
     var onRotate: ((Int) -> Void)?                    // `1`/`2`，传入顺时针四分之一圈数
@@ -125,7 +134,7 @@ final class PinEventContainerView: NSView {
     private let hostingView: NSHostingView<PinWindowView>
     private lazy var hintLabel: NSTextField = {
         let label = NSTextField(labelWithString: "")
-        label.font = .systemFont(ofSize: 11)
+        label.font = JadeFont.appKitSubheadMedium
         label.textColor = .secondaryLabelColor
         label.alignment = .center
         label.lineBreakMode = .byTruncatingTail
@@ -141,6 +150,8 @@ final class PinEventContainerView: NSView {
 
     /// 悬停提示当前是否可见（单测与布局用）。
     var isHoverHintVisible: Bool { !hintLabel.isHidden && hintLabel.superview != nil }
+    /// 悬停提示字体（单测用）：应与 JadeFont.appKitSubheadMedium 一致。
+    var hoverHintFont: NSFont? { hintLabel.font }
 
     init(item: PinItem, size: NSSize) {
         self.item = item
@@ -164,12 +175,11 @@ final class PinEventContainerView: NSView {
     override func layout() {
         super.layout()
         hostingView.frame = bounds
-        let height: CGFloat = 18
         hintLabel.frame = NSRect(
-            x: 6,
-            y: 6,
-            width: max(0, bounds.width - 12),
-            height: height
+            x: Self.hoverHintInset,
+            y: Self.hoverHintInset,
+            width: max(0, bounds.width - Self.hoverHintInset * 2),
+            height: Self.hoverHintHeight
         )
     }
 
