@@ -162,11 +162,14 @@ private struct IconButton: View {
     let action: () -> Void
     @State private var hovering = false
 
+    /// 图标磁贴边长：30pt 正方形，仅用于标注工具栏的图标按钮；不并入 JadeSpace，那是间距档位，不是磁贴尺寸。
+    private static let tileSize: CGFloat = 30
+
     var body: some View {
         Button(action: action) {
             Image(systemName: systemName)
                 .font(JadeFont.toolbarIcon)
-                .frame(width: 30, height: 30)
+                .frame(width: Self.tileSize, height: Self.tileSize)
                 .foregroundColor(disabled ? JadeColor.textTertiary : JadeColor.textPrimary)
                 .background(
                     Circle().fill(hovering && !disabled ? JadeColor.surface3 : Color.clear)
