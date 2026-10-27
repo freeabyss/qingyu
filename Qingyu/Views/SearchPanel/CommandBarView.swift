@@ -238,6 +238,9 @@ struct CommandBarResultRow: View {
     /// 结果行图标磁贴边长：32pt 正方形，应用图标与系统符号磁贴共用同一尺寸；不并入 JadeSpace（那是间距档位，不是磁贴尺寸）。
     private static let iconTileSize: CGFloat = 32
 
+    /// 结果行高度：52pt，仅用于 CommandBarResultRow 整行；与图标磁贴 32pt 角色不同，不合并。
+    private static let rowHeight: CGFloat = 52
+
     var body: some View {
         HStack(spacing: JadeSpace.x3.value) {
             iconTile
@@ -268,7 +271,7 @@ struct CommandBarResultRow: View {
 
         }
         .jadePadding(.horizontal, .x3)
-        .frame(height: 52)
+        .frame(height: Self.rowHeight)
         .background(
             isSelected ? JadeColor.primaryFill : (isHovering ? JadeColor.surface2 : Color.clear),
             in: JadeRadius.lg.shape
