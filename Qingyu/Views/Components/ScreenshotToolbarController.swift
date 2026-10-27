@@ -93,6 +93,9 @@ final class ScreenshotToolbarController {
     /// 定位后预览窗口最大宽度：860pt，仅用于 position(window:for:) 限制预览窗口宽度上限；不并入 JadeSpace，那是通用间距档位，不是窗口尺寸上限。
     private static let positionedPreviewMaxWidth: CGFloat = 860
 
+    /// 定位后预览窗口最大高度：640pt，仅用于 position(window:for:) 限制预览窗口高度上限；不并入 JadeSpace，那是通用间距档位，不是窗口尺寸上限。
+    private static let positionedPreviewMaxHeight: CGFloat = 640
+
     /// Task 007: all terminal actions flow through the completion coordinator;
     /// successful outcomes only end the current capture session (no history).
     private let completionCoordinator: CaptureCompletionCoordinator
@@ -745,7 +748,7 @@ final class ScreenshotToolbarController {
         }
         let visible = screen.visibleFrame
         let maxWidth = min(Self.positionedPreviewMaxWidth, visible.width - Self.positionedPreviewScreenInset)
-        let maxHeight = min(640, visible.height - Self.positionedPreviewScreenInset)
+        let maxHeight = min(Self.positionedPreviewMaxHeight, visible.height - Self.positionedPreviewScreenInset)
         let imageAspect = result.height > 0 ? CGFloat(result.width) / CGFloat(result.height) : 1
         let targetImageHeight = min(maxHeight - Self.positionedPreviewChromeHeight, max(240, maxWidth / max(imageAspect, 0.1)))
         let targetWidth = min(maxWidth, max(520, targetImageHeight * imageAspect + 64))
