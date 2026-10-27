@@ -51,6 +51,9 @@ struct AnnotationBottomToolbar: View {
     /// 线宽选择器宽度：132pt，仅用于底部工具栏的线宽分段选择器；不并入 JadeSpace，那是间距档位，不是控件宽度。
     private static let lineWidthPickerWidth: CGFloat = 132
 
+    /// 悬浮 pill 边框线宽：1pt，仅用于底部工具栏悬浮 pill 的描边；不并入 JadeSpace，那是间距档位，不是线宽。
+    private static let pillBorderLineWidth: CGFloat = 1
+
     var body: some View {
         HStack(spacing: JadeSpace.x2.value) {
             IconButton(systemName: "arrow.uturn.backward", tooltip: L10n.localized("annotation.undo.help"), disabled: !state.canUndo, action: onUndo)
@@ -85,7 +88,7 @@ struct AnnotationBottomToolbar: View {
         }
         .jadePadding(.x2)
         .background(JadeMaterial.pill.material, in: Capsule(style: .continuous))
-        .overlay(Capsule(style: .continuous).strokeBorder(JadeColor.border, lineWidth: 1))
+        .overlay(Capsule(style: .continuous).strokeBorder(JadeColor.border, lineWidth: Self.pillBorderLineWidth))
         .jadeShadow(.md, radius: .xl)
     }
 }
