@@ -20,6 +20,9 @@ struct JadeClipboardRow: View {
     @State private var thumbnail: NSImage?
     @State private var sourceAppIcon: NSImage?
 
+    /// 缩略图磁贴边长：36pt 正方形，真实缩略图与占位磁贴共用同一尺寸；不并入 JadeSpace，那是间距档位，不是磁贴尺寸。
+    private static let thumbnailSize: CGFloat = 36
+
     private var actions: [JadeRowAction] {
         var items: [JadeRowAction] = [
             JadeRowAction(systemImage: item.isPinned ? "pin.slash.fill" : "pin.fill",
@@ -138,7 +141,7 @@ struct JadeClipboardRow: View {
         Image(nsImage: image)
             .resizable()
             .aspectRatio(contentMode: .fill)
-            .frame(width: 36, height: 36)
+            .frame(width: Self.thumbnailSize, height: Self.thumbnailSize)
             .jadeRadius(.sm)
     }
 
@@ -146,7 +149,7 @@ struct JadeClipboardRow: View {
         ZStack {
             JadeRadius.sm.shape
                 .fill(selected ? JadeColor.primaryFill : JadeColor.surface2)
-                .frame(width: 36, height: 36)
+                .frame(width: Self.thumbnailSize, height: Self.thumbnailSize)
             if item.contentType == .text || item.contentType == .richText, let ch = firstCharacter {
                 Text(ch)
                     .font(JadeFont.body)
