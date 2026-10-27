@@ -78,6 +78,9 @@ final class ScreenshotToolbarController {
     /// 样式调色板屏幕边缘留白：4pt，仅用于 paletteFrame 将调色板约束在屏幕内，上下左右共用；不并入 JadeSpace，那是通用间距档位，不是调色板定位留白。
     private static let paletteScreenEdgeMargin: CGFloat = 4
 
+    /// 样式调色板回退位置距屏幕底部距离：40pt，仅用于 paletteFrame 在找不到工具条按钮时的回退 rect；不并入 JadeSpace，那是通用间距档位，不是调色板定位距离。
+    private static let paletteFallbackBottomOffset: CGFloat = 40
+
     /// Task 007: all terminal actions flow through the completion coordinator;
     /// successful outcomes only end the current capture session (no history).
     private let completionCoordinator: CaptureCompletionCoordinator
@@ -667,7 +670,7 @@ final class ScreenshotToolbarController {
         let screen = selection.screenFrame
         let fallback = NSRect(
             x: selection.globalRect.midX - size.width / 2,
-            y: screen.minY + 40,
+            y: screen.minY + Self.paletteFallbackBottomOffset,
             width: size.width,
             height: size.height
         )
