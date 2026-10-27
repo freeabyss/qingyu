@@ -60,8 +60,11 @@ public struct JadePill: View {
         size == .toolbar ? JadeSpace.x3.value : JadeSpace.x2.value
     }
 
+    /// 常规胶囊纵向内边距：刻意取 2pt，低于 JadeSpace 最小档 x1=4，因常规胶囊高度紧凑；工具条变体仍用 x2。命名此例外，而非让它以裸数字出现。
+    private static let regularVerticalPadding: CGFloat = 2
+
     private var vPadding: CGFloat {
-        size == .toolbar ? JadeSpace.x2.value : 2
+        size == .toolbar ? JadeSpace.x2.value : Self.regularVerticalPadding
     }
 
     /// 内容足够短时用全 pill，否则用 sm 圆角。
