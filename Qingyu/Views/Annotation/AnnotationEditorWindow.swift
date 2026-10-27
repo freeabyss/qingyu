@@ -29,6 +29,12 @@ final class AnnotationEditorWindow: NSWindowController, NSWindowDelegate {
     /// 无主屏时回退窗口高度：650pt，仅用于 computeWindowRect 无 NSScreen.main 时的回退 rect；不并入 JadeSpace，那是间距档位，不是窗口尺寸。
     private static let fallbackWindowHeight: CGFloat = 650
 
+    /// 标注编辑器窗口最大宽度：1100pt，仅用于 computeWindowRect 对可见区域的宽度上限；不并入 JadeSpace，那是间距档位，不是窗口尺寸。
+    private static let maxWindowWidth: CGFloat = 1100
+
+    /// 标注编辑器窗口最大高度：820pt，仅用于 computeWindowRect 对可见区域的高度上限；不并入 JadeSpace，那是间距档位，不是窗口尺寸。
+    private static let maxWindowHeight: CGFloat = 820
+
     init(
         image: NSImage,
         captureDate: Date,
@@ -145,8 +151,8 @@ final class AnnotationEditorWindow: NSWindowController, NSWindowDelegate {
             return NSRect(x: 100, y: 100, width: Self.fallbackWindowWidth, height: Self.fallbackWindowHeight)
         }
         let visible = screen.visibleFrame
-        let maxW = min(1100, visible.width * 0.86)
-        let maxH = min(820, visible.height * 0.86)
+        let maxW = min(Self.maxWindowWidth, visible.width * 0.86)
+        let maxH = min(Self.maxWindowHeight, visible.height * 0.86)
         let imageSize = state.imageSize
         let chromeHeight: CGFloat = 118
         let scale = min(maxW / max(imageSize.width, 1), (maxH - chromeHeight) / max(imageSize.height, 1), 1)
