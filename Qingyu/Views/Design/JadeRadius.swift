@@ -54,7 +54,7 @@ extension View {
                     .frame(width: 80, height: 48)
                     .jadeRadius(r)
                 Text(".\(String(describing: r)) = \(Int(r.value))pt")
-                    .font(.system(size: 13))
+                    .font(JadeFont.body)
                     .foregroundStyle(JadeColor.textSecondary)
             }
         }

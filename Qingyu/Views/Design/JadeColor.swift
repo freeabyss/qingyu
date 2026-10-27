@@ -186,7 +186,7 @@ extension NSColor {
     return ScrollView {
         VStack(alignment: .leading, spacing: 16) {
             Text("Brand")
-                .font(.system(size: 13, weight: .semibold))
+                .font(JadeFont.headline)
             HStack(spacing: 12) {
                 swatch(JadeColor.jade50, "jade50")
                 swatch(JadeColor.jade500, "jade500")
@@ -194,7 +194,7 @@ extension NSColor {
             }
 
             Text("Neutral / Surface")
-                .font(.system(size: 13, weight: .semibold))
+                .font(JadeFont.headline)
             HStack(spacing: 12) {
                 swatch(JadeColor.surface1, "surface1")
                 swatch(JadeColor.surface2, "surface2")
@@ -203,7 +203,7 @@ extension NSColor {
             }
 
             Text("Status")
-                .font(.system(size: 13, weight: .semibold))
+                .font(JadeFont.headline)
             HStack(spacing: 12) {
                 swatch(JadeColor.success, "success")
                 swatch(JadeColor.danger, "danger")
@@ -212,13 +212,13 @@ extension NSColor {
             }
 
             Text("Text on surface")
-                .font(.system(size: 13, weight: .semibold))
+                .font(JadeFont.headline)
             VStack(alignment: .leading, spacing: 2) {
                 Text("textPrimary").foregroundStyle(JadeColor.textPrimary)
                 Text("textSecondary").foregroundStyle(JadeColor.textSecondary)
                 Text("textTertiary").foregroundStyle(JadeColor.textTertiary)
             }
-            .font(.system(size: 13))
+            .font(JadeFont.body)
         }
         .padding(24)
     }

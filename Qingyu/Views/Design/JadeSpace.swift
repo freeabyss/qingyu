@@ -49,7 +49,7 @@ extension View {
                     .fill(JadeColor.jade500)
                     .frame(width: s.value, height: 20)
                 Text(".\(String(describing: s)) = \(Int(s.value))px")
-                    .font(.system(size: 13))
+                    .font(JadeFont.body)
                     .foregroundStyle(JadeColor.textSecondary)
             }
         }
