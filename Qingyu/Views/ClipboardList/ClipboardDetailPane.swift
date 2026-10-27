@@ -46,6 +46,9 @@ struct ClipboardDetailPane: View {
     /// 富文本内容最小高度：160pt，仅用于剪贴板详情的 RTF 文本区；不并入 JadeSpace，那是间距档位，不是内容区高度。
     private static let richTextContentMinHeight: CGFloat = 160
 
+    /// 预览内容最小高度：120pt，仅用于剪贴板详情里图片、加载、缺失占位等预览内容区的保底高度，防止内容区塌陷；不并入 JadeSpace，那是间距档位，不是内容区高度。
+    private static let previewContentMinHeight: CGFloat = 120
+
     var body: some View {
         Group {
             if let item {
@@ -218,14 +221,14 @@ struct ClipboardDetailPane: View {
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(maxWidth: .infinity)
-                    .frame(minHeight: 120)
+                    .frame(minHeight: Self.previewContentMinHeight)
                     .jadeRadius(.md)
             } else if imageLoadFinished {
                 // Load finished without data → file missing / unreadable.
                 missingImagePlaceholder
             } else {
                 ProgressView()
-                    .frame(maxWidth: .infinity, minHeight: 120)
+                    .frame(maxWidth: .infinity, minHeight: Self.previewContentMinHeight)
             }
         case .file:
             fileContent(for: item)
@@ -254,7 +257,7 @@ struct ClipboardDetailPane: View {
                 .foregroundStyle(JadeColor.textSecondary)
                 .multilineTextAlignment(.center)
         }
-        .frame(maxWidth: .infinity, minHeight: 120)
+        .frame(maxWidth: .infinity, minHeight: Self.previewContentMinHeight)
         .jadePadding(.x4)
         .background(JadeColor.surface2)
         .jadeRadius(.md)
@@ -268,7 +271,7 @@ struct ClipboardDetailPane: View {
                 .jadePadding(.x3)
         } else if isRichTextLoading {
             ProgressView()
-                .frame(maxWidth: .infinity, minHeight: 120)
+                .frame(maxWidth: .infinity, minHeight: Self.previewContentMinHeight)
         } else {
             // Parse failed or resources missing — still show plain text as 文本.
             plainTextContent(item)
@@ -330,13 +333,13 @@ struct ClipboardDetailPane: View {
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(maxWidth: .infinity)
-                .frame(minHeight: 120)
+                .frame(minHeight: Self.previewContentMinHeight)
                 .jadeRadius(.md)
         } else if fileImageLoadFinished {
             missingImagePlaceholder
         } else {
             ProgressView()
-                .frame(maxWidth: .infinity, minHeight: 120)
+                .frame(maxWidth: .infinity, minHeight: Self.previewContentMinHeight)
         }
     }
 
