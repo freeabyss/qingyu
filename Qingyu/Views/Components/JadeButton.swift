@@ -77,7 +77,7 @@ private struct JadeButtonBody: View {
         case .primary:
             (pressed ? JadeColor.actionPressed : JadeColor.actionFill)
                 .overlay(alignment: .top) {
-                    LinearGradient(colors: [.white.opacity(pressed ? 0 : 0.07), .clear],
+                    LinearGradient(colors: [pressed ? Color.clear : JadeColor.primaryButtonHighlight, .clear],
                                    startPoint: .top, endPoint: .bottom)
                 }
         case .destructive:

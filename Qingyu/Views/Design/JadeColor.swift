@@ -71,6 +71,8 @@ public enum JadeColor {
     public static let filledButtonBorder = Color.white.opacity(0.12)
     /// 贴图颜色标签衬底：黑色 60% 不透明，用于颜色载荷十六进制文字在任意贴图颜色上的可读衬底；与 overlay 的 0.4 黑色遮罩角色不同，不合并。
     public static let pinColorScrim = Color.black.opacity(0.6)
+    /// 主按钮顶部高光：白色 7% 不透明，仅用于 JadeButton primary 填充顶部的渐变起点；按下时改用透明，与原先白色 0% 透明度在视觉上等价。
+    public static let primaryButtonHighlight = Color.white.opacity(0.07)
 
     /// NSColor 版本（供 AppKit 场景使用）
     public static let primaryNS = jade500NS
