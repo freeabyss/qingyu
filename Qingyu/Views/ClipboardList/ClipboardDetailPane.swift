@@ -37,6 +37,12 @@ struct ClipboardDetailPane: View {
     /// 详情面板最小宽度：280pt，仅用于剪贴板详情面板本体的最小宽度约束；不并入 JadeSpace，那是间距档位，不是面板宽度。
     private static let detailPaneMinWidth: CGFloat = 280
 
+    /// 放大预览最小宽度：880pt，仅用于剪贴板详情放大预览 sheet 的最小尺寸约束，与最小高度成组出现；不并入 JadeSpace，那是间距档位，不是窗口尺寸。
+    private static let maximizedPreviewMinWidth: CGFloat = 880
+
+    /// 放大预览最小高度：640pt，仅用于剪贴板详情放大预览 sheet 的最小尺寸约束，与最小宽度成组出现；不并入 JadeSpace，那是间距档位，不是窗口尺寸。
+    private static let maximizedPreviewMinHeight: CGFloat = 640
+
     var body: some View {
         Group {
             if let item {
@@ -93,7 +99,7 @@ struct ClipboardDetailPane: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .frame(minWidth: 880, minHeight: 640)
+            .frame(minWidth: Self.maximizedPreviewMinWidth, minHeight: Self.maximizedPreviewMinHeight)
             .background(JadeColor.surface1)
             .overlay(
                 Button(action: { isMaximized = false }) { EmptyView() }
