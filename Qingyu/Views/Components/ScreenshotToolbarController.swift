@@ -1378,7 +1378,7 @@ final class RegionStylePaletteView: NSView {
     @discardableResult
     private func addLabel(_ text: String, at x: CGFloat, y: CGFloat) -> CGFloat {
         let label = NSTextField(labelWithString: text)
-        label.font = NSFont.systemFont(ofSize: 9, weight: .medium)
+        label.font = JadeFont.appKitCaptionMedium
         label.textColor = .secondaryLabelColor
         label.sizeToFit()
         label.frame.origin = NSPoint(x: x, y: y + (Self.rowHeight - label.frame.height) / 2)
@@ -1755,7 +1755,7 @@ final class RegionStylePaletteView: NSView {
 
     private static func labelWidth(_ key: String) -> CGFloat {
         (L10n.localized(key) as NSString).size(withAttributes: [
-            .font: NSFont.systemFont(ofSize: 9, weight: .medium)
+            .font: JadeFont.appKitCaptionMedium
         ]).width
     }
 

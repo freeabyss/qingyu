@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 import XCTest
 @testable import Qingyu
 
@@ -26,6 +27,16 @@ final class JadeDesignTokenTests: XCTestCase {
     func testRowSizes() {
         XCTAssertEqual(JadeRowSize.compact.height, 44)
         XCTAssertEqual(JadeRowSize.comfortable.height, 64)
+    }
+
+    func testAppKitOverlayFontsMirrorJadeScale() {
+        // AppKit 叠层字号必须与 SwiftUI Jade 字阶一致，且不得低于 caption 下限 10pt：
+        // 旧代码里工具条标签是 9pt，放大镜已是 10pt，两者曾不一致。
+        XCTAssertEqual(JadeFont.appKitCaptionMedium.pointSize, 10)
+        XCTAssertEqual(JadeFont.appKitCallout.pointSize, 12)
+        XCTAssertEqual(JadeFont.appKitCalloutMedium.pointSize, 12)
+        XCTAssertEqual(JadeFont.appKitSubheadMedium.pointSize, 11)
+        XCTAssertGreaterThanOrEqual(JadeFont.appKitCaptionMedium.pointSize, 10)
     }
 
     func testBrandTextContrastMeetsWCAGAA() {

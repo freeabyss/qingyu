@@ -88,7 +88,7 @@ final class ScreenshotShortcutHintsView: NSView {
         guard !hints.isEmpty else { return }
 
         let attributes: [NSAttributedString.Key: Any] = [
-            .font: NSFont.systemFont(ofSize: 12, weight: .medium),
+            .font: JadeFont.appKitCalloutMedium,
             .foregroundColor: NSColor.white
         ]
         let keyGap: CGFloat = 18

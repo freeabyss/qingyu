@@ -947,7 +947,7 @@ final class CaptureOverlayContentView: NSView, NSTextFieldDelegate {
                 NSBezierPath(roundedRect: row, xRadius: 5, yRadius: 5).fill()
             }
             let attributes: [NSAttributedString.Key: Any] = [
-                .font: NSFont.systemFont(ofSize: 12),
+                .font: JadeFont.appKitCallout,
                 .foregroundColor: NSColor.white
             ]
             let text = NSAttributedString(string: label, attributes: attributes)
@@ -960,7 +960,7 @@ final class CaptureOverlayContentView: NSView, NSTextFieldDelegate {
     private func drawNotice() {
         guard let noticeText, !noticeText.isEmpty else { return }
         let attributes: [NSAttributedString.Key: Any] = [
-            .font: NSFont.systemFont(ofSize: 12),
+            .font: JadeFont.appKitCallout,
             .foregroundColor: NSColor.white
         ]
         let text = NSAttributedString(string: noticeText, attributes: attributes)
@@ -1008,7 +1008,7 @@ final class CaptureOverlayContentView: NSView, NSTextFieldDelegate {
     private func drawDimensions(for rect: NSRect) {
         let dimensionText = "\(Int(rect.width)) × \(Int(rect.height))"
         let attributes: [NSAttributedString.Key: Any] = [
-            .font: NSFont.systemFont(ofSize: 11, weight: .medium),
+            .font: JadeFont.appKitSubheadMedium,
             .foregroundColor: NSColor.white
         ]
         let textSize = dimensionText.size(withAttributes: attributes)

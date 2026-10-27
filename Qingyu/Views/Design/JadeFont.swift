@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 
 /// 系统字体层级。阅读文字使用语义样式，页标题与搜索输入保持克制。
 /// 视觉规范见 docs/prd/02-ui-spec.md；保持既有 API，避免各视图独立硬编码。
@@ -36,6 +37,23 @@ public enum JadeFont {
 
     /// 命令栏输入框:19pt regular（固定,配合 48px 输入行高）
     public static let commandBarInput = Font.system(size: 19, weight: .regular)
+}
+
+// MARK: - AppKit bridge
+
+/// AppKit 叠层文字与 SwiftUI Jade 字阶一一对应：叠层用 NSView/NSAttributedString
+/// 绘制，无法直接用 SwiftUI Font，之前各处各自硬编码字号，甚至出现低于
+/// Jade 最小字阶 caption（10pt）的 9pt 工具条标签。桥接常量锁死字号，
+/// 让叠层文字随 Jade 字阶一起审查，不再悄悄漂移。
+extension JadeFont {
+    /// 工具条字段标签：对应 JadeFont.caption（10pt medium）。
+    public static let appKitCaptionMedium = NSFont.systemFont(ofSize: 10, weight: .medium)
+    /// 预设选择器与内联提示：对应 JadeFont.callout（12pt regular）。
+    public static let appKitCallout = NSFont.systemFont(ofSize: 12)
+    /// 快捷键提示胶囊：对应 callout 字号、medium 字重。
+    public static let appKitCalloutMedium = NSFont.systemFont(ofSize: 12, weight: .medium)
+    /// 选区尺寸标注：对应 JadeFont.subhead（11pt medium）。
+    public static let appKitSubheadMedium = NSFont.systemFont(ofSize: 11, weight: .medium)
 }
 
 // MARK: - Preview
