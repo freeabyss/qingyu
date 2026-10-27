@@ -99,8 +99,9 @@ private struct ToolPill: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: JadeSpace.x1.value) {
+                // 工具图标只用 medium 一种字重：图标 12pt、名称 11pt，层级靠 1pt 字号差，不再混用 semibold / medium。
                 Image(systemName: tool.systemImage)
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(JadeFont.calloutMedium)
                     .accessibilityHidden(true)
                 Text(tool.displayName)
                     .font(JadeFont.subhead)

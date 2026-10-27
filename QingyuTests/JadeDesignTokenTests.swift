@@ -48,6 +48,16 @@ final class JadeDesignTokenTests: XCTestCase {
         XCTAssertEqual(JadeFont.appKitSubheadMedium.pointSize - JadeFont.appKitCaptionMedium.pointSize, 1)
     }
 
+    func testToolPillFontsFollowCalloutMediumAndSubhead() {
+        // 标注工具条 ToolPill（SwiftUI：calloutMedium / subhead）与 AppKit 桥接共用
+        // calloutMedium 12pt / subhead 11pt 两个字阶：pill 内层级只靠 1pt 字号差，
+        // 不靠 semibold / medium 混用。SwiftUI Font 本身不可直接判等，此处以
+        // AppKit 桥接常量为代理锁死字阶对应关系。
+        XCTAssertEqual(JadeFont.appKitCalloutMedium.pointSize, 12)
+        XCTAssertEqual(JadeFont.appKitSubheadMedium.pointSize, 11)
+        XCTAssertEqual(JadeFont.appKitCalloutMedium.pointSize - JadeFont.appKitSubheadMedium.pointSize, 1)
+    }
+
     func testBrandTextContrastMeetsWCAGAA() {
         XCTAssertGreaterThanOrEqual(contrast(0x4D6487, 0xFCFCFD), 4.5, "浅色品牌文字 on surface1")
         XCTAssertGreaterThanOrEqual(contrast(0xB2C4DF, 0x202226), 4.5, "深色品牌文字 on surface1")
