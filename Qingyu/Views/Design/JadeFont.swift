@@ -63,6 +63,12 @@ public enum JadeFont {
     /// 命令栏结果贴片图标：15pt semibold（固定），用于 32x32 结果贴片内的符号图标，与 15pt medium 的 toolbarIconLabeled 区分，颜色仍由各处自定。
     public static let resultTileIcon = Font.system(size: 15, weight: .semibold)
 
+    /// 设置侧栏图标：14pt medium（固定），用于设置侧栏 18x18 图标，与 30pt 命中区的 toolbarIcon 区分，颜色仍由各处自定。
+    public static let settingsSidebarIcon = Font.system(size: 14, weight: .medium)
+
+    /// 设置页首图标：18pt semibold（固定），用于设置页首 28x28 标题辅助图标，颜色仍由各处自定。
+    public static let settingsHeaderIcon = Font.system(size: 18, weight: .semibold)
+
     public static let commandBarInput = Font.system(size: 19, weight: .regular)
 }
 
@@ -106,6 +112,8 @@ extension JadeFont {
                 Text("smallIconSemibold · 12 semibold").font(JadeFont.smallIconSemibold)
                 Text("previewTextMono · 14 monospaced").font(JadeFont.previewTextMono)
                 Text("resultTileIcon · 15 semibold").font(JadeFont.resultTileIcon)
+                Text("settingsSidebarIcon · 14 medium").font(JadeFont.settingsSidebarIcon)
+                Text("settingsHeaderIcon · 18 semibold").font(JadeFont.settingsHeaderIcon)
                 Text("commandBarInput · 19 regular").font(JadeFont.commandBarInput)
             }
             .foregroundStyle(JadeColor.textPrimary)

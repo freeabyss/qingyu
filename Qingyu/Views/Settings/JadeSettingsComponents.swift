@@ -8,7 +8,7 @@ struct SettingsSidebarIcon: View {
 
     var body: some View {
         Image(systemName: systemImage)
-            .font(.system(size: 14, weight: .medium))
+            .font(JadeFont.settingsSidebarIcon)
             .foregroundStyle(JadeColor.textSecondary)
             .frame(width: 18, height: 18)
             .accessibilityHidden(true)
@@ -21,7 +21,7 @@ struct SettingsHeaderIcon: View {
 
     var body: some View {
         Image(systemName: systemImage)
-            .font(.system(size: 18, weight: .semibold))
+            .font(JadeFont.settingsHeaderIcon)
             .foregroundStyle(JadeColor.primary)
             .frame(width: 28, height: 28)
             .accessibilityHidden(true)
