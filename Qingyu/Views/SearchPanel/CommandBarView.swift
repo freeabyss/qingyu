@@ -122,7 +122,7 @@ struct CommandBarView: View {
     /// 空查询没有结果区，也就不绘制这条线。
     private var inputHairline: some View {
         Rectangle()
-            .fill(isInputFocused ? JadeColor.primary.opacity(0.65) : JadeColor.border)
+            .fill(isInputFocused ? JadeColor.focusBorder : JadeColor.border)
             .frame(height: isInputFocused ? 2 : 1)
     }
 

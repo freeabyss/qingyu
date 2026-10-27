@@ -100,7 +100,7 @@ struct ClipboardHistoryView: View {
         .overlay(
             JadeRadius.lg.shape
                 .strokeBorder(
-                    searchFocused ? JadeColor.primary.opacity(0.65) : JadeColor.border,
+                    searchFocused ? JadeColor.focusBorder : JadeColor.border,
                     lineWidth: searchFocused ? 1.5 : 1
                 )
         )
