@@ -4073,6 +4073,42 @@
         }
       }
     },
+    "a11y.state.unavailable" : {
+      "comment" : "T-017 a11y: unavailable state",
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unavailable"
+          },
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不可用"
+          },
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法使用"
+          },
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "利用できません"
+          },
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Indisponible"
+          },
+        }
+      }
+    },
     "about.checkUpdates" : {
       "comment" : "Check updates action title",
       "extractionState" : "stale",
