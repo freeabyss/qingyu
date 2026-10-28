@@ -19,8 +19,6 @@ struct ClipboardHistoryView: View {
     /// 状态栏高度：36pt，仅用于剪贴板历史窗口底部的状态栏；只定高，宽度随窗口而定，不并入 JadeSpace，那是间距档位，不是状态栏高度。
     private static let statusBarHeight: CGFloat = 36
 
-    /// 筛选标签选中下划线高度：2pt，仅用于剪贴板历史筛选标签底部的选中指示条；不并入 JadeSpace，那是间距档位，不是线条粗细。
-    private static let filterChipUnderlineHeight: CGFloat = 2
 
     /// 搜索栏最小高度：40pt，仅用于剪贴板历史顶部的搜索输入框；宽度撑满，只保底高度，不并入 JadeSpace，那是间距档位，不是控件高度。
     private static let searchInputMinHeight: CGFloat = 40
@@ -145,12 +143,9 @@ struct ClipboardHistoryView: View {
             Text(filter.title)
                 .font(JadeFont.caption.weight(isSelected ? .semibold : .regular))
                 .foregroundStyle(isSelected ? JadeColor.primary : JadeColor.textSecondary)
+                .jadePadding(.horizontal, .x2)
                 .jadePadding(.vertical, .x1)
-                .overlay(alignment: .bottom) {
-                    Rectangle()
-                        .fill(isSelected ? JadeColor.primary : Color.clear)
-                        .frame(height: Self.filterChipUnderlineHeight)
-                }
+                .background(isSelected ? JadeColor.primaryFill : Color.clear, in: JadeRadius.md.shape)
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("clipboard.filterChip.\(filter.rawValue)")
