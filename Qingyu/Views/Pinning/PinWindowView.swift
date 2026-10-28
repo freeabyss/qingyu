@@ -110,6 +110,9 @@ final class PinEventContainerView: NSView {
     static let hoverHintHeight: CGFloat = 18
     static let hoverHintInset = JadeSpace.x2.value
 
+    /// 悬停提示标签底色：窗口背景色 0.78，盖在贴图之上仍可读；是动态窗口背景色（跟随浅色/深色外观），不是固定黑/白画布对比色；与截图遮罩层预设面板黑 0.78 同值但底色来源与组件不同，不跨组件合并。
+    private static let hintLabelBackground: NSColor = NSColor.windowBackgroundColor.withAlphaComponent(0.78)
+
     var onScale: ((CGFloat) -> Void)?                 // 滚轮 / `+/-`
     var onRotate: ((Int) -> Void)?                    // `1`/`2`，传入顺时针四分之一圈数
     var onFlipHorizontally: (() -> Void)?             // `3`
@@ -139,7 +142,7 @@ final class PinEventContainerView: NSView {
         label.alignment = .center
         label.lineBreakMode = .byTruncatingTail
         label.drawsBackground = true
-        label.backgroundColor = NSColor.windowBackgroundColor.withAlphaComponent(0.78)
+        label.backgroundColor = Self.hintLabelBackground
         label.isBezeled = false
         label.isEditable = false
         label.isSelectable = false

@@ -157,6 +157,9 @@ final class AnnotationCanvasNSView: NSView {
     /// 原地标注（叠层上编辑）复用同一份容差，两处手感必须一致。
     static let hitTolerance: CGFloat = 3
 
+    /// 标注画布底色：固定黑色，图像 letterbox 区域与图层底色一致，画在图像之下；是固定画布对比色（图像底色，不跟随浅色/深色外观），不并入 Jade 动态色；draw 填充与 Representable 图层底色同组件同角色共用，不与遮罩层压暗、提示胶囊等黑透明色合并。
+    static let canvasBackground: NSColor = NSColor.black
+
     weak var state: AnnotationCanvasState?
     var onRequestTextInput: ((CGPoint, @escaping (String?) -> Void) -> Void)?
 
@@ -191,7 +194,7 @@ final class AnnotationCanvasNSView: NSView {
         let height = imageSize.height * scale
         drawnImageRect = CGRect(x: (bounds.width - width) / 2, y: (bounds.height - height) / 2, width: width, height: height)
 
-        NSColor.black.setFill()
+        Self.canvasBackground.setFill()
         bounds.fill()
         image.draw(in: drawnImageRect, from: .zero, operation: .copy, fraction: 1)
 
@@ -433,7 +436,7 @@ struct AnnotationCanvasView: NSViewRepresentable {
         view.state = state
         view.onRequestTextInput = onRequestTextInput
         view.wantsLayer = true
-        view.layer?.backgroundColor = NSColor.black.cgColor
+        view.layer?.backgroundColor = AnnotationCanvasNSView.canvasBackground.cgColor
         return view
     }
 
