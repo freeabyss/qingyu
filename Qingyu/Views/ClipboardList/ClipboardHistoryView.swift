@@ -4,7 +4,7 @@ import SwiftUI
 /// Qingyu clipboard history window (PRD P-02).
 ///
 /// Borderless chrome: full-width search + chips on top; **list on the left,
-/// detail on the right**. List rows show pin/copy/delete icons always.
+/// detail on the right**. List rows show pin / favorite / copy / delete icons always.
 /// Keyboard: ⌘F focus search, ↑↓ / jk move, ⏎ / ⌘C copy & close, ⌫ delete.
 struct ClipboardHistoryView: View {
     @ObservedObject var viewModel: ClipboardListViewModel
@@ -23,8 +23,8 @@ struct ClipboardHistoryView: View {
     /// 搜索栏最小高度：40pt，仅用于剪贴板历史顶部的搜索输入框；宽度撑满，只保底高度，不并入 JadeSpace，那是间距档位，不是控件高度。
     private static let searchInputMinHeight: CGFloat = 40
 
-    /// 窗口最小宽度：720pt，仅用于剪贴板历史窗口的最小尺寸约束，与最小高度成组出现；不并入 JadeSpace，那是间距档位，不是窗口尺寸。
-    private static let windowMinWidth: CGFloat = 720
+    /// 窗口最小宽度：860pt，等于窗口打开时的默认宽度（见 ClipboardHistoryWindowController 的 contentRect），仅用于剪贴板历史窗口的最小尺寸约束，与最小高度成组出现；不并入 JadeSpace，那是间距档位，不是窗口尺寸。720pt 时文件行 6 个操作占 212pt，标题只剩约 43pt，缩到打开尺寸以下即不可读，故下限定为打开尺寸。
+    private static let windowMinWidth: CGFloat = 860
 
     /// 窗口最小高度：420pt，仅用于剪贴板历史窗口的最小尺寸约束，与最小宽度成组出现；不并入 JadeSpace，那是间距档位，不是窗口尺寸。
     private static let windowMinHeight: CGFloat = 420
