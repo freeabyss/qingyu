@@ -186,11 +186,11 @@ extension NSColor {
 #Preview("JadeColor · Light / Dark") {
     func swatch(_ color: Color, _ name: String) -> some View {
         VStack(spacing: 4) {
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
+            JadeRadius.md.shape
                 .fill(color)
                 .frame(width: 64, height: 40)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    JadeRadius.md.shape
                         .strokeBorder(JadeColor.border, lineWidth: 1)
                 )
             Text(name)
