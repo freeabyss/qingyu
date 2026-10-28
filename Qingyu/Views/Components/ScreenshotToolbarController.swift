@@ -176,6 +176,8 @@ final class ScreenshotToolbarController {
     private var annotationStyle = AnnotationStyle()
     /// 草稿态（区域已定、尚未捕获）的按需捕获闭包；nil 表示当前不是草稿态。
     private var draftCapture: (() async throws -> ScreenshotResult)?
+    /// 标注态捕获失败时的用户可见反馈回调。草稿动作失败已由 performCapture 弹窗，本回调只在 annotationCapture 路径调用，避免重复弹窗；未设置时保持原有仅记日志行为。
+    var onCaptureFailure: ((Error) -> Void)?
     /// 是否正显示区域草稿工具条（选区已定、**尚未**捕获）。
     private(set) var isShowingRegionDraft = false
 
@@ -421,6 +423,7 @@ final class ScreenshotToolbarController {
             handle(action: action, result: flattened, viewModel: resultViewModel)
         } catch {
             logger.error("Annotated action failed: \(error.localizedDescription, privacy: .public)")
+            if annotationCapture != nil { onCaptureFailure?(error) }
             dismiss(reason: .action)
         }
     }
@@ -494,6 +497,7 @@ final class ScreenshotToolbarController {
             logger.info("In-place annotation active for the locked region")
         } catch {
             logger.error("Annotation capture failed: \(error.localizedDescription, privacy: .public)")
+            if annotationCapture != nil { onCaptureFailure?(error) }
             dismiss(reason: .action)
         }
     }

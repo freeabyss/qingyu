@@ -229,6 +229,7 @@ final class ScreenshotWindowController {
             NotificationCenter.default.post(name: .screenshotOverlayDidCancel, object: nil)
         }
 
+        toolbar.onCaptureFailure = { [weak self] error in self?.handleCaptureError(error, restoreCommandBar: wasCommandBarVisible) }
         session.start()
         // 让叠层窗口立即成为活动 key 窗口：鼠标首击直接进入拖拽，Esc 立即可用。
         NSApp.activate(ignoringOtherApps: true)

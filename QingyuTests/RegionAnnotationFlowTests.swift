@@ -325,6 +325,44 @@ final class RegionAnnotationFlowTests: XCTestCase {
         )
     }
 
+    /// SHOT-LIFE-026: 标注态捕获失败必须有用户可见反馈回调，而不是只记日志就收起工具条。
+    func testAnnotatedActionFailureReportsThroughOnCaptureFailure() async {
+        let controller = ScreenshotToolbarController()
+        let host = AnnotationHostSpy()
+        var failureCount = 0
+        controller.onCaptureFailure = { _ in failureCount += 1 }
+        controller.showRegionDraft(
+            globalRect: selection,
+            screenFrame: screenFrame,
+            capture: { throw SnapVaultError.screenshotFailed(reason: "unused") },
+            annotationCapture: { throw SnapVaultError.screenshotFailed(reason: "test capture failed") },
+            onDismiss: {},
+            annotationHost: host
+        )
+        await controller.performAnnotatedActionForTesting(.copy)
+        XCTAssertEqual(failureCount, 1)
+        XCTAssertFalse(controller.isShowingRegionDraft)
+        XCTAssertNil(controller.window)
+    }
+
+    /// SHOT-LIFE-026b: 进入原地标注时捕获失败同样必须走失败回调。
+    func testDraftAnnotationFailureReportsThroughOnCaptureFailure() async {
+        let controller = ScreenshotToolbarController()
+        let host = AnnotationHostSpy()
+        var failureCount = 0
+        controller.onCaptureFailure = { _ in failureCount += 1 }
+        controller.showRegionDraft(
+            globalRect: selection,
+            screenFrame: screenFrame,
+            capture: { throw SnapVaultError.screenshotFailed(reason: "unused") },
+            annotationCapture: { throw SnapVaultError.screenshotFailed(reason: "test capture failed") },
+            onDismiss: {},
+            annotationHost: host
+        )
+        await controller.performDraftAnnotation(tool: .rectangle)
+        XCTAssertEqual(failureCount, 1)
+        XCTAssertFalse(controller.isShowingRegionDraft)
+    }
     private func mouseEvent(_ type: NSEvent.EventType, at point: NSPoint) throws -> NSEvent {
         try XCTUnwrap(NSEvent.mouseEvent(
             with: type,

@@ -1307,6 +1307,10 @@ MVP 暂不覆盖：
 - **步骤**：断言线工具面板有自定义颜色与取色器按钮，且粗细按钮带图标（不是 S/M/L 标题）；断言文字面板有字体按钮与字号按钮，点第 2 个字体、第 3 个字号后 `AnnotationStyle` 分别更新；断言 `AnnotationTool.toolbarTools` 不含 `.polyline` 且数量比 `allCases` 少 1；给 `style.customColor` 设置带 alpha 的颜色后断言 `nsColor` 使用自定义色并保留 alpha。
 - **预期结果**：色块缩小为小方块；颜色可自定义（系统颜色面板含不透明度）或用屏幕取色器拾取；大小用线条/圆点图标表达；文字可选字体与字号；区域工具条不再出现折线工具。
 
+#### SHOT-LIFE-026：标注态捕获失败必须有用户可见反馈
+- **关联**：用户反馈截图动作失败后工具条悄悄消失、无任何说明 ｜ **优先级**：P0 ｜ **类型**：XCTest ｜ **文件**：`QingyuTests/RegionAnnotationFlowTests.swift`（`testAnnotatedActionFailureReportsThroughOnCaptureFailure` / `testDraftAnnotationFailureReportsThroughOnCaptureFailure`）
+- **步骤**：给工具条设置失败回调并传入会抛错的 annotationCapture，分别驱动标注态复制动作与进入原地标注；断言回调恰好触发一次、工具条收起；生产路径中该回调接到 ScreenshotWindowController.handleCaptureError，走与普通捕获失败一致的弹窗与命令条恢复，且用户取消时不弹窗。
+- **预期结果**：标注后点复制、保存、贴图失败时不再静默消失；进入标注时捕获失败同样有反馈；草稿路径仍由 performCapture 弹窗，不重复弹窗；未设置回调的测试宿主保持原有仅记日志行为。
 #### SHOT-LIFE-008：真实交互冒烟
 - **优先级**：P0 ｜ **类型**：手工
 - **时机**：发版前，以及任何截图链路（叠层、会话、完成协调器）改动之后。
