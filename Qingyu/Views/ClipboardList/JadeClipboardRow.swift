@@ -112,9 +112,10 @@ struct JadeClipboardRow: View {
         "\(primaryText), \(subtitleText)"
     }
 
-    /// 置顶 / 收藏状态拼成 value。
+    /// 选中 / 置顶状态拼成 value，沿用命令栏同一套 a11y.state.* 键。
     private var accessibilityStateText: String {
         var parts: [String] = []
+        if selected { parts.append(L10n.localized("a11y.state.selected")) }
         if item.isPinned { parts.append(L10n.localized("a11y.state.pinned")) }
         return parts.joined(separator: ", ")
     }
