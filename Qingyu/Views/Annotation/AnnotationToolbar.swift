@@ -153,6 +153,18 @@ private struct ColorSwatch: View {
     /// 白色色块边框线宽：1pt，仅用于白色色块在浅色背景上可见的描边，非白色色块无描边；不并入 JadeSpace，那是间距档位，不是线宽。
     private static let whiteSwatchBorderLineWidth: CGFloat = 1
 
+    /// 色块悬停阴影不透明度：0.35，仅用于颜色色块悬停时的阴影加深；与未悬停 0.12 角色不同，不合并；与 JadeShadow 各档的通用阴影角色不同，不并入。
+    private static let hoverShadowOpacity: Double = 0.35
+
+    /// 色块未悬停阴影不透明度：0.12，仅用于颜色色块常态下的轻微阴影；与悬停 0.35 角色不同，不合并。
+    private static let restingShadowOpacity: Double = 0.12
+
+    /// 色块悬停阴影半径：3pt，仅用于颜色色块悬停时的阴影扩散；与未悬停 1pt 角色不同，不合并。
+    private static let hoverShadowRadius: CGFloat = 3
+
+    /// 色块未悬停阴影半径：1pt，仅用于颜色色块常态下的轻微阴影扩散；与悬停 3pt 角色不同，不合并。
+    private static let restingShadowRadius: CGFloat = 1
+
     var body: some View {
         Button(action: action) {
             Circle()
@@ -161,7 +173,7 @@ private struct ColorSwatch: View {
                 .overlay(Circle().stroke(JadeColor.border, lineWidth: color == .white ? Self.whiteSwatchBorderLineWidth : 0))
                 // 选中态：Jade 2pt 色环，直径 30pt。
                 .overlay(Circle().stroke(selected ? JadeColor.primary : Color.clear, lineWidth: Self.selectedRingLineWidth).frame(width: Self.tileSize, height: Self.tileSize))
-                .shadow(color: .black.opacity(hovering ? 0.35 : 0.12), radius: hovering ? 3 : 1)
+                .shadow(color: .black.opacity(hovering ? Self.hoverShadowOpacity : Self.restingShadowOpacity), radius: hovering ? Self.hoverShadowRadius : Self.restingShadowRadius)
         }
         .buttonStyle(.plain)
         .frame(width: Self.tileSize, height: Self.tileSize)
