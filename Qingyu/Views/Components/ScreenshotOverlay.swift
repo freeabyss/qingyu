@@ -828,6 +828,39 @@ final class CaptureOverlayContentView: NSView, NSTextFieldDelegate {
         )
     }
 
+    /// 全屏压暗：黑 0.3，一次性铺满整屏；与预设面板 0.78、提示框 0.72、尺寸徽标 0.7 透明度与角色不同，不合并；不跨组件合并。
+    private static let dimFill: NSColor = NSColor.black.withAlphaComponent(0.3)
+
+    /// 窗口高亮填充：Jade 主色 0.2，配 2pt 主色描边；与控件高亮 0.12、预设选中 0.35、对齐线 0.65 透明度与角色不同，不合并。
+    private static let windowHighlightFill: NSColor = JadeColor.primaryNS.withAlphaComponent(0.2)
+
+    /// 控件高亮填充：Jade 主色 0.12，配 1pt 主色描边，比窗口高亮更淡，嵌套时可区分；不与窗口高亮合并。
+    private static let elementHighlightFill: NSColor = JadeColor.primaryNS.withAlphaComponent(0.12)
+
+    /// 选区边框：固定白色 2pt 描边，画在压暗与挖空之上；是描边角色，不与白色文字合并，固定画布对比色不并入 Jade 动态色。
+    private static let regionBorder: NSColor = NSColor.white
+
+    /// 预设清单面板底色：黑 0.78；与压暗 0.3、提示框 0.72、尺寸徽标 0.7 不同，不合并。
+    private static let presetPanelFill: NSColor = NSColor.black.withAlphaComponent(0.78)
+
+    /// 预设清单选中行底色：Jade 主色 0.35；与窗口、控件高亮填充透明度不同，不合并。
+    private static let presetSelectedFill: NSColor = JadeColor.primaryNS.withAlphaComponent(0.35)
+
+    /// 叠层白色文字：预设清单、内联提示、尺寸徽标三处同为深色底上的白色文字，同组件同角色共用；不与白色选区边框（描边角色）合并。
+    private static let overlayText: NSColor = NSColor.white
+
+    /// 内联提示框底色：黑 0.72；与预设面板 0.78、尺寸徽标 0.7、压暗 0.3 不同，不合并。
+    private static let noticeFill: NSColor = NSColor.black.withAlphaComponent(0.72)
+
+    /// 对齐辅助线描边：Jade 主色 0.65 虚线；与中心十字白 0.35 颜色与角色不同，不合并。
+    private static let guideStroke: NSColor = JadeColor.primaryNS.withAlphaComponent(0.65)
+
+    /// 屏幕中心十字描边：白 0.35 虚线；与选区边框不透明白、白色文字角色不同，不合并。
+    private static let centerGuideStroke: NSColor = NSColor.white.withAlphaComponent(0.35)
+
+    /// 尺寸徽标底色：黑 0.7；与提示框 0.72、预设面板 0.78、压暗 0.3 不同，不合并。
+    private static let dimensionLabelFill: NSColor = NSColor.black.withAlphaComponent(0.7)
+
     // MARK: Drawing
 
     override func draw(_ dirtyRect: NSRect) {
@@ -857,7 +890,7 @@ final class CaptureOverlayContentView: NSView, NSTextFieldDelegate {
         // 非活动屏仍保留窗口以接收指针事件，否则指针移过去时无人上报、会话卡在原屏。
         guard isActiveDisplay else { return }
 
-        NSColor.black.withAlphaComponent(0.3).set()
+        Self.dimFill.set()
         bounds.fill()
 
         // 活动屏：窗口高亮（穿透显示 + Jade 边框）。
@@ -866,7 +899,7 @@ final class CaptureOverlayContentView: NSView, NSTextFieldDelegate {
             NSColor.clear.set()
             local.fill(using: .copy)
 
-            JadeColor.primaryNS.withAlphaComponent(0.2).setFill()
+            Self.windowHighlightFill.setFill()
             NSBezierPath(rect: local).fill()
             JadeColor.primaryNS.set()
             let border = NSBezierPath(rect: local)
@@ -881,7 +914,7 @@ final class CaptureOverlayContentView: NSView, NSTextFieldDelegate {
             NSColor.clear.set()
             local.fill(using: .copy)
 
-            JadeColor.primaryNS.withAlphaComponent(0.12).setFill()
+            Self.elementHighlightFill.setFill()
             NSBezierPath(rect: local).fill()
             JadeColor.primaryNS.set()
             let elementBorder = NSBezierPath(rect: local)
@@ -895,7 +928,7 @@ final class CaptureOverlayContentView: NSView, NSTextFieldDelegate {
             NSColor.clear.set()
             local.fill(using: .copy)
 
-            NSColor.white.set()
+            Self.regionBorder.set()
             let border = NSBezierPath(rect: local)
             border.lineWidth = 2
             border.stroke()
@@ -930,7 +963,7 @@ final class CaptureOverlayContentView: NSView, NSTextFieldDelegate {
         guard let selection = presetPickerSelection, !presetPickerItems.isEmpty else { return }
         let panel = Self.presetPickerFrame(itemCount: presetPickerItems.count, in: bounds)
 
-        NSColor.black.withAlphaComponent(0.78).setFill()
+        Self.presetPanelFill.setFill()
         NSBezierPath(roundedRect: panel, xRadius: 8, yRadius: 8).fill()
 
         for (index, label) in presetPickerItems.enumerated() {
@@ -943,12 +976,12 @@ final class CaptureOverlayContentView: NSView, NSTextFieldDelegate {
                 height: Self.presetPickerRowHeight
             )
             if index == selection {
-                JadeColor.primaryNS.withAlphaComponent(0.35).setFill()
+                Self.presetSelectedFill.setFill()
                 NSBezierPath(roundedRect: row, xRadius: 5, yRadius: 5).fill()
             }
             let attributes: [NSAttributedString.Key: Any] = [
                 .font: JadeFont.appKitCallout,
-                .foregroundColor: NSColor.white
+                .foregroundColor: Self.overlayText
             ]
             let text = NSAttributedString(string: label, attributes: attributes)
             let size = text.size()
@@ -961,7 +994,7 @@ final class CaptureOverlayContentView: NSView, NSTextFieldDelegate {
         guard let noticeText, !noticeText.isEmpty else { return }
         let attributes: [NSAttributedString.Key: Any] = [
             .font: JadeFont.appKitCallout,
-            .foregroundColor: NSColor.white
+            .foregroundColor: Self.overlayText
         ]
         let text = NSAttributedString(string: noticeText, attributes: attributes)
         let size = text.size()
@@ -971,7 +1004,7 @@ final class CaptureOverlayContentView: NSView, NSTextFieldDelegate {
             width: size.width + 24,
             height: size.height + 12
         )
-        NSColor.black.withAlphaComponent(0.72).setFill()
+        Self.noticeFill.setFill()
         NSBezierPath(roundedRect: box, xRadius: 6, yRadius: 6).fill()
         text.draw(at: NSPoint(x: box.minX + 12, y: box.midY - size.height / 2))
     }
@@ -991,7 +1024,7 @@ final class CaptureOverlayContentView: NSView, NSTextFieldDelegate {
             regionPath.move(to: NSPoint(x: bounds.minX, y: y))
             regionPath.line(to: NSPoint(x: bounds.maxX, y: y))
         }
-        JadeColor.primaryNS.withAlphaComponent(0.65).setStroke()
+        Self.guideStroke.setStroke()
         regionPath.stroke()
 
         let centerPath = NSBezierPath()
@@ -1001,7 +1034,7 @@ final class CaptureOverlayContentView: NSView, NSTextFieldDelegate {
         centerPath.line(to: NSPoint(x: bounds.midX, y: bounds.maxY))
         centerPath.move(to: NSPoint(x: bounds.minX, y: bounds.midY))
         centerPath.line(to: NSPoint(x: bounds.maxX, y: bounds.midY))
-        NSColor.white.withAlphaComponent(0.35).setStroke()
+        Self.centerGuideStroke.setStroke()
         centerPath.stroke()
     }
 
@@ -1009,7 +1042,7 @@ final class CaptureOverlayContentView: NSView, NSTextFieldDelegate {
         let dimensionText = "\(Int(rect.width)) × \(Int(rect.height))"
         let attributes: [NSAttributedString.Key: Any] = [
             .font: JadeFont.appKitSubheadMedium,
-            .foregroundColor: NSColor.white
+            .foregroundColor: Self.overlayText
         ]
         let textSize = dimensionText.size(withAttributes: attributes)
         let padding: CGFloat = 8
@@ -1020,7 +1053,7 @@ final class CaptureOverlayContentView: NSView, NSTextFieldDelegate {
             height: textSize.height + padding
         )
         let background = NSBezierPath(roundedRect: labelRect, xRadius: 8, yRadius: 8)
-        NSColor.black.withAlphaComponent(0.7).set()
+        Self.dimensionLabelFill.set()
         background.fill()
 
         let textRect = NSRect(
