@@ -4081,31 +4081,31 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Unavailable"
-          },
+          }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "不可用"
-          },
+          }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "無法使用"
-          },
+          }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "利用できません"
-          },
+          }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Indisponible"
-          },
+          }
         }
       }
     },
