@@ -63,6 +63,12 @@ final class ScreenshotShortcutHintsView: NSView {
     static let accessibilityIdentifierValue = "screenshot.shortcutHints"
     static let edgeInset: CGFloat = 16
 
+    /// 快捷键提示胶囊底色：黑 0.7，盖在截图压暗层之上仍可读；与遮罩层尺寸徽标黑 0.7 同值但属不同组件、不同徽标角色，不跨组件合并；与提示框 0.72、预设面板 0.78 透明度与角色不同，不合并。
+    private static let pillFill: NSColor = NSColor.black.withAlphaComponent(0.7)
+
+    /// 快捷键提示文字：固定白色，画在黑 0.7 胶囊之上；是文字角色，不与白色选区边框（描边角色）合并，固定画布对比色不并入 Jade 动态色；与遮罩层 overlayText 同值但属不同组件，不跨组件合并。
+    private static let hintText: NSColor = NSColor.white
+
     private var hintKeys: [String] = []
 
     init(hintKeys: [String] = ScreenshotShortcutHints.windowSelectionKeys) {
@@ -89,7 +95,7 @@ final class ScreenshotShortcutHintsView: NSView {
 
         let attributes: [NSAttributedString.Key: Any] = [
             .font: JadeFont.appKitCalloutMedium,
-            .foregroundColor: NSColor.white
+            .foregroundColor: Self.hintText
         ]
         let keyGap: CGFloat = 18
         let padding: CGFloat = 10
@@ -118,7 +124,7 @@ final class ScreenshotShortcutHintsView: NSView {
                 height: pillRect.height
             )
             let pill = NSBezierPath(roundedRect: frame, xRadius: 8, yRadius: 8)
-            NSColor.black.withAlphaComponent(0.7).set()
+            Self.pillFill.set()
             pill.fill()
 
             let textSize = hint.size(withAttributes: attributes)
