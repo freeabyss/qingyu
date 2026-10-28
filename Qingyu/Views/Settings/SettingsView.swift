@@ -428,6 +428,10 @@ private struct AboutPage: View {
 // MARK: - Feedback section (merged into About, Task 004)
 
 private struct FeedbackSection: View {
+
+    /// 反馈详情输入框最小高度：90pt，仅用于反馈详情 TextEditor 最小高度；与其它高度角色不同，不合并。
+    private static let feedbackDetailsMinHeight: CGFloat = 90
+
     private let about = BundleAboutInfoProvider().info
     private let feedbackService: FeedbackServiceProtocol = FeedbackEmailService()
     private let opener: ReleaseURLOpening = NSWorkspace.shared
@@ -463,7 +467,7 @@ private struct FeedbackSection: View {
 
             TextEditor(text: $details)
                 .font(JadeFont.body)
-                .frame(minHeight: 90)
+                .frame(minHeight: Self.feedbackDetailsMinHeight)
                 .jadePadding(.x1)
                 .background(JadeColor.surface1)
                 .jadeRadius(.md)
@@ -507,6 +511,13 @@ private struct FeedbackSection: View {
 // MARK: - Blacklist management (preserved from prior SettingsView)
 
 struct BlacklistManagementSection: View {
+
+    /// 黑名单来源选择器最大宽度：180pt，仅用于黑名单来源 Picker 最大宽度；与类型输入框 220pt 角色不同，不合并。
+    private static let blacklistSourceMaxWidth: CGFloat = 180
+
+    /// 黑名单类型输入框最大宽度：220pt，仅用于黑名单类型 TextField 最大宽度；与来源选择器 180pt 角色不同，不合并。
+    private static let blacklistTypeMaxWidth: CGFloat = 220
+
     @ObservedObject var viewModel: SettingsViewModel
 
     var body: some View {
@@ -519,13 +530,13 @@ struct BlacklistManagementSection: View {
                             Text(option.label).tag(option.id.rawValue)
                         }
                     }
-                    .frame(maxWidth: 180)
+                    .frame(maxWidth: Self.blacklistSourceMaxWidth)
                     TextField(L10n.localized("management.blacklist.resultID"), text: $viewModel.newBlacklistResultID)
                     TextField(L10n.localized("management.blacklist.titleField"), text: $viewModel.newBlacklistTitle)
                     }
                     HStack(spacing: JadeSpace.x3.value) {
                     TextField(L10n.localized("management.blacklist.type"), text: $viewModel.newBlacklistType)
-                        .frame(maxWidth: 220)
+                        .frame(maxWidth: Self.blacklistTypeMaxWidth)
                     Button(L10n.localized("management.blacklist.add")) {
                         Task { await viewModel.addBlacklistItem() }
                     }
@@ -685,6 +696,10 @@ struct SettingsSection<Content: View>: View {
 
 /// A labeled switch row (Jade tinted toggle), optional icon + subtitle.
 struct JadeSwitchRow: View {
+
+    /// 开关行图标宽度：20pt，仅用于开关行左侧图标列宽；与其它列宽角色不同，不合并。
+    private static let switchIconWidth: CGFloat = 20
+
     private let icon: String?
     private let title: String
     private let subtitle: String?
@@ -711,7 +726,7 @@ struct JadeSwitchRow: View {
                     Image(systemName: icon)
                         .font(JadeFont.body)
                         .foregroundStyle(JadeColor.textSecondary)
-                        .frame(width: 20)
+                        .frame(width: Self.switchIconWidth)
                 }
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
