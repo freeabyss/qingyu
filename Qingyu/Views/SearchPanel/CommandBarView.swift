@@ -35,6 +35,9 @@ struct CommandBarView: View {
     /// 结果列表行间距：2pt，仅用于结果行之间的分隔；行高 52pt 且行已有 lg 圆角背景，改用 Jade 最小 4pt 会拉开列表密度，不并入 JadeSpace。
     private static let resultsListSpacing: CGFloat = 2
 
+    /// 加载指示器尺寸：20pt，仅用于输入框加载时 ProgressView 的宽高；不是布局间距，不并入 JadeSpace，也不与其它 20pt 尺寸合并。
+    private static let loadingSpinnerSize: CGFloat = 20
+
     var body: some View {
         VStack(spacing: 0) {
             inputBar
@@ -97,7 +100,7 @@ struct CommandBarView: View {
             if viewModel.isLoading {
                 ProgressView()
                     .controlSize(.small)
-                    .frame(width: 20, height: 20)
+                    .frame(width: Self.loadingSpinnerSize, height: Self.loadingSpinnerSize)
             } else if !viewModel.query.isEmpty {
                 Button {
                     viewModel.clearInput()
