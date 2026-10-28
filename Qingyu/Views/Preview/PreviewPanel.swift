@@ -25,6 +25,21 @@ struct PreviewPanel: View {
     @State private var isShowingToast = false
     @State private var toastDismissTask: DispatchWorkItem?
 
+    /// 预览面板最小宽度：450pt，仅用于预览面板整体的最小宽度；与最小高度 400pt 角色不同，不合并。
+    private static let panelMinWidth: CGFloat = 450
+
+    /// 预览面板最小高度：400pt，仅用于预览面板整体的最小高度；与图片预览最大高度 400pt 数值相同但角色不同（一个是面板下限，一个是图片上限），不合并。
+    private static let panelMinHeight: CGFloat = 400
+
+    /// 图片预览最大高度：400pt，仅用于图片预览区的高度上限；与面板最小高度 400pt 角色不同，不合并。
+    private static let imagePreviewMaxHeight: CGFloat = 400
+
+    /// 文件图标边长：64pt，仅用于文件预览区文件图标的正方形尺寸；不并入 JadeSpace，那是间距档位，不是控件尺寸。
+    private static let fileIconSize: CGFloat = 64
+
+    /// 文件信息标签列宽度：80pt，仅用于文件信息行左侧标签列的右对齐宽度；与文件图标 64pt 角色不同，不合并。
+    private static let fileInfoLabelWidth: CGFloat = 80
+
     var body: some View {
         VStack(spacing: 0) {
             headerBar
@@ -40,7 +55,7 @@ struct PreviewPanel: View {
 
             actionBar
         }
-        .frame(minWidth: 450, minHeight: 400)
+        .frame(minWidth: Self.panelMinWidth, minHeight: Self.panelMinHeight)
         .background(JadeColor.surface1)
         .jadeToast(toastMessage, isShowing: $isShowingToast, variant: toastVariant)
         // ESC to close: hidden button with .cancelAction keyboard shortcut (macOS 13+)
@@ -147,7 +162,7 @@ struct PreviewPanel: View {
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .scaleEffect(imageScale)
-                    .frame(maxWidth: .infinity, maxHeight: 400)
+                    .frame(maxWidth: .infinity, maxHeight: Self.imagePreviewMaxHeight)
                     .background(Color(NSColor.textBackgroundColor))
                     .jadeRadius(.md)
                     .jadeRadiusBorder(.md)
@@ -188,7 +203,7 @@ struct PreviewPanel: View {
 
                 Image(nsImage: icon)
                     .resizable()
-                    .frame(width: 64, height: 64)
+                    .frame(width: Self.fileIconSize, height: Self.fileIconSize)
 
                 VStack(spacing: JadeSpace.x2.value) {
                     fileInfoRow(label: L10n.localized("preview.fileName"), value: fileURL.lastPathComponent)
@@ -311,7 +326,7 @@ struct PreviewPanel: View {
             Text(label)
                 .font(JadeFont.callout.weight(.medium))
                 .foregroundStyle(JadeColor.textSecondary)
-                .frame(width: 80, alignment: .trailing)
+                .frame(width: Self.fileInfoLabelWidth, alignment: .trailing)
             Text(value)
                 .font(JadeFont.fileValueMono)
                 .textSelection(.enabled)
