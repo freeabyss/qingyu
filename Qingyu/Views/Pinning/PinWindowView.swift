@@ -58,7 +58,7 @@ struct PinWindowView: View {
                 .fill(Color(red: Double(red) / 255, green: Double(green) / 255, blue: Double(blue) / 255))
                 .overlay(alignment: .bottom) {
                     Text(ColorString.hex(red: red, green: green, blue: blue))
-                        .font(.caption.monospaced())
+                        .font(JadeFont.caption.monospaced())
                         .foregroundStyle(.white)
                         .jadePadding(.x1)
                         .background(JadeColor.pinColorScrim, in: JadeRadius.sm.shape)
@@ -72,7 +72,7 @@ struct PinWindowView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         case .text(let text):
             Text(text)
-                .font(.body)
+                .font(JadeFont.body)
                 .textSelection(.enabled)
                 .jadePadding(.x2)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
