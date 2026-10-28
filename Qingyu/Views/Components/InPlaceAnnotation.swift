@@ -263,6 +263,12 @@ enum AnnotationToolCursor {
     private static let brushInnerStroke: NSColor = NSColor.white
     private static let brushCenterDotFill: NSColor = NSColor.black.withAlphaComponent(0.6)
 
+    /// 十字准星光标的对比色：准星与工具徽标直接画在任意截图内容上，必须固定黑白才在深浅背景上都可读；不是 Jade 动态色，与笔刷圆圈的 0.75 / 0.6 数值也不同，不合并。
+    private static let crosshairOuterStroke: NSColor = NSColor.black.withAlphaComponent(0.85)
+    private static let crosshairInnerStroke: NSColor = NSColor.white
+    private static let crosshairBadgeFill: NSColor = NSColor.black.withAlphaComponent(0.8)
+    private static let crosshairBadgeIcon: NSColor = NSColor.white
+
     /// 笔刷工具用「与实际笔刷等大的圆圈」；线工具用十字准星 + 工具徽标。
     static func cursor(for tool: AnnotationTool, style: AnnotationStyle) -> NSCursor {
         let diameter = tool.isBrush ? style.brushDiameter(for: tool) : 0
@@ -312,18 +318,18 @@ enum AnnotationToolCursor {
         cross.move(to: CGPoint(x: center.x, y: center.y - arm))
         cross.line(to: CGPoint(x: center.x, y: center.y + arm))
         cross.lineWidth = 3
-        NSColor.black.withAlphaComponent(0.85).setStroke()
+        crosshairOuterStroke.setStroke()
         cross.stroke()
         cross.lineWidth = 1
-        NSColor.white.setStroke()
+        crosshairInnerStroke.setStroke()
         cross.stroke()
 
         // 工具徽标。
         let badge = CGRect(x: 18, y: 0, width: 18, height: 18)
-        NSColor.black.withAlphaComponent(0.8).setFill()
+        crosshairBadgeFill.setFill()
         NSBezierPath(ovalIn: badge).fill()
         let configuration = NSImage.SymbolConfiguration(pointSize: 10, weight: .bold)
-            .applying(NSImage.SymbolConfiguration(paletteColors: [.white]))
+            .applying(NSImage.SymbolConfiguration(paletteColors: [crosshairBadgeIcon]))
         if let symbol = NSImage(systemSymbolName: tool.systemImage, accessibilityDescription: nil)?
             .withSymbolConfiguration(configuration) {
             symbol.draw(in: badge.insetBy(dx: 3.5, dy: 3.5))
