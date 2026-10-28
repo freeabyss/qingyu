@@ -25,6 +25,10 @@ struct SettingsView: View {
 // MARK: - Root split view
 
 struct ManagementCenterView: View {
+
+    /// 隐藏快捷键容器尺寸：0pt，仅用于承载 ⌘W / ⎋ 关闭快捷键的不可见容器宽高；不是布局尺寸，不与其它尺寸合并。
+    private static let hiddenShortcutSize: CGFloat = 0
+
     @ObservedObject var viewModel: SettingsViewModel
 
     /// 管理中心侧栏列宽：200pt，仅用于管理中心左侧导航列宽度；与窗口宽度角色不同，不合并；不并入 JadeSpace，那是间距档位，不是列宽。
@@ -170,7 +174,7 @@ struct ManagementCenterView: View {
                 .keyboardShortcut(.cancelAction)
         }
         .jadeHiddenShortcut()
-        .frame(width: 0, height: 0)
+        .frame(width: Self.hiddenShortcutSize, height: Self.hiddenShortcutSize)
         .accessibilityHidden(true)
     }
 }
