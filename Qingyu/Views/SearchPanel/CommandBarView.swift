@@ -32,6 +32,9 @@ struct CommandBarView: View {
     @ObservedObject var viewModel: SearchPanelViewModel
     @FocusState private var isInputFocused: Bool
 
+    /// 结果列表行间距：2pt，仅用于结果行之间的分隔；行高 52pt 且行已有 lg 圆角背景，改用 Jade 最小 4pt 会拉开列表密度，不并入 JadeSpace。
+    private static let resultsListSpacing: CGFloat = 2
+
     var body: some View {
         VStack(spacing: 0) {
             inputBar
@@ -145,7 +148,7 @@ struct CommandBarView: View {
     private var resultsList: some View {
         ScrollViewReader { proxy in
             ScrollView {
-                LazyVStack(spacing: 2) {
+                LazyVStack(spacing: Self.resultsListSpacing) {
                     ForEach(viewModel.visibleResults) { result in
                         CommandBarResultRow(
                             result: result,
@@ -241,11 +244,14 @@ struct CommandBarResultRow: View {
     /// 结果行高度：52pt，仅用于 CommandBarResultRow 整行；与图标磁贴 32pt 角色不同，不合并。
     private static let rowHeight: CGFloat = 52
 
+    /// 主/副标题配对间隙：1pt，仅用于标题与副标题的紧凑配对；是行内文本间隙，不是通用间距档位，不并入 JadeSpace。
+    private static let titleSubtitleSpacing: CGFloat = 1
+
     var body: some View {
         HStack(spacing: JadeSpace.x3.value) {
             iconTile
 
-            VStack(alignment: .leading, spacing: 1) {
+            VStack(alignment: .leading, spacing: Self.titleSubtitleSpacing) {
                 Text(result.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                      ? L10n.localized("searchPanel.type.unknown")
                      : result.title)
