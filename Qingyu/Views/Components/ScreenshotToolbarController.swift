@@ -1957,6 +1957,15 @@ private struct ScreenshotPreviewView: View {
     @ObservedObject var viewModel: ScreenshotPreviewViewModel
     let onAction: (ScreenshotToolbarAction) -> Void
 
+    /// 预览画布底色不透明度：0.8，仅用于截图预览画布的黑色底衬；与 overlay 的 0.4 黑色遮罩角色不同，不合并。
+    private static let canvasBackingOpacity: Double = 0.8
+
+    /// 来源徽标底色不透明度：0.55，仅用于来源徽标胶囊的黑色衬底；与画布底 0.8 角色不同，不合并。
+    private static let sourceBadgeBackgroundOpacity: Double = 0.55
+
+    /// 来源徽标尺寸次级不透明度：0.75，仅用于徽标内尺寸文字以不透明度降级，与标签区分层级；与徽标底 0.55 角色不同，不合并。
+    private static let sourceBadgeDimensionOpacity: Double = 0.75
+
     private var image: NSImage? {
         viewModel.result.flatMap { NSImage(data: $0.imageData) }
     }
@@ -1965,7 +1974,7 @@ private struct ScreenshotPreviewView: View {
         ZStack(alignment: .bottom) {
             // Image canvas fills the panel; the toolbar floats above it.
             ZStack(alignment: .topLeading) {
-                Color.black.opacity(0.8)  // P-05 canvas backing
+                Color.black.opacity(Self.canvasBackingOpacity)  // P-05 canvas backing
                 if let image {
                     Image(nsImage: image)
                         .resizable()
@@ -2015,12 +2024,12 @@ private struct ScreenshotPreviewView: View {
                     .font(JadeFont.caption)
                 Text("\(result.width)×\(result.height)")
                     .font(JadeFont.caption.monospaced())
-                    .opacity(0.75)
+                    .opacity(Self.sourceBadgeDimensionOpacity)
             }
             .foregroundColor(.white)
             .padding(.horizontal, JadeSpace.x3.value)
             .padding(.vertical, JadeSpace.x2.value)
-            .background(Color.black.opacity(0.55), in: Capsule(style: .continuous))
+            .background(Color.black.opacity(Self.sourceBadgeBackgroundOpacity), in: Capsule(style: .continuous))
             .accessibilityElement(children: .combine)
         }
     }
@@ -2081,6 +2090,9 @@ private struct ToolbarButton: View {
     var isSelected: Bool = false
     let action: () -> Void
 
+    /// 工具按钮选中底色不透明度：0.18，仅用于预览浮动工具栏按钮选中态的主色浅底；与选中描边角色不同，不合并。
+    private static let selectedBackgroundOpacity: Double = 0.18
+
     @State private var hovering = false
 
     var body: some View {
@@ -2104,7 +2116,7 @@ private struct ToolbarButton: View {
             .background(
                 JadeRadius.md.shape
                     .fill(isSelected
-                          ? JadeColor.primary.opacity(0.18)
+                          ? JadeColor.primary.opacity(Self.selectedBackgroundOpacity)
                           : (hovering ? JadeColor.surface3 : Color.clear))
             )
         }
