@@ -60,6 +60,9 @@ final class MagnifierOverlayView: NSView {
         /// 镜片边缘一深一浅的描边色：压在任意屏幕内容上都必须可读，故固定黑白，不随外观切换；与 Jade overlay 0.4、pinColorScrim 0.6 角色与数值都不同，不合并。
         static let lensOuterStroke: NSColor = NSColor.black.withAlphaComponent(0.45)
         static let lensInnerStroke: NSColor = NSColor.white.withAlphaComponent(0.7)
+        /// 选区遮罩边界一深一浅的描边色：先 2pt 深描边、再 1pt 浅描边，压在放大后的任意像素上都必须可读，故固定黑白；与镜片边缘 0.45 / 0.7 线宽与数值都不同，不合并。
+        static let maskOuterStroke: NSColor = NSColor.black.withAlphaComponent(0.55)
+        static let maskInnerStroke: NSColor = NSColor.white.withAlphaComponent(0.9)
         static let labelPadding: CGFloat = 5
         static let minimumCellSizeForGrid: CGFloat = 3
     }
@@ -204,10 +207,10 @@ final class MagnifierOverlayView: NSView {
         ).addClip()
         let boundary = NSBezierPath(rect: inView)
         boundary.lineWidth = 2
-        NSColor.black.withAlphaComponent(0.55).setStroke()
+        Metrics.maskOuterStroke.setStroke()
         boundary.stroke()
         boundary.lineWidth = 1
-        NSColor.white.withAlphaComponent(0.9).setStroke()
+        Metrics.maskInnerStroke.setStroke()
         boundary.stroke()
         context.restoreGState()
     }
