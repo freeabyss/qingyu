@@ -258,6 +258,11 @@ final class InPlaceAnnotationSession {
 enum AnnotationToolCursor {
     private static var cache: [String: NSCursor] = [:]
 
+    /// 笔刷圆圈光标的对比色：圆圈直接画在任意截图内容上，必须一深一浅固定黑白才在深浅背景上都可读；不是 Jade 动态色，与十字准星光标的 0.85 / 0.8 数值也不同，不合并。
+    private static let brushOuterStroke: NSColor = NSColor.black.withAlphaComponent(0.75)
+    private static let brushInnerStroke: NSColor = NSColor.white
+    private static let brushCenterDotFill: NSColor = NSColor.black.withAlphaComponent(0.6)
+
     /// 笔刷工具用「与实际笔刷等大的圆圈」；线工具用十字准星 + 工具徽标。
     static func cursor(for tool: AnnotationTool, style: AnnotationStyle) -> NSCursor {
         let diameter = tool.isBrush ? style.brushDiameter(for: tool) : 0
@@ -278,15 +283,15 @@ enum AnnotationToolCursor {
 
         let circle = NSBezierPath(ovalIn: NSRect(x: 4, y: 4, width: diameter, height: diameter))
         circle.lineWidth = 3
-        NSColor.black.withAlphaComponent(0.75).setStroke()
+        brushOuterStroke.setStroke()
         circle.stroke()
         circle.lineWidth = 1.5
-        NSColor.white.setStroke()
+        brushInnerStroke.setStroke()
         circle.stroke()
 
         // 圆心小点：让「落点」在圆圈里也有参照。
         let dot = NSRect(x: size / 2 - 1.5, y: size / 2 - 1.5, width: 3, height: 3)
-        NSColor.black.withAlphaComponent(0.6).setFill()
+        brushCenterDotFill.setFill()
         NSBezierPath(ovalIn: dot).fill()
 
         image.unlockFocus()
