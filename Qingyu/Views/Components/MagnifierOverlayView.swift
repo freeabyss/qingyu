@@ -57,6 +57,9 @@ final class MagnifierOverlayView: NSView {
         /// 徽标与画面边缘的间距。画面本身**满幅**（不留内边距），间距只用于放徽标。
         static let labelInset: CGFloat = 4
         static let cornerRadius: CGFloat = JadeRadius.md.value
+        /// 镜片边缘一深一浅的描边色：压在任意屏幕内容上都必须可读，故固定黑白，不随外观切换；与 Jade overlay 0.4、pinColorScrim 0.6 角色与数值都不同，不合并。
+        static let lensOuterStroke: NSColor = NSColor.black.withAlphaComponent(0.45)
+        static let lensInnerStroke: NSColor = NSColor.white.withAlphaComponent(0.7)
         static let labelPadding: CGFloat = 5
         static let minimumCellSizeForGrid: CGFloat = 3
     }
@@ -109,7 +112,7 @@ final class MagnifierOverlayView: NSView {
             yRadius: Metrics.cornerRadius
         )
         lens.lineWidth = Metrics.borderWidth
-        NSColor.black.withAlphaComponent(0.45).set()
+        Metrics.lensOuterStroke.set()
         lens.stroke()
 
         let inner = NSBezierPath(
@@ -118,7 +121,7 @@ final class MagnifierOverlayView: NSView {
             yRadius: Metrics.cornerRadius - Metrics.borderWidth
         )
         inner.lineWidth = Metrics.borderWidth
-        NSColor.white.withAlphaComponent(0.7).set()
+        Metrics.lensInnerStroke.set()
         inner.stroke()
     }
 
