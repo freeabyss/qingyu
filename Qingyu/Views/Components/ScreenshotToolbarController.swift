@@ -1344,6 +1344,9 @@ final class RegionStylePaletteView: NSView {
     /// 透明棋盘格图像尺寸：8pt，仅用于 checkerImage 的棋盘格图像整体尺寸，宽高同值；不并入 JadeSpace，那是间距档位，不是图案尺寸。
     private static let checkerImageSize: CGFloat = 8
 
+    /// 色板类按钮默认描边：1pt 黑 0.25，本面板内自定义颜色按钮初始描边、色板按钮描边、未选中时的选择环三处同角色共用；选中时选择环改为 2pt 主色，不与选中描边合并，也不并入 Jade 边框色，那是面板外框。
+    private static let defaultBorder: NSColor = NSColor.black.withAlphaComponent(0.25)
+
     private var colorButtons: [NSButton] = []
     private var backgroundButtons: [NSButton] = []
     private var sizeButtons: [NSButton] = []
@@ -1515,7 +1518,7 @@ final class RegionStylePaletteView: NSView {
         custom.layer?.cornerRadius = Self.paletteCornerRadius
         custom.layer?.masksToBounds = true
         custom.layer?.borderWidth = 1
-        custom.layer?.borderColor = NSColor.black.withAlphaComponent(0.25).cgColor
+        custom.layer?.borderColor = Self.defaultBorder.cgColor
         custom.tag = -1
         custom.target = self
         custom.action = #selector(customColorClicked(_:))
@@ -1565,7 +1568,7 @@ final class RegionStylePaletteView: NSView {
         button.layer?.cornerRadius = Self.paletteCornerRadius
         button.layer?.masksToBounds = true
         button.layer?.borderWidth = 1
-        button.layer?.borderColor = NSColor.black.withAlphaComponent(0.25).cgColor
+        button.layer?.borderColor = Self.defaultBorder.cgColor
         button.tag = tag
         button.target = self
         button.action = action
@@ -1757,7 +1760,7 @@ final class RegionStylePaletteView: NSView {
         button.layer?.borderWidth = selected ? 2 : 1
         button.layer?.borderColor = selected
             ? JadeColor.primaryNS.cgColor
-            : NSColor.black.withAlphaComponent(0.25).cgColor
+            : Self.defaultBorder.cgColor
     }
 
     // MARK: - 单测入口
