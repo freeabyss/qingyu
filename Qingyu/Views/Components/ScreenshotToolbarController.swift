@@ -1105,6 +1105,11 @@ final class RegionToolbarView: NSView {
     private static let groupGap: CGFloat = JadeSpace.x2.value
     private static let dividerWidth: CGFloat = 1
 
+    /// 选中高亮与胶囊底色：底色 0.22 与描边 0.55 同为 Jade 主色但透明度与角色不同，不合并；胶囊底色是窗口底色 0.82 半透明，盖在截图内容上仍可读，与样式面板的 0.94 不同，不合并。
+    private static let selectedBackground: NSColor = JadeColor.primaryNS.withAlphaComponent(0.22)
+    private static let selectedBorder: NSColor = JadeColor.primaryNS.withAlphaComponent(0.55)
+    private static let pillFill: NSColor = NSColor.windowBackgroundColor.withAlphaComponent(0.82)
+
     /// 左侧：全部标注工具。
     static var toolActions: [ScreenshotToolbarAction] {
         AnnotationTool.toolbarTools.map { .annotate($0) }
@@ -1240,11 +1245,11 @@ final class RegionToolbarView: NSView {
             }
             button.layer?.cornerRadius = JadeRadius.md.value
             button.layer?.backgroundColor = isSelected
-                ? JadeColor.primaryNS.withAlphaComponent(0.22).cgColor
+                ? Self.selectedBackground.cgColor
                 : NSColor.clear.cgColor
             button.layer?.borderWidth = isSelected ? 1 : 0
             button.layer?.borderColor = isSelected
-                ? JadeColor.primaryNS.withAlphaComponent(0.55).cgColor
+                ? Self.selectedBorder.cgColor
                 : NSColor.clear.cgColor
             button.contentTintColor = isSelected ? JadeColor.primaryNS : Self.tint(for: action)
         }
@@ -1295,7 +1300,7 @@ final class RegionToolbarView: NSView {
         let pill = NSBezierPath(roundedRect: bounds.insetBy(dx: 0.5, dy: 0.5),
                                 xRadius: bounds.height / 2,
                                 yRadius: bounds.height / 2)
-        NSColor.windowBackgroundColor.withAlphaComponent(0.82).setFill()
+        Self.pillFill.setFill()
         pill.fill()
         JadeColor.borderNS.setStroke()
         pill.lineWidth = 1
