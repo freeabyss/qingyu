@@ -21,10 +21,13 @@ struct SettingsView: View {
 struct ManagementCenterView: View {
     @ObservedObject var viewModel: SettingsViewModel
 
+    /// 管理中心侧栏列宽：200pt，仅用于管理中心左侧导航列宽度；与窗口宽度角色不同，不合并；不并入 JadeSpace，那是间距档位，不是列宽。
+    private static let sidebarWidth: CGFloat = 200
+
     var body: some View {
         HStack(spacing: 0) {
             sidebar
-                .frame(width: 200)
+                .frame(width: Self.sidebarWidth)
 
             detail
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -559,6 +562,12 @@ struct BlacklistManagementSection: View {
 
 struct PrivacyPolicySheet: View {
     let info: AboutInfo
+
+    /// 隐私政策弹窗宽度：640pt，仅用于隐私政策弹窗整体宽度；与高度 560pt 角色不同，不合并。
+    private static let privacySheetWidth: CGFloat = 640
+
+    /// 隐私政策弹窗高度：560pt，仅用于隐私政策弹窗整体高度；与宽度 640pt 角色不同，不合并。
+    private static let privacySheetHeight: CGFloat = 560
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -586,7 +595,7 @@ struct PrivacyPolicySheet: View {
             }
         }
         .jadePadding(.x6)
-        .frame(width: 640, height: 560)
+        .frame(width: Self.privacySheetWidth, height: Self.privacySheetHeight)
         .background(JadeColor.surface1)
     }
 
