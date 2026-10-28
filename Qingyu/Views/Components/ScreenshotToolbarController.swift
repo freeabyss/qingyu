@@ -2093,6 +2093,18 @@ private struct ToolbarButton: View {
     /// 工具按钮选中底色不透明度：0.18，仅用于预览浮动工具栏按钮选中态的主色浅底；与选中描边角色不同，不合并。
     private static let selectedBackgroundOpacity: Double = 0.18
 
+    /// 紧凑按钮边长：30pt，仅用于预览浮动工具栏紧凑态图标按钮的正方形尺寸；与标注工具栏磁贴 30pt 属于不同组件，角色不同，不合并；不并入 JadeSpace，那是间距档位，不是控件尺寸。
+    private static let compactButtonSize: CGFloat = 30
+
+    /// 带标签按钮宽度：72pt，仅用于预览浮动工具栏带标签按钮的宽度；与高度 40pt 角色不同，不合并。
+    private static let labeledButtonWidth: CGFloat = 72
+
+    /// 带标签按钮高度：40pt，仅用于预览浮动工具栏带标签按钮的高度；与宽度 72pt 角色不同，不合并。
+    private static let labeledButtonHeight: CGFloat = 40
+
+    /// 带标签按钮图标与标签间距：3pt，仅用于带标签按钮内图标与标签之间的垂直间距；不并入 JadeSpace，那是通用间距档位，不是该按钮内部的图标标签间距。
+    private static let labeledStackSpacing: CGFloat = 3
+
     @State private var hovering = false
 
     var body: some View {
@@ -2101,15 +2113,15 @@ private struct ToolbarButton: View {
                 if isCompact {
                     Image(systemName: systemName)
                         .font(JadeFont.toolbarIcon)
-                        .frame(width: 30, height: 30)
+                        .frame(width: Self.compactButtonSize, height: Self.compactButtonSize)
                 } else {
-                    VStack(spacing: 3) {
+                    VStack(spacing: Self.labeledStackSpacing) {
                         Image(systemName: systemName)
                             .font(JadeFont.toolbarIconLabeled)
                         Text(label)
                             .font(JadeFont.caption)
                     }
-                    .frame(width: 72, height: 40)
+                    .frame(width: Self.labeledButtonWidth, height: Self.labeledButtonHeight)
                 }
             }
             .foregroundColor(isSelected ? JadeColor.primary : (tint ?? JadeColor.textPrimary))
