@@ -379,6 +379,17 @@ enum AnnotationRenderer {
     private static let arrowHeadAngle: CGFloat = .pi / 6
     private static let mosaicScale: CGFloat = 10
 
+    /// 荧光笔透明度：所选颜色乘此值，覆盖内容仍可辨识；作用于可变颜色，非固定色，不与黑描边0.35合并。
+    private static let highlighterAlpha: CGFloat = 0.35
+    /// 无背景文字描边底色：固定黑画布对比色，不跟随浅色/深色，不并入Jade动态色。
+    private static let textOutlineColor: NSColor = NSColor.black
+    /// 无背景文字描边透明度：有背景时0，无背景时0.35；与荧光笔同值不同角色，不合并。
+    private static let textOutlineAlpha: CGFloat = 0.35
+    /// 笔刷/马赛克取样失败占位填充：固定灰色画布对比色，三处同组件同角色共用，不与画布黑底合并。
+    private static let fallbackFill: NSColor = NSColor.gray.withAlphaComponent(0.65)
+    /// 提示框透明背景边框透明度：作用于可变文字颜色，近不透明留一点透出，不与上述透明度合并。
+    private static let tooltipBorderAlpha: CGFloat = 0.9
+
     /// - Parameter sourcePixelScale: 绘制坐标（点）与 `sourceImage` 像素坐标的比例。
     ///   取 1 时（画布内实时绘制）两者同一尺度；导出到 Retina 位图时上下文已按
     ///   2× 缩放，但 `sourceImage` 仍是原像素，马赛克/模糊的取样窗口必须按此比例换算，
@@ -447,7 +458,7 @@ enum AnnotationRenderer {
         guard shape.points.count >= minimumPoints else { return }
 
         let color = shape.style.nsColor
-        let strokeColor = isHighlighter ? color.withAlphaComponent(0.35) : color
+        let strokeColor = isHighlighter ? color.withAlphaComponent(Self.highlighterAlpha) : color
 
         // 单击一笔也要留下一个圆点（笔刷语义）。
         if shape.points.count == 1, isBrush {
@@ -521,7 +532,7 @@ enum AnnotationRenderer {
               let cgImage = sourceImage.cgImage(forProposedRect: nil, context: nil, hints: nil),
               let filtered = filteredBrushImage(cgImage, tool: shape.tool, diameter: diameter, sourceImage: sourceImage),
               let graphics = NSGraphicsContext.current?.cgContext else {
-            NSColor.gray.withAlphaComponent(0.65).setFill()
+            Self.fallbackFill.setFill()
             area.fill()
             return
         }
@@ -586,7 +597,7 @@ enum AnnotationRenderer {
         let attributes: [NSAttributedString.Key: Any] = [
             .font: shape.style.font(ofSize: radius * 1.1, weight: .bold),
             .foregroundColor: color,
-            .strokeColor: NSColor.black.withAlphaComponent(background == nil ? 0.35 : 0),
+            .strokeColor: Self.textOutlineColor.withAlphaComponent(background == nil ? Self.textOutlineAlpha : 0),
             .strokeWidth: background == nil ? -2.0 : 0
         ]
         let value_ = "\(value)" as NSString
@@ -621,7 +632,7 @@ enum AnnotationRenderer {
             tailPath.fill()
         } else {
             // 透明背景：只描一圈文字颜色的边，保证气泡在任意画面上都读得出来。
-            textColor.withAlphaComponent(0.9).setStroke()
+            textColor.withAlphaComponent(Self.tooltipBorderAlpha).setStroke()
             bodyPath.lineWidth = 2
             bodyPath.stroke()
             tailPath.lineWidth = 2
@@ -704,7 +715,7 @@ enum AnnotationRenderer {
         let attributes: [NSAttributedString.Key: Any] = [
             .font: shape.style.font(ofSize: shape.style.textSize.points, weight: .semibold),
             .foregroundColor: shape.style.nsColor,
-            .strokeColor: NSColor.black.withAlphaComponent(background == nil && !shape.style.isDark ? 0.35 : 0),
+            .strokeColor: Self.textOutlineColor.withAlphaComponent(background == nil && !shape.style.isDark ? Self.textOutlineAlpha : 0),
             .strokeWidth: background == nil ? -2.0 : 0
         ]
         let attributed = NSAttributedString(string: text, attributes: attributes)
@@ -761,13 +772,13 @@ enum AnnotationRenderer {
         let target = shape.rect
         guard target.width > 1, target.height > 1 else { return }
         guard let image = sourceImage else {
-            NSColor.gray.withAlphaComponent(0.65).setFill()
+            Self.fallbackFill.setFill()
             target.fill()
             return
         }
         var proposed = NSRect(origin: .zero, size: image.size)
         guard let cgImage = image.cgImage(forProposedRect: &proposed, context: nil, hints: nil) else {
-            NSColor.gray.withAlphaComponent(0.65).setFill()
+            Self.fallbackFill.setFill()
             target.fill()
             return
         }
