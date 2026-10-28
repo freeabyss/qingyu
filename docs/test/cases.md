@@ -1319,9 +1319,10 @@ MVP 暂不覆盖：
 
 ### 12.3 必跑门禁
 
-- 每次代码修改完毕、提交之前运行 `./scripts/verify.sh`，失败必须修复后提交；该要求已写入根目录 `AGENTS.md`「测试门禁」。门禁三步：
+- 每次代码修改完毕、提交之前运行 `./scripts/verify.sh`，失败必须修复后提交；该要求已写入根目录 `AGENTS.md`「测试门禁」。门禁四步：
   1. `git diff --check`（空白错误 / 冲突标记）；
-  2. **测试文件登记检查** —— `QingyuTests/` 下每个 `.swift` 都必须出现在 `Qingyu.xcodeproj` 的 Sources 阶段，否则直接失败（防「孤儿文件」：文件在仓库里、测试全绿，用例却一条也没跑过；已发生过两次，共 33 条用例长期未执行）；
-  3. 全量单元测试 `QingyuTests`。
+  2. `Localizable.xcstrings` JSON 有效性检查 —— 文件不进测试包编译，无效 JSON 也能让测试全绿（第 44 轮尾逗号教训）；
+  3. **测试文件登记检查** —— `QingyuTests/` 下每个 `.swift` 都必须出现在 `Qingyu.xcodeproj` 的 Sources 阶段，否则直接失败（防「孤儿文件」：文件在仓库里、测试全绿，用例却一条也没跑过；已发生过两次，共 33 条用例长期未执行）；
+  4. 全量单元测试 `QingyuTests`。
 
 ---

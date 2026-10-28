@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # 每次代码修改提交前的标准检查（docs/test/cases.md「测试门禁」）：
 #   1. git diff --check（空白错误 / 冲突标记）
-#   2. 测试文件登记检查（孤儿文件里的用例不会被执行）
-#   3. 全量单元测试 QingyuTests（含截图会话生命周期回归 SHOT-LIFE 组）
+#   2. Localizable.xcstrings JSON 有效性检查
+#   3. 测试文件登记检查（孤儿文件里的用例不会被执行）
+#   4. 全量单元测试 QingyuTests（含截图会话生命周期回归 SHOT-LIFE 组）
 # 用法：./scripts/verify.sh
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -11,7 +12,13 @@ echo "==> git diff --check"
 git diff --check
 echo "    OK"
 
-# 第 2 步的由来：`QingyuTests/PermissionServiceProtocolConformanceTests.swift`（4 条用例）
+echo "==> Localizable.xcstrings JSON 检查"
+# xcstrings 不进测试包编译：无效 JSON 也能让测试全绿（第 44 轮尾逗号教训），
+# 因此在测试登记检查之前先做 JSON 有效性校验。
+python3 -m json.tool Qingyu/Resources/Localizable.xcstrings > /dev/null
+echo "    OK"
+
+# 第 3 步的由来：`QingyuTests/PermissionServiceProtocolConformanceTests.swift`（4 条用例）
 # 与 `QingyuTests/ScreenshotOverlayAppearanceTests.swift`（6 条用例）都曾**从未登记进测试目标**，
 # 文件在仓库里、测试全绿，用例却一条也没跑过 —— 「全绿」因此具有欺骗性。
 # 这里把「测试目录里的每个 .swift 都出现在 project.pbxproj 中」变成硬门禁。
