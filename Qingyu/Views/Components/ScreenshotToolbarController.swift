@@ -1347,6 +1347,19 @@ final class RegionStylePaletteView: NSView {
     /// 色板类按钮默认描边：1pt 黑 0.25，本面板内自定义颜色按钮初始描边、色板按钮描边、未选中时的选择环三处同角色共用；选中时选择环改为 2pt 主色，不与选中描边合并，也不并入 Jade 边框色，那是面板外框。
     private static let defaultBorder: NSColor = NSColor.black.withAlphaComponent(0.25)
 
+    /// 粗细按钮选中底色：Jade 主色 0.22，与工具条选中底色同值但属不同组件、不同按钮角色，不跨组件合并；与本面板选中描边（2pt 主色不透明）和默认描边黑 0.25 角色不同，不合并。
+    private static let sizeSelectedBackground: NSColor = JadeColor.primaryNS.withAlphaComponent(0.22)
+
+    /// 面板底色：窗口底色 0.94 半透明，盖在截图上仍可读；与工具条胶囊底色 0.82 不同，不合并；与 Jade 边框色（面板外框描边）角色不同，不合并。
+    private static let panelFill: NSColor = NSColor.windowBackgroundColor.withAlphaComponent(0.94)
+
+    /// 尺寸图标模板墨色：固定黑色，填充与描边在 sizeIcon 内同角色共用；图标 isTemplate = true，实际显示色由按钮 contentTintColor 决定，固定黑不是动态色，不并入 Jade 动态色，也不与带透明度的黑 0.25 默认描边合并。
+    private static let sizeIconTemplate: NSColor = NSColor.black
+
+    /// 透明棋盘格底色与对角格色：白色底 + 灰 0.78 对角格，固定画布对比色，用于透明背景示意，不并入 Jade 动态色；两者亮度角色不同，不合并。
+    private static let checkerBase: NSColor = NSColor.white
+    private static let checkerCell: NSColor = NSColor(white: 0.78, alpha: 1)
+
     private var colorButtons: [NSButton] = []
     private var backgroundButtons: [NSButton] = []
     private var sizeButtons: [NSButton] = []
@@ -1744,7 +1757,7 @@ final class RegionStylePaletteView: NSView {
         for (index, width) in AnnotationLineWidth.allCases.enumerated() where index < sizeButtons.count {
             let selected = width == style.lineWidth
             sizeButtons[index].layer?.backgroundColor = selected
-                ? JadeColor.primaryNS.withAlphaComponent(0.22).cgColor
+                ? Self.sizeSelectedBackground.cgColor
                 : NSColor.clear.cgColor
             sizeButtons[index].contentTintColor = selected ? JadeColor.primaryNS : .labelColor
         }
@@ -1844,8 +1857,8 @@ final class RegionStylePaletteView: NSView {
         let size = NSSize(width: sizeWidth, height: rowHeight)
         let image = NSImage(size: size)
         image.lockFocus()
-        NSColor.black.setFill()
-        NSColor.black.setStroke()
+        Self.sizeIconTemplate.setFill()
+        Self.sizeIconTemplate.setStroke()
         switch mode {
         case .line:
             let thickness: CGFloat = width == .thin ? 2 : (width == .medium ? 4 : 7)
@@ -1874,9 +1887,9 @@ final class RegionStylePaletteView: NSView {
         let size = NSSize(width: Self.checkerImageSize, height: Self.checkerImageSize)
         let image = NSImage(size: size)
         image.lockFocus()
-        NSColor.white.setFill()
+        Self.checkerBase.setFill()
         NSRect(origin: .zero, size: size).fill()
-        NSColor(white: 0.78, alpha: 1).setFill()
+        Self.checkerCell.setFill()
         NSRect(x: 0, y: 0, width: Self.checkerCellSize, height: Self.checkerCellSize).fill()
         NSRect(x: Self.checkerCellSize, y: Self.checkerCellSize, width: Self.checkerCellSize, height: Self.checkerCellSize).fill()
         image.unlockFocus()
@@ -1886,7 +1899,7 @@ final class RegionStylePaletteView: NSView {
     override func draw(_ dirtyRect: NSRect) {
         super.draw(dirtyRect)
         let panel = NSBezierPath(roundedRect: bounds.insetBy(dx: 0.5, dy: 0.5), xRadius: 8, yRadius: 8)
-        NSColor.windowBackgroundColor.withAlphaComponent(0.94).setFill()
+        Self.panelFill.setFill()
         panel.fill()
         JadeColor.borderNS.setStroke()
         panel.lineWidth = 1
