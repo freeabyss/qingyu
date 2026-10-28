@@ -66,6 +66,8 @@ final class MagnifierOverlayView: NSView {
         /// 徽标底色与文字色：徽标直接压在放大后的任意像素上，底必须固定黑、字必须固定白才保证对比；不是 Jade 动态文字色，数值也与 pinColorScrim 0.6 不同，不合并。
         static let badgeBackground: NSColor = NSColor.black.withAlphaComponent(0.65)
         static let badgeText: NSColor = NSColor.white
+        /// 网格线色：只划出像素边界、不能压住放大后的内容，故用极淡的固定白；不是 Jade 动态边框色，与镜片内描边白 0.7 亮度角色不同，不合并。
+        static let gridStroke: NSColor = NSColor.white.withAlphaComponent(0.12)
         static let labelPadding: CGFloat = 5
         static let minimumCellSizeForGrid: CGFloat = 3
     }
@@ -160,7 +162,7 @@ final class MagnifierOverlayView: NSView {
             path.line(to: NSPoint(x: drawnRect.maxX, y: y))
         }
         path.lineWidth = 1
-        NSColor.white.withAlphaComponent(0.12).set()
+        Metrics.gridStroke.set()
         path.stroke()
     }
 
