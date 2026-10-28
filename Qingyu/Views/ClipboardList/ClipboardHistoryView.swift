@@ -207,6 +207,7 @@ struct ClipboardHistoryView: View {
             selected: index == viewModel.selectedIndex,
             thumbnailProvider: { await viewModel.thumbnailData(for: $0) },
             onPin: { Task { await viewModel.togglePin(item) } },
+            onFavorite: { Task { await viewModel.toggleFavorite(item) } },
             onCopy: {
                 viewModel.select(item)
                 Task {
@@ -243,6 +244,9 @@ struct ClipboardHistoryView: View {
             }
             Button(item.isPinned ? L10n.localized("clipboard.unpin") : L10n.localized("clipboard.pin")) {
                 Task { await viewModel.togglePin(item) }
+            }
+            Button(item.isFavorite ? L10n.localized("clipboard.unfavorite") : L10n.localized("clipboard.favorite")) {
+                Task { await viewModel.toggleFavorite(item) }
             }
             Divider()
             Button(role: .destructive) {

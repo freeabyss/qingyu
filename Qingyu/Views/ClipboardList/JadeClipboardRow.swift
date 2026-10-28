@@ -3,13 +3,14 @@ import SwiftUI
 
 /// Unified clipboard history row (P-02).
 ///
-/// Layout: thumbnail + title/subtitle on the left; pin / copy / delete icons
+/// Layout: thumbnail + title/subtitle on the left; pin / favorite / copy / delete icons
 /// always visible on the right (same symbols as detail-free list actions).
 struct JadeClipboardRow: View {
     let item: ClipboardRecordSnapshot
     let selected: Bool
     var thumbnailProvider: (ClipboardRecordSnapshot) async -> Data?
     var onPin: () -> Void
+    var onFavorite: () -> Void
     var onCopy: () -> Void
     var onDelete: () -> Void
     /// File clipboard items only: reveal the file’s folder in Finder.
@@ -28,6 +29,9 @@ struct JadeClipboardRow: View {
             JadeRowAction(systemImage: item.isPinned ? "pin.slash.fill" : "pin.fill",
                           label: item.isPinned ? "clipboard.unpin" : "clipboard.pin",
                           action: onPin),
+            JadeRowAction(systemImage: item.isFavorite ? "star.slash.fill" : "star.fill",
+                          label: item.isFavorite ? "clipboard.unfavorite" : "clipboard.favorite",
+                          action: onFavorite),
             JadeRowAction(systemImage: "doc.on.doc", label: "clipboard.action.copy", action: onCopy)
         ]
         if item.contentType == .file, let onCopyPath, item.filePath != nil {
@@ -78,6 +82,12 @@ struct JadeClipboardRow: View {
                                 .rotationEffect(.degrees(45))
                                 .accessibilityHidden(true)
                         }
+                        if item.isFavorite {
+                            Image(systemName: "star.fill")
+                                .font(JadeFont.caption)
+                                .foregroundStyle(JadeColor.primary)
+                                .accessibilityHidden(true)
+                        }
                         if item.failureReason != nil {
                             Image(systemName: "exclamationmark.triangle.fill")
                                 .font(JadeFont.caption)
@@ -112,11 +122,12 @@ struct JadeClipboardRow: View {
         "\(primaryText), \(subtitleText)"
     }
 
-    /// 选中 / 置顶 / 不可用状态拼成 value，沿用命令栏同一套 a11y.state.* 键。
+    /// 选中 / 置顶 / 收藏 / 不可用状态拼成 value，沿用命令栏同一套 a11y.state.* 键。
     private var accessibilityStateText: String {
         var parts: [String] = []
         if selected { parts.append(L10n.localized("a11y.state.selected")) }
         if item.isPinned { parts.append(L10n.localized("a11y.state.pinned")) }
+        if item.isFavorite { parts.append(L10n.localized("a11y.state.favorite")) }
         if item.failureReason != nil { parts.append(L10n.localized("a11y.state.unavailable")) }
         return parts.joined(separator: ", ")
     }
