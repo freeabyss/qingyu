@@ -1330,6 +1330,9 @@ final class RegionStylePaletteView: NSView {
     private static let fontWidth: CGFloat = 30
     private static let textSizeWidth: CGFloat = 26
 
+    /// 调色板小控件圆角：4pt，仅用于本面板内 16pt 色板与 18pt 高的粗细 / 字体 / 字号按钮；不并入 JadeRadius，最小档 sm=6 用在 16pt 色板上过圆，不并入 JadeSpace，那是间距档位，不是圆角。
+    private static let paletteCornerRadius: CGFloat = 4
+
     /// 透明棋盘格单格尺寸：4pt，仅用于 checkerImage 的棋盘格绘制，两个对角格共用同一单格尺寸；不并入 JadeSpace，那是间距档位，不是图案尺寸。
     private static let checkerCellSize: CGFloat = 4
 
@@ -1504,7 +1507,7 @@ final class RegionStylePaletteView: NSView {
         custom.isBordered = false
         custom.bezelStyle = .regularSquare
         custom.wantsLayer = true
-        custom.layer?.cornerRadius = 4
+        custom.layer?.cornerRadius = Self.paletteCornerRadius
         custom.layer?.masksToBounds = true
         custom.layer?.borderWidth = 1
         custom.layer?.borderColor = NSColor.black.withAlphaComponent(0.25).cgColor
@@ -1527,7 +1530,7 @@ final class RegionStylePaletteView: NSView {
         eyedropper.isBordered = false
         eyedropper.bezelStyle = .regularSquare
         eyedropper.wantsLayer = true
-        eyedropper.layer?.cornerRadius = 4
+        eyedropper.layer?.cornerRadius = Self.paletteCornerRadius
         eyedropper.image = Self.symbolImage("eyedropper", pointSize: 11)
         eyedropper.imagePosition = .imageOnly
         eyedropper.contentTintColor = .labelColor
@@ -1554,7 +1557,7 @@ final class RegionStylePaletteView: NSView {
         button.title = ""
         button.wantsLayer = true
         button.layer?.backgroundColor = fill.cgColor
-        button.layer?.cornerRadius = 4
+        button.layer?.cornerRadius = Self.paletteCornerRadius
         button.layer?.masksToBounds = true
         button.layer?.borderWidth = 1
         button.layer?.borderColor = NSColor.black.withAlphaComponent(0.25).cgColor
@@ -1578,7 +1581,7 @@ final class RegionStylePaletteView: NSView {
             button.image = Self.sizeIcon(for: width, mode: mode)
             button.imagePosition = .imageOnly
             button.wantsLayer = true
-            button.layer?.cornerRadius = 4
+            button.layer?.cornerRadius = Self.paletteCornerRadius
             button.tag = index
             button.target = self
             button.action = #selector(sizeClicked(_:))
@@ -1603,7 +1606,7 @@ final class RegionStylePaletteView: NSView {
                 .foregroundColor: NSColor.labelColor
             ])
             button.wantsLayer = true
-            button.layer?.cornerRadius = 4
+            button.layer?.cornerRadius = Self.paletteCornerRadius
             button.tag = index
             button.target = self
             button.action = #selector(fontClicked(_:))
@@ -1630,7 +1633,7 @@ final class RegionStylePaletteView: NSView {
                 .foregroundColor: NSColor.labelColor
             ])
             button.wantsLayer = true
-            button.layer?.cornerRadius = 4
+            button.layer?.cornerRadius = Self.paletteCornerRadius
             button.tag = index
             button.target = self
             button.action = #selector(textSizeClicked(_:))
