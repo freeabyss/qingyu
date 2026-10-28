@@ -10,9 +10,15 @@ import UniformTypeIdentifiers
 struct SettingsView: View {
     @StateObject private var viewModel = SettingsViewModel()
 
+    /// 设置窗口最小宽度：920pt，仅用于设置窗口整体最小宽度；与隐私弹窗宽度 640pt 数值巧合但角色不同，不合并。
+    private static let settingsWindowMinWidth: CGFloat = 920
+
+    /// 设置窗口最小高度：640pt，仅用于设置窗口整体最小高度；与隐私弹窗高度 560pt 角色不同，不合并。
+    private static let settingsWindowMinHeight: CGFloat = 640
+
     var body: some View {
         ManagementCenterView(viewModel: viewModel)
-            .frame(minWidth: 920, minHeight: 640)
+            .frame(minWidth: Self.settingsWindowMinWidth, minHeight: Self.settingsWindowMinHeight)
     }
 }
 
@@ -617,12 +623,15 @@ struct PrivacyPolicySheet: View {
 struct SettingsScrollPage<Content: View>: View {
     @ViewBuilder let content: Content
 
+    /// 设置页可滚动内容列最大宽度：760pt，仅用于内容在宽窗口中保持易读行宽；与设置窗口最小宽度 920pt 角色不同，不合并；泛型类型不支持 static 存储属性，故用计算属性，值不变。
+    private static var contentMaxWidth: CGFloat { 760 }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: JadeSpace.x6.value) {
                 content
             }
-            .frame(maxWidth: 760, alignment: .leading)
+            .frame(maxWidth: Self.contentMaxWidth, alignment: .leading)
             .frame(maxWidth: .infinity)
             .jadePadding(.x6)
         }
