@@ -63,8 +63,7 @@ final class ClipboardListViewModelTests: XCTestCase {
 
         await viewModel.load()
         viewModel.moveSelectionDown()
-        viewModel.copySelectedToPasteboard()
-        await Task.yield()
+        await viewModel.copySelectedToPasteboard().value
 
         XCTAssertEqual(viewModel.selectedItem?.id, fixtures.richText.id)
         XCTAssertEqual(executor.executedActions, [.copyClipboardRecord(fixtures.richText.id)])

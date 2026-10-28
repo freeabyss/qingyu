@@ -300,11 +300,11 @@ struct ClipboardHistoryView: View {
                  : L10n.localized("clipboard.empty.title"))
                 .font(JadeFont.title3)
                 .foregroundStyle(JadeColor.textSecondary)
-            if !viewModel.isSearching {
-                Text(L10n.localized("clipboard.empty.subtitle"))
-                    .font(JadeFont.caption)
-                    .foregroundStyle(JadeColor.textTertiary)
-            }
+            Text(viewModel.isSearching
+                 ? L10n.localized("clipboard.empty.search.subtitle")
+                 : L10n.localized("clipboard.empty.subtitle"))
+                .font(JadeFont.caption)
+                .foregroundStyle(JadeColor.textTertiary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }

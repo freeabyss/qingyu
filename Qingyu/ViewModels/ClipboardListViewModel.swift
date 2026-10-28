@@ -293,9 +293,10 @@ final class ClipboardListViewModel: ObservableObject {
 
     // MARK: - Actions
 
-    func copySelectedToPasteboard() {
-        guard let selectedItem else { return }
-        Task { await copyToPasteboard(selectedItem) }
+    @discardableResult
+    func copySelectedToPasteboard() -> Task<Void, Never> {
+        guard let selectedItem else { return Task<Void, Never> {} }
+        return Task<Void, Never> { await copyToPasteboard(selectedItem) }
     }
 
     func copyToPasteboard(_ item: ClipboardRecordSnapshot) async {
