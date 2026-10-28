@@ -27,6 +27,11 @@ struct ScreenshotFrameStyle: Equatable, Sendable {
 
     static let `default` = ScreenshotFrameStyle()
 
+    /// 导出图阴影模糊色透明度：用户所选阴影色乘此值作为 NSShadow 颜色；是作用于可变阴影色的透明度，不是固定色，不并入 Jade 动态色；与下方投射填充 0.35 同底色不同角色，不合并。
+    static let shadowColorAlpha: CGFloat = 0.45
+    /// 导出图阴影投射填充透明度：以用户所选阴影色填充图片轮廓，作为阴影的投射形状；与模糊色 0.45 同底色不同角色，不合并。
+    static let shadowFillAlpha: CGFloat = 0.35
+
     /// 是否等于「不装饰」：全关时直接返回原图，保证既有行为不变。
     var isIdentity: Bool {
         cornerRadius <= 0 && borderWidth <= 0 && effectiveShadowWidth <= 0
@@ -112,12 +117,12 @@ struct ScreenshotFrameStyle: Equatable, Sendable {
         // 1) 阴影：以图片轮廓为形状做模糊投影。
         if scaledShadow > 0, let shadowColor = NSColor(hexString: shadowColorHex) {
             let shadow = NSShadow()
-            shadow.shadowColor = shadowColor.withAlphaComponent(0.45)
+            shadow.shadowColor = shadowColor.withAlphaComponent(Self.shadowColorAlpha)
             shadow.shadowBlurRadius = scaledShadow
             shadow.shadowOffset = NSSize(width: 0, height: -scaledShadow / 3)
             NSGraphicsContext.saveGraphicsState()
             shadow.set()
-            shadowColor.withAlphaComponent(0.35).setFill()
+            shadowColor.withAlphaComponent(Self.shadowFillAlpha).setFill()
             clipPath.fill()
             NSGraphicsContext.restoreGraphicsState()
         }
