@@ -50,7 +50,7 @@ struct PinWindowView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 Image(systemName: "photo.badge.exclamationmark")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(JadeColor.textSecondary)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         case .color(let red, let green, let blue):
