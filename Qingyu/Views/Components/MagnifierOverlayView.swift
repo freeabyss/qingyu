@@ -63,6 +63,9 @@ final class MagnifierOverlayView: NSView {
         /// 选区遮罩边界一深一浅的描边色：先 2pt 深描边、再 1pt 浅描边，压在放大后的任意像素上都必须可读，故固定黑白；与镜片边缘 0.45 / 0.7 线宽与数值都不同，不合并。
         static let maskOuterStroke: NSColor = NSColor.black.withAlphaComponent(0.55)
         static let maskInnerStroke: NSColor = NSColor.white.withAlphaComponent(0.9)
+        /// 徽标底色与文字色：徽标直接压在放大后的任意像素上，底必须固定黑、字必须固定白才保证对比；不是 Jade 动态文字色，数值也与 pinColorScrim 0.6 不同，不合并。
+        static let badgeBackground: NSColor = NSColor.black.withAlphaComponent(0.65)
+        static let badgeText: NSColor = NSColor.white
         static let labelPadding: CGFloat = 5
         static let minimumCellSizeForGrid: CGFloat = 3
     }
@@ -229,7 +232,7 @@ final class MagnifierOverlayView: NSView {
         let attributes: [NSAttributedString.Key: Any] = [
             // 放大镜徽标字体即 Jade caption 桥接（10pt medium），与截图来源徽标的尺寸文字同一字阶，不再另起本地字号。
             .font: JadeFont.appKitCaptionMedium,
-            .foregroundColor: NSColor.white
+            .foregroundColor: Metrics.badgeText
         ]
         let textSize = text.size(withAttributes: attributes)
         let badgeSize = CGSize(
@@ -241,7 +244,7 @@ final class MagnifierOverlayView: NSView {
         let badgeRect = CGRect(origin: CGPoint(x: x, y: y), size: badgeSize)
 
         let background = NSBezierPath(roundedRect: badgeRect, xRadius: 4, yRadius: 4)
-        NSColor.black.withAlphaComponent(0.65).set()
+        Metrics.badgeBackground.set()
         background.fill()
 
         text.draw(
