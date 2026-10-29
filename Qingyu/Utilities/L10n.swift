@@ -22,24 +22,36 @@ enum L10n {
 
     /// Returns localized relative time string for the given date.
     /// Uses the current locale to choose the appropriate language.
+    ///
+    /// 用 `interval` 直接算总分钟 / 总小时 / 总天数，**不能**用
+    /// `dateComponents([.day, .hour, .minute])` 的 `.minute`：那是把区间拆开后的
+    /// 余数（恒为 0–59），于是 `minutes < 60` 永远成立，小时 / 天 / 日期三个分支
+    /// 全成了死代码——一周前的记录会显示成「23m ago」这种假时间。
     static func relativeTime(from date: Date) -> String {
         let now = Date()
         let interval = now.timeIntervalSince(date)
-        let calendar = Calendar.current
-        let components = calendar.dateComponents([.day, .hour, .minute], from: date, to: now)
 
         if interval < 60 {
             return L10n.localized("time.justNow")
-        } else if let minutes = components.minute, minutes < 60 {
-            return L10n.localized("time.minutesAgo", minutes)
-        } else if let hours = components.hour, hours < 24 {
-            return L10n.localized("time.hoursAgo", hours)
-        } else if let days = components.day, days < 7 {
-            return L10n.localized("time.daysAgo", days)
-        } else {
-            let fmt = DateFormatter()
-            fmt.dateFormat = L10n.localized("time.dateShort")
-            return fmt.string(from: date)
         }
+
+        let minutes = Int(interval / 60)
+        if minutes < 60 {
+            return L10n.localized("time.minutesAgo", minutes)
+        }
+
+        let hours = Int(interval / 3_600)
+        if hours < 24 {
+            return L10n.localized("time.hoursAgo", hours)
+        }
+
+        let days = Int(interval / 86_400)
+        if days < 7 {
+            return L10n.localized("time.daysAgo", days)
+        }
+
+        let fmt = DateFormatter()
+        fmt.dateFormat = L10n.localized("time.dateShort")
+        return fmt.string(from: date)
     }
 }

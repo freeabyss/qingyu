@@ -123,6 +123,49 @@ final class DesignSnapshotTests: XCTestCase {
         try renderBothSchemes(page, size: CGSize(width: 700, height: 560), name: "settings-sections")
     }
 
+    /// 组件一致性：按钮四种样式、语义胶囊六种、Toast 三种变体同屏对照。
+    ///
+    /// 单个组件好看不代表一致——同屏才能看出圆角、内边距、字重、色彩是否同一套语言。
+    func testComponentGallerySnapshot() throws {
+        let gallery = VStack(alignment: .leading, spacing: JadeSpace.x5.value) {
+            VStack(alignment: .leading, spacing: JadeSpace.x2.value) {
+                Text("Buttons").font(JadeFont.headline).foregroundStyle(JadeColor.textPrimary)
+                HStack(spacing: JadeSpace.x2.value) {
+                    Button("Primary") {}.buttonStyle(.jadePrimary)
+                    Button("Secondary") {}.buttonStyle(.jadeSecondary)
+                    Button("Ghost") {}.buttonStyle(.jadeGhost)
+                    Button("Delete") {}.buttonStyle(.jadeDestructive)
+                }
+            }
+
+            VStack(alignment: .leading, spacing: JadeSpace.x2.value) {
+                Text("Pills").font(JadeFont.headline).foregroundStyle(JadeColor.textPrimary)
+                HStack(spacing: JadeSpace.x2.value) {
+                    JadePill("Neutral", style: .neutral)
+                    JadePill("Primary", style: .primary)
+                    JadePill("Info", style: .info)
+                    JadePill("Success", style: .success)
+                    JadePill("Warning", style: .warning)
+                    JadePill("Danger", style: .danger)
+                }
+            }
+
+            VStack(alignment: .leading, spacing: JadeSpace.x2.value) {
+                Text("Toasts").font(JadeFont.headline).foregroundStyle(JadeColor.textPrimary)
+                VStack(alignment: .leading, spacing: JadeSpace.x2.value) {
+                    JadeToast("已复制到剪贴板", variant: .success)
+                    JadeToast("正在读取剪贴板历史", variant: .info)
+                    JadeToast("无法访问剪贴板，请检查系统权限", variant: .error)
+                }
+            }
+        }
+        .jadePadding(.x6)
+        .frame(width: 640, alignment: .leading)
+        .background(JadeColor.surface2)
+
+        try renderBothSchemes(gallery, size: CGSize(width: 640, height: 470), name: "component-gallery")
+    }
+
     /// 剪贴板详情面板：无选中项的空状态。
     func testClipboardDetailPaneSnapshot() throws {
         try renderBothSchemes(
