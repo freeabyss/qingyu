@@ -315,7 +315,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private func captureFrontmostWindow(to path: String) {
         let candidates = NSApp.windows.filter { window in
             guard window.isVisible, let view = window.contentView else { return false }
-            return view.bounds.width >= 200 && view.bounds.height >= 200
+            // 命令栏收起时只有 760×56，门槛放低才能截到它。
+            return view.bounds.width >= 200 && view.bounds.height >= 40
         }
         guard let window = candidates.max(by: {
             $0.frame.width * $0.frame.height < $1.frame.width * $1.frame.height

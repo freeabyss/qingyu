@@ -100,7 +100,7 @@ struct ClipboardHistoryView: View {
         HStack(spacing: JadeSpace.x2.value) {
             TextField("clipboard.search.placeholder", text: $viewModel.query)
                 .textFieldStyle(.plain)
-                .font(JadeFont.commandBarInput)
+                .font(JadeFont.searchField)
                 .foregroundStyle(JadeColor.textPrimary)
                 .focused($searchFocused)
                 .accessibilityIdentifier("clipboard.searchField")

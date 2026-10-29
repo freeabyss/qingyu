@@ -85,6 +85,14 @@ public enum JadeFont {
     public static let detailMissingImageIcon = Font.system(size: 36, weight: .regular)
 
     public static let commandBarInput = Font.system(size: 19, weight: .regular)
+
+    /// 剪贴板历史搜索框：15pt regular（固定）。
+    ///
+    /// 命令栏的 19pt 输入是「聚光灯式」面板的主角，那是刻意的；但把它照搬到
+    /// 860pt 宽的历史窗口里，输入框比同屏的胶囊（10pt）和列表行（13pt）大出一整档，
+    /// 层级被反转——输入框看起来像窗口标题，真正的内容退成了注释。
+    public static let searchFieldPointSize: CGFloat = 15
+    public static let searchField = Font.system(size: searchFieldPointSize, weight: .regular)
 }
 
 // MARK: - AppKit bridge

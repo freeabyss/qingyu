@@ -63,6 +63,16 @@ final class JadeDesignTokenTests: XCTestCase {
         )
     }
 
+    /// 历史窗口搜索框必须比命令栏输入（19pt）更小。
+    ///
+    /// 命令栏的 19pt 是「聚光灯面板」的主角，照搬到 860pt 宽的历史窗口里，
+    /// 输入框会比同屏胶囊（10pt）和列表行（13pt）大出一整档，层级反转。
+    func testSearchFieldIsQuieterThanCommandBarInput() {
+        XCTAssertLessThanOrEqual(JadeFont.searchFieldPointSize, 16)
+        XCTAssertLessThan(JadeFont.searchFieldPointSize, 19, "不得沿用命令栏的 19pt")
+        XCTAssertGreaterThanOrEqual(JadeFont.searchFieldPointSize, 13, "不得小于正文 13pt，否则输入文字读不清")
+    }
+
     func testAppKitOverlayFontsMirrorJadeScale() {
         // AppKit 叠层字号必须与 SwiftUI Jade 字阶一致，且不得低于 caption 下限 10pt：
         // 旧代码里工具条标签是 9pt，放大镜已是 10pt，两者曾不一致。
