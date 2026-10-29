@@ -79,6 +79,18 @@ public struct JadeListRow<Content: View>: View {
         alwaysShowsActions || isHovering || isFocused
     }
 
+    /// 静止态只留字形，不画磁贴底色。
+    ///
+    /// 一行 4–6 个带底色的方块会把列表画成工具栏：标题是内容，图标是次要操作，
+    /// 但灰块的总面积和重复次数盖过了标题。底色改到 hover 时才浮现，
+    /// 作为「这里可以点」的反馈；图标本身始终可见，可发现性与键盘可达性不变。
+    ///
+    /// 危险操作同理：静止态用普通文字色，hover 整行时才转红，避免每行常驻一条红杠。
+    private func iconColor(for action: JadeRowAction) -> Color {
+        if action.isDestructive, isHovering { return JadeColor.danger }
+        return JadeColor.textSecondary
+    }
+
     public var body: some View {
         HStack(spacing: JadeSpace.x2.value) {
             content
@@ -92,9 +104,9 @@ public struct JadeListRow<Content: View>: View {
                         } label: {
                             Image(systemName: action.systemImage)
                                 .font(JadeFont.body)
-                                .foregroundStyle(action.isDestructive ? JadeColor.danger : JadeColor.textSecondary)
+                                .foregroundStyle(iconColor(for: action))
                                 .frame(width: Self.actionHitSize, height: Self.actionHitSize)
-                                .background(JadeColor.surface3)
+                                .background(isHovering ? JadeColor.surface3 : Color.clear)
                                 .jadeRadius(.sm)
                         }
                         .buttonStyle(.plain)

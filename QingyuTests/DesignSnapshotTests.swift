@@ -70,6 +70,29 @@ final class DesignSnapshotTests: XCTestCase {
     // ImageRenderer 无法离屏绘制，整屏会渲染成黄色「不支持」占位图——那样的图不是评审证据。
     // 命令栏的视觉评审只能在真实窗口里做。
 
+    /// 列表行：评审信息密度与行内操作拥挤度的关键画面。
+    ///
+    /// 不能渲染整窗——窗口里的列表是 `LazyVStack`、详情是 `ScrollView`，
+    /// `ImageRenderer` 离屏渲染这两类容器会得到**空白**（是渲染器局限，不是界面缺陷）。
+    /// 所以这里直接渲染行本身，宽度取 900pt 窗口下左栏的实际宽度（900 − 360 详情 = 540）。
+    func testClipboardRowListSnapshot() throws {
+        try renderBothSchemes(
+            Self.rowList(width: 540),
+            size: CGSize(width: 540, height: 470),
+            name: "clipboard-rows"
+        )
+    }
+
+    /// 同一批行在窗口最小尺寸下的表现：860pt 窗口时左栏只有 500pt，
+    /// 6 个操作图标 + 标题能不能同时读出来，只能看图判断。
+    func testClipboardRowListMinWidthSnapshot() throws {
+        try renderBothSchemes(
+            Self.rowList(width: 500),
+            size: CGSize(width: 500, height: 470),
+            name: "clipboard-rows-min"
+        )
+    }
+
     /// 剪贴板详情面板：无选中项的空状态。
     func testClipboardDetailPaneSnapshot() throws {
         try renderBothSchemes(
@@ -101,6 +124,125 @@ final class DesignSnapshotTests: XCTestCase {
         usageCount: 0,
         lastUsedAt: nil
     )
+
+    // MARK: - 快照数据
+
+    /// 一批真实行：置顶、收藏、长链接、图片、文件（6 个操作图标）各一条。
+    private static func rowList(width: CGFloat) -> some View {
+        VStack(spacing: JadeSpace.x1.value) {
+            ForEach(Array(populatedFixtures().snapshots.enumerated()), id: \.element.id) { index, item in
+                JadeClipboardRow(
+                    item: item,
+                    selected: index == 0,
+                    thumbnailProvider: { _ in nil },
+                    onPin: {},
+                    onFavorite: {},
+                    onCopy: {},
+                    onDelete: {},
+                    onRevealInFinder: {},
+                    onCopyPath: {}
+                )
+            }
+        }
+        .jadePadding(.x3)
+        .frame(width: width, alignment: .leading)
+        .background(JadeColor.surface1)
+    }
+
+    private struct Fixtures {
+        let snapshots: [ClipboardRecordSnapshot]
+        let indexItems: [SearchIndexItem]
+        let snapshotsByID: [UUID: ClipboardRecordSnapshot]
+    }
+
+    /// 一份贴近真实使用的历史：置顶、收藏、长文本、链接、图片、文件各一条。
+    private static func populatedFixtures() -> Fixtures {
+        let now = Date(timeIntervalSince1970: 1_760_000_000)
+
+        func make(
+            _ type: ClipboardContentType,
+            summary: String,
+            plainText: String?,
+            minutesAgo: Int,
+            pinned: Bool = false,
+            favorite: Bool = false,
+            source: (bundleID: String, name: String)? = nil,
+            file: (path: String, bytes: Int64)? = nil
+        ) -> ClipboardRecordSnapshot {
+            let updated = now.addingTimeInterval(-Double(minutesAgo) * 60)
+            let id = UUID()
+            let resources: [ClipboardResourceSnapshot] = type == .image
+                ? [ClipboardResourceSnapshot(
+                    id: id,
+                    type: .imageOriginal,
+                    relativePath: "Clipboard/Images/\(id.uuidString).png",
+                    mimeType: "image/png",
+                    byteSize: 240_000,
+                    width: 1440,
+                    height: 900,
+                    isMissing: false
+                )]
+                : []
+            return ClipboardRecordSnapshot(
+                id: id,
+                contentType: type,
+                plainText: plainText,
+                summary: summary,
+                contentHash: "hash-\(id.uuidString)",
+                isPinned: pinned,
+                isFavorite: favorite,
+                createdAt: updated.addingTimeInterval(-120),
+                updatedAt: updated,
+                filePath: file.map { URL(fileURLWithPath: $0.path) },
+                fileDisplayName: file.map { ($0.path as NSString).lastPathComponent },
+                fileUTI: file == nil ? nil : "com.adobe.pdf",
+                fileSize: file?.bytes,
+                resources: resources,
+                resourceStatus: .available,
+                sourceAppBundleID: source?.bundleID,
+                sourceAppName: source?.name
+            )
+        }
+
+        let snapshots = [
+            make(.text,
+                 summary: "会议纪要 · Q4 路线图评审与优先级排序",
+                 plainText: "会议纪要 · Q4 路线图评审与优先级排序",
+                 minutesAgo: 3,
+                 pinned: true,
+                 source: (bundleID: "company.thebrowser.Browser", name: "Arc")),
+            make(.richText,
+                 summary: "设计规范 v2：排版层级与间距系统",
+                 plainText: "设计规范 v2：排版层级与间距系统",
+                 minutesAgo: 12,
+                 favorite: true),
+            make(.text,
+                 summary: "https://developer.apple.com/design/human-interface-guidelines",
+                 plainText: "https://developer.apple.com/design/human-interface-guidelines",
+                 minutesAgo: 40,
+                 source: (bundleID: "com.apple.Safari", name: "Safari")),
+            make(.image,
+                 summary: "Screenshot 2026-10-29 at 18.12.04.png",
+                 plainText: nil,
+                 minutesAgo: 90),
+            make(.file,
+                 summary: "Q4 路线图.pdf",
+                 plainText: "Q4 路线图.pdf",
+                 minutesAgo: 180,
+                 file: (path: "/Users/abyss/Documents/Q4 路线图.pdf", bytes: 2_400_000)),
+            make(.text,
+                 summary: "git commit -m \"fix: 空状态缺少加载反馈\"",
+                 plainText: "git commit -m \"fix: 空状态缺少加载反馈\"",
+                 minutesAgo: 1_440,
+                 source: (bundleID: "com.apple.Terminal", name: "Terminal"))
+        ]
+
+        return Fixtures(
+            snapshots: snapshots,
+            indexItems: snapshots.map(SearchIndexItem.init(clipboard:)),
+            snapshotsByID: Dictionary(uniqueKeysWithValues: snapshots.map { ($0.id, $0) })
+        )
+    }
 
     // MARK: - 渲染管线
 
@@ -201,11 +343,17 @@ final class DesignSnapshotTests: XCTestCase {
 /// 快照专用查询服务：可注入条目，并可阻塞 `loadDetails` 把界面稳定停在加载态。
 private final class SnapshotQueryService: ClipboardIndexQueryServiceProtocol, @unchecked Sendable {
     private let items: [SearchIndexItem]
+    private let snapshots: [UUID: ClipboardRecordSnapshot]
     private let blocksDetails: Bool
     private var continuation: CheckedContinuation<Void, Never>?
 
-    init(items: [SearchIndexItem], blocksDetails: Bool = false) {
+    init(
+        items: [SearchIndexItem],
+        snapshots: [UUID: ClipboardRecordSnapshot] = [:],
+        blocksDetails: Bool = false
+    ) {
         self.items = items
+        self.snapshots = snapshots
         self.blocksDetails = blocksDetails
     }
 
@@ -223,7 +371,7 @@ private final class SnapshotQueryService: ClipboardIndexQueryServiceProtocol, @u
                 self.continuation = continuation
             }
         }
-        return nil
+        return snapshots[indexItem.clipboardRecordID ?? indexItem.id]
     }
 
     /// `loadDetails` 是否已经挂起（continuation 已安装）。
@@ -234,4 +382,20 @@ private final class SnapshotQueryService: ClipboardIndexQueryServiceProtocol, @u
         continuation?.resume()
         continuation = nil
     }
+}
+/// 快照专用资源仓库：让图片条目留在列表里。
+///
+/// 真实的 `FileResourceStore` 会去磁盘上找原图，快照数据里的相对路径当然不存在，
+/// 于是图片行会被 `shouldShowInList` 过滤掉——而图片行恰恰是最需要看排版的一行。
+private final class SnapshotResourceStore: FileResourceStoreProtocol, @unchecked Sendable {
+    private struct Unused: Error {}
+
+    func writeImageOriginal(_ data: Data, id: UUID) async throws -> FileResourceWriteResult { throw Unused() }
+    func writeThumbnail(_ data: Data, id: UUID) async throws -> FileResourceWriteResult { throw Unused() }
+    func writeRichTextRTF(_ data: Data, id: UUID) async throws -> FileResourceWriteResult { throw Unused() }
+    func writeRichTextHTML(_ data: Data, id: UUID) async throws -> FileResourceWriteResult { throw Unused() }
+    func read(relativePath: String) async throws -> Data { throw Unused() }
+    func delete(relativePath: String) async {}
+    func exists(relativePath: String) -> Bool { true }
+    func storageUsage() async throws -> Int64 { 0 }
 }
