@@ -101,6 +101,18 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
         #endif
 
+        // 设计评审用：把真实窗口自绘成 PNG 后退出。
+        //
+        // 屏幕录制权限拿不到时 screencapture 只能得到 "could not create image from display"，
+        // 而 TextField / Toggle / List 这些 AppKit 控件在 SwiftUI 的 ImageRenderer 里只能画成
+        // 黄色占位块——两条路都看不到真实外观。让窗口自己把自己画出来，绕开屏幕录制，
+        // 拿到的是真实布局与真实控件。仅 DEBUG 生效，且必须显式传参。
+        if let path = Self.capturePNGPath() {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
+                self?.captureFrontmostWindow(to: path)
+            }
+        }
+
         logger.info("Qingyu launched successfully")
     }
 
@@ -242,6 +254,70 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         PersistenceController.setDebugShared(persistence)
         DatabaseManager.setDebugDatabaseURL(dataDir.appendingPathComponent("assistant.db"))
         logger.info("UITest: data directory redirected to \(dataDir.path, privacy: .public)")
+    }
+
+    /// --uitest-capture-png <path>：取其后一个参数作为输出路径。
+    private static func capturePNGPath() -> String? {
+        let args = ProcessInfo.processInfo.arguments
+        guard let index = args.firstIndex(of: "--uitest-capture-png"),
+              index + 1 < args.count,
+              !args[index + 1].hasPrefix("--") else { return nil }
+        return args[index + 1]
+    }
+
+    /// 把当前最大的可见窗口自绘为 PNG 并退出应用。
+    ///
+    /// 用 cacheDisplay(in:to:) 而不是截屏 API：它走视图自己的绘制路径，
+    /// AppKit 控件（输入框、开关、侧栏列表）都会真实绘制出来。
+    @MainActor
+    private func captureFrontmostWindow(to path: String) {
+        let candidates = NSApp.windows.filter { window in
+            guard window.isVisible, let view = window.contentView else { return false }
+            return view.bounds.width >= 200 && view.bounds.height >= 200
+        }
+        guard let window = candidates.max(by: {
+            $0.frame.width * $0.frame.height < $1.frame.width * $1.frame.height
+        }), let view = window.contentView else {
+            logger.error("UITest capture: no visible window to capture")
+            NSApp.terminate(nil)
+            return
+        }
+
+        // 非活动窗口会把系统控件画成灰态（开关的强调色会退成灰），
+        // 那样的图会让人误判成「开关关闭 / 按钮被禁用」。
+        // 激活是异步的：先激活，等一个 run loop 周期后再画。
+        NSApp.activate(ignoringOtherApps: true)
+        window.makeKeyAndOrderFront(nil)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in
+            self?.drawWindow(window, view: view, to: path)
+        }
+    }
+
+    @MainActor
+    private func drawWindow(_ window: NSWindow, view: NSView, to path: String) {
+        let bounds = view.bounds
+        guard let rep = view.bitmapImageRepForCachingDisplay(in: bounds) else {
+            logger.error("UITest capture: bitmap rep unavailable")
+            NSApp.terminate(nil)
+            return
+        }
+        view.cacheDisplay(in: bounds, to: rep)
+        guard let data = rep.representation(using: .png, properties: [:]) else {
+            logger.error("UITest capture: PNG encoding failed")
+            NSApp.terminate(nil)
+            return
+        }
+        do {
+            try FileManager.default.createDirectory(
+                at: URL(fileURLWithPath: path).deletingLastPathComponent(),
+                withIntermediateDirectories: true
+            )
+            try data.write(to: URL(fileURLWithPath: path))
+            logger.info("UITest capture wrote \(path, privacy: .public)")
+        } catch {
+            logger.error("UITest capture write failed \(error.localizedDescription, privacy: .public)")
+        }
+        NSApp.terminate(nil)
     }
 
     /// Dispatches `--uitest-trigger <action>` to the corresponding controller,

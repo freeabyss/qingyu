@@ -236,6 +236,15 @@ struct OnboardingView: View {
                     .font(JadeFont.callout)
                     .foregroundStyle(JadeColor.danger)
                     .multilineTextAlignment(.center)
+            } else if !viewModel.canStart {
+                // 主按钮被禁用时必须说明原因。
+                // 首启时「开始使用」默认是灰的（屏幕录制既未授权、也没点「暂不开启」），
+                // 界面上却只有一句沉默的灰按钮——用户不知道差什么，也不知道旁边两个按钮哪个能解开。
+                Text(L10n.localized("onboarding.start.blockedHint"))
+                    .font(JadeFont.caption)
+                    .foregroundStyle(JadeColor.textSecondary)
+                    .multilineTextAlignment(.trailing)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
             }
             HStack {
                 Button(L10n.localized("onboarding.skip")) {

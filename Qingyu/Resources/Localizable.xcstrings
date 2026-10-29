@@ -1,6 +1,42 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "onboarding.start.blockedHint" : {
+      "comment" : "Onboarding: explains why Get Started is disabled",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grant Screen Recording access, or choose Not now, to continue."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "授予屏幕录制权限，或选择「暂不开启」，才能继续。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "授予螢幕錄製權限，或選擇「暫不開啟」，才能繼續。"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "画面収録を許可するか「今はしない」を選ぶと続行できます。"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autorisez l'enregistrement de l'écran, ou choisissez « Plus tard », pour continuer."
+          }
+        }
+      }
+    },
     "time.dateWithYear" : {
       "comment" : "Relative time fallback: date with year (cross-year items)",
       "extractionState" : "manual",
