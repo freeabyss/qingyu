@@ -12,6 +12,11 @@ struct ClipboardHistoryView: View {
     var onCopyAndClose: () -> Void = {}
     /// Invoked by ⎋ — closes the window without copying (PRD §9.7「关闭窗口且保留应用运行」).
     var onClose: () -> Void = {}
+    /// 出现时是否自动读取历史。生产环境恒为 true。
+    ///
+    /// 设计快照测试传 false：离屏渲染同样会触发 `.task`，于是每次渲染都重新进入加载态，
+    /// 「已加载完成且为空」的确定状态就渲染不出来（快照只能停在 Loading）。
+    var autoLoadsOnAppear: Bool = true
 
     /// Fixed detail-pane width (independent of content size).
     private static let detailPaneWidth: CGFloat = 360
@@ -61,7 +66,10 @@ struct ClipboardHistoryView: View {
         .jadeWindowSurface(radius: .xxl)
         .jadeShadow(.xl, radius: .xxl)
         .tint(JadeColor.primary)
-        .task { await viewModel.load() }
+        .task {
+            guard autoLoadsOnAppear else { return }
+            await viewModel.load()
+        }
         .onReceive(NotificationCenter.default.publisher(for: .focusClipboardSearchField)) { _ in
             searchFocused = true
         }
@@ -158,7 +166,9 @@ struct ClipboardHistoryView: View {
     private var content: some View {
         if !viewModel.clipboardEnabled {
             disabledState
-        } else if viewModel.items.isEmpty && !viewModel.isLoading {
+        } else if viewModel.items.isEmpty && viewModel.isLoading {
+            loadingState
+        } else if viewModel.items.isEmpty {
             emptyState
         } else {
             HStack(spacing: 0) {
@@ -287,6 +297,24 @@ struct ClipboardHistoryView: View {
     }
 
     // MARK: - Empty states
+
+    /// 首次读取历史期间的占位。
+    ///
+    /// 没有这条分支时，`items` 为空且 `isLoading` 为 true 会落进「列表 + 详情」分支：
+    /// 左栏整片空白、右栏提示「选择一条记录以预览」，用户读到的结论是「没有内容」，
+    /// 而不是「正在读取」——冷启动那一瞬间看起来就像加载失败。
+    private var loadingState: some View {
+        VStack(spacing: JadeSpace.x3.value) {
+            ProgressView()
+                .controlSize(.small)
+            Text(L10n.localized("clipboard.loading"))
+                .font(JadeFont.caption)
+                .foregroundStyle(JadeColor.textTertiary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("clipboard.loading")
+    }
 
     private var emptyState: some View {
         VStack(spacing: JadeSpace.x3.value) {

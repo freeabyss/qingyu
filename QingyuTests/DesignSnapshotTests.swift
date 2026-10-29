@@ -13,28 +13,62 @@ import XCTest
 ///
 /// PNG 输出目录由环境变量 `QINGYU_SNAPSHOT_DIR` 指定，默认 `/tmp/qingyu-snapshots`。
 /// 快照文件是评审证据，不进仓库。
+///
+/// 已知局限：AppKit 支撑的控件（TextField / ProgressView 等）在 `ImageRenderer` 里
+/// 会渲染成黄色「不支持」占位块。评审时把这类黄块当作「此处不可离屏验证」，
+/// 不要误判成界面缺陷；它们需要真实窗口截图验证。
 @MainActor
 final class DesignSnapshotTests: XCTestCase {
 
     // MARK: - 被测界面
 
-    /// 剪贴板历史主窗口：空状态。
-    func testClipboardHistorySnapshot() throws {
+    /// 剪贴板历史主窗口：加载完成、没有任何记录。
+    ///
+    /// 注入 `SnapshotQueryService` 有两个作用：不让默认初始化里的后台索引重建任务干扰渲染，
+    /// 以及让「空」是**确定的**空，而不是碰巧还没加载完。
+    func testClipboardHistoryEmptySnapshot() async throws {
+        let viewModel = ClipboardListViewModel(queryService: SnapshotQueryService(items: []))
+        await viewModel.load()
+        XCTAssertFalse(viewModel.isLoading, "加载结束后不应停留在加载态")
+        XCTAssertTrue(viewModel.items.isEmpty, "空状态快照要求没有条目")
+
         try renderBothSchemes(
-            ClipboardHistoryView(viewModel: ClipboardListViewModel()),
+            ClipboardHistoryView(viewModel: viewModel, autoLoadsOnAppear: false),
             size: CGSize(width: 900, height: 560),
             name: "clipboard-history-empty"
         )
     }
 
-    /// 命令栏：空查询时面板就是输入框本身。
-    func testCommandBarSnapshot() throws {
+    /// 剪贴板历史主窗口：首次读取中。
+    ///
+    /// 这是最容易做错的一个状态：`items` 为空 + `isLoading` 为 true 时，
+    /// 早期实现会落进「列表 + 详情」分支，左栏整片空白，看起来像加载失败。
+    func testClipboardHistoryLoadingSnapshot() async throws {
+        let queryService = SnapshotQueryService(items: [Self.sampleIndexItem], blocksDetails: true)
+        let viewModel = ClipboardListViewModel(queryService: queryService)
+
+        let loading = Task { await viewModel.load() }
+        // 必须等到 `loadDetails` 真正挂起（continuation 已安装）再渲染：
+        // 只看 `isLoading` 会太早，那时 `release()` 还没人能接住，`loading.value` 就永远等不到。
+        for _ in 0..<2000 where !queryService.isBlocked {
+            await Task.yield()
+        }
+        XCTAssertTrue(queryService.isBlocked, "加载任务应停在 loadDetails 上")
+        XCTAssertTrue(viewModel.isLoading, "快照要求渲染时确实处于加载态")
+
         try renderBothSchemes(
-            CommandBarView(viewModel: SearchPanelViewModel(searchService: SearchService(sources: []))),
-            size: CGSize(width: 760, height: 140),
-            name: "command-bar-empty"
+            ClipboardHistoryView(viewModel: viewModel),
+            size: CGSize(width: 900, height: 560),
+            name: "clipboard-history-loading"
         )
+
+        queryService.release()
+        await loading.value
     }
+
+    // 命令栏（CommandBarView）没有快照：它的核心是 AppKit 支撑的 TextField，
+    // ImageRenderer 无法离屏绘制，整屏会渲染成黄色「不支持」占位图——那样的图不是评审证据。
+    // 命令栏的视觉评审只能在真实窗口里做。
 
     /// 剪贴板详情面板：无选中项的空状态。
     func testClipboardDetailPaneSnapshot() throws {
@@ -48,6 +82,25 @@ final class DesignSnapshotTests: XCTestCase {
             name: "clipboard-detail-empty"
         )
     }
+
+    private static let sampleIndexItem = SearchIndexItem(
+        id: UUID(),
+        sourceID: .clipboard,
+        recordID: UUID(),
+        title: "示例文本",
+        plainText: "示例文本",
+        summary: nil,
+        contentType: .text,
+        pinyin: nil,
+        initials: nil,
+        updatedAt: Date(timeIntervalSince1970: 1_700_000_000),
+        isPinned: false,
+        isFavorite: false,
+        contentHash: nil,
+        resourceReferences: [],
+        usageCount: 0,
+        lastUsedAt: nil
+    )
 
     // MARK: - 渲染管线
 
@@ -143,5 +196,42 @@ final class DesignSnapshotTests: XCTestCase {
             }
         }
         return seen.count
+    }
+}
+/// 快照专用查询服务：可注入条目，并可阻塞 `loadDetails` 把界面稳定停在加载态。
+private final class SnapshotQueryService: ClipboardIndexQueryServiceProtocol, @unchecked Sendable {
+    private let items: [SearchIndexItem]
+    private let blocksDetails: Bool
+    private var continuation: CheckedContinuation<Void, Never>?
+
+    init(items: [SearchIndexItem], blocksDetails: Bool = false) {
+        self.items = items
+        self.blocksDetails = blocksDetails
+    }
+
+    func searchIndex(query: String, filter: ClipboardContentType?, limit: Int?) -> [SearchIndexItem] {
+        items
+    }
+
+    func historyIndex(filter: ClipboardContentType?, limit: Int?, offset: Int) -> [SearchIndexItem] {
+        items
+    }
+
+    func loadDetails(for indexItem: SearchIndexItem) async throws -> ClipboardRecordSnapshot? {
+        if blocksDetails {
+            await withCheckedContinuation { continuation in
+                self.continuation = continuation
+            }
+        }
+        return nil
+    }
+
+    /// `loadDetails` 是否已经挂起（continuation 已安装）。
+    var isBlocked: Bool { continuation != nil }
+
+    /// 放行被阻塞的 `loadDetails`，让加载任务正常收尾。
+    func release() {
+        continuation?.resume()
+        continuation = nil
     }
 }
