@@ -108,7 +108,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         // 黄色占位块——两条路都看不到真实外观。让窗口自己把自己画出来，绕开屏幕录制，
         // 拿到的是真实布局与真实控件。仅 DEBUG 生效，且必须显式传参。
         if let path = Self.capturePNGPath() {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
+            let delay = Self.captureDelay()
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
                 self?.captureFrontmostWindow(to: path)
             }
         }
@@ -265,6 +266,47 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         return args[index + 1]
     }
 
+    /// 把每个滚动文档单独画成 PNG（<base>-scrollN.png）。
+    private static func captureScrollDocuments(in root: NSView, basePath: String) {
+        var documents: [NSView] = []
+        func walk(_ view: NSView) {
+            if let clip = view as? NSClipView, let document = clip.documentView,
+               document.bounds.width >= 200, document.bounds.height >= 200 {
+                documents.append(document)
+            }
+            view.subviews.forEach(walk)
+        }
+        walk(root)
+
+        let base = URL(fileURLWithPath: basePath).deletingPathExtension()
+        for (index, document) in documents.enumerated() {
+            guard let rep = document.bitmapImageRepForCachingDisplay(in: document.bounds) else { continue }
+            document.cacheDisplay(in: document.bounds, to: rep)
+            guard let data = rep.representation(using: .png, properties: [:]) else { continue }
+            try? data.write(to: base.appendingPathExtension("scroll\(index).png"))
+        }
+    }
+
+    /// 递归转储视图层级（类名 + frame），用于诊断「截图里某块区域是空白」。
+    private static func describe(_ view: NSView, depth: Int) -> String {
+        let indent = String(repeating: "  ", count: depth)
+        let frame = NSStringFromRect(view.frame)
+        var line = "\(indent)\(type(of: view)) \(frame) hidden=\(view.isHidden) alpha=\(view.alphaValue)\n"
+        for subview in view.subviews {
+            line += describe(subview, depth: depth + 1)
+        }
+        return line
+    }
+
+    /// --uitest-capture-delay <seconds>：截图前等待秒数，默认 1.5。
+    private static func captureDelay() -> TimeInterval {
+        let args = ProcessInfo.processInfo.arguments
+        guard let index = args.firstIndex(of: "--uitest-capture-delay"),
+              index + 1 < args.count,
+              let value = TimeInterval(args[index + 1]) else { return 1.5 }
+        return value
+    }
+
     /// 把当前最大的可见窗口自绘为 PNG 并退出应用。
     ///
     /// 用 cacheDisplay(in:to:) 而不是截屏 API：它走视图自己的绘制路径，
@@ -313,6 +355,18 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 withIntermediateDirectories: true
             )
             try data.write(to: URL(fileURLWithPath: path))
+            // 同时写一份 PDF：cacheDisplay 走的是屏幕绘制路径，某些图层可能被跳过；
+            // dataWithPDF 走打印路径，两者对照就能区分「界面真的空白」和「截图方式漏画」。
+            let pdfURL = URL(fileURLWithPath: path).deletingPathExtension().appendingPathExtension("pdf")
+            try? view.dataWithPDF(inside: bounds).write(to: pdfURL)
+            // 视图层级转储：空白区域到底是「没画」还是「根本没有这个视图」，
+            // 只能靠 frames 判断。
+            let dumpURL = URL(fileURLWithPath: path).deletingPathExtension().appendingPathExtension("txt")
+            try? Self.describe(view, depth: 0).write(to: dumpURL, atomically: true, encoding: .utf8)
+
+            // cacheDisplay 会跳过 PlatformContainer 里的滚动内容（窗口 PNG 里那块会显示为空白），
+            // 但内容本身是存在的。逐个把滚动文档单独画出来，才能评审真实的设置页排版。
+            Self.captureScrollDocuments(in: view, basePath: path)
             logger.info("UITest capture wrote \(path, privacy: .public)")
         } catch {
             logger.error("UITest capture write failed \(error.localizedDescription, privacy: .public)")

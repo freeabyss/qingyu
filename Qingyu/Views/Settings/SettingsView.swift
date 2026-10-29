@@ -320,7 +320,10 @@ private struct GeneralPage: View {
 
     private func permissionRow(_ kind: PermissionKind) -> some View {
         let status = viewModel.permissionStatuses[kind] ?? .unknown
-        return HStack(alignment: .center, spacing: JadeSpace.x3.value) {
+        // 顶部对齐：权限行常常有 3–5 行说明（含 ad-hoc 构建提示），
+        // 垂直居中会让状态图标和「打开系统设置」按钮浮在长段文字的正中间，
+        // 既不属于标题也不属于说明，按钮与它要处理的那一项脱节。
+        return HStack(alignment: .top, spacing: JadeSpace.x3.value) {
             Image(systemName: status.isAuthorized ? "checkmark.seal.fill" : "exclamationmark.triangle.fill")
                 .font(JadeFont.body)
                 .foregroundStyle(status.isAuthorized ? JadeColor.textSecondary : JadeColor.warning)
