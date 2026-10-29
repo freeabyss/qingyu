@@ -93,6 +93,36 @@ final class DesignSnapshotTests: XCTestCase {
         )
     }
 
+    /// 设置页的排版语言：大标题 + 说明、分组标题、卡片内开关行与分隔线。
+    ///
+    /// 整页（SettingsScrollPage）是 ScrollView，离屏渲染会是空白，
+    /// 所以这里按同样的组合方式直接渲染 section 层。
+    func testSettingsPageSectionsSnapshot() throws {
+        let page = VStack(alignment: .leading, spacing: JadeSpace.x6.value) {
+            SettingsHeader(
+                titleKey: "settings.page.general",
+                subtitleKey: "settings.general.subtitle",
+                iconName: "gearshape"
+            )
+
+            SettingsSection("settings.general.startup") {
+                JadeSwitchRow(L10n.localized("settings.launchAtLogin"), isOn: .constant(true))
+            }
+
+            SettingsSection("management.page.appearance") {
+                JadeSwitchRow(L10n.localized("management.appearance.reduceMotion"), isOn: .constant(false))
+                Text(L10n.localized("management.appearance.reduceMotion.note"))
+                    .font(JadeFont.caption)
+                    .foregroundStyle(JadeColor.textTertiary)
+            }
+        }
+        .jadePadding(.x6)
+        .frame(width: 700, alignment: .leading)
+        .background(JadeColor.surface1)
+
+        try renderBothSchemes(page, size: CGSize(width: 700, height: 560), name: "settings-sections")
+    }
+
     /// 剪贴板详情面板：无选中项的空状态。
     func testClipboardDetailPaneSnapshot() throws {
         try renderBothSchemes(

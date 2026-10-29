@@ -23,6 +23,28 @@ public struct JadeRowAction: Identifiable {
     }
 }
 
+/// 行操作图标的样式规则。
+///
+/// 抽成与视图状态解耦的纯函数，是为了让 hover 分支能被单测覆盖——
+/// 离屏渲染模拟不了 hover，只靠肉眼看快照等于没验证。
+public enum JadeRowActionStyle {
+
+    /// 磁贴底色：静止态透明，hover 时才浮现，作为「这里可以点」的反馈。
+    ///
+    /// 常驻底色会把列表画成工具栏：一行 4–6 个方块的总面积盖过标题。
+    public static func tileBackground(isHovering: Bool) -> Color {
+        isHovering ? JadeColor.surface3 : .clear
+    }
+
+    /// 图标颜色：危险操作静止态也用普通文字色，hover 整行时才转红。
+    ///
+    /// 常驻红色会在每行留下一条红杠，把注意力从内容拉走。
+    public static func iconColor(isDestructive: Bool, isHovering: Bool) -> Color {
+        if isDestructive, isHovering { return JadeColor.danger }
+        return JadeColor.textSecondary
+    }
+}
+
 /// 行高规格。
 public enum JadeRowSize {
     /// 紧凑：44pt
@@ -79,18 +101,6 @@ public struct JadeListRow<Content: View>: View {
         alwaysShowsActions || isHovering || isFocused
     }
 
-    /// 静止态只留字形，不画磁贴底色。
-    ///
-    /// 一行 4–6 个带底色的方块会把列表画成工具栏：标题是内容，图标是次要操作，
-    /// 但灰块的总面积和重复次数盖过了标题。底色改到 hover 时才浮现，
-    /// 作为「这里可以点」的反馈；图标本身始终可见，可发现性与键盘可达性不变。
-    ///
-    /// 危险操作同理：静止态用普通文字色，hover 整行时才转红，避免每行常驻一条红杠。
-    private func iconColor(for action: JadeRowAction) -> Color {
-        if action.isDestructive, isHovering { return JadeColor.danger }
-        return JadeColor.textSecondary
-    }
-
     public var body: some View {
         HStack(spacing: JadeSpace.x2.value) {
             content
@@ -104,9 +114,12 @@ public struct JadeListRow<Content: View>: View {
                         } label: {
                             Image(systemName: action.systemImage)
                                 .font(JadeFont.body)
-                                .foregroundStyle(iconColor(for: action))
+                                .foregroundStyle(JadeRowActionStyle.iconColor(
+                                    isDestructive: action.isDestructive,
+                                    isHovering: isHovering
+                                ))
                                 .frame(width: Self.actionHitSize, height: Self.actionHitSize)
-                                .background(isHovering ? JadeColor.surface3 : Color.clear)
+                                .background(JadeRowActionStyle.tileBackground(isHovering: isHovering))
                                 .jadeRadius(.sm)
                         }
                         .buttonStyle(.plain)

@@ -659,7 +659,10 @@ struct SettingsHeader: View {
     let subtitleKey: String
     let iconName: String
     var body: some View {
-        HStack(spacing: JadeSpace.x3.value) {
+        // 顶部对齐：28pt 图标与标题行（title1，行高约 31pt）光学居中对齐。
+        // 用默认的垂直居中会把它对到「标题 + 说明」两行块的正中间——
+        // 看起来既不属于标题、也不属于说明，像是浮在两者之间。
+        HStack(alignment: .top, spacing: JadeSpace.x3.value) {
             SettingsHeaderIcon(systemImage: iconName)
             VStack(alignment: .leading, spacing: JadeSpace.x1.value) {
                 Text(L10n.localized(titleKey))

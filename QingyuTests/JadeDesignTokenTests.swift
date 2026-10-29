@@ -29,6 +29,40 @@ final class JadeDesignTokenTests: XCTestCase {
         XCTAssertEqual(JadeRowSize.comfortable.height, 64)
     }
 
+    /// 行操作图标在静止态必须"安静"：无磁贴底色、危险操作也不提前变红。
+    ///
+    /// 这条曾经是纯视觉判断——离屏渲染模拟不了 hover，只能靠肉眼看快照。
+    /// 现在样式规则抽成纯函数，两个分支都能被锁死。
+    func testRowActionStyleStaysQuietAtRest() {
+        XCTAssertEqual(
+            JadeRowActionStyle.tileBackground(isHovering: false), Color.clear,
+            "静止态不应画磁贴底色：一行 4–6 个方块会把列表画成工具栏"
+        )
+        XCTAssertEqual(
+            JadeRowActionStyle.iconColor(isDestructive: true, isHovering: false), JadeColor.textSecondary,
+            "危险操作在静止态不应常驻红色：每行一条红杠会抢走内容注意力"
+        )
+        XCTAssertEqual(
+            JadeRowActionStyle.iconColor(isDestructive: false, isHovering: false), JadeColor.textSecondary
+        )
+    }
+
+    /// hover 时才浮现磁贴底色、危险操作才转红——可点性与破坏性提示不因此丢失。
+    func testRowActionStyleRevealsOnHover() {
+        XCTAssertEqual(
+            JadeRowActionStyle.tileBackground(isHovering: true), JadeColor.surface3,
+            "hover 必须给出可点反馈"
+        )
+        XCTAssertEqual(
+            JadeRowActionStyle.iconColor(isDestructive: true, isHovering: true), JadeColor.danger,
+            "hover 时危险操作必须转红"
+        )
+        XCTAssertEqual(
+            JadeRowActionStyle.iconColor(isDestructive: false, isHovering: true), JadeColor.textSecondary,
+            "非危险操作 hover 不改变颜色，只改变底色"
+        )
+    }
+
     func testAppKitOverlayFontsMirrorJadeScale() {
         // AppKit 叠层字号必须与 SwiftUI Jade 字阶一致，且不得低于 caption 下限 10pt：
         // 旧代码里工具条标签是 9pt，放大镜已是 10pt，两者曾不一致。
