@@ -89,7 +89,12 @@ final class KeywordLaunchSourceTests: XCTestCase {
         XCTAssertEqual(url.host, "www.google.com")
         XCTAssertEqual(url.path, "/search")
         XCTAssertEqual(queryValue(url), "天气")
-        XCTAssertEqual(results[0].title, "用 Google 搜索「天气」")
+        // 标题模板按系统语言解析（en: "Search Google for “…”" / zh-Hans: "用 Google 搜索「…」"），
+        // 断言不能写死某一种语言的成品文案，否则换语言环境即误报。
+        let title = results[0].title
+        XCTAssertTrue(title.contains("天气"), "标题应包含查询文字：\(title)")
+        XCTAssertTrue(title.contains("Google"), "标题应包含站点名：\(title)")
+        XCTAssertFalse(title.contains("search.keywordLaunch"), "标题不应是未本地化的 key：\(title)")
         XCTAssertEqual(results[0].typeLabel, "Web Search")
     }
 
@@ -135,7 +140,11 @@ final class KeywordLaunchSourceTests: XCTestCase {
         guard let url = targetURL(results) else { return }
         XCTAssertEqual(url.host, "chatgpt.com")
         XCTAssertEqual(queryValue(url), "说明一下量子纠缠")
-        XCTAssertEqual(results[0].title, "向 ChatGPT 提问「说明一下量子纠缠」")
+        // 同上：模板按系统语言解析，不写死单一语言成品文案。
+        let title = results[0].title
+        XCTAssertTrue(title.contains("说明一下量子纠缠"), "标题应包含查询文字：\(title)")
+        XCTAssertTrue(title.contains("ChatGPT"), "标题应包含站点名：\(title)")
+        XCTAssertFalse(title.contains("search.keywordLaunch"), "标题不应是未本地化的 key：\(title)")
     }
 
     func testTextIsPercentEncoded() async {
