@@ -50,8 +50,12 @@ enum L10n {
             return L10n.localized("time.daysAgo", days)
         }
 
+        // 跨年记录只给「MM/dd」会分不清年份（去年 10/09 与今年 10/09 长得一样），
+        // 因此按是否同年切换两种格式；两种格式各自按语言排列（en 月/日、zh/ja 年月日、fr 日/月）。
+        let calendar = Calendar.current
+        let sameYear = calendar.component(.year, from: date) == calendar.component(.year, from: now)
         let fmt = DateFormatter()
-        fmt.dateFormat = L10n.localized("time.dateShort")
+        fmt.dateFormat = L10n.localized(sameYear ? "time.dateShort" : "time.dateWithYear")
         return fmt.string(from: date)
     }
 }

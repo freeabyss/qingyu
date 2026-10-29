@@ -1,6 +1,42 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "time.dateWithYear" : {
+      "comment" : "Relative time fallback: date with year (cross-year items)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MM/dd/yyyy"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "yyyy年M月d日"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "yyyy年M月d日"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "yyyy年M月d日"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "dd/MM/yyyy"
+          }
+        }
+      }
+    },
     "pin.error.emptyPasteboard" : {
       "comment" : "Pin error: pasteboard has no supported payload",
       "extractionState" : "manual",
@@ -26857,19 +26893,19 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "MM/dd"
+            "value" : "M月d日"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "MM/dd"
+            "value" : "M月d日"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "MM/dd"
+            "value" : "M月d日"
           }
         },
         "fr" : {

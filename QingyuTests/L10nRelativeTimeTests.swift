@@ -21,6 +21,12 @@ final class L10nRelativeTimeTests: XCTestCase {
         return fmt.string(from: date)
     }
 
+    private func expectedDateWithYear(_ date: Date) -> String {
+        let fmt = DateFormatter()
+        fmt.dateFormat = L10n.localized("time.dateWithYear")
+        return fmt.string(from: date)
+    }
+
     func testUnderOneMinuteIsJustNow() {
         XCTAssertEqual(
             L10n.relativeTime(from: Date().addingTimeInterval(-30)),
@@ -81,6 +87,25 @@ final class L10nRelativeTimeTests: XCTestCase {
     func testVeryOldDateDoesNotRenderAsMinutes() {
         let date = Date().addingTimeInterval(-400 * 86_400)
         let rendered = L10n.relativeTime(from: date)
-        XCTAssertEqual(rendered, expectedDateShort(date))
+        XCTAssertEqual(rendered, expectedDateWithYear(date))
+    }
+
+    /// 同年旧记录只显示月日；跨年必须带上年份，否则「去年 10/09」与「今年 10/09」无法区分。
+    func testSameYearOmitsYearAndCrossYearIncludesIt() {
+        let calendar = Calendar.current
+        let now = Date()
+
+        // 同年：取今年的 1 月 1 日（若今天就是 1 月初，则用今年 1 月 1 日仍成立）
+        let sameYearDate = calendar.date(from: DateComponents(year: calendar.component(.year, from: now), month: 1, day: 1))!
+        XCTAssertEqual(L10n.relativeTime(from: sameYearDate), expectedDateShort(sameYearDate))
+
+        // 跨年：去年的同一天
+        let crossYearDate = calendar.date(byAdding: .year, value: -1, to: sameYearDate)!
+        XCTAssertEqual(L10n.relativeTime(from: crossYearDate), expectedDateWithYear(crossYearDate))
+        XCTAssertNotEqual(
+            L10n.relativeTime(from: crossYearDate),
+            L10n.relativeTime(from: sameYearDate),
+            "跨年记录不能与同年记录渲染成同一个串"
+        )
     }
 }
