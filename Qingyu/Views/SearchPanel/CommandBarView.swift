@@ -140,6 +140,10 @@ struct CommandBarView: View {
         if viewModel.hasQuery {
             if viewModel.shouldShowNoResults {
                 noResultsState
+            } else if viewModel.isLoading && viewModel.visibleResults.isEmpty {
+                // 慢查询（文件搜索会扫目录）期间，结果区原本是一片空白 + 右上角一个小转圈，
+                // 用户看不出「还在搜」还是「搜坏了」。把状态放到用户正在看的地方。
+                searchingState
             } else {
                 resultsList
             }
@@ -180,6 +184,20 @@ struct CommandBarView: View {
     }
 
     // MARK: - No-results state (PRD §9.7)
+
+    /// 搜索进行中、还没有任何结果的占位。
+    private var searchingState: some View {
+        VStack(spacing: JadeSpace.x2.value) {
+            ProgressView()
+                .controlSize(.small)
+            Text(L10n.localized("commandBar.searching"))
+                .font(JadeFont.callout)
+                .foregroundStyle(JadeColor.textSecondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("commandBar.searching")
+    }
 
     private var noResultsState: some View {
         VStack(spacing: JadeSpace.x2.value) {
