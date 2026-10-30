@@ -8,11 +8,23 @@ import AppKit
 /// 而非 `Font.system(_:design:weight:)`（macOS 13 起可用），以维持 macOS 12 支持。
 public enum JadeFont {
 
+    /// 全局字号缩放因子：默认 1。
+    ///
+    /// 设计 token 里大量使用固定字号（Font.system(size:)）——它们不随系统字号变化，
+    /// 这是为了版式稳定；代价是「放大字号」这种可访问性诉求无从验证。
+    /// --uitest-large-text 会把它设为 1.35，用来真实检验放大字号下布局是否还站得住
+    /// （此前该参数只被解析、从未生效，对应的 UI 测试等于在跑同样字号）。
+    public static var scale: CGFloat = 1
+
+    /// 固定字号统一乘以缩放因子。
+    private static func scaled(_ size: CGFloat) -> CGFloat { size * scale }
+
+
     /// 启动页 / Onboarding 大 logo:32pt semibold（固定,装饰性）
-    public static let display = Font.system(size: 32, weight: .semibold)
+    public static var display: Font { .system(size: scaled(32), weight: .semibold) }
 
     /// 窗口标题:26pt semibold（固定）
-    public static let title1 = Font.system(size: 26, weight: .semibold)
+    public static var title1: Font { .system(size: scaled(26), weight: .semibold) }
 
     /// section 大标题:≈22pt semibold（随 title 缩放）
     public static let title2 = Font.title.weight(.semibold)
@@ -33,10 +45,10 @@ public enum JadeFont {
     public static let calloutMedium = Font.callout.weight(.medium)
 
     /// 独立图标按钮：14pt medium（固定），用于 30pt 命中区的单图标按钮（标注 IconButton、截图紧凑工具条）。
-    public static let toolbarIcon = Font.system(size: 14, weight: .medium)
+    public static var toolbarIcon: Font { .system(size: scaled(14), weight: .medium) }
 
     /// 带标签图标按钮：15pt medium（固定），用于截图预览工具条图标加 caption 标签的竖排单元格，与 30pt 独立图标按钮区分。
-    public static let toolbarIconLabeled = Font.system(size: 15, weight: .medium)
+    public static var toolbarIconLabeled: Font { .system(size: scaled(15), weight: .medium) }
 
     /// 副标题 / 元信息 / breadcrumb:≈11pt medium（随 subheadline 缩放）
     public static let subhead = Font.subheadline.weight(.medium)
@@ -45,46 +57,46 @@ public enum JadeFont {
     public static let caption = Font.caption.weight(.medium)
 
     /// 全幅占位插图：40pt regular（固定），用于空态、禁用、不可用与权限引导的大图标，颜色仍由各处自定。
-    public static let placeholderIcon = Font.system(size: 40, weight: .regular)
+    public static var placeholderIcon: Font { .system(size: scaled(40), weight: .regular) }
 
     /// 命令栏输入框:19pt regular（固定,配合 48px 输入行高）
     /// 清除 / 关闭图标：18pt regular（固定），用于 xmark.circle.fill 清除与关闭按钮（命令栏、剪贴板搜索、详情最大化关闭），颜色仍由各处自定。
-    public static let dismissIcon = Font.system(size: 18, weight: .regular)
+    public static var dismissIcon: Font { .system(size: scaled(18), weight: .regular) }
 
     /// 文件元信息值：12pt 等宽（固定），用于文件路径、大小、类型等文件系统值的展示，与正文区分，颜色仍由各处自定。
-    public static let fileValueMono = Font.system(size: 12, design: .monospaced)
+    public static var fileValueMono: Font { .system(size: scaled(12), design: .monospaced) }
 
     /// 小尺寸图标：12pt semibold（固定），用于 12pt 级小图标，保证小字号下笔画可辨，颜色仍由各处自定。
-    public static let smallIconSemibold = Font.system(size: 12, weight: .semibold)
+    public static var smallIconSemibold: Font { .system(size: scaled(12), weight: .semibold) }
 
     /// 预览纯文本正文：14pt 等宽（固定），用于预览面板纯文本内容的可选文本展示，与 12pt 等宽的文件元信息值区分。
-    public static let previewTextMono = Font.system(size: 14, design: .monospaced)
+    public static var previewTextMono: Font { .system(size: scaled(14), design: .monospaced) }
 
     /// 命令栏结果贴片图标：15pt semibold（固定），用于 32x32 结果贴片内的符号图标，与 15pt medium 的 toolbarIconLabeled 区分，颜色仍由各处自定。
-    public static let resultTileIcon = Font.system(size: 15, weight: .semibold)
+    public static var resultTileIcon: Font { .system(size: scaled(15), weight: .semibold) }
 
     /// 设置侧栏图标：14pt medium（固定），用于设置侧栏 18x18 图标，与 30pt 命中区的 toolbarIcon 区分，颜色仍由各处自定。
-    public static let settingsSidebarIcon = Font.system(size: 14, weight: .medium)
+    public static var settingsSidebarIcon: Font { .system(size: scaled(14), weight: .medium) }
 
     /// 设置页首图标：18pt semibold（固定），用于设置页首 28x28 标题辅助图标，颜色仍由各处自定。
-    public static let settingsHeaderIcon = Font.system(size: 18, weight: .semibold)
+    public static var settingsHeaderIcon: Font { .system(size: scaled(18), weight: .semibold) }
 
     /// 引导页首 Logo 图标：28pt light（固定），用于引导页首 56x56 叶形图标贴片，颜色仍由各处自定。
-    public static let onboardingLogoIcon = Font.system(size: 28, weight: .light)
+    public static var onboardingLogoIcon: Font { .system(size: scaled(28), weight: .light) }
 
     /// 引导卡片标签图标：18pt medium（固定），用于引导卡片标签 24 宽图标，与 18pt semibold 的 settingsHeaderIcon 和 18pt regular 的 dismissIcon 区分，颜色仍由各处自定。
-    public static let onboardingCardIcon = Font.system(size: 18, weight: .medium)
+    public static var onboardingCardIcon: Font { .system(size: scaled(18), weight: .medium) }
 
     /// 命令栏无结果图标：30pt regular（固定），用于命令栏无结果状态的 questionmark.circle 图标，与 40pt 的 placeholderIcon 及详情 32/36pt 占位图标区分，颜色仍由各处自定。
-    public static let commandBarNoResultsIcon = Font.system(size: 30, weight: .regular)
+    public static var commandBarNoResultsIcon: Font { .system(size: scaled(30), weight: .regular) }
 
     /// 详情空态图标：32pt regular（固定），用于详情页空态占位 doc.on.clipboard 图标，颜色仍由各处自定。
-    public static let detailEmptyIcon = Font.system(size: 32, weight: .regular)
+    public static var detailEmptyIcon: Font { .system(size: scaled(32), weight: .regular) }
 
     /// 详情缺图图标：36pt regular（固定），用于详情页缺图占位 photo.badge.exclamationmark 图标，与 32pt 空态图标区分，颜色仍由各处自定。
-    public static let detailMissingImageIcon = Font.system(size: 36, weight: .regular)
+    public static var detailMissingImageIcon: Font { .system(size: scaled(36), weight: .regular) }
 
-    public static let commandBarInput = Font.system(size: 19, weight: .regular)
+    public static var commandBarInput: Font { .system(size: scaled(19), weight: .regular) }
 
     /// 剪贴板历史搜索框：15pt regular（固定）。
     ///
@@ -92,7 +104,7 @@ public enum JadeFont {
     /// 860pt 宽的历史窗口里，输入框比同屏的胶囊（10pt）和列表行（13pt）大出一整档，
     /// 层级被反转——输入框看起来像窗口标题，真正的内容退成了注释。
     public static let searchFieldPointSize: CGFloat = 15
-    public static let searchField = Font.system(size: searchFieldPointSize, weight: .regular)
+    public static var searchField: Font { .system(size: scaled(searchFieldPointSize), weight: .regular) }
 }
 
 // MARK: - AppKit bridge

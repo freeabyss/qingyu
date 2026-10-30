@@ -40,3 +40,6 @@ CLAUDE.md
 # Product website workflow metadata (local only)
 website/.apps-builder/
 website/history/
+
+# Release 构建产物（本地验证用）
+DerivedDataRelease/

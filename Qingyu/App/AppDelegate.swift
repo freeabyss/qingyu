@@ -101,12 +101,20 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
         #endif
 
+        #if DEBUG
         // 设计评审用：把真实窗口自绘成 PNG 后退出。
         //
         // 屏幕录制权限拿不到时 screencapture 只能得到 "could not create image from display"，
         // 而 TextField / Toggle / List 这些 AppKit 控件在 SwiftUI 的 ImageRenderer 里只能画成
         // 黄色占位块——两条路都看不到真实外观。让窗口自己把自己画出来，绕开屏幕录制，
         // 拿到的是真实布局与真实控件。仅 DEBUG 生效，且必须显式传参。
+        // 放大字号变体：让 --uitest-large-text 真正生效。
+        // 设计 token 用的是固定字号，不随系统字号变化；把这个因子调到 1.35，
+        // 才能真的检验「放大字号下布局是否还站得住」。
+        if uitestSupport?.largeText == true {
+            JadeFont.scale = 1.35
+        }
+
         // 深色评审：DEBUG 下强制 NSApp 外观，用来截深色模式下的真实窗口。
         // 系统级改外观会影响用户整台机器，不能这么做；per-app defaults 对 LSUIElement 应用无效。
         if ProcessInfo.processInfo.arguments.contains("--uitest-dark-appearance") {
@@ -119,6 +127,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 self?.captureFrontmostWindow(to: path)
             }
         }
+        #endif
 
         logger.info("Qingyu launched successfully")
     }
