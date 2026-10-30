@@ -324,6 +324,18 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         return args[index + 1]
     }
 
+    /// --uitest-window-size 1000x700：截图前的窗口内容尺寸。
+    private static func windowSizeArgument() -> NSSize? {
+        let args = ProcessInfo.processInfo.arguments
+        guard let index = args.firstIndex(of: "--uitest-window-size"),
+              index + 1 < args.count else { return nil }
+        let parts = args[index + 1].lowercased().split(separator: "x")
+        guard parts.count == 2,
+              let width = Double(parts[0]),
+              let height = Double(parts[1]) else { return nil }
+        return NSSize(width: width, height: height)
+    }
+
     /// --uitest-capture-delay <seconds>：截图前等待秒数，默认 1.5。
     private static func captureDelay() -> TimeInterval {
         let args = ProcessInfo.processInfo.arguments
@@ -350,6 +362,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             logger.error("UITest capture: no visible window to capture")
             NSApp.terminate(nil)
             return
+        }
+
+        // --uitest-window-size WxH：截图前把窗口改成指定内容尺寸，
+        // 用来验证大窗口下的布局（响应式一直只在最小尺寸上看过）。
+        if let size = Self.windowSizeArgument() {
+            window.setContentSize(size)
         }
 
         // 非活动窗口会把系统控件画成灰态（开关的强调色会退成灰），
