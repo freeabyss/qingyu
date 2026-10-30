@@ -201,7 +201,7 @@ struct OnboardingView: View {
                     ) {
                         Text(L10n.localized(noteKey))
                             .font(JadeFont.caption)
-                            .foregroundStyle(JadeColor.warning)
+                            .foregroundStyle(JadeColor.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 }

@@ -107,6 +107,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         // 而 TextField / Toggle / List 这些 AppKit 控件在 SwiftUI 的 ImageRenderer 里只能画成
         // 黄色占位块——两条路都看不到真实外观。让窗口自己把自己画出来，绕开屏幕录制，
         // 拿到的是真实布局与真实控件。仅 DEBUG 生效，且必须显式传参。
+        // 深色评审：DEBUG 下强制 NSApp 外观，用来截深色模式下的真实窗口。
+        // 系统级改外观会影响用户整台机器，不能这么做；per-app defaults 对 LSUIElement 应用无效。
+        if ProcessInfo.processInfo.arguments.contains("--uitest-dark-appearance") {
+            NSApp.appearance = NSAppearance(named: .darkAqua)
+        }
+
         if let path = Self.capturePNGPath() {
             let delay = Self.captureDelay()
             DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
@@ -281,7 +287,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         let base = URL(fileURLWithPath: basePath).deletingPathExtension()
         for (index, document) in documents.enumerated() {
             guard let rep = document.bitmapImageRepForCachingDisplay(in: document.bounds) else { continue }
-            document.cacheDisplay(in: document.bounds, to: rep)
+            document.effectiveAppearance.performAsCurrentDrawingAppearance {
+                document.cacheDisplay(in: document.bounds, to: rep)
+            }
             guard let data = rep.representation(using: .png, properties: [:]) else { continue }
             try? data.write(to: base.appendingPathExtension("scroll\(index).png"))
         }
@@ -344,7 +352,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             NSApp.terminate(nil)
             return
         }
-        view.cacheDisplay(in: bounds, to: rep)
+        // 必须在窗口自身外观下绘制：否则动态 NSColor（Jade 品牌色/语义色）会按
+        // 浅色解析，深色截图里的开关、分段控件会显示成浅色模式的强调色。
+        window.effectiveAppearance.performAsCurrentDrawingAppearance {
+            view.cacheDisplay(in: bounds, to: rep)
+        }
         guard let data = rep.representation(using: .png, properties: [:]) else {
             logger.error("UITest capture: PNG encoding failed")
             NSApp.terminate(nil)
