@@ -73,6 +73,22 @@ final class JadeDesignTokenTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(JadeFont.searchFieldPointSize, 13, "不得小于正文 13pt，否则输入文字读不清")
     }
 
+    /// 固定字号 token 的缩放机制必须真的生效。
+    ///
+    /// 这条锁的是上一轮修过的假覆盖：--uitest-large-text 曾被解析、被断言、被 UI 测试
+    /// 当作「放大字号变体」使用，但应用里从未实现，5b 分支跑的是和 5a 一样的字号。
+    func testFixedFontTokensHonourScaleFactor() {
+        let original = JadeFont.scale
+        defer { JadeFont.scale = original }
+
+        JadeFont.scale = 1
+        XCTAssertEqual(JadeFont.scaled(15), 15, accuracy: 0.001)
+
+        JadeFont.scale = 1.35
+        XCTAssertEqual(JadeFont.scaled(15), 20.25, accuracy: 0.001, "放大字号变体必须真的放大固定字号")
+        XCTAssertGreaterThan(JadeFont.scaled(19), 19, "命令栏输入同样要放大")
+    }
+
     func testAppKitOverlayFontsMirrorJadeScale() {
         // AppKit 叠层字号必须与 SwiftUI Jade 字阶一致，且不得低于 caption 下限 10pt：
         // 旧代码里工具条标签是 9pt，放大镜已是 10pt，两者曾不一致。

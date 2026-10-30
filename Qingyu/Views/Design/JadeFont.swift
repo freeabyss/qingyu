@@ -17,7 +17,12 @@ public enum JadeFont {
     public static var scale: CGFloat = 1
 
     /// 固定字号统一乘以缩放因子。
-    private static func scaled(_ size: CGFloat) -> CGFloat { size * scale }
+    ///
+    /// 覆盖范围要说清楚：只有下面这些用固定字号的 token（图标、搜索框、命令栏输入、
+    /// 标题等）会随之放大；body / callout / caption / headline 等语义样式 token
+    /// 走的是系统字号，本来就跟随用户的可访问性设置，不受这个因子影响。
+    /// 因此「放大字号」验证覆盖的是**固定字号布局**能否撑住，不是全量排版缩放。
+    static func scaled(_ size: CGFloat) -> CGFloat { size * scale }
 
 
     /// 启动页 / Onboarding 大 logo:32pt semibold（固定,装饰性）
