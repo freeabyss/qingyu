@@ -143,6 +143,11 @@ struct QuickLaunchPluginSettingsPage: View {
         }
     }
 
+    /// 是否存在自定义条目：决定「Custom」列要不要出现。
+    private var hasCustomEntries: Bool {
+        !viewModel.keywordLaunchCustomization.customEntries.isEmpty
+    }
+
     private var tableHeaderRow: some View {
         HStack(spacing: JadeSpace.x3.value) {
             Color.clear.frame(width: KeywordColumn.glyph)
@@ -150,8 +155,12 @@ struct QuickLaunchPluginSettingsPage: View {
                 .frame(width: KeywordColumn.keyword, alignment: .leading)
             Text(L10n.localized("settings.quickLaunch.keyword.column.preview"))
                 .frame(maxWidth: .infinity, alignment: .leading)
-            Text(L10n.localized("settings.quickLaunch.keyword.column.custom"))
-                .frame(width: KeywordColumn.custom, alignment: .center)
+            // 没有任何自定义条目时这一列整列空白，表头「Custom」等于在承诺一个
+            // 看不见的东西。整列按需出现：有了自定义条目才显示。
+            if hasCustomEntries {
+                Text(L10n.localized("settings.quickLaunch.keyword.column.custom"))
+                    .frame(width: KeywordColumn.custom, alignment: .center)
+            }
             Text(L10n.localized("settings.quickLaunch.keyword.column.enabled"))
                 .frame(width: KeywordColumn.enabled, alignment: .center)
         }
@@ -182,19 +191,21 @@ struct QuickLaunchPluginSettingsPage: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .help(entry.urlTemplate)
 
-            Group {
-                if isCustomEntry(entry) {
-                    Button {
-                        removeCustomEntry(entry)
-                    } label: {
-                        Image(systemName: "trash")
+            if hasCustomEntries {
+                Group {
+                    if isCustomEntry(entry) {
+                        Button {
+                            removeCustomEntry(entry)
+                        } label: {
+                            Image(systemName: "trash")
+                        }
+                        .buttonStyle(.plain)
+                        .foregroundStyle(JadeColor.textSecondary)
+                        .help(L10n.localized("settings.quickLaunch.keyword.delete.help"))
                     }
-                    .buttonStyle(.plain)
-                    .foregroundStyle(JadeColor.textSecondary)
-                    .help(L10n.localized("settings.quickLaunch.keyword.delete.help"))
                 }
+                .frame(width: KeywordColumn.custom)
             }
-            .frame(width: KeywordColumn.custom)
 
             Toggle("", isOn: enabledBinding(for: entry))
                 .toggleStyle(.checkbox)
