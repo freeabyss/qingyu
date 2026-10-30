@@ -122,13 +122,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "授予屏幕录制权限，或选择「暂不开启」，才能继续。"
+            "value" : "授予屏幕录制权限，或选择「暂不开启截图」，才能继续。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "授予螢幕錄製權限，或選擇「暫不開啟」，才能繼續。"
+            "value" : "授予螢幕錄製權限，或選擇「暫不開啟截圖」，才能繼續。"
           }
         },
         "ja" : {
@@ -11550,31 +11550,31 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Reduces animations across the app."
+            "value" : "减少整个应用的动画效果。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "减少全 App 的动画效果。"
+            "value" : "减少整个应用的动画效果。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "減少整個 App 的動畫效果。"
+            "value" : "减少整个应用的动画效果。"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "アプリ全体のアニメーションを減らします。"
+            "value" : "减少整个应用的动画效果。"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Réduit les animations dans toute l'app."
+            "value" : "减少整个应用的动画效果。"
           }
         }
       }
@@ -12484,31 +12484,31 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "All clipboard history, screenshots, and settings will be permanently deleted. The app will restart."
+            "value" : "所有剪贴板历史、截图和设置将被永久删除，应用将重启。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "所有剪贴板历史、截图和设置将被永久删除,App 将重启。"
+            "value" : "所有剪贴板历史、截图和设置将被永久删除，应用将重启。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "所有剪貼簿歷史、截圖與設定都會被永久刪除，App 將會重新啟動。"
+            "value" : "所有剪贴板历史、截图和设置将被永久删除，应用将重启。"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "すべてのクリップボードの履歴、スクリーンショット、設定が完全に削除されます。アプリは再起動します。"
+            "value" : "所有剪贴板历史、截图和设置将被永久删除，应用将重启。"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tout l'historique du presse-papiers, les captures d'écran et les réglages seront définitivement supprimés. L'app va redémarrer."
+            "value" : "所有剪贴板历史、截图和设置将被永久删除，应用将重启。"
           }
         }
       }
@@ -13598,7 +13598,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Open common Assistant areas from the sidebar or menu bar."
+            "value" : "Open common Qingyu areas from the sidebar or menu bar."
           }
         },
         "zh-Hans" : {
@@ -17229,31 +17229,31 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This version is distributed via GitHub Releases. Checking for updates opens the download page in your browser."
+            "value" : "当前版本通过 GitHub Releases 分发，检查更新会在浏览器中打开下载页。"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前版本通过 GitHub Releases 分发,检查更新将在浏览器打开下载页。"
+            "value" : "当前版本通过 GitHub Releases 分发，检查更新会在浏览器中打开下载页。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "目前版本透過 GitHub Releases 發佈，檢查更新將在瀏覽器中開啟下載頁面。"
+            "value" : "当前版本通过 GitHub Releases 分发，检查更新会在浏览器中打开下载页。"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "このバージョンは GitHub Releases で配布されています。アップデートを確認すると、ブラウザでダウンロードページが開きます。"
+            "value" : "当前版本通过 GitHub Releases 分发，检查更新会在浏览器中打开下载页。"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cette version est distribuée via GitHub Releases. La vérification des mises à jour ouvre la page de téléchargement dans votre navigateur."
+            "value" : "当前版本通过 GitHub Releases 分发，检查更新会在浏览器中打开下载页。"
           }
         }
       }
@@ -17307,13 +17307,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "关于 清羽 Qingyu"
+            "value" : "关于清羽 Qingyu"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "關於 清羽 Qingyu"
+            "value" : "關於清羽 Qingyu"
           }
         },
         "ja" : {
@@ -18010,31 +18010,31 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "MVP uses this permission only within documented Assistant features. It does not run arbitrary shell commands or upload your data."
+            "value" : "MVP uses this permission only within documented Qingyu features. It does not run arbitrary shell commands or upload your data."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "MVP 仅在已说明的 Assistant 功能边界内使用此权限，不执行任意 shell，也不会上传你的数据。"
+            "value" : "MVP 仅在已说明的清羽功能边界内使用此权限，不执行任意 shell，也不会上传你的数据。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "MVP 僅在已說明的 Assistant 功能範圍內使用此權限，不會執行任意 shell，也不會上傳你的資料。"
+            "value" : "MVP 僅在已說明的清羽功能範圍內使用此權限，不會執行任意 shell，也不會上傳你的資料。"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "MVP では、この権限をドキュメントに記載された Assistant の機能の範囲内でのみ使用します。任意のシェルコマンドを実行したり、データをアップロードしたりすることはありません。"
+            "value" : "MVP では、この権限をドキュメントに記載された清羽の機能の範囲内でのみ使用します。任意のシェルコマンドを実行したり、データをアップロードしたりすることはありません。"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "La version MVP utilise cette autorisation uniquement dans le cadre des fonctionnalités Assistant documentées. Elle n'exécute aucune commande shell arbitraire et ne téléverse pas vos données."
+            "value" : "La version MVP utilise cette autorisation uniquement dans le cadre des fonctionnalités Qingyu documentées. Elle n'exécute aucune commande shell arbitraire et ne téléverse pas vos données."
           }
         }
       }
@@ -18046,31 +18046,31 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Assistant needs Accessibility permission for controlled macOS automation paths such as future auto-paste, window control, simulated shortcuts, and controlling other apps."
+            "value" : "Qingyu needs Accessibility permission for controlled macOS automation paths such as future auto-paste, window control, simulated shortcuts, and controlling other apps."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Assistant 需要辅助功能权限，用于受控的 macOS 自动化路径，例如后续自动粘贴、窗口控制、模拟快捷键和控制其他 App。"
+            "value" : "清羽需要辅助功能权限，用于受控的 macOS 自动化路径，例如后续自动粘贴、窗口控制、模拟快捷键和控制其他 App。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Assistant 需要「輔助使用」權限，用於受控的 macOS 自動化路徑，例如日後的自動貼上、視窗控制、模擬快速鍵與控制其他 App。"
+            "value" : "清羽需要「輔助使用」權限，用於受控的 macOS 自動化路徑，例如日後的自動貼上、視窗控制、模擬快速鍵與控制其他 App。"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Assistant は、今後の自動ペースト、ウインドウ操作、キーボードショートカットのシミュレート、他のアプリの操作など、制御された macOS の自動化のためにアクセシビリティ権限を必要とします。"
+            "value" : "清羽は、今後の自動ペースト、ウインドウ操作、キーボードショートカットのシミュレート、他のアプリの操作など、制御された macOS の自動化のためにアクセシビリティ権限を必要とします。"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Assistant a besoin de l'autorisation Accessibilité pour les procédés d'automatisation macOS contrôlés, comme le collage automatique à venir, le contrôle des fenêtres, la simulation de raccourcis et le contrôle d'autres apps."
+            "value" : "Qingyu a besoin de l'autorisation Accessibilité pour les procédés d'automatisation macOS contrôlés, comme le collage automatique à venir, le contrôle des fenêtres, la simulation de raccourcis et le contrôle d'autres apps."
           }
         }
       }
@@ -18586,31 +18586,31 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Finish setup and enter Assistant."
+            "value" : "Finish setup and enter Qingyu."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "完成设置并进入 Assistant。"
+            "value" : "完成设置并进入清羽。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "完成設定並進入 Assistant。"
+            "value" : "完成設定並進入清羽。"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "設定を完了して Assistant を開始します。"
+            "value" : "設定を完了して清羽を開始します。"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Terminez la configuration et accédez à Assistant."
+            "value" : "Terminez la configuration et accédez à Qingyu."
           }
         }
       }
@@ -18802,31 +18802,31 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Assistant will register a global shortcut for opening and closing the search panel."
+            "value" : "Qingyu will register a global shortcut for opening and closing the search panel."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Assistant 会注册一个全局快捷键，用于打开和关闭搜索面板。"
+            "value" : "清羽会注册一个全局快捷键，用于打开和关闭搜索面板。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Assistant 會註冊一個全域快速鍵，用於開啟與關閉搜尋面板。"
+            "value" : "清羽會註冊一個全域快速鍵，用於開啟與關閉搜尋面板。"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Assistant は、検索パネルを開いたり閉じたりするグローバルキーボードショートカットを登録します。"
+            "value" : "清羽は、検索パネルを開いたり閉じたりするグローバルキーボードショートカットを登録します。"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Assistant enregistrera un raccourci global pour ouvrir et fermer le panneau de recherche."
+            "value" : "Qingyu enregistrera un raccourci global pour ouvrir et fermer le panneau de recherche."
           }
         }
       }
@@ -18982,31 +18982,31 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Assistant is designed as a menu bar utility. Launch at login is enabled by default after Onboarding and can be turned off later in Settings."
+            "value" : "Qingyu is designed as a menu bar utility. Launch at login is enabled by default after Onboarding and can be turned off later in Settings."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Assistant 是菜单栏效率工具。完成首次引导后默认启用开机启动，你也可以之后在设置中关闭。"
+            "value" : "清羽是菜单栏效率工具。完成首次引导后默认启用开机启动，你也可以之后在设置中关闭。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Assistant 是選單列工具。完成首次導覽後會預設啟用開機時啟動，你也可以之後在設定中關閉。"
+            "value" : "清羽是選單列工具。完成首次導覽後會預設啟用開機時啟動，你也可以之後在設定中關閉。"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Assistant はメニューバーのユーティリティとして設計されています。初回ガイドの完了後、ログイン時に起動がデフォルトで有効になり、あとで設定からオフにできます。"
+            "value" : "清羽はメニューバーのユーティリティとして設計されています。初回ガイドの完了後、ログイン時に起動がデフォルトで有効になり、あとで設定からオフにできます。"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Assistant est conçu comme un utilitaire de barre des menus. L'ouverture à l'ouverture de session est activée par défaut après l'accueil et peut être désactivée plus tard dans les Réglages."
+            "value" : "Qingyu est conçu comme un utilitaire de barre des menus. L'ouverture à l'ouverture de session est activée par défaut après l'accueil et peut être désactivée plus tard dans les Réglages."
           }
         }
       }
@@ -19018,31 +19018,31 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Keep Assistant available from the menu bar after login."
+            "value" : "Keep Qingyu available from the menu bar after login."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "登录后让 Assistant 常驻菜单栏，随时可用。"
+            "value" : "登录后让清羽常驻菜单栏，随时可用。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "登入後讓 Assistant 常駐選單列，隨時可用。"
+            "value" : "登入後讓清羽常駐選單列，隨時可用。"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ログイン後もメニューバーから Assistant をすぐに使えるようにします。"
+            "value" : "ログイン後もメニューバーから清羽をすぐに使えるようにします。"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Garder Assistant disponible depuis la barre des menus après l'ouverture de session."
+            "value" : "Garder Qingyu disponible depuis la barre des menus après l'ouverture de session."
           }
         }
       }
@@ -19342,31 +19342,31 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Quit Assistant"
+            "value" : "Quit Qingyu"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "退出 Assistant"
+            "value" : "退出清羽"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "結束 Assistant"
+            "value" : "結束清羽"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Assistant を終了"
+            "value" : "清羽を終了"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Quitter Assistant"
+            "value" : "Quitter Qingyu"
           }
         }
       }
@@ -19378,31 +19378,31 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "macOS requires Screen Recording permission before Assistant can capture screenshots. Without it, screenshot features cannot work."
+            "value" : "macOS requires Screen Recording permission before Qingyu can capture screenshots. Without it, screenshot features cannot work."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "macOS 要求授予屏幕录制权限后，Assistant 才能进行截图。未授权时截图功能无法使用。"
+            "value" : "macOS 要求授予屏幕录制权限后，清羽才能进行截图。未授权时截图功能无法使用。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "macOS 要求先授予螢幕錄製權限，Assistant 才能截圖。未授權時無法使用截圖功能。"
+            "value" : "macOS 要求先授予螢幕錄製權限，清羽才能截圖。未授權時無法使用截圖功能。"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "macOS では、Assistant がスクリーンショットを撮るために画面収録権限が必要です。許可しないとスクリーンショット機能は使用できません。"
+            "value" : "macOS では、清羽がスクリーンショットを撮るために画面収録権限が必要です。許可しないとスクリーンショット機能は使用できません。"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "macOS exige l'autorisation Enregistrement de l'écran avant qu'Assistant puisse réaliser des captures d'écran. Sans elle, les fonctions de capture ne peuvent pas fonctionner."
+            "value" : "macOS exige l'autorisation Enregistrement de l'écran avant qu'Qingyu puisse réaliser des captures d'écran. Sans elle, les fonctions de capture ne peuvent pas fonctionner."
           }
         }
       }
@@ -20100,13 +20100,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "欢迎使用 清羽 Qingyu"
+            "value" : "欢迎使用清羽 Qingyu"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "歡迎使用 清羽 Qingyu"
+            "value" : "歡迎使用清羽 Qingyu"
           }
         },
         "ja" : {
@@ -23652,31 +23652,31 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Assistant"
+            "value" : "清羽 Qingyu"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Assistant"
+            "value" : "清羽 Qingyu"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Assistant"
+            "value" : "清羽 Qingyu"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Assistant"
+            "value" : "清羽 Qingyu"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Assistant"
+            "value" : "清羽 Qingyu"
           }
         }
       }
@@ -23939,31 +23939,31 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "OCR extracts text from images for search. Polling interval controls how often Assistant checks the clipboard for new content."
+            "value" : "OCR extracts text from images for search. Polling interval controls how often Qingyu checks the clipboard for new content."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "OCR 从图片中提取文字用于搜索。轮询间隔控制 Assistant 检查剪贴板新内容的频率。"
+            "value" : "OCR 从图片中提取文字用于搜索。轮询间隔控制清羽检查剪贴板新内容的频率。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "OCR 會從圖片擷取文字以供搜尋。輪詢間隔控制 Assistant 檢查剪貼簿新內容的頻率。"
+            "value" : "OCR 會從圖片擷取文字以供搜尋。輪詢間隔控制清羽檢查剪貼簿新內容的頻率。"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "OCR は検索用にイメージからテキストを抽出します。ポーリング間隔は、Assistant がクリップボードの新しい内容を確認する頻度を制御します。"
+            "value" : "OCR は検索用にイメージからテキストを抽出します。ポーリング間隔は、清羽がクリップボードの新しい内容を確認する頻度を制御します。"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "L'OCR extrait le texte des images pour la recherche. L'intervalle d'interrogation contrôle la fréquence à laquelle Assistant vérifie le presse-papiers pour détecter du nouveau contenu."
+            "value" : "L'OCR extrait le texte des images pour la recherche. L'intervalle d'interrogation contrôle la fréquence à laquelle Qingyu vérifie le presse-papiers pour détecter du nouveau contenu."
           }
         }
       }
