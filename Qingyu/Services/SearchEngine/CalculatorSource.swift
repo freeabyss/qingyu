@@ -78,7 +78,7 @@ final class CalculatorSource: SearchSource {
                 copyText: formatted,
                 subtitle: expression,
                 value: value,
-                typeLabel: "Calculator",
+                typeLabel: L10n.localized("searchPanel.type.calculator"),
                 iconSystemName: "function"
             )
         case .unitConversion(let conversion):
@@ -91,7 +91,7 @@ final class CalculatorSource: SearchSource {
                 copyText: copy,
                 subtitle: "\(Self.format(conversion.value, maximumFractionDigits: 10)) \(conversion.source.displaySymbol) → \(conversion.target.displaySymbol)",
                 value: value,
-                typeLabel: "Convert",
+                typeLabel: L10n.localized("searchPanel.type.convert"),
                 iconSystemName: "arrow.left.arrow.right"
             )
         }

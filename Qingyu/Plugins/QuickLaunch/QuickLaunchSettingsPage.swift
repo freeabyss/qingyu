@@ -371,7 +371,7 @@ struct QuickLaunchPluginSettingsPage: View {
                 ? KeywordLaunchCatalog.searchTitlePrefix(for: name)
                 : KeywordLaunchCatalog.askTitlePrefix(for: name),
             urlTemplate: urlTemplate,
-            typeLabel: isWeb ? "Web Search" : "AI Chat",
+            typeLabel: L10n.localized(isWeb ? "searchPanel.type.webSearch" : "searchPanel.type.aiChat"),
             iconSystemName: isWeb ? "globe" : "bubble.left.and.text.bubble.right",
             prefill: newPrefillsURL ? .urlParam : .clipboardAndOpen
         ))

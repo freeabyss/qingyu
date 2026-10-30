@@ -71,7 +71,7 @@ final class SettingsSource: SearchSource {
                 title: route.localizedTitle,
                 subtitle: route.localizedSubtitle,
                 icon: .systemSymbol(route.iconSystemName),
-                typeLabel: "Settings",
+                typeLabel: L10n.localized("searchPanel.type.settings"),
                 baseScore: SourcePriority.settings,
                 matchScore: matchKind.score,
                 usageScore: 0,

@@ -37,6 +37,14 @@ final class CommandBarController: NSObject {
 
     // MARK: - Public API
 
+    #if DEBUG
+    /// 设计评审用：直接注入查询串，用来截「有结果」的命令栏。
+    /// 模拟键盘输入需要辅助功能授权，靠不住；从视图模型入口注入是确定的。
+    func debugSetQuery(_ query: String) {
+        viewModel?.query = query
+    }
+    #endif
+
     func toggle() {
         if let panel, panel.isVisible {
             hide()

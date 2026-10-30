@@ -306,6 +306,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         return line
     }
 
+    /// --uitest-search-query <text>：命令栏查询串。
+    private static func searchQueryArgument() -> String? {
+        let args = ProcessInfo.processInfo.arguments
+        guard let index = args.firstIndex(of: "--uitest-search-query"),
+              index + 1 < args.count,
+              !args[index + 1].hasPrefix("--") else { return nil }
+        return args[index + 1]
+    }
+
     /// --uitest-capture-delay <seconds>：截图前等待秒数，默认 1.5。
     private static func captureDelay() -> TimeInterval {
         let args = ProcessInfo.processInfo.arguments
@@ -394,6 +403,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         switch action {
         case .openSearch:
             container.commandBarController.show()
+            // --uitest-search-query <text>：注入查询，截「有结果」的命令栏。
+            if let query = Self.searchQueryArgument() {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { [weak self] in
+                    self?.container.commandBarController.debugSetQuery(query)
+                }
+            }
         case .openClipboard:
             container.clipboardHistoryWindowController.show()
         case .openSettings:

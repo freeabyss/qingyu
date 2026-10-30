@@ -628,7 +628,7 @@ final class AppSearchSource: AppSourceProtocol {
                 title: title,
                 subtitle: match.item.path.path,
                 icon: .appIcon(match.item.path),
-                typeLabel: "Application",
+                typeLabel: L10n.localized("searchPanel.type.application"),
                 baseScore: SourcePriority.application,
                 matchScore: match.kind.score,
                 usageScore: usageScore,

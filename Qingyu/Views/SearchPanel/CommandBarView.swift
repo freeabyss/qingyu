@@ -271,6 +271,15 @@ struct CommandBarResultRow: View {
 
             Spacer(minLength: JadeSpace.x3.value)
 
+            // 结果类型：应用 / 文件 / 命令 / 网页搜索……混排时只靠图标很难分辨，
+            // 副标题里应用和文件都是路径，读起来几乎一样。类型标签给的是「这是什么」，
+            // 比路径末尾几个字符更有用。
+            Text(result.typeLabel)
+                .font(JadeFont.caption)
+                .foregroundStyle(JadeColor.textTertiary)
+                .lineLimit(1)
+                .layoutPriority(-1)
+
             if isDangerous {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .font(JadeFont.smallIconSemibold)

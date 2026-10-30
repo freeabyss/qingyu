@@ -320,7 +320,7 @@ final class SystemCommandSource: CommandSourceProtocol {
                 title: match.command.title,
                 subtitle: match.command.subtitle,
                 icon: .systemSymbol(match.command.iconSystemName),
-                typeLabel: "Command",
+                typeLabel: L10n.localized("searchPanel.type.command"),
                 baseScore: SourcePriority.command,
                 matchScore: match.kind.score,
                 usageScore: 0,

@@ -237,7 +237,7 @@ enum KeywordLaunchCatalog {
             site: URL(string: urlTemplate)?.host ?? name,
             titlePrefix: KeywordLaunchCatalog.searchTitlePrefix(for: name),
             urlTemplate: urlTemplate,
-            typeLabel: "Web Search",
+            typeLabel: L10n.localized("searchPanel.type.webSearch"),
             iconSystemName: "globe",
             prefill: .urlParam
         )
@@ -257,7 +257,7 @@ enum KeywordLaunchCatalog {
             site: URL(string: urlTemplate)?.host ?? name,
             titlePrefix: KeywordLaunchCatalog.askTitlePrefix(for: name),
             urlTemplate: urlTemplate,
-            typeLabel: "AI Chat",
+            typeLabel: L10n.localized("searchPanel.type.aiChat"),
             iconSystemName: "bubble.left.and.text.bubble.right",
             prefill: prefill
         )
