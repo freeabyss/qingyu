@@ -1,6 +1,42 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "management.feedback.placeholder" : {
+      "comment" : "Feedback text editor placeholder",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Describe the problem or your suggestion…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "描述你遇到的问题或建议…"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "描述你遇到的問題或建議…"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "問題や提案を入力してください…"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Décrivez le problème ou votre suggestion…"
+          }
+        }
+      }
+    },
     "onboarding.start.blockedHint" : {
       "comment" : "Onboarding: explains why Get Started is disabled",
       "extractionState" : "manual",

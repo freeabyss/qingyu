@@ -469,19 +469,36 @@ private struct FeedbackSection: View {
                 .font(JadeFont.body)
                 .foregroundStyle(JadeColor.textPrimary)
 
-            Picker("", selection: $category) {
-                ForEach(FeedbackCategory.allCases) { c in Text(c.title).tag(c) }
+            // 分段控件按内容宽度排布：撑满整行会让三个选项各占 1/3 行宽，
+            // 看起来像一排被拉长的按钮，而不是「选一个」的控件。
+            HStack {
+                Picker("", selection: $category) {
+                    ForEach(FeedbackCategory.allCases) { c in Text(c.title).tag(c) }
+                }
+                .labelsHidden()
+                .pickerStyle(.segmented)
+                .fixedSize()
+                Spacer()
             }
-            .labelsHidden()
-            .pickerStyle(.segmented)
 
-            TextEditor(text: $details)
-                .font(JadeFont.body)
-                .frame(minHeight: Self.feedbackDetailsMinHeight)
-                .jadePadding(.x1)
-                .background(JadeColor.surface1)
-                .jadeRadius(.md)
-                .jadeRadiusBorder(.md)
+            // 空输入框没有占位提示时，用户不知道这里该写什么。
+            ZStack(alignment: .topLeading) {
+                TextEditor(text: $details)
+                    .font(JadeFont.body)
+                    .frame(minHeight: Self.feedbackDetailsMinHeight)
+                    .jadePadding(.x1)
+                    .background(JadeColor.surface1)
+                    .jadeRadius(.md)
+                    .jadeRadiusBorder(.md)
+
+                if details.isEmpty {
+                    Text(L10n.localized("management.feedback.placeholder"))
+                        .font(JadeFont.body)
+                        .foregroundStyle(JadeColor.textTertiary)
+                        .jadePadding(.x1)
+                        .allowsHitTesting(false)
+                }
+            }
 
             JadeSwitchRow(L10n.localized("management.feedback.includeSystemInfo"), isOn: $includeSystemInfo)
 
