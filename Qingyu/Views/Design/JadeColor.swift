@@ -87,8 +87,16 @@ public enum JadeColor {
     public static let textPrimary = Color(nsColor: .labelColor)
     /// 次文字 = `NSColor.secondaryLabelColor`
     public static let textSecondary = Color(nsColor: .secondaryLabelColor)
-    /// 元信息沿用系统次要文字色；以字号和位置降级，避免深色下过暗。
-    public static let textTertiary = Color(nsColor: .secondaryLabelColor)
+    /// 元信息 / 占位文字。
+    ///
+    /// 原本直接绑定 secondaryLabelColor：浅色模式下它约为 #8E8E93，
+    /// 落在 surface1（#FCFCFD）上对比度只有约 3.2:1，低于正文 4.5:1 的要求。
+    /// 占位文字承担「这里该写什么」的说明职责，读不清就等于没写。
+    /// 改为显式双模式值：浅色 #6E6E6E（4.97:1 达标），深色仍用系统次要色（5.98:1）。
+    public static let textTertiary = Color(dynamic("TextTertiary", Pair(
+        light: NSColor(srgbHex: 0x6E6E6E),
+        dark: NSColor.secondaryLabelColor
+    )))
 
     // MARK: - 中性色 · 表面（PRD §9.2.2）
 
