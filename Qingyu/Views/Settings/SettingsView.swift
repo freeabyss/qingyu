@@ -557,29 +557,54 @@ struct BlacklistManagementSection: View {
 
     @ObservedObject var viewModel: SettingsViewModel
 
+    /// 带小标签的输入字段：标签在上（caption / 次要色），控件在下并撑满宽度。
+    /// 让字段含义始终可见，不必依赖占位符猜测。
+    @ViewBuilder
+    private func labeledField<Content: View>(_ label: String, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: JadeSpace.x1.value) {
+            Text(label)
+                .font(JadeFont.caption)
+                .foregroundStyle(JadeColor.textSecondary)
+            content()
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
     var body: some View {
         SettingsSection("management.blacklist.title") {
             VStack(alignment: .leading, spacing: JadeSpace.x3.value) {
-                VStack(alignment: .leading, spacing: JadeSpace.x2.value) {
-                    HStack(spacing: JadeSpace.x3.value) {
-                    Picker(L10n.localized("management.blacklist.source"), selection: $viewModel.newBlacklistSourceID) {
-                        ForEach(SettingsViewModel.sourceOptions, id: \.id) { option in
-                            Text(option.label).tag(option.id.rawValue)
+                // 每个字段「小标签 + 输入框」竖排，三等分等宽：
+                // 早先把三个输入框平铺在一行，Picker 固定 180pt、其余按剩余空间
+                // 拉伸，出现「中间很宽、右边被压窄」的失衡；且只有 Picker 带可见标签，
+                // 另两个靠占位符，填完后无法确认字段含义。
+                HStack(alignment: .bottom, spacing: JadeSpace.x3.value) {
+                    labeledField(L10n.localized("management.blacklist.source")) {
+                        Picker("", selection: $viewModel.newBlacklistSourceID) {
+                            ForEach(SettingsViewModel.sourceOptions, id: \.id) { option in
+                                Text(option.label).tag(option.id.rawValue)
+                            }
                         }
+                        .labelsHidden()
+                        .pickerStyle(.menu)
                     }
-                    .frame(maxWidth: Self.blacklistSourceMaxWidth)
-                    TextField(L10n.localized("management.blacklist.resultID"), text: $viewModel.newBlacklistResultID)
-                    TextField(L10n.localized("management.blacklist.titleField"), text: $viewModel.newBlacklistTitle)
+                    labeledField(L10n.localized("management.blacklist.resultID")) {
+                        TextField("", text: $viewModel.newBlacklistResultID)
                     }
-                    HStack(spacing: JadeSpace.x3.value) {
-                    TextField(L10n.localized("management.blacklist.type"), text: $viewModel.newBlacklistType)
-                        .frame(maxWidth: Self.blacklistTypeMaxWidth)
+                    labeledField(L10n.localized("management.blacklist.titleField")) {
+                        TextField("", text: $viewModel.newBlacklistTitle)
+                    }
+                }
+
+                HStack(alignment: .bottom, spacing: JadeSpace.x3.value) {
+                    labeledField(L10n.localized("management.blacklist.type")) {
+                        TextField("", text: $viewModel.newBlacklistType)
+                    }
+                    .frame(maxWidth: Self.blacklistTypeMaxWidth)
                     Button(L10n.localized("management.blacklist.add")) {
                         Task { await viewModel.addBlacklistItem() }
                     }
                     .buttonStyle(.jadeSecondary)
                     Spacer()
-                    }
                 }
 
                 if viewModel.blacklistItems.isEmpty {
