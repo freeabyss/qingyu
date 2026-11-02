@@ -46,7 +46,10 @@ struct ClipboardHistoryView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            // 剪贴板关闭时，搜索与筛选没有任何可作用的对象；
+            // 保持可交互会让用户输入后才意识到「这里什么都搜不到」。
             header
+                .disabled(!viewModel.clipboardEnabled)
                 .jadePadding(.horizontal, .x4)
                 .jadePadding(.top, .x3)
                 .jadePadding(.bottom, .x2)

@@ -128,6 +128,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             NSApp.appearance = NSAppearance(named: .darkAqua)
         }
 
+        // --uitest-clipboard-disabled：强制「剪贴板已关闭」状态，用来评审禁用态。
+        if ProcessInfo.processInfo.arguments.contains("--uitest-clipboard-disabled") {
+            ClipboardListViewModel.debugForceClipboardDisabled = true
+        }
+
         // --uitest-open-pin：用一张生成的图片打开贴图窗口，用来评审贴图界面。
         // 真实入口依赖截图会话（需要屏幕录制授权），这条路径绕开它。
         if ProcessInfo.processInfo.arguments.contains("--uitest-open-pin") {

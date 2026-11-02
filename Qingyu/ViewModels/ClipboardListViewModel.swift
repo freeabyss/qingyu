@@ -517,7 +517,19 @@ final class ClipboardListViewModel: ObservableObject {
         }
     }
 
+    #if DEBUG
+    /// 设计评审用：强制「剪贴板已关闭」状态，用来评审禁用态引导页。
+    static var debugForceClipboardDisabled = false
+    #endif
+
     private func refreshRuntimeSettings() async {
+        #if DEBUG
+        if Self.debugForceClipboardDisabled {
+            clipboardEnabled = false
+            retentionDays = 30
+            return
+        }
+        #endif
         clipboardEnabled = (try? await settingsService.value(for: .clipboardEnabled, as: Bool.self)) ?? true
         let retentionRaw = (try? await settingsService.stringValue(for: .clipboardRetention)) ?? "30d"
         retentionDays = ClipboardRetention(rawValue: retentionRaw)?.days
