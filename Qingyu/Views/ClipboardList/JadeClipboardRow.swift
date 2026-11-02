@@ -74,6 +74,9 @@ struct JadeClipboardRow: View {
                             .font(JadeFont.body.weight(.medium))
                             .foregroundStyle(JadeColor.textPrimary)
                             .lineLimit(1)
+                            // 单行截断后长标题会被省略号吃掉；悬停给出全文，
+                            // 否则用户只能先选中、再去右侧详情里读。
+                            .help(primaryText)
 
                         if item.isPinned {
                             Image(systemName: "pin.fill")
