@@ -19,18 +19,26 @@ public struct JadePill: View {
         case warning
         case danger
 
+        /// 胶囊文字色。
+        ///
+        /// 早先直接用系统语义色（systemGreen 等）作前景。问题：同一颜色以 15%
+        /// 透明度铺成底后再用同色写字，文字与底几乎同亮——浅色模式实测
+        /// success 1.92:1、warning 1.90:1、info 3.22:1、danger 2.83:1，全部读不清。
+        /// 现改为「深一档、保留色相」的文字色：底仍取该文字色 15%，
+        /// 因此色相一致，而文字在底上均 >= 4.5:1（实测 4.78–6.11:1）。
         var foreground: Color {
             switch self {
             case .neutral: return JadeColor.textSecondary
-            case .primary: return JadeColor.primary
-            case .info: return JadeColor.info
-            case .success: return JadeColor.success
-            case .warning: return JadeColor.warning
-            case .danger: return JadeColor.danger
+            case .primary: return JadeColor.pillInkPrimary
+            case .info: return JadeColor.pillInkInfo
+            case .success: return JadeColor.pillInkSuccess
+            case .warning: return JadeColor.pillInkWarning
+            case .danger: return JadeColor.pillInkDanger
             }
         }
 
-        /// 胶囊填充透明度：前景色 15% 不透明，六种语义胶囊共用同色浅底；因底色随 foreground 变化，不能做成 JadeColor 固定色 token，故放在 Style 内。
+        /// 胶囊填充透明度：文字色 15% 不透明铺底；因底色随 foreground 变化，
+        /// 不能做成 JadeColor 固定色 token，故放在 Style 内。
         static let fillOpacity: Double = 0.15
         var fill: Color { foreground.opacity(Self.fillOpacity) }
     }

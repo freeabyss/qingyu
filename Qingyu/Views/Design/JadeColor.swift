@@ -198,6 +198,27 @@ public enum JadeColor {
     public static let blue = Color(nsColor: .systemBlue)
     public static let orange = Color(nsColor: .systemOrange)
     public static let gray = Color(nsColor: .systemGray)
+
+    // MARK: - 徽标文字色（JadePill 专用）
+
+    /// JadePill 的文字色：比系统语义色深一档，但保留色相，
+    /// 使其以自身 15% 透明度铺底后再写字仍能读清（浅色均 >= 4.5:1）。
+    /// 系统语义色直接当文字色会把对比度拉到 1.9–3.2:1，这是实测记录的旧缺陷。
+    public static let pillInkPrimary = Color(dynamic("PillInkPrimary", Pair(
+        light: NSColor(srgbHex: 0x3D5272), dark: NSColor(srgbHex: 0xB2C4DF)
+    )))
+    public static let pillInkInfo = Color(dynamic("PillInkInfo", Pair(
+        light: NSColor(srgbHex: 0x005ABF), dark: NSColor(srgbHex: 0x6FB2FF)
+    )))
+    public static let pillInkSuccess = Color(dynamic("PillInkSuccess", Pair(
+        light: NSColor(srgbHex: 0x186A33), dark: NSColor(srgbHex: 0x5FD47F)
+    )))
+    public static let pillInkWarning = Color(dynamic("PillInkWarning", Pair(
+        light: NSColor(srgbHex: 0x8A5300), dark: NSColor(srgbHex: 0xFFC062)
+    )))
+    public static let pillInkDanger = Color(dynamic("PillInkDanger", Pair(
+        light: NSColor(srgbHex: 0xB82720), dark: NSColor(srgbHex: 0xFF8A82)
+    )))
 }
 
 // MARK: - NSColor sRGB Hex 便捷初始化

@@ -151,6 +151,28 @@ final class JadeDesignTokenTests: XCTestCase {
         XCTAssertLessThan(contrast(0x6E6E6E, selectionFill), 4.5)
     }
 
+    /// JadePill 的文字要能在自身 15% 同色底上读清。
+    ///
+    /// 旧实现直接用系统语义色作文字色：success 1.92 / warning 1.90 /
+    /// info 3.22 / danger 2.83，全部低于 4.5。改用深一档的 pillInk 色后达标。
+    func testPillTextContrastOnTintedBackground() {
+        let surface: UInt32 = 0xFCFCFD
+        let inks: [(String, UInt32)] = [
+            ("primary", 0x3D5272),
+            ("info", 0x005ABF),
+            ("success", 0x186A33),
+            ("warning", 0x8A5300),
+            ("danger", 0xB82720),
+        ]
+        for (name, ink) in inks {
+            let tinted = blend(foreground: ink, background: surface, alpha: 0.15)
+            XCTAssertGreaterThanOrEqual(
+                contrast(ink, tinted), 4.5,
+                "胶囊 \(name) 文字在 15% 同色底上应达到 4.5:1"
+            )
+        }
+    }
+
     func testAppKitOverlayFontsMirrorJadeScale() {
         // AppKit 叠层字号必须与 SwiftUI Jade 字阶一致，且不得低于 caption 下限 10pt：
         // 旧代码里工具条标签是 9pt，放大镜已是 10pt，两者曾不一致。
