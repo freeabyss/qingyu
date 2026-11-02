@@ -108,7 +108,7 @@
 		A10001000000000000000012 /* ClipboardHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000012 /* ClipboardHistoryView.swift */; };
 		F00800000000000000000111 /* Qingyu/Views/ClipboardList/ClipboardDetailPane.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00800000000000000000110 /* Qingyu/Views/ClipboardList/ClipboardDetailPane.swift */; };
 		A10001000000000000000013 /* JadeClipboardRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000013 /* JadeClipboardRow.swift */; };
-		A10001000000000000000014 /* PreviewPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000014 /* PreviewPanel.swift */; };
+		A10001000000000000000014 /* RTFTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000014 /* RTFTextView.swift */; };
 		A10001000000000000000015 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000015 /* SettingsView.swift */; };
 		A10001000000000000000016 /* ClipboardListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000016 /* ClipboardListViewModel.swift */; };
 		A10001000000000000000017 /* SettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000017 /* SettingsViewModel.swift */; };
@@ -329,7 +329,7 @@
 		A10000000000000000000012 /* ClipboardHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardHistoryView.swift; sourceTree = "<group>"; };
 		F00800000000000000000110 /* Qingyu/Views/ClipboardList/ClipboardDetailPane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingyu/Views/ClipboardList/ClipboardDetailPane.swift; sourceTree = SOURCE_ROOT; };
 		A10000000000000000000013 /* JadeClipboardRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JadeClipboardRow.swift; sourceTree = "<group>"; };
-		A10000000000000000000014 /* PreviewPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewPanel.swift; sourceTree = "<group>"; };
+		A10000000000000000000014 /* RTFTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RTFTextView.swift; sourceTree = "<group>"; };
 		A10000000000000000000015 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A10000000000000000000016 /* ClipboardListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardListViewModel.swift; sourceTree = "<group>"; };
 		A10000000000000000000017 /* SettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModel.swift; sourceTree = "<group>"; };
@@ -722,7 +722,7 @@
 		A1000300000000000000000F /* Preview */ = {
 			isa = PBXGroup;
 			children = (
-				A10000000000000000000014 /* PreviewPanel.swift */,
+				A10000000000000000000014 /* RTFTextView.swift */,
 			);
 			path = Preview;
 			sourceTree = "<group>";
@@ -1188,7 +1188,7 @@
 				A10001000000000000000012 /* ClipboardHistoryView.swift in Sources */,
 				F00800000000000000000111 /* Qingyu/Views/ClipboardList/ClipboardDetailPane.swift in Sources */,
 				A10001000000000000000013 /* JadeClipboardRow.swift in Sources */,
-				A10001000000000000000014 /* PreviewPanel.swift in Sources */,
+				A10001000000000000000014 /* RTFTextView.swift in Sources */,
 				A10001000000000000000015 /* SettingsView.swift in Sources */,
 				AB0100000000000000000100 /* JadeSettingsComponents.swift in Sources */,
 				A10001000000000000000016 /* ClipboardListViewModel.swift in Sources */,
@@ -1503,7 +1503,7 @@
 				CODE_SIGN_ENTITLEMENTS = Qingyu/Qingyu.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 563;
+				CURRENT_PROJECT_VERSION = 564;
 				DEVELOPMENT_TEAM = 454XB348PX;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -1512,7 +1512,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.4.163;
+				MARKETING_VERSION = 0.4.164;
 				PRODUCT_BUNDLE_IDENTIFIER = com.freeabyss.qingyu;
 				PRODUCT_MODULE_NAME = Qingyu;
 				PRODUCT_NAME = Qingyu;
@@ -1528,7 +1528,7 @@
 				CODE_SIGN_ENTITLEMENTS = Qingyu/Qingyu.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 563;
+				CURRENT_PROJECT_VERSION = 564;
 				DEVELOPMENT_TEAM = 454XB348PX;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -1537,7 +1537,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.4.163;
+				MARKETING_VERSION = 0.4.164;
 				PRODUCT_BUNDLE_IDENTIFIER = com.freeabyss.qingyu;
 				PRODUCT_MODULE_NAME = Qingyu;
 				PRODUCT_NAME = Qingyu;

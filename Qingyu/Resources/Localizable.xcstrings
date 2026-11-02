@@ -181,42 +181,6 @@
         }
       }
     },
-    "preview.dismiss" : {
-      "comment" : "Accessibility label: close the preview sheet",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Close preview"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "关闭预览"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "關閉預覽"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "プレビューを閉じる"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fermer l'aperçu"
-          }
-        }
-      }
-    },
     "management.data.export.note" : {
       "comment" : "Settings data section: explains the disabled Export button",
       "extractionState" : "manual",
