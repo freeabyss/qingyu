@@ -265,6 +265,11 @@ private struct GeneralPage: View {
 
                     Spacer()
                 }
+                // 禁用按钮的原因写在按钮旁边，而不是只藏在悬停提示里。
+                // 按钮的灰态本身不解释任何东西，用户会以为是故障。
+                Text(L10n.localized("management.data.export.note"))
+                    .font(JadeFont.caption)
+                    .foregroundStyle(JadeColor.textTertiary)
                 JadeSettingsDivider()
                 HStack {
                     VStack(alignment: .leading, spacing: JadeSpace.x1.value) {

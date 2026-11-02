@@ -1,6 +1,42 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "management.data.export.note" : {
+      "comment" : "Settings data section: explains the disabled Export button",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Data export arrives in v1.3."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "数据导出将在 v1.3 支持。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "資料匯出將於 v1.3 支援。"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "データのエクスポートは v1.3 で対応予定です。"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'exportation des données arrivera en v1.3."
+          }
+        }
+      }
+    },
     "commandBar.searching" : {
       "comment" : "Command bar: shown while a search is still running",
       "extractionState" : "manual",
