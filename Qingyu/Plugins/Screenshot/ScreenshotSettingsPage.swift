@@ -12,6 +12,10 @@ import UniformTypeIdentifiers
 struct ScreenshotPluginSettingsPage: View {
     @EnvironmentObject private var viewModel: SettingsViewModel
 
+    /// 路径输入框纵向内边距：9pt，仅用于截图保存目录的路径显示框。
+    /// Jade 间距最小档 x1=4、x2=8；取 9 是为了与横向 12pt 的视觉重量相称，不并入 JadeSpace。
+    private static let pathFieldVerticalPadding: CGFloat = 9
+
     // 这两个开关此前从未被消费；接通后默认值改为「关」，保证不加配置时行为与
     // 接通前完全一致（符合「默认值下行为不倒退」）。
     /// 导出格式（落盘用；剪贴板始终 PNG）。默认 PNG = 与引入前一致。
@@ -98,8 +102,10 @@ struct ScreenshotPluginSettingsPage: View {
                         .lineLimit(1)
                         .truncationMode(.middle)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 9)
+                        // 路径输入框内边距走 Jade 间距：横向 x3=12，纵向刻意取 9
+                        //（比 x2=8 多 1pt，让单行等宽路径与 12pt 横向内边距视觉等重）。
+                        .jadePadding(.horizontal, .x3)
+                        .padding(.vertical, Self.pathFieldVerticalPadding)
                         .background(JadeColor.surface1)
                         .jadeRadius(.md)
                         .jadeRadiusBorder(.md)
