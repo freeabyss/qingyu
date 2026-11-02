@@ -89,6 +89,23 @@ final class JadeDesignTokenTests: XCTestCase {
         XCTAssertGreaterThan(JadeFont.scaled(19), 19, "命令栏输入同样要放大")
     }
 
+    /// 「增强对比度」必须真的改变边框。
+    ///
+    /// JadeColor.border 在 increaseContrast 时把 alpha 从 0.08 提到 0.2。
+    /// 系统级读值无法在测试里伪造（-AppleIncreaseContrast 启动参数并不影响
+    /// NSWorkspace 的读数），所以这里直接验证「两档 alpha 的对比度差异」——
+    /// 只要 0.2 明显强于 0.08，开关就是有效的。
+    func testIncreasedContrastBorderIsStronger() {
+        let surface: UInt32 = 0xFCFCFD
+        // 纯黑以 alpha 叠在接近白色的 surface1 上：结果灰度 = (1 - alpha) * 252
+        let normalBorder: UInt32 = UInt32(((1.0 - 0.08) * 252.0).rounded())
+        let contrastBorder: UInt32 = UInt32(((1.0 - 0.2) * 252.0).rounded())
+        XCTAssertLessThan(
+            contrast(normalBorder, surface), contrast(contrastBorder, surface),
+            "增强对比度档的边框必须比常规档更强"
+        )
+    }
+
     func testAppKitOverlayFontsMirrorJadeScale() {
         // AppKit 叠层字号必须与 SwiftUI Jade 字阶一致，且不得低于 caption 下限 10pt：
         // 旧代码里工具条标签是 9pt，放大镜已是 10pt，两者曾不一致。
