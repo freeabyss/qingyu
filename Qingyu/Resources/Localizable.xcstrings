@@ -1,6 +1,42 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "management.blacklist.help" : {
+      "comment" : "Settings blacklist: advanced usage note explaining the stable result ID field",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Advanced: hides one specific search result by its stable ID (e.g. app:com.example.tool or setting:clipboard). Use the source and result ID shown in search results to suppress that exact entry. Rule-based hiding (by keyword or path) is not supported yet."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "高级用法：按搜索结果的稳定 ID 隐藏单条结果（例如 app:com.example.tool 或 setting:clipboard）。需要填入该结果所属的来源与它的稳定 ID，才能精确屏蔽那一条。暂不支持按关键词或路径的规则屏蔽。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "進階用法：依搜尋結果的穩定 ID 隱藏單一結果（例如 app:com.example.tool 或 setting:clipboard）。需填入該結果所屬的來源與其穩定 ID，才能精確封鎖那一筆。暫不支援依關鍵字或路徑的規則封鎖。"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上級者向け：検索結果の安定 ID（例: app:com.example.tool や setting:clipboard）で特定の 1 件を非表示にします。その結果のソースと安定 ID を入力すると、その項目だけを正確に隠せます。キーワードやパスによるルール非表示は未対応です。"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avancé : masque un résultat de recherche précis via son ID stable (ex. app:com.example.tool ou setting:clipboard). Indiquez la source et l'ID stable de ce résultat pour n'en masquer qu'un seul. Le masquage par règle (mot-clé, chemin) n'est pas encore pris en charge."
+          }
+        }
+      }
+    },
     "searchIndex.clipboard.textTitle" : {
       "comment" : "Search index fallback title for clipboard text without content",
       "extractionState" : "manual",

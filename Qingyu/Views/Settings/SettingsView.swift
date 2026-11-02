@@ -607,6 +607,13 @@ struct BlacklistManagementSection: View {
                     Spacer()
                 }
 
+                // 高级功能说明：讲清「稳定 ID」是什么、这个功能怎么用。
+                // 没有这段，普通用户面对「来源 / 稳定结果 ID / 类型」三个字段无从下手。
+                Text(L10n.localized("management.blacklist.help"))
+                    .font(JadeFont.caption)
+                    .foregroundStyle(JadeColor.textTertiary)
+                    .fixedSize(horizontal: false, vertical: true)
+
                 if viewModel.blacklistItems.isEmpty {
                     Text(L10n.localized("management.blacklist.empty"))
                         .font(JadeFont.caption)
