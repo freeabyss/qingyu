@@ -97,7 +97,9 @@ struct CommandBarView: View {
             .accessibilityLabel(Text("commandBar.placeholder"))
             .accessibilityIdentifier("commandBar.searchField")
 
-            if viewModel.isLoading {
+            // 输入框右侧的小转圈只在「已有结果、正在刷新」时出现。
+            // 首次搜索还没有结果时，内容区已经显示了「搜索中…」，再放一个就是两个转圈同时转。
+            if viewModel.isLoading, !viewModel.visibleResults.isEmpty {
                 ProgressView()
                     .controlSize(.small)
                     .frame(width: Self.loadingSpinnerSize, height: Self.loadingSpinnerSize)

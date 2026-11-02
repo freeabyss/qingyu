@@ -117,6 +117,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
         // 深色评审：DEBUG 下强制 NSApp 外观，用来截深色模式下的真实窗口。
         // 系统级改外观会影响用户整台机器，不能这么做；per-app defaults 对 LSUIElement 应用无效。
+        // --uitest-search-slow <seconds>：把搜索人为放慢，用来截「搜索中」状态。
+        if let index = ProcessInfo.processInfo.arguments.firstIndex(of: "--uitest-search-slow"),
+           index + 1 < ProcessInfo.processInfo.arguments.count,
+           let seconds = TimeInterval(ProcessInfo.processInfo.arguments[index + 1]) {
+            SearchPanelViewModel.debugSearchDelay = seconds
+        }
+
         if ProcessInfo.processInfo.arguments.contains("--uitest-dark-appearance") {
             NSApp.appearance = NSAppearance(named: .darkAqua)
         }
@@ -350,7 +357,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     /// 用 cacheDisplay(in:to:) 而不是截屏 API：它走视图自己的绘制路径，
     /// AppKit 控件（输入框、开关、侧栏列表）都会真实绘制出来。
     @MainActor
-    private func captureFrontmostWindow(to path: String) {
+    private func captureFrontmostWindow(to path: String, attempt: Int = 0) {
         let candidates = NSApp.windows.filter { window in
             guard window.isVisible, let view = window.contentView else { return false }
             // 命令栏收起时只有 760×56，门槛放低才能截到它。
@@ -359,8 +366,16 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         guard let window = candidates.max(by: {
             $0.frame.width * $0.frame.height < $1.frame.width * $1.frame.height
         }), let view = window.contentView else {
-            logger.error("UITest capture: no visible window to capture")
-            NSApp.terminate(nil)
+            // 窗口还没就绪就放弃，会得到「什么都没截到」的空结果；
+            // 浮层（命令栏）尤其容易赶在窗口出现前被检查。重试几秒再放弃。
+            guard attempt < 12 else {
+                logger.error("UITest capture: no visible window to capture")
+                NSApp.terminate(nil)
+                return
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                self?.captureFrontmostWindow(to: path, attempt: attempt + 1)
+            }
             return
         }
 

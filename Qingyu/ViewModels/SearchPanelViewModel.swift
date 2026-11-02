@@ -282,6 +282,14 @@ final class SearchPanelViewModel: ObservableObject {
         isLoading = true
         defer { isLoading = false }
 
+        #if DEBUG
+        // 设计评审用：把搜索人为放慢，好在真实窗口里截到「搜索中」状态。
+        // 本地搜索通常 2 秒内就结束，那个瞬间根本抓不到。
+        if Self.debugSearchDelay > 0 {
+            try? await Task.sleep(nanoseconds: UInt64(Self.debugSearchDelay * 1_000_000_000))
+        }
+        #endif
+
         let response = await searchService.search(query: trimmed)
         results = Array(response.results.prefix(SearchService.defaultResultLimit))
         resultsQuery = trimmed
@@ -289,6 +297,11 @@ final class SearchPanelViewModel: ObservableObject {
         elapsed = response.elapsed * 1000
         logger.info("CommandBar query returned \(self.results.count) results in \(String(format: "%.1f", self.elapsed))ms")
     }
+
+    #if DEBUG
+    /// 设计评审用的人为搜索延迟（秒）；0 表示不延迟。
+    static var debugSearchDelay: TimeInterval = 0
+    #endif
 
     private func setupDebounce() {
         $query

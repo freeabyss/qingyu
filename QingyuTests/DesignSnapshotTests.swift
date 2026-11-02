@@ -166,6 +166,7 @@ final class DesignSnapshotTests: XCTestCase {
         try renderBothSchemes(gallery, size: CGSize(width: 640, height: 470), name: "component-gallery")
     }
 
+
     /// 剪贴板详情面板：无选中项的空状态。
     func testClipboardDetailPaneSnapshot() throws {
         try renderBothSchemes(
