@@ -10,7 +10,15 @@ import SwiftUI
 struct QuickLaunchPluginSettingsPage: View {
     @EnvironmentObject private var viewModel: SettingsViewModel
 
-    private let fileSearchDirectories = ["~/Desktop", "~/Documents", "~/Downloads"]
+    /// 文件搜索目录。用本地化名称展示，避免中文界面里出现英文目录名的割裂感；
+    /// 实际路径仍是标准中文目录（系统会把「桌面」映射到 ~/Desktop），这里只是显示名。
+    private var fileSearchDirectories: [String] {
+        [
+            L10n.localized("settings.quickLaunch.fileDirectories.desktop"),
+            L10n.localized("settings.quickLaunch.fileDirectories.documents"),
+            L10n.localized("settings.quickLaunch.fileDirectories.downloads"),
+        ]
+    }
 
     /// 未提交的关键词输入（回车或失焦才写回设置，避免每敲一个字都落库）。
     @State private var keywordDrafts: [String: String] = [:]
