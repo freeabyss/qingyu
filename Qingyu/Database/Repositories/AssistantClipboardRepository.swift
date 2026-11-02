@@ -608,7 +608,9 @@ final class ClipboardRepository: @unchecked Sendable, ClipboardRepositoryProtoco
         case .image:
             record.contentType = ClipboardContentType.image.rawValue
             record.plainText = nil
-            record.summary = "Image"
+            // 标题取本地化名称（「图片」/「画像」/「Image」），而不是硬编码英文。
+            // 这一列会直接显示在列表行标题上，中文界面里写死 "Image" 很突兀。
+            record.summary = L10n.localized("content.image")
             record.filePath = nil
             record.fileDisplayName = nil
             record.fileUTI = nil
