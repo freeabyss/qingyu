@@ -11766,7 +11766,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "减少整个应用的动画效果。"
+            "value" : "Reduces animations across the app."
           }
         },
         "zh-Hans" : {
@@ -11778,19 +11778,19 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "减少整个应用的动画效果。"
+            "value" : "減少整個應用的動畫效果。"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "减少整个应用的动画效果。"
+            "value" : "アプリ全体のアニメーションを減らします。"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "减少整个应用的动画效果。"
+            "value" : "Réduit les animations dans toute l'application."
           }
         }
       }
@@ -12700,7 +12700,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "所有剪贴板历史、截图和设置将被永久删除，应用将重启。"
+            "value" : "All clipboard history, screenshots and settings will be permanently deleted, and the app will restart."
           }
         },
         "zh-Hans" : {
@@ -12712,19 +12712,19 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "所有剪贴板历史、截图和设置将被永久删除，应用将重启。"
+            "value" : "所有剪貼簿記錄、截圖和設定將被永久刪除，應用程式將重新啟動。"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "所有剪贴板历史、截图和设置将被永久删除，应用将重启。"
+            "value" : "クリップボードの履歴、スクリーンショット、設定はすべて完全に削除され、アプリが再起動します。"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "所有剪贴板历史、截图和设置将被永久删除，应用将重启。"
+            "value" : "Tout l'historique du presse-papiers, les captures d'écran et les réglages seront définitivement supprimés, et l'application redémarrera."
           }
         }
       }
@@ -17445,7 +17445,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前版本通过 GitHub Releases 分发，检查更新会在浏览器中打开下载页。"
+            "value" : "This version is distributed via GitHub Releases; checking for updates opens the download page in your browser."
           }
         },
         "zh-Hans" : {
@@ -17457,19 +17457,19 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前版本通过 GitHub Releases 分发，检查更新会在浏览器中打开下载页。"
+            "value" : "目前版本透過 GitHub Releases 發佈，檢查更新會在瀏覽器中開啟下載頁面。"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前版本通过 GitHub Releases 分发，检查更新会在浏览器中打开下载页。"
+            "value" : "このバージョンは GitHub Releases で配布されています。アップデートを確認すると、ブラウザでダウンロードページが開きます。"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当前版本通过 GitHub Releases 分发，检查更新会在浏览器中打开下载页。"
+            "value" : "Cette version est distribuée via GitHub Releases ; la vérification des mises à jour ouvre la page de téléchargement dans votre navigateur."
           }
         }
       }
