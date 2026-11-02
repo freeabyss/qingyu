@@ -1623,7 +1623,9 @@ final class RegionStylePaletteView: NSView {
             button.isBordered = false
             button.bezelStyle = .regularSquare
             button.attributedTitle = NSAttributedString(string: "Aa", attributes: [
-                .font: font.font(ofSize: 11, weight: .semibold),
+                // 字号走 Jade 令牌：此前是裸 11pt，与同尺寸的 appKitSubheadMedium
+                // 分属两条路径，改字阶时会漏掉这里。字体家族仍按样本变化。
+                .font: font.font(ofSize: JadeFont.appKitSubheadMedium.pointSize, weight: .semibold),
                 .foregroundColor: NSColor.labelColor
             ])
             button.wantsLayer = true
