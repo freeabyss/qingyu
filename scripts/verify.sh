@@ -18,6 +18,11 @@ echo "==> Localizable.xcstrings JSON 检查"
 python3 -m json.tool Qingyu/Resources/Localizable.xcstrings > /dev/null
 echo "    OK"
 
+echo "==> 本地化一致性检查"
+# 依据：连续几轮出现过「某键所有语言都是中文」「中英拼接」这类缺陷，
+# 当时只有 JSON 合法性校验，全靠换语言截图才发现。改成硬门禁。
+python3 scripts/check-localization.py
+
 # 第 3 步的由来：`QingyuTests/PermissionServiceProtocolConformanceTests.swift`（4 条用例）
 # 与 `QingyuTests/ScreenshotOverlayAppearanceTests.swift`（6 条用例）都曾**从未登记进测试目标**，
 # 文件在仓库里、测试全绿，用例却一条也没跑过 —— 「全绿」因此具有欺骗性。
