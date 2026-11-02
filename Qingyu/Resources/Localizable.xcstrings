@@ -27783,25 +27783,25 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Duration 时间"
+            "value" : "Duration"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Duration 时间"
+            "value" : "时间"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Duration 時間"
+            "value" : "時間"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Duration 時間"
+            "value" : "時間"
           }
         },
         "fr" : {
@@ -27819,25 +27819,25 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Length 长度"
+            "value" : "Length"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Length 长度"
+            "value" : "长度"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Length 長度"
+            "value" : "長度"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Length 長さ"
+            "value" : "長さ"
           }
         },
         "fr" : {
@@ -27855,25 +27855,25 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mass 质量"
+            "value" : "Mass"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mass 质量"
+            "value" : "质量"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mass 質量"
+            "value" : "質量"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mass 質量"
+            "value" : "質量"
           }
         },
         "fr" : {
@@ -27963,25 +27963,25 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Temperature 温度"
+            "value" : "Temperature"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Temperature 温度"
+            "value" : "温度"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Temperature 溫度"
+            "value" : "溫度"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Temperature 温度"
+            "value" : "温度"
           }
         },
         "fr" : {
@@ -27999,25 +27999,25 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Volume 体积"
+            "value" : "Volume"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Volume 体积"
+            "value" : "体积"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Volume 體積"
+            "value" : "體積"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Volume 体積"
+            "value" : "体積"
           }
         },
         "fr" : {
