@@ -128,6 +128,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             NSApp.appearance = NSAppearance(named: .darkAqua)
         }
 
+        // --uitest-open-pin：用一张生成的图片打开贴图窗口，用来评审贴图界面。
+        // 真实入口依赖截图会话（需要屏幕录制授权），这条路径绕开它。
+        if ProcessInfo.processInfo.arguments.contains("--uitest-open-pin") {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { [weak self] in
+                guard let self, let data = Self.makePinSampleImageData() else { return }
+                _ = self.container.pinWindowController.present(payload: .image(data))
+            }
+        }
+
         if let path = Self.capturePNGPath() {
             let delay = Self.captureDelay()
             DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
@@ -359,6 +368,32 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
               index + 1 < args.count,
               let value = TimeInterval(args[index + 1]) else { return 1.5 }
         return value
+    }
+
+    /// 生成一张用于贴图评审的示例图片（渐变 + 文字）。
+    private static func makePinSampleImageData() -> Data? {
+        let size = NSSize(width: 320, height: 200)
+        let image = NSImage(size: size)
+        image.lockFocus()
+        let gradient = NSGradient(colors: [
+            NSColor(srgbRed: 0.30, green: 0.39, blue: 0.53, alpha: 1),
+            NSColor(srgbRed: 0.69, green: 0.77, blue: 0.87, alpha: 1)
+        ])
+        gradient?.draw(in: NSRect(origin: .zero, size: size), angle: -45)
+        let text = "贴图预览 · Pin Preview" as NSString
+        let attributes: [NSAttributedString.Key: Any] = [
+            .font: NSFont.systemFont(ofSize: 16, weight: .semibold),
+            .foregroundColor: NSColor.white
+        ]
+        let textSize = text.size(withAttributes: attributes)
+        text.draw(
+            at: NSPoint(x: (size.width - textSize.width) / 2, y: (size.height - textSize.height) / 2),
+            withAttributes: attributes
+        )
+        image.unlockFocus()
+        guard let tiff = image.tiffRepresentation,
+              let rep = NSBitmapImageRep(data: tiff) else { return nil }
+        return rep.representation(using: .png, properties: [:])
     }
 
     /// 把当前最大的可见窗口自绘为 PNG 并退出应用。
