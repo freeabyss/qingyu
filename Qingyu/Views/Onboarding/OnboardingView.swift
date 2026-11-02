@@ -240,8 +240,10 @@ struct OnboardingView: View {
                 // 主按钮被禁用时必须说明原因。
                 // 首启时「开始使用」默认是灰的（屏幕录制既未授权、也没点「暂不开启」），
                 // 界面上却只有一句沉默的灰按钮——用户不知道差什么，也不知道旁边两个按钮哪个能解开。
+                // 这是解释「开始使用为什么是灰的」的唯一线索，属于阻断性说明，
+                // 不该用最弱的一档字号。用 callout 让它与正文同级可读。
                 Text(L10n.localized("onboarding.start.blockedHint"))
-                    .font(JadeFont.caption)
+                    .font(JadeFont.callout)
                     .foregroundStyle(JadeColor.textSecondary)
                     .multilineTextAlignment(.trailing)
                     .frame(maxWidth: .infinity, alignment: .trailing)
