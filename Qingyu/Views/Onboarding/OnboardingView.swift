@@ -170,6 +170,9 @@ struct OnboardingView: View {
                 .font(JadeFont.callout)
                 .foregroundStyle(JadeColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
+            // 操作按钮与说明分开成两块：早先把 ad-hoc 说明放进按钮所在的 HStack，
+            // 它被挤在按钮右侧的窄列里折成四行小字，左边却大片留白。
+            // 说明属于整段权限的补充信息，应横跨整行、位于按钮下方。
             HStack(spacing: JadeSpace.x3.value) {
                 if viewModel.screenRecordingAuthorized {
                     Label(L10n.localized("onboarding.screenRecording.granted"), systemImage: "checkmark.circle.fill")
@@ -193,18 +196,19 @@ struct OnboardingView: View {
                             .font(JadeFont.caption)
                             .foregroundStyle(JadeColor.textTertiary)
                     }
-
-                    // ad-hoc 构建（本地编译）下 TCC 按代码哈希记录授权：每次重编
-                    // 都会失效，而系统设置里的旧条目仍显示为已授权。
-                    if let noteKey = PermissionGuidance.developmentSignatureNoteKey(
-                        for: PermissionService.appSignatureStatus()
-                    ) {
-                        Text(L10n.localized(noteKey))
-                            .font(JadeFont.caption)
-                            .foregroundStyle(JadeColor.textSecondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
                 }
+            }
+
+            // ad-hoc 构建（本地编译）下 TCC 按代码哈希记录授权：每次重编
+            // 都会失效，而系统设置里的旧条目仍显示为已授权。
+            if !viewModel.screenRecordingAuthorized,
+               let noteKey = PermissionGuidance.developmentSignatureNoteKey(
+                for: PermissionService.appSignatureStatus()
+               ) {
+                Text(L10n.localized(noteKey))
+                    .font(JadeFont.caption)
+                    .foregroundStyle(JadeColor.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
     }
