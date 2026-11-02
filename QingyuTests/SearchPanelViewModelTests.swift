@@ -49,6 +49,35 @@ final class SearchPanelViewModelTests: XCTestCase {
         XCTAssertTrue(didClose)
     }
 
+    // MARK: - 隐藏搜索结果
+
+    /// 没有注入黑名单仓库时，不提供「隐藏」能力。
+    func testCanHideIsFalseWithoutRepository() {
+        let viewModel = SearchPanelViewModel(searchService: StubPanelSearchService(results: []))
+        XCTAssertFalse(viewModel.canHide(Self.makeResult(index: 0)))
+    }
+
+    /// 注入仓库后：隐藏该结果会写入黑名单，并重跑当前查询。
+    func testHideWritesToBlacklistAndRerunsQuery() async {
+        let service = StubPanelSearchService(results: [Self.makeResult(index: 0)])
+        let repo = RecordingBlacklistRepository()
+        let viewModel = SearchPanelViewModel(searchService: service, searchBlacklist: repo)
+
+        let result = Self.makeResult(index: 0)
+        XCTAssertTrue(viewModel.canHide(result))
+
+        viewModel.query = "a"
+        await viewModel.searchNow()
+        let searchesBefore = await service.searchCount()
+
+        await viewModel.hide(result)
+
+        let hidden = await repo.hiddenResultIDs()
+        XCTAssertEqual(hidden, [result.id], "隐藏应把该结果写进黑名单")
+        let searchesAfter = await service.searchCount()
+        XCTAssertGreaterThan(searchesAfter, searchesBefore, "隐藏后应重跑查询以移除该结果")
+    }
+
     private static func makeResult(index: Int) -> SearchResult {
         SearchResult(
             id: SearchResultID(rawValue: "test:\(index)"),
@@ -358,9 +387,11 @@ final class SearchPanelViewModelTests: XCTestCase {
 actor StubPanelSearchService: SearchServiceProtocol {
     private let stubResults: [SearchResult]
     private(set) var searchWasCalled = false
+    private(set) var searchCallCount = 0
     private(set) var executedActions: [SearchAction] = []
 
     func wasSearchCalled() -> Bool { searchWasCalled }
+    func searchCount() -> Int { searchCallCount }
     func actions() -> [SearchAction] { executedActions }
 
     init(results: [SearchResult]) {
@@ -369,6 +400,7 @@ actor StubPanelSearchService: SearchServiceProtocol {
 
     func search(query: String) async -> SearchResponse {
         searchWasCalled = true
+        searchCallCount += 1
         return SearchResponse(query: query, results: stubResults, elapsed: 0.01)
     }
 
@@ -378,4 +410,27 @@ actor StubPanelSearchService: SearchServiceProtocol {
     }
 
     func recordSelection(_ result: SearchResult) async {}
+}
+
+/// 记录隐藏了哪些结果 ID 的黑名单仓库替身，用于验证「隐藏此结果」写入链路。
+private actor RecordingBlacklistRepository: SearchBlacklistRepositoryProtocol {
+    private var hiddenIDs: [SearchResultID] = []
+
+    func hiddenResultIDs() -> [SearchResultID] { hiddenIDs }
+
+    func add(_ draft: SearchBlacklistDraft) async throws -> SearchBlacklistItemSnapshot {
+        hiddenIDs.append(draft.resultID)
+        return SearchBlacklistItemSnapshot(id: UUID(), resultID: draft.resultID, sourceID: draft.sourceID, title: draft.title, resultType: draft.resultType, createdAt: Date())
+    }
+
+    func add(result: SearchResult) async throws -> SearchBlacklistItemSnapshot {
+        try await add(SearchBlacklistDraft(result: result))
+    }
+
+    func list() async throws -> [SearchBlacklistItemSnapshot] { [] }
+    func remove(id: UUID) async throws {}
+    func remove(sourceID: SearchSourceID, resultID: SearchResultID) async throws {}
+    func contains(sourceID: SearchSourceID, resultID: SearchResultID) async -> Bool {
+        hiddenIDs.contains(resultID)
+    }
 }

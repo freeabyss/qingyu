@@ -121,13 +121,37 @@ final class SearchPanelViewModel: ObservableObject {
         searchService: SearchServiceProtocol,
         dangerCommandIDs: Set<String> = SearchPanelViewModel.defaultDangerCommandIDs,
         onOpenSettings: @escaping () -> Void = {},
-        onClose: @escaping () -> Void = {}
+        onClose: @escaping () -> Void = {},
+        searchBlacklist: SearchBlacklistRepositoryProtocol? = nil
     ) {
         self.searchService = searchService
         self.dangerCommandIDs = dangerCommandIDs
         self.onClose = onClose
         self.onOpenSettings = onOpenSettings
+        self.searchBlacklist = searchBlacklist
         setupDebounce()
+    }
+
+    /// 搜索黑名单仓库：用于在结果行上直接「隐藏此结果」（写入黑名单后重查）。
+    /// 设为可选，便于测试与预览不依赖数据库。
+    private let searchBlacklist: SearchBlacklistRepositoryProtocol?
+
+    /// 能否对当前结果执行「隐藏」：只有拿到仓库且结果来自可隐藏的来源时才提供。
+    func canHide(_ result: SearchResult) -> Bool {
+        searchBlacklist != nil
+    }
+
+    /// 把一条搜索结果写进黑名单，然后重跑当前查询——被隐藏的条目会从结果里消失。
+    /// 这是「手填稳定 ID」之外，普通用户真正可用的一条屏蔽路径（PRD FR-SEARCH-8i）。
+    func hide(_ result: SearchResult) async {
+        guard let searchBlacklist else { return }
+        do {
+            _ = try await searchBlacklist.add(result: result)
+            await searchNow()
+        } catch {
+            logger.error("Hide search result failed: \(error.localizedDescription, privacy: .public)")
+            showToast(message: error.localizedDescription)
+        }
     }
 
     /// Danger commands that require a `⏎` second confirmation (PRD §9.5 / T-011).

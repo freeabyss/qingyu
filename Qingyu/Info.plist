@@ -20,9 +20,9 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>0.4.167</string>
+	<string>0.4.168</string>
 	<key>CFBundleVersion</key>
-	<string>567</string>
+	<string>568</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
 	<key>LSUIElement</key>

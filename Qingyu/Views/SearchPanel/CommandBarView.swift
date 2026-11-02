@@ -162,7 +162,10 @@ struct CommandBarView: View {
                         CommandBarResultRow(
                             result: result,
                             isSelected: result.id == viewModel.selectedResult?.id,
-                            isDangerous: viewModel.isDangerous(result)
+                            isDangerous: viewModel.isDangerous(result),
+                            onHide: viewModel.canHide(result)
+                                ? { Task { await viewModel.hide(result) } }
+                                : nil
                         )
                         .id(result.id)
                         .onTapGesture {
@@ -259,6 +262,8 @@ struct CommandBarResultRow: View {
     let result: SearchResult
     let isSelected: Bool
     let isDangerous: Bool
+    /// 可隐藏时提供「隐藏此结果」回调；nil 则不显示该按钮（例如预览/测试环境）。
+    var onHide: (() -> Void)? = nil
     @State private var isHovering = false
 
     /// 结果行图标磁贴边长：32pt 正方形，应用图标与系统符号磁贴共用同一尺寸；不并入 JadeSpace（那是间距档位，不是磁贴尺寸）。
@@ -290,6 +295,21 @@ struct CommandBarResultRow: View {
             }
 
             Spacer(minLength: JadeSpace.x3.value)
+
+            // 悬停时在类型标签左侧露出「隐藏此结果」按钮——
+            // 普通用户不必去设置里手填稳定 ID，直接从结果上屏蔽（PRD FR-SEARCH-8i）。
+            if isHovering, let onHide {
+                Button(action: onHide) {
+                    Image(systemName: "eye.slash")
+                        .font(JadeFont.caption)
+                        .foregroundStyle(JadeColor.textSecondary)
+                        .frame(width: 24, height: 24)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .help(L10n.localized("commandBar.hideResult"))
+                .accessibilityLabel(Text(L10n.localized("commandBar.hideResult")))
+            }
 
             // 结果类型：应用 / 文件 / 命令 / 网页搜索……混排时只靠图标很难分辨，
             // 副标题里应用和文件都是路径，读起来几乎一样。类型标签给的是「这是什么」，

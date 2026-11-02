@@ -512,7 +512,9 @@ final class AppContainer: NSObject {
             onOpenSettings: { [weak self] in
                 self?.settingsWindowController.show(route: .general)
             },
-            onClose: onClose
+            onClose: onClose,
+            // 结果行「隐藏此结果」写黑名单用：与设置里的黑名单管理共用同一仓库。
+            searchBlacklist: SearchBlacklistRepository()
         )
     }
 
