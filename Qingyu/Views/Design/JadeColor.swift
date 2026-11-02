@@ -85,8 +85,15 @@ public enum JadeColor {
 
     /// 主文字 = `NSColor.labelColor`
     public static let textPrimary = Color(nsColor: .labelColor)
-    /// 次文字 = `NSColor.secondaryLabelColor`
-    public static let textSecondary = Color(nsColor: .secondaryLabelColor)
+    /// 次文字（副标题 / 说明文字）。
+    ///
+    /// 原本直接绑定 secondaryLabelColor：浅色下约 #8E8E93，在 surface1 上
+    /// 只有 3.18:1，低于正文 4.5:1；而它承担副标题与说明这类需要读的文字。
+    /// 改为显式双模式值：浅色 #737373（4.62:1），深色保留系统次要色（5.59:1）。
+    public static let textSecondary = Color(dynamic("TextSecondary", Pair(
+        light: NSColor(srgbHex: 0x737373),
+        dark: NSColor.secondaryLabelColor
+    )))
     /// 元信息 / 占位文字。
     ///
     /// 原本直接绑定 secondaryLabelColor：浅色模式下它约为 #8E8E93，

@@ -106,6 +106,25 @@ final class JadeDesignTokenTests: XCTestCase {
         )
     }
 
+    /// 文字令牌在两种模式下都必须达到正文 4.5:1。
+    ///
+    /// textSecondary / textTertiary 原先直接绑定 NSColor.secondaryLabelColor，
+    /// 浅色模式下只有 3.18 / 3.2 —— 而它们承担副标题、说明与占位文字。
+    /// 这里锁死「浅色显式值 + 深色系统值」都不会掉到 AA 以下。
+    func testTextTokenContrastMeetsWCAGAA() {
+        let lightSurface: UInt32 = 0xFCFCFD
+        let darkSurface: UInt32 = 0x202226
+
+        // 浅色显式值（与 JadeColor 定义保持一致）
+        XCTAssertGreaterThanOrEqual(contrast(0x737373, lightSurface), 4.5, "textSecondary 浅色")
+        XCTAssertGreaterThanOrEqual(contrast(0x6E6E6E, lightSurface), 4.5, "textTertiary 浅色")
+        XCTAssertGreaterThanOrEqual(contrast(0x000000, lightSurface), 4.5, "textPrimary 浅色")
+
+        // 深色系统次要色的典型值
+        XCTAssertGreaterThanOrEqual(contrast(0x999999, darkSurface), 4.5, "次级文字 深色")
+        XCTAssertGreaterThanOrEqual(contrast(0xFFFFFF, darkSurface), 4.5, "主文字 深色")
+    }
+
     func testAppKitOverlayFontsMirrorJadeScale() {
         // AppKit 叠层字号必须与 SwiftUI Jade 字阶一致，且不得低于 caption 下限 10pt：
         // 旧代码里工具条标签是 9pt，放大镜已是 10pt，两者曾不一致。
