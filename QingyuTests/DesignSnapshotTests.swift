@@ -167,6 +167,38 @@ final class DesignSnapshotTests: XCTestCase {
     }
 
 
+
+    /// 设置页在大字号（1.35×）下的表现：固定字号 token 全部放大后，
+    /// 标题、说明、行内控件是否仍能对齐、不重叠。
+    ///
+    /// 背景：`--uitest-large-text` 曾长期只被解析、从未生效（对应 UI 测试等于空跑），
+    /// 现已接通 JadeFont.scale；这里用快照把放大后的排版固定下来。
+    func testSettingsPageSectionsLargeTextSnapshot() throws {
+        let original = JadeFont.scale
+        JadeFont.scale = 1.35
+        defer { JadeFont.scale = original }
+
+        let page = VStack(alignment: .leading, spacing: JadeSpace.x6.value) {
+            SettingsHeader(
+                titleKey: "settings.page.general",
+                subtitleKey: "settings.general.subtitle",
+                iconName: "gearshape"
+            )
+            SettingsSection("settings.general.startup") {
+                JadeSwitchRow(L10n.localized("settings.launchAtLogin"), isOn: .constant(true))
+            }
+        }
+        .jadePadding(.x6)
+        .frame(width: 700, alignment: .leading)
+        .background(JadeColor.surface1)
+
+        try renderBothSchemes(
+            page,
+            size: CGSize(width: 700, height: 420),
+            name: "settings-sections-large-text"
+        )
+    }
+
     /// 剪贴板详情面板：无选中项的空状态。
     func testClipboardDetailPaneSnapshot() throws {
         try renderBothSchemes(
