@@ -59,8 +59,12 @@ public enum JadeColor {
     public static let primaryHover = jade600
     /// 主色浅底 = Jade 50
     public static let primaryFill = jade50
-    /// 搜索输入聚焦描边：主色 65% 不透明，用于命令栏输入分隔线与剪贴板历史搜索框描边，与未聚焦的 border 区分。
-    public static let focusBorder = primary.opacity(0.65)
+    /// 搜索输入聚焦描边：主色 75% 不透明，用于命令栏输入分隔线与剪贴板历史搜索框描边。
+    ///
+    /// 原为 65%：在 surface2（#F3F4F6）上对比度只有 2.73:1，低于非文本元素
+    /// 要求的 3:1。焦点描边是键盘用户判断「焦点在哪」的唯一依据，太淡就等于没有。
+    /// 提到 75% 后达到 3.28:1。
+    public static let focusBorder = primary.opacity(0.75)
     /// 列表行选中描边：主色 85% 不透明，用于 JadeListRow 选中状态的轮廓，与结果行 0.3 的柔和选中描边区分，也与危险按下和穿透描边的 0.85 区分，数值相同但底色与角色不同，不合并。
     public static let rowSelectionBorder = primary.opacity(0.85)
     /// 结果行选中描边：主色 30% 不透明，用于命令栏结果行选中状态的柔和轮廓，背景已有 primaryFill，故比 JadeListRow 的 0.85 轮廓更柔和；与聚焦描边 0.65 角色不同，不合并。

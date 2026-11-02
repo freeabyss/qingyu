@@ -125,6 +125,21 @@ final class JadeDesignTokenTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(contrast(0xFFFFFF, darkSurface), 4.5, "主文字 深色")
     }
 
+    /// 焦点描边作为非文本元素，必须达到 3:1。
+    ///
+    /// focusBorder 原为 primary 65% 不透明，在 surface2 上只有 2.73:1。
+    /// 焦点描边是键盘用户判断焦点位置的唯一依据，太淡等于没有。
+    func testFocusBorderMeetsNonTextContrast() {
+        let surface2Light: UInt32 = 0xF3F4F6
+        // primary light #4D6487 @ 75% on surface2
+        let focusBorderLight = blend(foreground: 0x4D6487, background: surface2Light, alpha: 0.75)
+        XCTAssertGreaterThanOrEqual(contrast(focusBorderLight, surface2Light), 3.0, "焦点描边 浅色")
+
+        let surface1Dark: UInt32 = 0x202226
+        let focusBorderDark = blend(foreground: 0xB2C4DF, background: surface1Dark, alpha: 0.75)
+        XCTAssertGreaterThanOrEqual(contrast(focusBorderDark, surface1Dark), 3.0, "焦点描边 深色")
+    }
+
     func testAppKitOverlayFontsMirrorJadeScale() {
         // AppKit 叠层字号必须与 SwiftUI Jade 字阶一致，且不得低于 caption 下限 10pt：
         // 旧代码里工具条标签是 9pt，放大镜已是 10pt，两者曾不一致。
