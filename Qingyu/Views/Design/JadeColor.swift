@@ -173,12 +173,15 @@ public enum JadeColor {
     public static let danger = Color(nsColor: .systemRed)
     /// 警告
     public static let warning = Color(nsColor: .systemOrange)
-    /// 提醒 / 高亮
+    /// 提醒 / 高亮（当前无调用点，保留以覆盖 PRD §9.2.1 的语义集合）
     public static let attention = Color(nsColor: .systemYellow)
     /// 信息
     public static let info = Color(nsColor: .systemBlue)
 
-    /// 结果类型底色（PRD §9.2.9），前景 glyph 用同色、底色 15% 透明。
+    /// 结果类型色板（PRD §9.2.9 定义了 7 色，供「同色前景 + 15% 同色底」的
+    /// 类型贴片使用）。**当前代码只用到 info / success / warning / danger**，
+    /// 下面 7 个保留为 PRD 色板的一部分，但暂无调用点——新增类型贴片时可直接取用；
+    /// 如果要精简 API，需先确认没有测试或外部引用，再一并移除。
     public static let indigo = Color(nsColor: .systemIndigo)
     public static let purple = Color(nsColor: .systemPurple)
     public static let pink = Color(nsColor: .systemPink)
