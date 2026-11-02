@@ -140,6 +140,17 @@ final class JadeDesignTokenTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(contrast(focusBorderDark, surface1Dark), 3.0, "焦点描边 深色")
     }
 
+    /// 结果行类型标签要能压在选中行的 primaryFill 浅蓝底上。
+    ///
+    /// 用 textTertiary 的 #6E6E6E 时只有 4.07:1（低于小字 4.5:1），
+    /// 专用 typeLabel 令牌 #6A6A6A 在 primaryFill 上 4.64:1。
+    func testTypeLabelContrastOnSelectionFill() {
+        let selectionFill = blend(foreground: 0x4D6487, background: 0xFCFCFD, alpha: 0.10)
+        XCTAssertGreaterThanOrEqual(contrast(0x6A6A6A, selectionFill), 4.5, "类型标签在选中行底色上")
+        // 记录旧值缺陷：textTertiary 在同一底色上不达标
+        XCTAssertLessThan(contrast(0x6E6E6E, selectionFill), 4.5)
+    }
+
     func testAppKitOverlayFontsMirrorJadeScale() {
         // AppKit 叠层字号必须与 SwiftUI Jade 字阶一致，且不得低于 caption 下限 10pt：
         // 旧代码里工具条标签是 9pt，放大镜已是 10pt，两者曾不一致。

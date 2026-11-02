@@ -296,7 +296,9 @@ struct CommandBarResultRow: View {
             // 比路径末尾几个字符更有用。
             Text(result.typeLabel)
                 .font(JadeFont.caption)
-                .foregroundStyle(JadeColor.textTertiary)
+                // 专用令牌：需压在选中行的 primaryFill 浅蓝底上仍 >= 4.5:1，
+                // 用 textTertiary 会掉到 4.07:1。
+                .foregroundStyle(JadeColor.typeLabel)
                 .lineLimit(1)
                 .layoutPriority(-1)
 

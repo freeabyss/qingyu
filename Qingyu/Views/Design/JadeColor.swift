@@ -108,6 +108,15 @@ public enum JadeColor {
         light: NSColor(srgbHex: 0x6E6E6E),
         dark: NSColor.secondaryLabelColor
     )))
+    /// 结果行右侧的类型标签（应用 / 命令 / 设置…）。
+    ///
+    /// 它比副标题更弱一档，但要能压在选中行的 primaryFill 浅蓝底上：
+    /// textTertiary 的 #6E6E6E 在该底上只有 4.07:1（低于小字 4.5:1），
+    /// 改用 #6A6A6A 后为 4.64:1。深色模式沿用次要文字色。
+    public static let typeLabel = Color(dynamic("TypeLabel", Pair(
+        light: NSColor(srgbHex: 0x6A6A6A),
+        dark: NSColor.secondaryLabelColor
+    )))
 
     // MARK: - 中性色 · 表面（PRD §9.2.2）
 
