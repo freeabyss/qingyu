@@ -134,8 +134,13 @@ public struct JadeListRow<Content: View>: View {
         .background(backgroundColor)
         .jadeRadius(.lg)
         .overlay {
+            // 选中与键盘焦点共用同一圈描边，但粗细区分：
+            // 焦点比选中更粗，让纯键盘用户能看出「当前落在哪一行」——
+            // 此前 isFocused 只用来显示操作按钮，行本身没有任何焦点视觉反馈。
             if selected {
-                JadeRadius.lg.shape.strokeBorder(JadeColor.rowSelectionBorder, lineWidth: 1)
+                JadeRadius.lg.shape.strokeBorder(JadeColor.rowSelectionBorder, lineWidth: isFocused ? 2 : 1)
+            } else if isFocused {
+                JadeRadius.lg.shape.strokeBorder(JadeColor.focusBorder, lineWidth: 2)
             }
         }
         .contentShape(JadeRadius.lg.shape)
