@@ -54,11 +54,12 @@ extension SearchIndexItem {
         let title: String
         switch snapshot.contentType {
         case .text, .richText:
-            title = snapshot.summary ?? snapshot.plainText ?? "Clipboard Text"
+            title = snapshot.summary ?? snapshot.plainText ?? L10n.localized("searchIndex.clipboard.textTitle")
         case .image:
-            title = snapshot.summary ?? "Image"
+            title = snapshot.summary ?? L10n.localized("content.image")
         case .file:
-            title = snapshot.fileDisplayName ?? snapshot.summary ?? snapshot.filePath?.lastPathComponent ?? "File"
+            title = snapshot.fileDisplayName ?? snapshot.summary ?? snapshot.filePath?.lastPathComponent
+                ?? L10n.localized("content.file")
         }
 
         self.init(
@@ -270,13 +271,14 @@ final class ClipboardSearchIndexLoader: ClipboardSearchIndexLoaderProtocol {
         let title: String
         switch contentType {
         case .text, .richText:
-            title = record.summary ?? record.plainText ?? "Clipboard Text"
+            title = record.summary ?? record.plainText ?? L10n.localized("searchIndex.clipboard.textTitle")
         case .image:
-            title = record.summary ?? "Image"
+            title = record.summary ?? L10n.localized("content.image")
         case .file:
-            title = record.fileDisplayName ?? record.summary ?? record.filePath.map { URL(fileURLWithPath: $0).lastPathComponent } ?? "File"
+            title = record.fileDisplayName ?? record.summary ?? record.filePath.map { URL(fileURLWithPath: $0).lastPathComponent }
+                ?? L10n.localized("content.file")
         case nil:
-            title = record.summary ?? record.plainText ?? "Clipboard Item"
+            title = record.summary ?? record.plainText ?? L10n.localized("searchIndex.clipboard.itemTitle")
         }
 
         return SearchIndexItem(
