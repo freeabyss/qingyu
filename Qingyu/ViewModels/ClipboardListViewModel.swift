@@ -601,6 +601,9 @@ final class ClipboardListViewModel: ObservableObject {
             self.showToast = false
         }
         toastDismissTask = task
-        DispatchQueue.main.asyncAfter(deadline: .now() + (variant == .error ? 3.2 : 1.6), execute: task)
+        // 成功/提示类 toast 停留 1.6s 偏短：它承担「刚才那一下成了」的确认职责，
+        // 眨眼就可能错过，用户会怀疑操作是否生效。改为 2.2s——仍是轻提示，
+        // 不打断操作；错误类保持 3.2s（需要更多阅读时间）。
+        DispatchQueue.main.asyncAfter(deadline: .now() + (variant == .error ? 3.2 : 2.2), execute: task)
     }
 }
