@@ -23,6 +23,12 @@ echo "==> 本地化一致性检查"
 # 当时只有 JSON 合法性校验，全靠换语言截图才发现。改成硬门禁。
 python3 scripts/check-localization.py
 
+echo "==> 视图接线检查"
+# 依据：v1.2.0 合并五页时 BlacklistManagementSection 从页面掉出，
+# 结构体与后端都在、却没有入口，用户无法管理搜索黑名单。
+# 编译器与测试都发现不了，只有人肉核对界面清单才发现——改成硬门禁。
+python3 scripts/check-view-wiring.py
+
 # 第 3 步的由来：`QingyuTests/PermissionServiceProtocolConformanceTests.swift`（4 条用例）
 # 与 `QingyuTests/ScreenshotOverlayAppearanceTests.swift`（6 条用例）都曾**从未登记进测试目标**，
 # 文件在仓库里、测试全绿，用例却一条也没跑过 —— 「全绿」因此具有欺骗性。

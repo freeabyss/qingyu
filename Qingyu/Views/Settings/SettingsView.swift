@@ -239,6 +239,11 @@ private struct GeneralPage: View {
                 }
             }
 
+            // 搜索黑名单（PRD FR-SEARCH-8i：只能通过设置页管理）。
+            // 此前整个 section 在「合并为五页」重构中从页面里掉出，而结构体
+            // 与后端一直保留——功能齐备但用户没有任何入口，属于入口丢失。
+            BlacklistManagementSection(viewModel: viewModel)
+
             SettingsSection("management.page.data") {
                 HStack {
                     Text(L10n.localized("management.data.storageUsed"))
