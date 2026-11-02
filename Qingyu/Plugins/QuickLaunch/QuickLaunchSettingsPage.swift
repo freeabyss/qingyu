@@ -202,6 +202,8 @@ struct QuickLaunchPluginSettingsPage: View {
                         .buttonStyle(.plain)
                         .foregroundStyle(JadeColor.textSecondary)
                         .help(L10n.localized("settings.quickLaunch.keyword.delete.help"))
+                        // .help 只服务鼠标悬停；VoiceOver 需要显式标签。
+                        .accessibilityLabel(Text(L10n.localized("settings.quickLaunch.keyword.delete.help")))
                     }
                 }
                 .frame(width: KeywordColumn.custom)

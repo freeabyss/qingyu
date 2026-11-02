@@ -103,6 +103,8 @@ struct PreviewPanel: View {
                     .foregroundStyle(JadeColor.textSecondary)
             }
             .buttonStyle(.plain)
+            // 纯图标按钮必须有无障碍标签：VoiceOver 否则只会念出「按钮」。
+            .accessibilityLabel(Text(L10n.localized("preview.dismiss")))
         }
         .jadePadding(.horizontal, .x4)
         .jadePadding(.vertical, .x3)
