@@ -563,6 +563,13 @@ final class ClipboardListViewModel: ObservableObject {
         }
     }
 
+    #if DEBUG
+    /// 设计评审用：在真实窗口里显示一条 toast，用来截取交互反馈。
+    func debugShowToast(_ message: String, variant: JadeToast.Variant) {
+        setToast(message: message, variant: variant)
+    }
+    #endif
+
     private func showToast(message: String) {
         setToast(message: message, variant: .info)
     }

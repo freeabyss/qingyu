@@ -322,6 +322,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         return line
     }
 
+    /// --uitest-toast <text>：在剪贴板窗口里显示的 toast 文案。
+    private static func toastMessageArgument() -> String? {
+        let args = ProcessInfo.processInfo.arguments
+        guard let index = args.firstIndex(of: "--uitest-toast"),
+              index + 1 < args.count,
+              !args[index + 1].hasPrefix("--") else { return nil }
+        return args[index + 1]
+    }
+
     /// --uitest-search-query <text>：命令栏查询串。
     private static func searchQueryArgument() -> String? {
         let args = ProcessInfo.processInfo.arguments
@@ -453,6 +462,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             }
         case .openClipboard:
             container.clipboardHistoryWindowController.show()
+            // --uitest-toast <text>：在真实窗口里显示一条 toast，用来截取交互反馈。
+            if let message = Self.toastMessageArgument() {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in
+                    self?.container.clipboardHistoryWindowController
+                        .debugShowToast(message, variant: .success)
+                }
+            }
         case .openSettings:
             container.settingsWindowController.show(route: .general)
         case .openAbout:

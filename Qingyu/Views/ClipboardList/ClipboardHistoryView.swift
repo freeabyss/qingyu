@@ -84,7 +84,14 @@ struct ClipboardHistoryView: View {
         ) {
             Task { await viewModel.clearAllConfirmed() }
         }
-        .jadeToast(viewModel.toastMessage, isShowing: $viewModel.showToast, variant: viewModel.toastVariant)
+        // 底部要让出状态栏高度：toast 默认距窗口底 32pt，而状态栏高 36pt，
+        // 不额外内缩就会压在状态栏和分隔线上。
+        .jadeToast(
+            viewModel.toastMessage,
+            isShowing: $viewModel.showToast,
+            variant: viewModel.toastVariant,
+            bottomInset: Self.statusBarHeight
+        )
     }
 
     // MARK: - Full-width search + chips

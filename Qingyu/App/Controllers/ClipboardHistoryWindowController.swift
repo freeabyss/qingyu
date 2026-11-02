@@ -27,6 +27,13 @@ final class ClipboardHistoryWindowController: NSWindowController, NSWindowDelega
         fatalError("init(coder:) has not been implemented")
     }
 
+    #if DEBUG
+    /// 设计评审用：在剪贴板窗口里显示一条 toast。
+    func debugShowToast(_ message: String, variant: JadeToast.Variant) {
+        viewModel?.debugShowToast(message, variant: variant)
+    }
+    #endif
+
     func show() {
         // Mutual exclusion with the command bar — never stack both floating UIs.
         container.commandBarController.hide(animate: false)

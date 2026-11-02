@@ -78,6 +78,9 @@ public struct JadeToastModifier: ViewModifier {
     let message: String
     let variant: JadeToast.Variant
     let position: JadeToast.Position
+    /// 额外的底部内缩：宿主视图底部有常驻条（如剪贴板窗口的 36pt 状态栏）时，
+    /// 用它把 toast 顶到状态栏之上，而不是压着分隔线。
+    let bottomInset: CGFloat
 
     @State private var dismissTask: DispatchWorkItem?
 
@@ -93,7 +96,7 @@ public struct JadeToastModifier: ViewModifier {
                             .move(edge: position == .bottom ? .bottom : .top)
                                 .combined(with: .opacity)
                         )
-                        .padding(.bottom, position == .bottom ? JadeSpace.x8.value : 0)
+                        .padding(.bottom, position == .bottom ? JadeSpace.x8.value + bottomInset : 0)
                 }
                 if position == .center { Spacer() }
             }
@@ -116,13 +119,15 @@ extension View {
         _ message: String,
         isShowing: Binding<Bool>,
         variant: JadeToast.Variant = .info,
-        position: JadeToast.Position = .bottom
+        position: JadeToast.Position = .bottom,
+        bottomInset: CGFloat = 0
     ) -> some View {
         modifier(JadeToastModifier(
             isShowing: isShowing,
             message: message,
             variant: variant,
-            position: position
+            position: position,
+            bottomInset: bottomInset
         ))
     }
 
@@ -132,7 +137,8 @@ extension View {
             isShowing: .constant(isShowing),
             message: message,
             variant: .info,
-            position: .bottom
+            position: .bottom,
+            bottomInset: 0
         ))
     }
 }
