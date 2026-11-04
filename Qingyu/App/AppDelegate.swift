@@ -528,6 +528,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             container.settingsWindowController.show(route: .general)
         case .openClipboardSettings:
             container.settingsWindowController.show(route: .clipboard)
+        case .openScreenshotSettings:
+            container.settingsWindowController.show(route: .screenshot)
         case .openAbout:
             container.settingsWindowController.show(route: .about)
         case .openQuickLaunch:
