@@ -185,7 +185,10 @@ final class AssistantClipboardRepositoryTests: XCTestCase {
         let missingImage = try XCTUnwrap(fetchedMissingImage)
         XCTAssertFalse(missingImage.resourceStatus.isAvailable)
         XCTAssertEqual(missingImage.resources.first?.isMissing, true)
-        XCTAssertTrue(missingImage.failureReason?.contains("Missing clipboard resource") == true)
+        // 原因文案已本地化，断言不再绑死英文措辞：只要求非空且带上出问题的资源路径。
+        let imageReason = try XCTUnwrap(missingImage.failureReason)
+        XCTAssertFalse(imageReason.isEmpty)
+        XCTAssertTrue(imageReason.contains("Clipboard/Images"), "原因里应带出缺失的资源路径：\(imageReason)")
 
         let fileURL = tempDirectory.appendingPathComponent("deleted.txt")
         try Data("gone".utf8).write(to: fileURL)
@@ -197,7 +200,8 @@ final class AssistantClipboardRepositoryTests: XCTestCase {
         let fetchedMissingFile = try await repository.fetch(id: file.id)
         let missingFile = try XCTUnwrap(fetchedMissingFile)
         XCTAssertFalse(missingFile.resourceStatus.isAvailable)
-        XCTAssertTrue(missingFile.failureReason?.contains("Referenced file is missing") == true)
+        let fileReason = try XCTUnwrap(missingFile.failureReason)
+        XCTAssertTrue(fileReason.contains("deleted.txt"), "原因里应带出缺失的文件路径：\(fileReason)")
     }
 
     func testCleanupExpiredDeletesOnlyUnpinnedRecordsAndResources() async throws {

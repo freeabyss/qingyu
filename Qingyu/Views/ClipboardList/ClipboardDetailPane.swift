@@ -158,6 +158,31 @@ struct ClipboardDetailPane: View {
             header(for: item)
                 .frame(height: Self.headerHeight)
             Divider().overlay(JadeColor.border)
+            // PRD 状态表：「不可用内容」要显示内容**及不可用原因**。
+            // 行内的警告图标只有 tooltip，详情区才是能完整读到原因的地方。
+            if let failureReason = item.failureReason {
+                HStack(alignment: .top, spacing: JadeSpace.x2.value) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(JadeFont.caption)
+                        .foregroundStyle(JadeColor.warningText)
+                        .accessibilityHidden(true)
+                    VStack(alignment: .leading, spacing: JadeSpace.x1.value) {
+                        Text(L10n.localized("clipboard.failure.title"))
+                            .font(JadeFont.caption.weight(.medium))
+                            .foregroundStyle(JadeColor.textPrimary)
+                        Text(failureReason)
+                            .font(JadeFont.caption)
+                            .foregroundStyle(JadeColor.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    Spacer(minLength: 0)
+                }
+                .jadePadding(.horizontal, .x4)
+                .jadePadding(.vertical, .x2)
+                .background(JadeColor.surface2)
+                .accessibilityIdentifier("clipboard.detail.failureReason")
+                Divider().overlay(JadeColor.border)
+            }
             ScrollView {
                 content(for: item)
                     .jadePadding(.x4)
@@ -212,6 +237,10 @@ struct ClipboardDetailPane: View {
                     onCopy(item)
                 }
                 .buttonStyle(.jadePrimary)
+                // PRD：「不可用内容…禁用对应主动作」。资源已经丢了，
+                // 主按钮点了也不会有结果，禁用并说明原因比让用户白点一次好。
+                .disabled(item.failureReason != nil)
+                .help(item.failureReason ?? L10n.localized("clipboard.action.copy"))
                 .accessibilityIdentifier("clipboard.detail.copy")
             }
 

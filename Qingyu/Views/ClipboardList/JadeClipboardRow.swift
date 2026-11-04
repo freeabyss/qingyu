@@ -91,11 +91,14 @@ struct JadeClipboardRow: View {
                                 .foregroundStyle(JadeColor.primary)
                                 .accessibilityHidden(true)
                         }
-                        if item.failureReason != nil {
+                        if let failureReason = item.failureReason {
+                            // PRD 状态表：「不可用内容」要显示不可用原因。
+                            // 行内空间有限，用悬停提示承载完整原因，读屏也能读到。
                             Image(systemName: "exclamationmark.triangle.fill")
                                 .font(JadeFont.caption)
                                 .foregroundStyle(JadeColor.warningText)
-                                .accessibilityHidden(true)
+                                .help(failureReason)
+                                .accessibilityLabel(Text(failureReason))
                         }
                     }
 

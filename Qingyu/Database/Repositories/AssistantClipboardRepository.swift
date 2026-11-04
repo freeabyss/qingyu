@@ -316,11 +316,15 @@ struct ClipboardResourceStatus: Hashable {
     var failureReason: String? {
         guard !isAvailable else { return nil }
         var parts: [String] = []
+        // 这条文案会直接展示给用户（行内 tooltip 与详情面板），必须本地化。
         if !missingResourcePaths.isEmpty {
-            parts.append("Missing clipboard resource: \(missingResourcePaths.joined(separator: ", "))")
+            parts.append(L10n.localized(
+                "clipboard.failure.missingResource",
+                missingResourcePaths.joined(separator: ", ")
+            ))
         }
         if let missingFileReference {
-            parts.append("Referenced file is missing: \(missingFileReference.path)")
+            parts.append(L10n.localized("clipboard.failure.missingFile", missingFileReference.path))
         }
         return parts.joined(separator: "; ")
     }

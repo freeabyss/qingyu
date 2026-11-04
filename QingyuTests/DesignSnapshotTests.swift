@@ -249,6 +249,47 @@ final class DesignSnapshotTests: XCTestCase {
         )
     }
 
+    /// 剪贴板详情：内容不可用时必须在详情区显示「不可用原因」。
+    ///
+    /// PRD 状态表：「不可用内容 | 显示内容及不可用原因，禁用对应主动作」。
+    /// 此前原因只存在于模型里，行内仅一个警告图标、没有 tooltip，详情区完全不展示。
+    func testClipboardDetailPaneUnavailableSnapshot() throws {
+        let item = ClipboardRecordSnapshot(
+            id: UUID(),
+            contentType: .image,
+            plainText: nil,
+            summary: "Q4 路线图评审纪要",
+            contentHash: "hash-unavailable",
+            isPinned: false,
+            isFavorite: false,
+            createdAt: Date(timeIntervalSince1970: 1_700_000_000),
+            updatedAt: Date(timeIntervalSince1970: 1_700_000_120),
+            filePath: nil,
+            fileDisplayName: nil,
+            fileUTI: nil,
+            fileSize: nil,
+            resources: [],
+            resourceStatus: ClipboardResourceStatus(
+                missingResourcePaths: ["Clipboard/Images/1234.png"],
+                missingFileReference: nil
+            ),
+            sourceAppBundleID: nil,
+            sourceAppName: nil
+        )
+
+        try renderBothSchemes(
+            ClipboardDetailPane(
+                item: item,
+                imageProvider: { _ in nil },
+                richTextProvider: { _ in nil },
+                onCopy: { _ in }
+            ),
+            size: CGSize(width: 420, height: 320),
+            name: "clipboard-detail-unavailable"
+        )
+    }
+
+
     private static let sampleIndexItem = SearchIndexItem(
         id: UUID(),
         sourceID: .clipboard,
