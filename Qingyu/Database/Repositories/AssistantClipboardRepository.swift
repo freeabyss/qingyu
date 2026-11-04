@@ -361,10 +361,11 @@ final class ClipboardHistoryService: ClipboardHistoryServiceProtocol {
     }
 
     func clearAllConfirmation() -> ClipboardClearAllConfirmation {
+        // 复用剪贴板窗口已在用的三条键，避免同一件事出现两套措辞。
         ClipboardClearAllConfirmation(
-            title: "Clear Clipboard History",
-            message: "This action cannot be undone.",
-            destructiveButtonTitle: "Clear All",
+            title: L10n.localized("clipboard.clearAll.title"),
+            message: L10n.localized("clipboard.clearAll.message"),
+            destructiveButtonTitle: L10n.localized("clipboard.clearAll.button"),
             requiresExplicitConfirmation: true
         )
     }
@@ -758,19 +759,21 @@ enum AssistantClipboardRepositoryError: LocalizedError, Equatable {
     case confirmationRequired
 
     var errorDescription: String? {
+        // errorDescription 会经 error.localizedDescription 直接弹到 toast，
+        // 属于用户可见文案，必须本地化（此前是硬编码英文）。
         switch self {
         case .recordNotFound(let id):
-            return "Clipboard record not found: \(id.uuidString)"
+            return L10n.localized("clipboard.error.recordNotFound", id.uuidString)
         case .resourceMissing(let relativePath):
-            return "Clipboard resource is missing: \(relativePath)"
+            return L10n.localized("clipboard.error.resourceMissing", relativePath)
         case .fileWriteFailed(let relativePath, let reason):
-            return "Failed to write clipboard resource \(relativePath): \(reason)"
+            return L10n.localized("clipboard.error.fileWriteFailed", relativePath, reason)
         case .fileReadFailed(let relativePath, let reason):
-            return "Failed to read clipboard resource \(relativePath): \(reason)"
+            return L10n.localized("clipboard.error.fileReadFailed", relativePath, reason)
         case .invalidContentType(let value):
-            return "Invalid clipboard content type: \(value)"
+            return L10n.localized("clipboard.error.invalidContentType", value)
         case .confirmationRequired:
-            return "Clear all clipboard history requires explicit confirmation."
+            return L10n.localized("clipboard.error.confirmationRequired")
         }
     }
 }

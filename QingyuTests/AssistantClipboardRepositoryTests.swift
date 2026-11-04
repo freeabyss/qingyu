@@ -245,7 +245,10 @@ final class AssistantClipboardRepositoryTests: XCTestCase {
         let service = ClipboardHistoryService(repository: repository)
         let confirmation = service.clearAllConfirmation()
         XCTAssertTrue(confirmation.requiresExplicitConfirmation)
-        XCTAssertTrue(confirmation.message.contains("cannot be undone"))
+        // 断言与语言无关：直接对照本地化键，避免把英文措辞写死在测试里。
+        XCTAssertEqual(confirmation.message, L10n.localized("clipboard.clearAll.message"))
+        XCTAssertEqual(confirmation.title, L10n.localized("clipboard.clearAll.title"))
+        XCTAssertEqual(confirmation.destructiveButtonTitle, L10n.localized("clipboard.clearAll.button"))
 
         let resource = try await resourceStore.writeImageOriginal(Data([1]), id: UUID())
         _ = try await repository.upsert(

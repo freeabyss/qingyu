@@ -85,15 +85,8 @@ struct ClipboardHistoryView: View {
         }
         .background(keyboardShortcuts)
         .background(navigationKeys)
-        .jadeConfirmationDialog(
-            "clipboard.clearAll.title",
-            isPresented: $viewModel.showClearAllConfirmation,
-            confirmTitle: "clipboard.clearAll.action",
-            cancelTitle: "settings.alert.cancel",
-            message: "clipboard.clearAll.message"
-        ) {
-            Task { await viewModel.clearAllConfirmed() }
-        }
+        // 清空全部记录已按 PRD §02-ui-spec 收回到「设置 → 剪贴板」：
+        // 历史窗口不再提供该入口（见 ClipboardSettingsPage 的「清空全部记录」）。
         // 底部要让出状态栏高度：toast 默认距窗口底 32pt，而状态栏高 36pt，
         // 不额外内缩就会压在状态栏和分隔线上。
         .jadeToast(
@@ -335,11 +328,6 @@ struct ClipboardHistoryView: View {
                 Task { await viewModel.delete(item) }
             } label: {
                 Text(L10n.localized("preview.delete"))
-            }
-            Button(role: .destructive) {
-                viewModel.showClearAllConfirmation = true
-            } label: {
-                Text(L10n.localized("clipboard.clearAll.button"))
             }
         }
     }

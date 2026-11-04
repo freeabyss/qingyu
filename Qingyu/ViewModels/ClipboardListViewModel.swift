@@ -125,7 +125,6 @@ final class ClipboardListViewModel: ObservableObject {
     /// 记录开关的运行时控制；为 nil 时（测试/预览）不提供暂停能力。
     private let recordingControl: ClipboardServiceProtocol?
 
-    @Published var showClearAllConfirmation = false
     @Published var showToast = false
     @Published var toastMessage = ""
     /// Variant used to render `toastMessage` (info for success/notice, error for failures).

@@ -1,6 +1,294 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "clipboard.settings.clearAll" : {
+      "comment" : "Clipboard settings: destructive row label for clearing all history",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clear All History"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清空全部记录"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清空全部記錄"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "履歴をすべて消去"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Effacer tout l'historique"
+          }
+        }
+      }
+    },
+    "clipboard.settings.clearAll.note" : {
+      "comment" : "Clipboard settings: impact scope shown before the destructive clear-all action",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deletes every clipboard item and its local resource files. Pinned items are deleted too. This cannot be undone."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "删除全部剪贴板记录及其本地资源文件，置顶记录同样会被删除。此操作不可撤销。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "刪除全部剪貼簿記錄及其本機資源檔案，置頂記錄同樣會被刪除。此操作不可撤銷。"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "すべてのクリップボード記録とローカルリソースを削除します。ピン留めした記録も削除されます。この操作は取り消せません。"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Supprime tous les éléments du presse-papiers et leurs fichiers de ressources locaux, y compris les éléments épinglés. Cette action est irréversible."
+          }
+        }
+      }
+    },
+    "clipboard.error.recordNotFound" : {
+      "comment" : "Clipboard error: record no longer exists (%@ = id)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clipboard record not found: %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "找不到剪贴板记录：%@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "找不到剪貼簿記錄：%@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "クリップボードの記録が見つかりません：%@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enregistrement du presse-papiers introuvable : %@"
+          }
+        }
+      }
+    },
+    "clipboard.error.resourceMissing" : {
+      "comment" : "Clipboard error: resource file missing (%@ = path)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clipboard resource is missing: %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "剪贴板资源缺失：%@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "剪貼簿資源遺失：%@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "クリップボードのリソースが見つかりません：%@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ressource du presse-papiers manquante : %@"
+          }
+        }
+      }
+    },
+    "clipboard.error.fileWriteFailed" : {
+      "comment" : "Clipboard error: failed to write resource (%1$@ = path, %2$@ = reason)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to write clipboard resource %1$@: %2$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "写入剪贴板资源失败（%1$@）：%2$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "寫入剪貼簿資源失敗（%1$@）：%2$@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "クリップボードのリソースを書き込めません %1$@：%2$@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Échec de l'écriture de la ressource %1$@ : %2$@"
+          }
+        }
+      }
+    },
+    "clipboard.error.fileReadFailed" : {
+      "comment" : "Clipboard error: failed to read resource (%1$@ = path, %2$@ = reason)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to read clipboard resource %1$@: %2$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "读取剪贴板资源失败（%1$@）：%2$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "讀取剪貼簿資源失敗（%1$@）：%2$@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "クリップボードのリソースを読み込めません %1$@：%2$@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Échec de la lecture de la ressource %1$@ : %2$@"
+          }
+        }
+      }
+    },
+    "clipboard.error.invalidContentType" : {
+      "comment" : "Clipboard error: unknown content type (%@ = raw value)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invalid clipboard content type: %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无效的剪贴板内容类型：%@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無效的剪貼簿內容類型：%@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "クリップボードの内容タイプが無効です：%@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Type de contenu du presse-papiers non valide : %@"
+          }
+        }
+      }
+    },
+    "clipboard.error.confirmationRequired" : {
+      "comment" : "Clipboard error: clear-all needs explicit confirmation",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clear all clipboard history requires explicit confirmation."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清空剪贴板历史需要明确确认。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清空剪貼簿歷史需要明確確認。"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "クリップボード履歴の消去には明示的な確認が必要です。"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Effacer tout l'historique du presse-papiers nécessite une confirmation explicite."
+          }
+        }
+      }
+    },
     "clipboard.failure.missingResource" : {
       "comment" : "Clipboard detail: reason shown when stored resource files for a record are gone (%@ = paths)",
       "extractionState" : "manual",

@@ -9,6 +9,10 @@ import SwiftUI
 struct ClipboardPluginSettingsPage: View {
     @EnvironmentObject private var viewModel: SettingsViewModel
 
+    /// 「清空全部记录」的确认弹窗与就地结果反馈。
+    @State private var showClearAllConfirmation = false
+    @State private var clearAllStatus: String?
+
     var body: some View {
         SettingsScrollPage {
             SettingsHeader(
@@ -65,6 +69,56 @@ struct ClipboardPluginSettingsPage: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
+
+            // PRD §02-ui-spec：清空全部记录**只在「设置 → 剪贴板」提供**。
+            // 此前这一页没有入口，操作却藏在历史窗口的右键菜单里——
+            // 想彻底清空数据的用户在这个页面找不到东西可点。
+            SettingsSection("clipboard.settings.clearAll") {
+                HStack(alignment: .top, spacing: JadeSpace.x3.value) {
+                    VStack(alignment: .leading, spacing: JadeSpace.x1.value) {
+                        Text(L10n.localized("clipboard.settings.clearAll.note"))
+                            .font(JadeFont.caption)
+                            .foregroundStyle(JadeColor.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                        if let clearAllStatus {
+                            Text(clearAllStatus)
+                                .font(JadeFont.caption)
+                                .foregroundStyle(JadeColor.textTertiary)
+                        }
+                    }
+                    Spacer(minLength: 0)
+                    Button(L10n.localized("clipboard.clearAll.action")) {
+                        showClearAllConfirmation = true
+                    }
+                    .buttonStyle(.jadeDestructive)
+                    .accessibilityIdentifier("clipboard.settings.clearAll")
+                }
+            }
+        }
+        // 破坏性确认：标题/说明/按钮全部复用剪贴板窗口已在用的三条键，
+        // 同一件事只有一套措辞。
+        .jadeConfirmationDialog(
+            "clipboard.clearAll.title",
+            isPresented: $showClearAllConfirmation,
+            confirmTitle: "clipboard.clearAll.action",
+            message: "clipboard.clearAll.message"
+        ) {
+            Task { await clearAllHistory() }
+        }
+    }
+
+    /// 清空全部剪贴板历史与本地资源；结果就地反馈，不弹额外窗口。
+    private func clearAllHistory() async {
+        let repository = ClipboardRepository(
+            persistence: .shared,
+            resourceStore: FileResourceStore(fileSystem: PersistenceController.shared.fileSystem)
+        )
+        let service = ClipboardHistoryService(repository: repository)
+        do {
+            try await service.clearAll(confirmed: true)
+            clearAllStatus = L10n.localized("clipboard.clearAll.success")
+        } catch {
+            clearAllStatus = error.localizedDescription
         }
     }
 
