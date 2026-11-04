@@ -146,6 +146,14 @@ protocol SearchBlacklistCheckingProtocol {
     func contains(sourceID: SearchSourceID, resultID: SearchResultID) async -> Bool
 }
 
+/// 惰性建索引的搜索源：报告索引是否已就绪。
+///
+/// 供命令栏判断「现在没有任何结果」到底是真没有，还是索引还在后台建——
+/// 后者若显示「未找到匹配项」会误导用户。
+protocol IndexReadinessReporting {
+    var isIndexReady: Bool { get }
+}
+
 struct EmptySearchBlacklistChecker: SearchBlacklistCheckingProtocol {
     func contains(sourceID: SearchSourceID, resultID: SearchResultID) async -> Bool {
         false
@@ -359,6 +367,17 @@ final class SearchService: SearchServiceProtocol {
         self.usageStore = usageStore
         self.blacklistChecker = blacklistChecker
         self.actionExecutor = actionExecutor
+    }
+
+    /// 是否有惰性索引源仍在后台建索引。
+    ///
+    /// 用于命令栏：此时「搜索返回空」不等于「真的没有匹配」，
+    /// 不该显示「未找到匹配项」——那会误导用户以为功能坏了。
+    var isIndexWarmingUp: Bool {
+        sources.contains { source in
+            guard let lazy = source as? IndexReadinessReporting else { return false }
+            return !lazy.isIndexReady
+        }
     }
 
     func search(query: String) async -> SearchResponse {

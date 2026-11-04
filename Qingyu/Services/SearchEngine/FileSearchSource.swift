@@ -46,7 +46,7 @@ protocol FileSearchSourceProtocol: SearchSource {
 /// - Trigger: at least 2 characters (FR-SEARCH-FILE-7 / FR-SEARCH-17).
 /// - Weight: `SourcePriority.file` = 75 (FR-SEARCH-11).
 /// - Actions: ⏎ open with the default app, ⌘R reveal in Finder, ⌘C copy the path.
-final class FileSearchSource: FileSearchSourceProtocol {
+final class FileSearchSource: FileSearchSourceProtocol, IndexReadinessReporting {
     let id: SearchSourceID = .file
     let displayName = "Files"
     let isEnabledInSearch = true
@@ -337,6 +337,9 @@ final class FileSearchSource: FileSearchSourceProtocol {
     private func readySnapshot() -> Bool {
         lock.withLock { isReady }
     }
+
+    /// 供命令栏判断空态是否可信（见 IndexReadinessReporting）。
+    var isIndexReady: Bool { readySnapshot() }
 
     private func itemsSnapshot() -> [FileIndexItem] {
         lock.withLock { items }

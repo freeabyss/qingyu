@@ -265,7 +265,7 @@ final class AppSearchActionExecutor: SearchActionExecutorProtocol {
 /// default, indexes `.app` bundles in memory, supports exact/prefix/pinyin/
 /// initials/contains/fuzzy matching, and returns stable `app:<id>` result IDs so
 /// SearchService blacklist filtering can hide concrete app results.
-final class AppSearchSource: AppSourceProtocol {
+final class AppSearchSource: AppSourceProtocol, IndexReadinessReporting {
     let id: SearchSourceID = .app
     let displayName = "Applications"
     let isEnabledInSearch = true
@@ -322,9 +322,10 @@ final class AppSearchSource: AppSourceProtocol {
     func search(query: String) async -> [SearchResult] {
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return [] }
-        if !readySnapshot() {
-            await rebuildIndex()
-        }
+        // 索引未就绪时返回空，不在这里等重建——与 FileSearchSource 同一个教训：
+        // SearchService 要等所有源，任何一个源原地等索引，都会把整轮搜索拖住。
+        // 构造时已有后台构建在跑；就绪后由 `.appSearchIndexReady` 驱动命令栏重查。
+        guard readySnapshot() else { return [] }
 
         let snapshot = appSnapshot()
         let matches = rankMatches(query: trimmed, apps: snapshot)
@@ -663,6 +664,9 @@ final class AppSearchSource: AppSourceProtocol {
     private func readySnapshot() -> Bool {
         lock.withLock { isReady }
     }
+
+    /// 供命令栏判断空态是否可信（见 IndexReadinessReporting）。
+    var isIndexReady: Bool { readySnapshot() }
 
     private func appSnapshot() -> [ApplicationIndexItem] {
         lock.withLock { apps }

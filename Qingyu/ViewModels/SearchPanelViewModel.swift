@@ -97,7 +97,15 @@ final class SearchPanelViewModel: ObservableObject {
     /// 查询刚变化时结果尚未返回（防抖 180ms + 搜索），结果集仍属于旧查询，
     /// 只看"结果为空"就会先闪一次空结果态。
     var shouldShowNoResults: Bool {
-        hasQuery && visibleResults.isEmpty && !isLoading && resultsQuery == trimmedQuery
+        // 惰性索引还在后台建时不显示「未找到匹配项」：此刻的「空」是暂时的，
+        // 报「没找到」会让用户以为真没有。索引就绪后会自动重查（见 setupDebounce）。
+        guard !isIndexWarmingUp else { return false }
+        return hasQuery && visibleResults.isEmpty && !isLoading && resultsQuery == trimmedQuery
+    }
+
+    /// 搜索服务是否正在后台建索引（仅具体 SearchService 能回答；stub 恒为 false）。
+    private var isIndexWarmingUp: Bool {
+        (searchService as? SearchService)?.isIndexWarmingUp ?? false
     }
 
     /// Results filtered by the active ⌘1-6 source (search mode).
@@ -339,13 +347,18 @@ final class SearchPanelViewModel: ObservableObject {
         // 文件索引在后台构建，首查时通常还没就绪（FileSearchSource 此时返回空，
         // 不阻塞其他来源）。索引就绪后重跑当前查询，把文件结果补上——
         // 此前这个通知发了但没人监听，文件结果要等用户再敲一次键才出现。
-        NotificationCenter.default.publisher(for: .fileSearchIndexReady)
-            .receive(on: RunLoop.main)
-            .sink { [weak self] _ in
-                guard let self, self.hasQuery else { return }
-                Task { await self.searchNow() }
-            }
-            .store(in: &cancellables)
+        // 两个后台索引（文件 / 应用）各自就绪时都可能改变结果集，任一就绪就重跑。
+        // 此前这两个通知都发了但没人监听，索引晚到的结果要等用户再敲一次键才出现。
+        let indexReadyNames: [Notification.Name] = [.fileSearchIndexReady, .appSearchIndexReady]
+        for name in indexReadyNames {
+            NotificationCenter.default.publisher(for: name)
+                .receive(on: RunLoop.main)
+                .sink { [weak self] _ in
+                    guard let self, self.hasQuery else { return }
+                    Task { await self.searchNow() }
+                }
+                .store(in: &cancellables)
+        }
 
         // Reset selection when the source filter changes so the highlight stays in bounds.
         $activeSource
