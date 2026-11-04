@@ -336,6 +336,17 @@ final class SearchPanelViewModel: ObservableObject {
             }
             .store(in: &cancellables)
 
+        // 文件索引在后台构建，首查时通常还没就绪（FileSearchSource 此时返回空，
+        // 不阻塞其他来源）。索引就绪后重跑当前查询，把文件结果补上——
+        // 此前这个通知发了但没人监听，文件结果要等用户再敲一次键才出现。
+        NotificationCenter.default.publisher(for: .fileSearchIndexReady)
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in
+                guard let self, self.hasQuery else { return }
+                Task { await self.searchNow() }
+            }
+            .store(in: &cancellables)
+
         // Reset selection when the source filter changes so the highlight stays in bounds.
         $activeSource
             .removeDuplicates()

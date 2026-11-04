@@ -146,6 +146,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             // 截图期间抑制命令栏「失焦即关闭」：截图的 activate/makeKey
             // 会夺走命令栏 key 状态、把它关掉，导致「无窗口可截」。
             CommandBarController.debugSuppressResignClose = true
+            // --uitest-force-row-hover：强制结果行显示悬停态，
+            // 好在离屏截图里检查「隐藏此结果」按钮的位置与样式（真实悬停需鼠标）。
+            if ProcessInfo.processInfo.arguments.contains("--uitest-force-row-hover") {
+                CommandBarResultRow.debugForceHover = true
+            }
             let delay = Self.captureDelay()
             DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
                 self?.captureFrontmostWindow(to: path)

@@ -266,6 +266,12 @@ struct CommandBarResultRow: View {
     var onHide: (() -> Void)? = nil
     @State private var isHovering = false
 
+    #if DEBUG
+    /// 设计评审截图用：强制显示「隐藏此结果」按钮。
+    /// 悬停需要真实鼠标指针，离屏渲染截不到；置 true 后可静态检查它的位置与样式。
+    static var debugForceHover = false
+    #endif
+
     /// 结果行图标磁贴边长：32pt 正方形，应用图标与系统符号磁贴共用同一尺寸；不并入 JadeSpace（那是间距档位，不是磁贴尺寸）。
     private static let iconTileSize: CGFloat = 32
 
@@ -274,6 +280,14 @@ struct CommandBarResultRow: View {
 
     /// 主/副标题配对间隙：1pt，仅用于标题与副标题的紧凑配对；是行内文本间隙，不是通用间距档位，不并入 JadeSpace。
     private static let titleSubtitleSpacing: CGFloat = 1
+
+    /// 实际生效的悬停态：DEBUG 截图时可被强制打开，其余情况等同 isHovering。
+    private var effectiveHovering: Bool {
+        #if DEBUG
+        if Self.debugForceHover { return true }
+        #endif
+        return isHovering
+    }
 
     var body: some View {
         HStack(spacing: JadeSpace.x3.value) {
@@ -298,17 +312,23 @@ struct CommandBarResultRow: View {
 
             // 悬停时在类型标签左侧露出「隐藏此结果」按钮——
             // 普通用户不必去设置里手填稳定 ID，直接从结果上屏蔽（PRD FR-SEARCH-8i）。
-            if isHovering, let onHide {
+            if effectiveHovering, let onHide {
                 Button(action: onHide) {
                     Image(systemName: "eye.slash")
-                        .font(JadeFont.caption)
-                        .foregroundStyle(JadeColor.textSecondary)
+                        // 图标比类型标签略大：它是可点操作，不是标注，
+                        // 用 caption 会小得像装饰、点不到的感觉。
+                        .font(JadeFont.subhead)
+                        // 需压在选中行的 primaryFill 浅蓝底上仍清晰；
+                        // textSecondary 在该底色上只有 4.07:1，用 typeLabel 令牌（4.64:1）。
+                        .foregroundStyle(JadeColor.typeLabel)
                         .frame(width: 24, height: 24)
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .help(L10n.localized("commandBar.hideResult"))
                 .accessibilityLabel(Text(L10n.localized("commandBar.hideResult")))
+                // 与右侧类型标签留出呼吸：两者靠太近会读成「eye.slash 应用」一组。
+                .padding(.trailing, JadeSpace.x2.value)
             }
 
             // 结果类型：应用 / 文件 / 命令 / 网页搜索……混排时只靠图标很难分辨，
@@ -333,7 +353,7 @@ struct CommandBarResultRow: View {
         .jadePadding(.horizontal, .x3)
         .frame(height: Self.rowHeight)
         .background(
-            isSelected ? JadeColor.primaryFill : (isHovering ? JadeColor.surface2 : Color.clear),
+            isSelected ? JadeColor.primaryFill : (effectiveHovering ? JadeColor.surface2 : Color.clear),
             in: JadeRadius.lg.shape
         )
         .overlay(

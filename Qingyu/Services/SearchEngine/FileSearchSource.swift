@@ -116,12 +116,16 @@ final class FileSearchSource: FileSearchSourceProtocol {
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard trimmed.count >= 2 else { return [] }
 
-        // Warm up the index lazily on first query if the background build has not
-        // finished. Other sources are unaffected because SearchService fans out
-        // concurrently.
-        if !readySnapshot() {
-            await rebuildIndex()
-        }
+        // 索引未就绪时**返回空**，绝不在这里等重建。
+        //
+        // 旧实现是 `await rebuildIndex()`，注释以为「其他源并发不受影响」——错的：
+        // SearchService.collectResults 要等所有源，只要这里卡住，应用/命令/设置
+        // 的结果就全都出不来。实测首查会停在「搜索中」十几到三十秒。
+        // 而且构造时已有后台构建在跑，这里再 await 一次等于并发扫两遍。
+        //
+        // 现在：文件结果缺席这一轮，索引就绪后由 `.fileSearchIndexReady`
+        // 驱动命令栏重跑当前查询（见 SearchPanelViewModel）。
+        guard readySnapshot() else { return [] }
 
         let normalizedQuery = Self.normalize(trimmed)
         guard !normalizedQuery.isEmpty else { return [] }

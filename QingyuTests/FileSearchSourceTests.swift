@@ -89,6 +89,23 @@ final class FileSearchSourceTests: XCTestCase {
         XCTAssertTrue(hasCopyPath, "should offer copy-path")
     }
 
+    /// 索引未就绪时，搜索必须**立刻返回空**而不是原地等重建。
+    ///
+    /// 旧实现是 `await rebuildIndex()`：SearchService 要等所有源，于是首查会被
+    /// 文件索引拖住十几到三十秒，应用/命令/设置的结果全都出不来——
+    /// 对「Spotlight 风格」的入口这是致命的。
+    func testSearchDoesNotBlockWhenIndexNotReady() async throws {
+        try write("quarterly-budget.xlsx", in: documents)
+        let source = makeSource() // autoBuildIndex: false，索引保持未就绪
+
+        let started = Date()
+        let results = await source.search(query: "budget")
+        let elapsed = Date().timeIntervalSince(started)
+
+        XCTAssertTrue(results.isEmpty, "索引未就绪时不应返回文件结果")
+        XCTAssertLessThan(elapsed, 1.0, "搜索不得在原地等待索引重建")
+    }
+
     // MARK: - Weight
 
     func testWeightIsSeventyFive() async throws {
