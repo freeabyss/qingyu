@@ -6,6 +6,8 @@ import SwiftUI
 /// P-05 顶部悬浮工具 pill：矩形 / 箭头 / 文字 / 马赛克 + blur（禁用，v1.3）。
 struct AnnotationTopToolbar: View {
     @ObservedObject var state: AnnotationCanvasState
+    /// 窄窗口（< 820pt）下只显示图标，避免 12 个工具标签折行破词。
+    var compact: Bool = false
 
     /// 悬浮 pill 边框线宽：1pt，仅用于顶部工具栏悬浮 pill 的描边；不并入 JadeSpace，那是间距档位，不是线宽。
     private static let pillBorderLineWidth: CGFloat = 1
@@ -17,7 +19,8 @@ struct AnnotationTopToolbar: View {
                 ToolPill(
                     tool: displayedTool(in: group),
                     selected: group.contains(state.tool),
-                    showsCycleHint: group.count > 1
+                    showsCycleHint: group.count > 1,
+                    showsLabel: !compact
                 ) {
                     state.tool = AnnotationTool.next(in: group, after: state.tool)
                 }
@@ -99,6 +102,10 @@ private struct ToolPill: View {
     let tool: AnnotationTool
     let selected: Bool
     var showsCycleHint: Bool = false
+    /// 窄窗口下只显示图标：12 个带文字工具约需 780pt，编辑器最小宽度 680pt，
+    /// 硬塞会让「铅笔」「荧光笔」这类标签折行破词。
+    /// 图标模式下 .help 提示与 accessibilityLabel 仍然完整。
+    var showsLabel: Bool = true
     let action: () -> Void
     @State private var hovering = false
 
@@ -115,8 +122,12 @@ private struct ToolPill: View {
                 Image(systemName: tool.systemImage)
                     .font(JadeFont.calloutMedium)
                     .accessibilityHidden(true)
-                Text(tool.displayName)
-                    .font(JadeFont.subhead)
+                if showsLabel {
+                    Text(tool.displayName)
+                        .font(JadeFont.subhead)
+                        .lineLimit(1)
+                        .fixedSize()
+                }
             }
             .foregroundColor(selected ? .white : JadeColor.textPrimary)
             .jadePadding(.horizontal, .x2)

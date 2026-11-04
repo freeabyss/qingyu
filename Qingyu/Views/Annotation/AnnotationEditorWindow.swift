@@ -294,11 +294,17 @@ private struct AnnotationEditorRootView: View {
     let onSave: () -> Void
     let onRequestTextInput: (CGPoint, @escaping (String?) -> Void) -> Void
 
+    /// 工具栏切换为图标模式的宽度阈值：12 个带文字工具约需 780pt 加上左右留白，
+    /// 低于 820pt 时改只显示图标（编辑器最小宽度 680pt）。
+    private static let compactToolbarWidth: CGFloat = 820
+
     var body: some View {
-        ZStack {
-            // Black canvas fills the whole window (P-05).
-            AnnotationCanvasView(state: state, onRequestTextInput: onRequestTextInput)
-                .ignoresSafeArea()
+        GeometryReader { geo in
+            let compact = geo.size.width < Self.compactToolbarWidth
+            ZStack {
+                // Black canvas fills the whole window (P-05).
+                AnnotationCanvasView(state: state, onRequestTextInput: onRequestTextInput)
+                    .ignoresSafeArea()
 
             if let message = toast.message {
                 VStack {
@@ -315,19 +321,20 @@ private struct AnnotationEditorRootView: View {
                 .allowsHitTesting(false)
             }
 
-            VStack {
-                AnnotationTopToolbar(state: state)
-                    .padding(.top, JadeSpace.x4.value)
-                Spacer()
-                AnnotationBottomToolbar(
-                    state: state,
-                    onUndo: onUndo,
-                    onRedo: onRedo,
-                    onCancel: onCancel,
-                    onCopy: onCopy,
-                    onSave: onSave
-                )
-                .padding(.bottom, JadeSpace.x4.value)
+                VStack {
+                    AnnotationTopToolbar(state: state, compact: compact)
+                        .padding(.top, JadeSpace.x4.value)
+                    Spacer()
+                    AnnotationBottomToolbar(
+                        state: state,
+                        onUndo: onUndo,
+                        onRedo: onRedo,
+                        onCancel: onCancel,
+                        onCopy: onCopy,
+                        onSave: onSave
+                    )
+                    .padding(.bottom, JadeSpace.x4.value)
+                }
             }
         }
         // Hidden buttons carry the ⌘C / ⌘S / ⎋ shortcuts so they fire regardless

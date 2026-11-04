@@ -15,6 +15,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     /// First-run onboarding window. It guides setup but never blocks product entry points.
     private var onboardingWindow: NSWindow?
 
+    #if DEBUG
+    /// 设计评审用：直接打开的标注编辑器（持有强引用，避免窗口立刻释放）。
+    private var debugAnnotationWindow: AnnotationEditorWindow?
+    #endif
+
     /// Whether the user completed the required first-run onboarding flow.
     private var isOnboardingCompleted = false
 
@@ -131,6 +136,24 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         // --uitest-clipboard-disabled：强制「剪贴板已关闭」状态，用来评审禁用态。
         if ProcessInfo.processInfo.arguments.contains("--uitest-clipboard-disabled") {
             ClipboardListViewModel.debugForceClipboardDisabled = true
+        }
+
+        // --uitest-open-annotation：用一张生成的图片直接打开标注编辑器。
+        // 真实入口在截图之后（需要屏幕录制授权），这条路径同样绕开它。
+        if ProcessInfo.processInfo.arguments.contains("--uitest-open-annotation") {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { [weak self] in
+                guard let self, let image = Self.makeAnnotationSampleImage() else { return }
+                let editor = AnnotationEditorWindow(
+                    image: image,
+                    captureDate: Date(),
+                    initialTool: .rectangle,
+                    onCopy: { _ in },
+                    onSave: { _, _ in URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("annotation-sample.png") },
+                    onComplete: { _ in }
+                )
+                self.debugAnnotationWindow = editor
+                editor.present()
+            }
         }
 
         // --uitest-open-pin：用一张生成的图片打开贴图窗口，用来评审贴图界面。
@@ -384,6 +407,44 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
 
     /// 生成一张用于贴图评审的示例图片（渐变 + 文字）。
+
+    /// 设计评审用：生成一张带文字与色块的示例图片，供标注编辑器直接打开。
+    /// 与 makePinSampleImageData 同一思路——绕开屏幕录制权限，单独评审标注界面。
+    private static func makeAnnotationSampleImage() -> NSImage? {
+        // --uitest-annotation-small：用更小的示例图把编辑器逼到最小宽度，
+        // 用来检查顶部工具条在窄窗口下是否溢出。
+        let isSmall = ProcessInfo.processInfo.arguments.contains("--uitest-annotation-small")
+        let size = isSmall ? NSSize(width: 560, height: 380) : NSSize(width: 900, height: 600)
+        let image = NSImage(size: size)
+        image.lockFocus()
+        defer { image.unlockFocus() }
+
+        // 渐变底：让标注工具（矩形/箭头/文字）在真实明暗上都能看清。
+        let gradient = NSGradient(colors: [
+            NSColor(srgbRed: 0.24, green: 0.31, blue: 0.44, alpha: 1),
+            NSColor(srgbRed: 0.47, green: 0.56, blue: 0.70, alpha: 1),
+        ])
+        gradient?.draw(in: NSRect(origin: .zero, size: size), angle: -90)
+
+        let title = "标注编辑器 · Annotation Editor"
+        let attributes: [NSAttributedString.Key: Any] = [
+            .font: NSFont.systemFont(ofSize: 26, weight: .semibold),
+            .foregroundColor: NSColor.white,
+        ]
+        title.draw(at: NSPoint(x: 48, y: size.height - 92), withAttributes: attributes)
+
+        let body = "用左上工具栏绘制矩形、椭圆、箭头与文字；右侧调整颜色与线宽。"
+        let bodyAttributes: [NSAttributedString.Key: Any] = [
+            .font: NSFont.systemFont(ofSize: 15),
+            .foregroundColor: NSColor.white.withAlphaComponent(0.85),
+        ]
+        body.draw(at: NSPoint(x: 48, y: size.height - 130), withAttributes: bodyAttributes)
+
+        NSColor.white.withAlphaComponent(0.16).setFill()
+        NSBezierPath(roundedRect: NSRect(x: 48, y: 90, width: size.width - 96, height: 220), xRadius: 14, yRadius: 14).fill()
+
+        return image
+    }
     private static func makePinSampleImageData() -> Data? {
         let size = NSSize(width: 320, height: 200)
         let image = NSImage(size: size)
