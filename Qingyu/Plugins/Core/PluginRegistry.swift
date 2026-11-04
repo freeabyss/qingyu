@@ -32,6 +32,9 @@ final class PluginRegistry {
     private struct Entry {
         let plugin: QingyuPlugin
         var state: PluginState = .registered
+        /// 启动失败的原因。PRD §02-ui-spec：插件管理「失败时显示原因与重试操作」，
+        /// 只记 .failed 状态而丢掉错误文本，设置页就无话可显示。
+        var failureReason: String?
     }
 
     private var entries: [PluginID: Entry] = [:]
@@ -120,14 +123,26 @@ final class PluginRegistry {
         insertionOrder
     }
 
+    /// 插件显示名 key / 版本 / 默认启停，供设置页的插件管理行使用。
+    func descriptor(for id: PluginID) -> PluginDescriptor? {
+        entries[id]?.plugin.manifest.descriptor
+    }
+
+    /// 插件启动失败的原因；成功或未失败时为 nil。
+    func failureReason(of id: PluginID) -> String? {
+        entries[id]?.failureReason
+    }
+
     private func startPlugin(_ id: PluginID) async {
         guard let entry = entries[id], entry.state != .started else { return }
         do {
             try await entry.plugin.start()
             entries[id]?.state = .started
+            entries[id]?.failureReason = nil
             logger.info("Plugin started: \(id.rawValue, privacy: .public)")
         } catch {
             entries[id]?.state = .failed
+            entries[id]?.failureReason = error.localizedDescription
             logger.error("Plugin \(id.rawValue, privacy: .public) failed to start: \(error, privacy: .public)")
         }
     }

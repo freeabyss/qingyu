@@ -136,6 +136,12 @@ final class PluginRegistryTests: XCTestCase {
         XCTAssertEqual(healthy.startCount, 1)
         XCTAssertEqual(registry.state(of: PluginID(rawValue: "bad")), .failed)
         XCTAssertEqual(registry.state(of: PluginID(rawValue: "good")), .started)
+        // PRD §02-ui-spec：插件管理「失败时显示原因与重试操作」。
+        // 注册表必须保留失败原因，否则设置页无话可显示。
+        XCTAssertNotNil(registry.failureReason(of: PluginID(rawValue: "bad")))
+        XCTAssertNil(registry.failureReason(of: PluginID(rawValue: "good")))
+        // 设置页插件行需要的名称 / 版本也来自注册表。
+        XCTAssertEqual(registry.descriptor(for: PluginID(rawValue: "good"))?.version.isEmpty, false)
         // 启动失败的插件贡献被隔离，健康插件贡献不受影响。
         XCTAssertEqual(registry.settingsPages.map(\.order), [10])
         XCTAssertTrue(registry.searchSources(of: PluginID(rawValue: "bad")).isEmpty)

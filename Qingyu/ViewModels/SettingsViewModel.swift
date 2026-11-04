@@ -152,6 +152,47 @@ final class SettingsViewModel: ObservableObject {
         } ?? []
     }
 
+
+    // MARK: - 插件管理（PRD §02-ui-spec 通用页）
+
+    /// 设置页插件行需要的最小信息：名称、版本、状态、启停、失败原因。
+    struct PluginRowInfo: Identifiable, Equatable {
+        let id: PluginID
+        let displayNameKey: String
+        let version: String
+        let isEnabled: Bool
+        let state: PluginRegistry.PluginState?
+        let failureReason: String?
+    }
+
+    /// 注册表里的全部插件。PRD 要求通用页展示「名称、版本、状态和启用开关」。
+    var pluginRows: [PluginRowInfo] {
+        guard let pluginRegistry else { return [] }
+        return pluginRegistry.pluginIDs().compactMap { id in
+            guard let descriptor = pluginRegistry.descriptor(for: id) else { return nil }
+            return PluginRowInfo(
+                id: id,
+                displayNameKey: descriptor.displayNameKey,
+                version: descriptor.version,
+                isEnabled: pluginRegistry.isEnabled(id),
+                state: pluginRegistry.state(of: id),
+                failureReason: pluginRegistry.failureReason(of: id)
+            )
+        }
+    }
+
+    /// 切换插件启停。注册表会同步启动/停止插件并持久化选择。
+    func setPluginEnabled(_ enabled: Bool, for id: PluginID) async {
+        await pluginRegistry?.setEnabled(enabled, for: id)
+        objectWillChange.send()
+    }
+
+    /// 重试启动失败插件（PRD：失败时显示原因与重试操作）。
+    func retryPlugin(_ id: PluginID) async {
+        await pluginRegistry?.start(id)
+        objectWillChange.send()
+    }
+
     /// Sidebar metadata for a plugin page (title/icon/accessibility id).
     func pluginSettingsPage(for id: PluginID) -> PluginSettingsPageDescriptor? {
         visiblePluginSettingsPages.first { $0.id == id }

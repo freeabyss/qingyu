@@ -203,6 +203,18 @@ private struct GeneralPage: View {
                 }
             }
 
+            // PRD §02-ui-spec：通用页包含「插件管理」——每一行显示名称、版本、
+            // 状态和启用开关，失败时显示原因与重试操作。此前整块 UI 缺失，
+            // 而注册表早就有 isEnabled / setEnabled / state / descriptor。
+            if !viewModel.pluginRows.isEmpty {
+                SettingsSection("settings.plugins.section") {
+                    ForEach(Array(viewModel.pluginRows.enumerated()), id: \.element.id) { index, row in
+                        if index > 0 { JadeSettingsDivider() }
+                        pluginRow(row)
+                    }
+                }
+            }
+
             SettingsSection("management.page.appearance") {
                 Picker("", selection: appearanceBinding) {
                     ForEach(AppearanceMode.allCases, id: \.self) { mode in
@@ -278,6 +290,65 @@ private struct GeneralPage: View {
             }
         }
     }
+
+    /// 插件管理的一行：名称 + 版本 + 状态（+ 失败原因）+ 重试 + 启用开关。
+    @ViewBuilder
+    private func pluginRow(_ row: SettingsViewModel.PluginRowInfo) -> some View {
+        HStack(alignment: .top, spacing: JadeSpace.x3.value) {
+            VStack(alignment: .leading, spacing: JadeSpace.x1.value) {
+                HStack(spacing: JadeSpace.x2.value) {
+                    Text(L10n.localized(row.displayNameKey))
+                        .font(JadeFont.body)
+                        .foregroundStyle(JadeColor.textPrimary)
+                    Text(L10n.localized("settings.plugins.version", row.version))
+                        .font(JadeFont.caption)
+                        .foregroundStyle(JadeColor.textTertiary)
+                }
+                Text(pluginStateText(row))
+                    .font(JadeFont.caption)
+                    .foregroundStyle(pluginStateColor(row))
+                // PRD：失败时显示原因与重试操作。
+                if let reason = row.failureReason {
+                    Text(reason)
+                        .font(JadeFont.caption)
+                        .foregroundStyle(JadeColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            Spacer(minLength: 0)
+            if row.state == .failed {
+                Button(L10n.localized("settings.plugins.retry")) {
+                    Task { await viewModel.retryPlugin(row.id) }
+                }
+                .buttonStyle(.jadeSecondary)
+            }
+            Toggle("", isOn: Binding(
+                get: { row.isEnabled },
+                set: { enabled in Task { await viewModel.setPluginEnabled(enabled, for: row.id) } }
+            ))
+            .labelsHidden()
+            .toggleStyle(.switch)
+            .accessibilityLabel(Text(L10n.localized(row.displayNameKey)))
+        }
+    }
+
+    private func pluginStateText(_ row: SettingsViewModel.PluginRowInfo) -> String {
+        switch row.state {
+        case .started: return L10n.localized("settings.plugins.state.running")
+        case .failed: return L10n.localized("settings.plugins.state.failed")
+        case .stopped: return L10n.localized("settings.plugins.state.stopped")
+        case .registered, .none: return L10n.localized("settings.plugins.state.registered")
+        }
+    }
+
+    private func pluginStateColor(_ row: SettingsViewModel.PluginRowInfo) -> Color {
+        switch row.state {
+        case .failed: return JadeColor.dangerText
+        case .started: return JadeColor.successText
+        case .stopped, .registered, .none: return JadeColor.textTertiary
+        }
+    }
+
 
     private var launchBinding: Binding<Bool> {
         Binding(get: { viewModel.launchAtLoginEnabled },
