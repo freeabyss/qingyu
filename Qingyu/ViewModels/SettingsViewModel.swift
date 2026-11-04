@@ -72,11 +72,7 @@ final class SettingsViewModel: ObservableObject {
     /// 否则跑测试时真的会把宿主进程重启掉。
     private let relaunch: @MainActor () -> Void
 
-    /// v1.2 (T-003): drives the "清空所有数据" confirmation + post-reset restart prompt
-    /// on the settings Data page (T-013 UI binds to these).
-    @Published var showResetAllDataConfirmation = false
-    @Published var showResetAllDataRestartAlert = false
-    @Published var isResettingAllData = false
+    /// 「清空所有数据」相关状态已随入口移除（PRD §02-ui-spec：通用页数据区不做破坏性操作）。
 
     /// v1.2 (T-008): per-shortcut conflict warnings surfaced to the settings
     /// shortcut rows (T-013 UI binds to these). Empty when no conflicts. Keyed by
@@ -336,26 +332,8 @@ final class SettingsViewModel: ObservableObject {
 
     // MARK: - Data page actions (T-003 / T-013)
 
-    /// User tapped "清空所有数据" — request the two-step confirmation before wiping.
-    func requestResetAllData() {
-        showResetAllDataConfirmation = true
-    }
-
-    /// Confirmed "清空所有数据": deletes the store, resource files, and UserDefaults
-    /// domain, then surfaces the restart prompt. On failure sets `errorMessage`.
-    func confirmResetAllData() async {
-        showResetAllDataConfirmation = false
-        isResettingAllData = true
-        defer { isResettingAllData = false }
-        do {
-            try await dataManagementService.resetAllData()
-            showResetAllDataRestartAlert = true
-            statusMessage = L10n.localized("management.data.reset.done")
-        } catch {
-            logger.error("Reset all data failed: \(error.localizedDescription, privacy: .public)")
-            errorMessage = error.localizedDescription
-        }
-    }
+    // 「清空所有数据」入口已按 PRD §02-ui-spec 移除：通用页数据区只做非破坏性操作。
+    // DataManagementService.resetAllData() 保留为服务层能力，不再由设置页触发。
 
     /// "打开数据目录": reveal the Qingyu data directory in Finder.
     func openDataDirectory() {

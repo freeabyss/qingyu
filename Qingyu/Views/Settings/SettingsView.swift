@@ -69,11 +69,7 @@ struct ManagementCenterView: View {
         } message: {
             Text(viewModel.errorMessage ?? "")
         }
-        .alert(L10n.localized("management.data.restart.title"), isPresented: $viewModel.showResetAllDataRestartAlert) {
-            Button(L10n.localized("management.data.restart.quit")) { NSApp.terminate(nil) }
-        } message: {
-            Text(L10n.localized("management.data.restart.message"))
-        }
+        // 「清空所有数据」入口移除后，随之而来的重启提示也不再需要。
     }
 
     // MARK: Sidebar
@@ -275,33 +271,11 @@ private struct GeneralPage: View {
                 Text(L10n.localized("management.data.export.note"))
                     .font(JadeFont.caption)
                     .foregroundStyle(JadeColor.textTertiary)
-                JadeSettingsDivider()
-                HStack {
-                    VStack(alignment: .leading, spacing: JadeSpace.x1.value) {
-                        Text(L10n.localized("management.data.resetAll"))
-                            .font(JadeFont.body)
-                            .foregroundStyle(JadeColor.textPrimary)
-                        Text(L10n.localized("management.data.resetAll.note"))
-                            .font(JadeFont.caption)
-                            .foregroundStyle(JadeColor.textTertiary)
-                    }
-                    Spacer()
-                    Button(L10n.localized("management.data.resetAll.button")) {
-                        viewModel.requestResetAllData()
-                    }
-                    .buttonStyle(.jadeDestructive)
-                    .disabled(viewModel.isResettingAllData)
-                }
+                // PRD §02-ui-spec：「数据」区域只提供占用空间与打开数据目录等**非破坏性**操作，
+                // 明确「不提供重置或清空全部数据」。此处原来的「清空所有数据…」违反该约束，
+                // 且一键抹掉截图与设置的风险很高——已移除。
+                // 剪贴板历史的清空在「设置 → 剪贴板」，是 PRD 规定的唯一入口。
             }
-        }
-        .jadeConfirmationDialog(
-            "management.data.resetAll.confirm.title",
-            isPresented: $viewModel.showResetAllDataConfirmation,
-            confirmTitle: "management.data.resetAll.confirm.action",
-            cancelTitle: "settings.alert.cancel",
-            message: "management.data.resetAll.confirm.message"
-        ) {
-            Task { await viewModel.confirmResetAllData() }
         }
     }
 
