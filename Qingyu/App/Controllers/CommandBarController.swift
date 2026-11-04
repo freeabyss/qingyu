@@ -30,6 +30,13 @@ final class CommandBarController: NSObject {
     /// Block-based panel observers (didBecomeKey focus driver); torn down in `hide()`.
     private var panelObservers: [NSObjectProtocol] = []
 
+    #if DEBUG
+    /// 设计评审截图时置 true：截图流程会 activate 应用 / makeKey 别的窗口，
+    /// 这会夺走命令栏的 key 状态、触发失焦自动关闭，于是「要截的窗口自己消失了」。
+    /// 置此标志后失焦不再关闭命令栏，截图才能稳定截到它。
+    static var debugSuppressResignClose = false
+    #endif
+
     init(container: AppContainer) {
         self.container = container
         super.init()
@@ -340,6 +347,12 @@ final class CommandBarController: NSObject {
     }
 
     @objc private func panelDidResignKey(_ notification: Notification) {
+        #if DEBUG
+        if Self.debugSuppressResignClose {
+            logger.info("CommandBar lost key status, but resign-close is suppressed (uitest)")
+            return
+        }
+        #endif
         logger.info("CommandBar lost key status, closing")
         hide()
     }

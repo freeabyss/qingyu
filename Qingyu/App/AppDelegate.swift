@@ -143,6 +143,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
 
         if let path = Self.capturePNGPath() {
+            // 截图期间抑制命令栏「失焦即关闭」：截图的 activate/makeKey
+            // 会夺走命令栏 key 状态、把它关掉，导致「无窗口可截」。
+            CommandBarController.debugSuppressResignClose = true
             let delay = Self.captureDelay()
             DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
                 self?.captureFrontmostWindow(to: path)
