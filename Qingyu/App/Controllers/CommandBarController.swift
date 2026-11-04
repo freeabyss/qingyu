@@ -338,6 +338,16 @@ final class CommandBarController: NSObject {
             newFrame = NSRect(x: current.origin.x, y: newY, width: panelWidth, height: targetHeight)
         }
 
+        #if DEBUG
+        // 截图模式：直接设帧，不做动画。
+        // 动画版的 setFrame 依赖 CoreAnimation 事务提交；在无活跃显示 / 应用
+        // 非前台时该事务可能永远不完成，窗口就停在初始 56pt——截图因此拿到
+        // 一个「收起态的命令栏」，而应用逻辑本身并无问题。
+        if Self.debugSuppressResignClose {
+            panel.setFrame(newFrame, display: true)
+            return
+        }
+        #endif
         NSAnimationContext.runAnimationGroup { context in
             // PRD §9.8：尊重系统「减弱动态效果」——开启时用极短时长近似无动画。
             context.duration = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion ? 0.001 : 0.12

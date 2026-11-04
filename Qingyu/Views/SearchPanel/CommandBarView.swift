@@ -349,6 +349,23 @@ struct CommandBarResultRow: View {
                     .accessibilityHidden(true)
             }
 
+            // PRD §02-ui-spec：「只有选中行展示回车提示」。
+            // 选中行是焦点所在，也是最可能被立刻执行的一行——给出 ⏎ 让
+            // 「按回车会发生什么」无需猜测。未选中行不展示，避免整列表噪音。
+            if isSelected {
+                Text(L10n.localized("commandBar.enter"))
+                    .font(JadeFont.caption)
+                    .foregroundStyle(JadeColor.typeLabel)
+                    .jadePadding(.horizontal, .x1)
+                    // 纵向 1pt 是徽标内边距、不是间距档位（x1=4 会让它显得臃肿）。
+                    .padding(.vertical, 1)
+                    .background(JadeColor.surface1.opacity(0.9), in: JadeRadius.sm.shape)
+                    .overlay(
+                        JadeRadius.sm.shape.strokeBorder(JadeColor.border, lineWidth: 1)
+                    )
+                    .accessibilityHidden(true)
+            }
+
         }
         .jadePadding(.horizontal, .x3)
         .frame(height: Self.rowHeight)
