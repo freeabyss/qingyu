@@ -206,14 +206,22 @@ struct ClipboardHistoryView: View {
         return Button {
             viewModel.selection = filter
         } label: {
+            // PRD §02-ui-spec：「筛选通过下划线与字重反馈」。
+            // 原实现是填充色药丸，与规范不一致；改为字重 + 2pt 下划线，
+            // 也更贴合剪贴板「轻量类型页签」的描述。
             Text(filter.title)
                 .font(JadeFont.caption.weight(isSelected ? .semibold : .regular))
                 .foregroundStyle(isSelected ? JadeColor.primary : JadeColor.textSecondary)
                 .jadePadding(.horizontal, .x2)
                 .jadePadding(.vertical, .x1)
-                .background(isSelected ? JadeColor.primaryFill : Color.clear, in: JadeRadius.md.shape)
+                .overlay(alignment: .bottom) {
+                    Rectangle()
+                        .fill(isSelected ? JadeColor.primary : Color.clear)
+                        .frame(height: 2)
+                }
         }
         .buttonStyle(.plain)
+        .jadeAnimation(.easeInOut(duration: 0.12), value: isSelected)
         .accessibilityIdentifier("clipboard.filterChip.\(filter.rawValue)")
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
