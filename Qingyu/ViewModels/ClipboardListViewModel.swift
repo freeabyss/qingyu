@@ -116,6 +116,15 @@ final class ClipboardListViewModel: ObservableObject {
     @Published private(set) var isLoading = false
     @Published private(set) var isClearing = false
     @Published private(set) var clipboardEnabled = true
+
+    /// 临时暂停记录（会话级，不落设置）。与「剪贴板关闭」不同：
+    /// 关闭是功能禁用、窗口显示禁用态；这里是「先别记新的」，已有记录照常可查可复制。
+    /// PRD §02-ui-spec 的剪贴板工具栏与「暂停」状态均要求这个控件。
+    @Published private(set) var isRecordingPaused = false
+
+    /// 记录开关的运行时控制；为 nil 时（测试/预览）不提供暂停能力。
+    private let recordingControl: ClipboardServiceProtocol?
+
     @Published var showClearAllConfirmation = false
     @Published var showToast = false
     @Published var toastMessage = ""
@@ -156,8 +165,10 @@ final class ClipboardListViewModel: ObservableObject {
         historyService: ClipboardHistoryServiceProtocol? = nil,
         actionExecutor: SearchActionExecutorProtocol? = nil,
         resourceStore: FileResourceStoreProtocol? = nil,
-        settingsService: SettingsServiceProtocol? = nil
+        settingsService: SettingsServiceProtocol? = nil,
+        recordingControl: ClipboardServiceProtocol? = nil
     ) {
+        self.recordingControl = recordingControl
         let defaultIndex = InMemorySearchIndex()
         let defaultResourceStore = resourceStore ?? FileResourceStore(fileSystem: PersistenceController.shared.fileSystem)
         let defaultRepository = repository ?? ClipboardRepository(persistence: .shared, resourceStore: defaultResourceStore)
@@ -399,6 +410,23 @@ final class ClipboardListViewModel: ObservableObject {
     }
 
     /// Re-enables clipboard recording from the disabled empty state.
+    /// 能否暂停/恢复：需要功能已开启、且注入了记录控制器。
+    var canToggleRecording: Bool { clipboardEnabled && recordingControl != nil }
+
+    /// 暂停 / 恢复剪贴板记录。暂停期间新复制的内容不入库，已有记录不受影响。
+    func toggleRecordingPause() {
+        guard let recordingControl else { return }
+        if isRecordingPaused {
+            recordingControl.resumeRecording()
+            isRecordingPaused = false
+            showToast(message: L10n.localized("clipboard.recording.resumedNotice"))
+        } else {
+            recordingControl.pauseRecording()
+            isRecordingPaused = true
+            showToast(message: L10n.localized("clipboard.recording.pausedNotice"))
+        }
+    }
+
     func enableClipboard() async {
         do {
             try await settingsService.set(true, for: .clipboardEnabled)
@@ -579,6 +607,12 @@ final class ClipboardListViewModel: ObservableObject {
     /// 设计评审用：在真实窗口里显示一条 toast，用来截取交互反馈。
     func debugShowToast(_ message: String, variant: JadeToast.Variant) {
         setToast(message: message, variant: variant)
+    }
+
+    /// 设计评审用：把「暂停记录」置为指定状态，用来截取暂停态与其说明条。
+    /// 只改展示状态，不动真实记录服务（截图环境无剪贴板监听）。
+    func debugSetRecordingPaused(_ paused: Bool) {
+        isRecordingPaused = paused
     }
     #endif
 

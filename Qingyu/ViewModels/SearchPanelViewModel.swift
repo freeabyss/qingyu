@@ -104,7 +104,8 @@ final class SearchPanelViewModel: ObservableObject {
     }
 
     /// 搜索服务是否正在后台建索引（仅具体 SearchService 能回答；stub 恒为 false）。
-    private var isIndexWarmingUp: Bool {
+    /// 供视图在结果列表底部提示「正在索引你的文件…」。
+    var isIndexWarmingUp: Bool {
         (searchService as? SearchService)?.isIndexWarmingUp ?? false
     }
 

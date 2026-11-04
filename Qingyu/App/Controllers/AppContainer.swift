@@ -532,7 +532,9 @@ final class AppContainer: NSObject {
             repository: clipboardRepository,
             historyService: ClipboardHistoryService(repository: clipboardRepository),
             actionExecutor: actionExecutor,
-            resourceStore: resourceStore
+            resourceStore: resourceStore,
+            // 临时暂停/恢复：与全局「启用剪贴板」开关共用同一个记录服务。
+            recordingControl: clipboardPlugin.clipboardService
         )
     }
 }

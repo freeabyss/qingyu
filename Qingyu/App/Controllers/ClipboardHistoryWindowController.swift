@@ -32,6 +32,11 @@ final class ClipboardHistoryWindowController: NSWindowController, NSWindowDelega
     func debugShowToast(_ message: String, variant: JadeToast.Variant) {
         viewModel?.debugShowToast(message, variant: variant)
     }
+
+    /// 设计评审用：把剪贴板窗口切到「暂停记录」态，用来截取该状态。
+    func debugSetRecordingPaused(_ paused: Bool) {
+        viewModel?.debugSetRecordingPaused(paused)
+    }
     #endif
 
     func show() {

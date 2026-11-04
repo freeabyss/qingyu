@@ -517,6 +517,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                         .debugShowToast(message, variant: .success)
                 }
             }
+            // --uitest-recording-paused：把窗口切到「暂停记录」态，用来截取该状态。
+            if ProcessInfo.processInfo.arguments.contains("--uitest-recording-paused") {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+                    self?.container.clipboardHistoryWindowController
+                        .debugSetRecordingPaused(true)
+                }
+            }
         case .openSettings:
             container.settingsWindowController.show(route: .general)
         case .openAbout:

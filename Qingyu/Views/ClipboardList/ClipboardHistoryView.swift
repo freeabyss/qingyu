@@ -56,6 +56,13 @@ struct ClipboardHistoryView: View {
 
             Divider().overlay(JadeColor.border)
 
+            // 暂停说明条：紧贴工具栏下方，属于「当前状态」而非内容，不放进列表。
+            if viewModel.clipboardEnabled, viewModel.isRecordingPaused {
+                pausedBanner
+                    .jadePadding(.horizontal, .x4)
+                    .jadePadding(.vertical, .x2)
+            }
+
             content
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
 
@@ -144,12 +151,60 @@ struct ClipboardHistoryView: View {
     }
 
     private var filterTabs: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: JadeSpace.x4.value) {
-                ForEach(primaryFilters) { filter in
-                    filterChip(filter)
+        HStack(spacing: JadeSpace.x3.value) {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: JadeSpace.x4.value) {
+                    ForEach(primaryFilters) { filter in
+                        filterChip(filter)
+                    }
                 }
             }
+
+            Spacer(minLength: 0)
+
+            // 暂停/恢复记录：PRD §02-ui-spec 剪贴板工具栏要求。
+            // 与「设置里关掉剪贴板」不同——那是禁用功能；这里只是先别记新的，
+            // 已有记录照常可查可复制，适合「接下来要复制密码」这类临时场景。
+            if viewModel.canToggleRecording {
+                Button {
+                    viewModel.toggleRecordingPause()
+                } label: {
+                    Label(
+                        L10n.localized(viewModel.isRecordingPaused
+                                       ? "clipboard.recording.resume"
+                                       : "clipboard.recording.pause"),
+                        systemImage: viewModel.isRecordingPaused ? "play.fill" : "pause.fill"
+                    )
+                    .font(JadeFont.caption.weight(.medium))
+                    .foregroundStyle(viewModel.isRecordingPaused ? JadeColor.primary : JadeColor.textSecondary)
+                }
+                .buttonStyle(.plain)
+                .fixedSize()
+                .accessibilityIdentifier("clipboard.recording.toggle")
+            }
+        }
+    }
+
+    /// 暂停中的说明条：明确「新内容不会记录」，并给出恢复入口。
+    /// PRD 状态表要求「说明当前功能已暂停并提供恢复按钮」。
+    @ViewBuilder
+    private var pausedBanner: some View {
+        if viewModel.isRecordingPaused, viewModel.clipboardEnabled {
+            HStack(spacing: JadeSpace.x2.value) {
+                Image(systemName: "pause.circle.fill")
+                    .font(JadeFont.caption)
+                    .foregroundStyle(JadeColor.warning)
+                    .accessibilityHidden(true)
+                Text(L10n.localized("clipboard.recording.pausedHint"))
+                    .font(JadeFont.caption)
+                    .foregroundStyle(JadeColor.textSecondary)
+                Spacer(minLength: 0)
+                // 恢复入口只保留工具栏那一个：
+                // 横幅再放一个「恢复」会和工具栏的重复，同一屏两个同样按钮反而让人犹豫。
+            }
+            .jadePadding(.horizontal, .x3)
+            .jadePadding(.vertical, .x2)
+            .background(JadeColor.surface2, in: JadeRadius.md.shape)
         }
     }
 

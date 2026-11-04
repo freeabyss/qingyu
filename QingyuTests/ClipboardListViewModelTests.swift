@@ -220,6 +220,51 @@ final class ClipboardListViewModelTests: XCTestCase {
         let data = await viewModel.fileImageData(for: fixtures.text)
         XCTAssertNil(data)
     }
+
+    /// 暂停/恢复记录：必须同时驱动真实记录服务与本地状态。
+    /// PRD §02-ui-spec 的剪贴板工具栏要求这个控件。
+    func testToggleRecordingPauseControlsServiceAndState() {
+        let control = MockClipboardRecordingControl()
+        let repository = MockClipboardRepository()
+        let viewModel = ClipboardListViewModel(
+            queryService: MockClipboardIndexQueryService(items: [], snapshots: [:]),
+            repository: repository,
+            historyService: MockClipboardHistoryService(repository: repository),
+            actionExecutor: MockClipboardActionExecutor(),
+            resourceStore: MockFileResourceStore(),
+            settingsService: MockSettingsService(),
+            recordingControl: control
+        )
+
+        XCTAssertTrue(viewModel.canToggleRecording)
+        XCTAssertFalse(viewModel.isRecordingPaused)
+
+        viewModel.toggleRecordingPause()
+        XCTAssertTrue(viewModel.isRecordingPaused, "第一次点击应进入暂停")
+        XCTAssertEqual(control.pauseCount, 1, "必须真的调用记录服务的暂停")
+
+        viewModel.toggleRecordingPause()
+        XCTAssertFalse(viewModel.isRecordingPaused, "再次点击应恢复")
+        XCTAssertEqual(control.resumeCount, 1, "必须真的调用记录服务的恢复")
+    }
+
+    /// 没有注入记录控制器时（测试/预览），不提供暂停能力，也不应崩溃。
+    func testToggleRecordingPauseIsUnavailableWithoutControl() {
+        let repository = MockClipboardRepository()
+        let viewModel = ClipboardListViewModel(
+            queryService: MockClipboardIndexQueryService(items: [], snapshots: [:]),
+            repository: repository,
+            historyService: MockClipboardHistoryService(repository: repository),
+            actionExecutor: MockClipboardActionExecutor(),
+            resourceStore: MockFileResourceStore(),
+            settingsService: MockSettingsService()
+        )
+
+        XCTAssertFalse(viewModel.canToggleRecording)
+        viewModel.toggleRecordingPause()
+        XCTAssertFalse(viewModel.isRecordingPaused)
+    }
+
 }
 
 private final class ClipboardHistoryFixtures {
@@ -440,4 +485,22 @@ private final class MockFileResourceStore: FileResourceStoreProtocol {
     func delete(relativePath: String) async {}
     func exists(relativePath: String) -> Bool { true }
     func storageUsage() async throws -> Int64 { 0 }
+}
+
+private final class MockClipboardRecordingControl: ClipboardServiceProtocol {
+    var isRecordingEnabled = true
+    private(set) var pauseCount = 0
+    private(set) var resumeCount = 0
+
+    func pauseRecording() {
+        pauseCount += 1
+        isRecordingEnabled = false
+    }
+
+    func resumeRecording() {
+        resumeCount += 1
+        isRecordingEnabled = true
+    }
+
+    func handle(event: AssistantClipboardEvent) async throws -> ClipboardRecordSnapshot? { nil }
 }

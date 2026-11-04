@@ -173,6 +173,23 @@ struct CommandBarView: View {
                             viewModel.trigger(result)
                         }
                     }
+
+                    // 索引在后台建时，文件结果这一轮是缺席的（见 FileSearchSource）。
+                    // 不说明的话，用户会以为「搜不到我的文件」；这里如实提示进度，
+                    // 索引就绪后 SearchPanelViewModel 会自动重查，文件结果自己补上。
+                    if viewModel.isIndexWarmingUp {
+                        HStack(spacing: JadeSpace.x2.value) {
+                            ProgressView()
+                                .controlSize(.small)
+                            Text(L10n.localized("commandBar.indexing"))
+                                .font(JadeFont.caption)
+                                .foregroundStyle(JadeColor.textTertiary)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .jadePadding(.horizontal, .x3)
+                        .jadePadding(.vertical, .x2)
+                        .accessibilityIdentifier("commandBar.indexingHint")
+                    }
                 }
                 .jadePadding(.horizontal, .x2)
                 .jadePadding(.vertical, .x2)
