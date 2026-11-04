@@ -48,6 +48,22 @@ struct ClipboardPluginSettingsPage: View {
                     .labelsHidden()
                     .pickerStyle(.segmented)
                 }
+
+                JadeSettingsDivider()
+
+                // PRD §02-ui-spec 明确要求：「设置 → 剪贴板」必须提示
+                // 会记录包括密码在内的敏感内容，且数据仅保存在本机。
+                // 这是隐私告知，不能只写在文档里。
+                HStack(alignment: .top, spacing: JadeSpace.x2.value) {
+                    Image(systemName: "lock.shield")
+                        .font(JadeFont.caption)
+                        .foregroundStyle(JadeColor.textSecondary)
+                        .accessibilityHidden(true)
+                    Text(L10n.localized("management.clipboard.sensitiveNote"))
+                        .font(JadeFont.caption)
+                        .foregroundStyle(JadeColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
         }
     }

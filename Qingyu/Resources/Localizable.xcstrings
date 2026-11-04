@@ -1,6 +1,42 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "management.clipboard.sensitiveNote" : {
+      "comment" : "Clipboard settings: privacy disclosure that sensitive content (e.g. passwords) may be recorded and data stays local",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qingyu records all supported content it can read, including sensitive items such as passwords. Data stays on this Mac and is never uploaded."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清羽会记录所有可读取的受支持内容，包括密码等敏感内容。数据仅保存在本机，不会上传。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清羽會記錄所有可讀取的支援內容，包括密碼等敏感內容。資料僅儲存在本機，不會上傳。"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清羽は読み取れる対応コンテンツをすべて記録します。パスワードなどの機密情報も含まれます。データはこの Mac 内にのみ保存され、アップロードされません。"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qingyu enregistre tous les contenus pris en charge qu'il peut lire, y compris les éléments sensibles tels que les mots de passe. Les données restent sur ce Mac et ne sont jamais envoyées."
+          }
+        }
+      }
+    },
     "clipboard.recording.pause" : {
       "comment" : "Clipboard toolbar: pause recording of new clipboard items",
       "extractionState" : "manual",
@@ -12630,31 +12666,31 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Clipboard history retention and blacklist"
+            "value" : "Shortcut, recording and retention for clipboard history"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "剪贴板历史保留与黑名单"
+            "value" : "剪贴板历史的快捷键、记录与保留设置"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "剪貼簿歷史保留與黑名單"
+            "value" : "剪貼簿歷史的快速鍵、記錄與保留設定"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "クリップボードの履歴の保持とブラックリスト"
+            "value" : "クリップボード履歴のショートカット・記録・保持設定"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Conservation de l'historique du presse-papiers et liste noire"
+            "value" : "Raccourci, enregistrement et conservation de l'historique du presse-papiers"
           }
         }
       }

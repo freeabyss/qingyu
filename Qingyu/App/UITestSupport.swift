@@ -25,6 +25,7 @@ enum UITestTriggerAction: String, CaseIterable {
     case openSearch
     case openClipboard
     case openSettings
+    case openClipboardSettings
     case openQuickLaunch
     case openAbout
     case openOnboarding

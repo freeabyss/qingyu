@@ -526,6 +526,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             }
         case .openSettings:
             container.settingsWindowController.show(route: .general)
+        case .openClipboardSettings:
+            container.settingsWindowController.show(route: .clipboard)
         case .openAbout:
             container.settingsWindowController.show(route: .about)
         case .openQuickLaunch:
