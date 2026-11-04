@@ -191,7 +191,14 @@ struct ClipboardHistoryView: View {
                     item: viewModel.selectedItem,
                     imageProvider: { await viewModel.originalImageData(for: $0) },
                     richTextProvider: { await viewModel.richTextAttributed(for: $0) },
-                    fileImageProvider: { await viewModel.fileImageData(for: $0) }
+                    fileImageProvider: { await viewModel.fileImageData(for: $0) },
+                    onCopy: { target in
+                        viewModel.select(target)
+                        Task {
+                            await viewModel.copyToPasteboard(target)
+                            onCopyAndClose()
+                        }
+                    }
                 )
                 .frame(width: Self.detailPaneWidth)
                 .frame(maxHeight: .infinity)

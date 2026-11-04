@@ -212,6 +212,43 @@ final class DesignSnapshotTests: XCTestCase {
         )
     }
 
+    /// 剪贴板详情面板：有选中项时，头部应出现带文字的「复制」主按钮。
+    ///
+    /// PRD §02-ui-spec：「复制是带文字的主动作，其余操作为图标」。
+    /// 这条视觉规范此前从未实现（只有行内图标），快照把头部布局固定下来。
+    func testClipboardDetailPaneWithCopyActionSnapshot() throws {
+        let item = ClipboardRecordSnapshot(
+            id: UUID(),
+            contentType: .text,
+            plainText: "Q4 路线图评审纪要",
+            summary: "Q4 路线图评审纪要",
+            contentHash: "hash-copy-action",
+            isPinned: false,
+            isFavorite: false,
+            createdAt: Date(timeIntervalSince1970: 1_700_000_000),
+            updatedAt: Date(timeIntervalSince1970: 1_700_000_120),
+            filePath: nil,
+            fileDisplayName: nil,
+            fileUTI: nil,
+            fileSize: nil,
+            resources: [],
+            resourceStatus: .available,
+            sourceAppBundleID: nil,
+            sourceAppName: nil
+        )
+
+        try renderBothSchemes(
+            ClipboardDetailPane(
+                item: item,
+                imageProvider: { _ in nil },
+                richTextProvider: { _ in nil },
+                onCopy: { _ in }
+            ),
+            size: CGSize(width: 420, height: 400),
+            name: "clipboard-detail-copy"
+        )
+    }
+
     private static let sampleIndexItem = SearchIndexItem(
         id: UUID(),
         sourceID: .clipboard,

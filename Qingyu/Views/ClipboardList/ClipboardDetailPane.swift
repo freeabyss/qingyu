@@ -16,6 +16,10 @@ struct ClipboardDetailPane: View {
     /// Show the maximize control (disabled inside the maximized sheet itself).
     var allowsMaximize: Bool = true
 
+    /// 复制当前条目。PRD §02-ui-spec：复制是带文字的主动作，其余为图标。
+    /// 为 nil 时不显示该按钮（快照 / 放大预览里不需要）。
+    var onCopy: ((ClipboardRecordSnapshot) -> Void)? = nil
+
     @State private var image: NSImage?
     @State private var rtfAttributed: NSAttributedString?
     @State private var isRichTextLoading = false
@@ -31,8 +35,10 @@ struct ClipboardDetailPane: View {
     /// 文件图标边长：48pt 正方形，仅用于文件详情的文件图标；不并入 JadeSpace，那是间距档位，不是图标尺寸。
     private static let fileIconSize: CGFloat = 48
 
-    /// 详情头部高度：44pt，仅用于详情内容的头部行；不并入 JadeSpace，那是间距档位，不是行高。
-    private static let headerHeight: CGFloat = 44
+    /// 详情头部高度：52pt，仅用于详情内容的头部行；不并入 JadeSpace，那是间距档位，不是行高。
+    /// 44pt 时纵向内边距吃掉 24pt、只剩 20pt，放不下标准主按钮（约 33pt）；
+    /// PRD 要求「复制是带文字的主动作」，因此把头部放到 52pt 并把内边距收到 8pt。
+    private static let headerHeight: CGFloat = 52
 
     /// 详情面板最小宽度：280pt，仅用于剪贴板详情面板本体的最小宽度约束；不并入 JadeSpace，那是间距档位，不是面板宽度。
     private static let detailPaneMinWidth: CGFloat = 280
@@ -199,6 +205,16 @@ struct ClipboardDetailPane: View {
                 .font(JadeFont.callout)
                 .foregroundStyle(JadeColor.textTertiary)
 
+            // 复制：带文字的主按钮。剪贴板的核心动作就是「把这条再复制一次」，
+            // 只给图标会让它和置顶/收藏/删除混为一档。
+            if let onCopy {
+                Button(L10n.localized("clipboard.action.copy")) {
+                    onCopy(item)
+                }
+                .buttonStyle(.jadePrimary)
+                .accessibilityIdentifier("clipboard.detail.copy")
+            }
+
             if allowsMaximize {
                 Button {
                     isMaximized = true
@@ -217,7 +233,8 @@ struct ClipboardDetailPane: View {
             }
         }
         .jadePadding(.horizontal, .x4)
-        .jadePadding(.vertical, .x3)
+        // 头部内边距收到 8pt，给「复制」主按钮让出高度（见 headerHeight 注释）。
+        .jadePadding(.vertical, .x2)
     }
 
     @ViewBuilder
