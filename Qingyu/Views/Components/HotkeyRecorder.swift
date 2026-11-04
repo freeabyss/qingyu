@@ -38,7 +38,7 @@ public struct HotkeyRecorder: View {
     public var body: some View {
         VStack(alignment: .leading, spacing: JadeSpace.x1.value) {
             KeyboardShortcuts.Recorder(for: name) { _ in
-                // 录制结果变更由外部（T-008）监听并更新冲突态；此处不处理。
+                // 录制结果变更由外部（T-008）监听并更新冲突态；本组件不重复检测。
             }
             .jadePadding(.horizontal, .x2)
             .jadePadding(.vertical, .x1)
@@ -66,6 +66,16 @@ public struct HotkeyRecorder: View {
                 .foregroundStyle(JadeColor.dangerText)
                 .transition(.opacity)
             }
+
+            // PRD §02-ui-spec：快捷键录制器要「显示当前组合、录制状态、冲突原因和恢复默认入口」。
+            // 恢复默认此前没有入口（全局「重置全部」方法也从未接到 UI 上）。
+            Button(L10n.localized("settings.shortcuts.resetToDefault")) {
+                KeyboardShortcuts.reset(name)
+            }
+            .buttonStyle(.plain)
+            .font(JadeFont.caption)
+            .foregroundStyle(JadeColor.primary)
+            .accessibilityIdentifier("settings.shortcuts.reset")
         }
     }
 }
