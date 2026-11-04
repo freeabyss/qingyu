@@ -238,7 +238,7 @@ struct OnboardingView: View {
             if let message = viewModel.completionErrorMessage {
                 Text(message)
                     .font(JadeFont.callout)
-                    .foregroundStyle(JadeColor.danger)
+                    .foregroundStyle(JadeColor.dangerText)
                     .multilineTextAlignment(.center)
             } else if !viewModel.canStart {
                 // 主按钮被禁用时必须说明原因。

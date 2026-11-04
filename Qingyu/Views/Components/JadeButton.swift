@@ -84,7 +84,8 @@ private struct JadeButtonBody: View {
                                    startPoint: .top, endPoint: .bottom)
                 }
         case .destructive:
-            (pressed ? JadeColor.dangerPressed : JadeColor.danger)
+            // 白字压在 systemRed 上只有 3.55:1；改用达标的深一档填充色。
+            (pressed ? JadeColor.dangerFillPressed : JadeColor.dangerFill)
         case .secondary:
             (isHovering || pressed ? JadeColor.surface3 : JadeColor.settingsCard)
         case .ghost:

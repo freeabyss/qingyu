@@ -187,8 +187,27 @@ public enum JadeColor {
 
     /// 成功
     public static let success = Color(nsColor: .systemGreen)
-    /// 危险 / 错误
+    /// 危险 / 错误（图标与强调用；作为**文字**请用 dangerText）
     public static let danger = Color(nsColor: .systemRed)
+
+    /// 危险色的**文字**版本：systemRed 在浅色底上只有 3.46:1，不够正文 4.5:1。
+    /// 冲突提示、错误信息、取消按钮等文字统一用这个。
+    public static let dangerText = Color(dynamic("DangerText", Pair(
+        light: NSColor(srgbHex: 0xC62828),
+        dark: NSColor(srgbHex: 0xFF6B61)
+    )))
+
+    /// 危险按钮的**填充**色：白字压在 systemRed 上只有 3.55:1。
+    public static let dangerFill = Color(dynamic("DangerFill", Pair(
+        light: NSColor(srgbHex: 0xC62828),
+        dark: NSColor(srgbHex: 0xD32F2A)
+    )))
+
+    /// 危险按钮按下态填充。
+    public static let dangerFillPressed = Color(dynamic("DangerFillPressed", Pair(
+        light: NSColor(srgbHex: 0xA8201A),
+        dark: NSColor(srgbHex: 0xB3261E)
+    )))
     /// 警告
     public static let warning = Color(nsColor: .systemOrange)
     /// 提醒 / 高亮（当前无调用点，保留以覆盖 PRD §9.2.1 的语义集合）

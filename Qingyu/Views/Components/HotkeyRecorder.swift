@@ -63,7 +63,7 @@ public struct HotkeyRecorder: View {
                     Image(systemName: "exclamationmark.triangle")
                         .font(JadeFont.caption)
                 }
-                .foregroundStyle(JadeColor.danger)
+                .foregroundStyle(JadeColor.dangerText)
                 .transition(.opacity)
             }
         }

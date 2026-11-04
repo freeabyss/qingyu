@@ -85,7 +85,7 @@ struct AnnotationBottomToolbar: View {
 
             Divider().frame(height: Self.dividerHeight)
 
-            IconTextButton(label: L10n.localized("annotation.cancel"), tint: JadeColor.danger, action: onCancel)
+            IconTextButton(label: L10n.localized("annotation.cancel"), tint: JadeColor.dangerText, action: onCancel)
             IconTextButton(label: L10n.localized("annotation.copy"), action: onCopy)
             IconTextButton(label: L10n.localized("annotation.save"), tint: JadeColor.primary, prominent: true, action: onSave)
         }

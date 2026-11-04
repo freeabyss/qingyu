@@ -187,6 +187,25 @@ final class JadeDesignTokenTests: XCTestCase {
         XCTAssertLessThan(contrast(0xFFFFFF, 0xB2C4DF), 4.5)
     }
 
+
+    /// 危险色的文字与填充都要满足各自门槛。
+    ///
+    /// 旧实现直接用 systemRed：作文字在浅色底上仅 3.46:1（正文需 4.5），
+    /// 作按钮填充时白字仅 3.55:1。dangerText / dangerFill 分别修好这两处。
+    func testDangerTextAndFillContrast() {
+        let lightSurface: UInt32 = 0xFCFCFD
+        let darkSurface: UInt32 = 0x202226
+        // 文字：浅色 #C62828 / 深色 #FF6B61
+        XCTAssertGreaterThanOrEqual(contrast(0xC62828, lightSurface), 4.5, "dangerText 浅色")
+        XCTAssertGreaterThanOrEqual(contrast(0xFF6B61, darkSurface), 4.5, "dangerText 深色")
+        // 填充：白字压在填充色上
+        XCTAssertGreaterThanOrEqual(contrast(0xFFFFFF, 0xC62828), 4.5, "dangerFill 浅色上的白字")
+        XCTAssertGreaterThanOrEqual(contrast(0xFFFFFF, 0xD32F2A), 4.5, "dangerFill 深色上的白字")
+        // 记录旧缺陷：systemRed 两处都不达标
+        XCTAssertLessThan(contrast(0xFF3B30, lightSurface), 4.5)
+        XCTAssertLessThan(contrast(0xFFFFFF, 0xFF3B30), 4.5)
+    }
+
     func testAppKitOverlayFontsMirrorJadeScale() {
         // AppKit 叠层字号必须与 SwiftUI Jade 字阶一致，且不得低于 caption 下限 10pt：
         // 旧代码里工具条标签是 9pt，放大镜已是 10pt，两者曾不一致。
