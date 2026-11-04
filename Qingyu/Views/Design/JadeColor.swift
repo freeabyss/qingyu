@@ -210,9 +210,29 @@ public enum JadeColor {
     )))
     /// 警告
     public static let warning = Color(nsColor: .systemOrange)
+
+    // 系统语义色是为「填充 / 徽标」设计的，直接当文字或图标前景时对比度不够：
+    // systemGreen 2.17:1、systemOrange 2.14:1（浅色底）；图标门槛 3:1、文字 4.5:1。
+    // 下面三个令牌按模式取色，同时满足文字与图标。
+    /// 成功色的前景版本：浅色 #1B7F3B（4.94:1）/ 深色 #4ADE80（9.14:1）
+    public static let successText = Color(dynamic("SuccessText", Pair(
+        light: NSColor(srgbHex: 0x1B7F3B),
+        dark: NSColor(srgbHex: 0x4ADE80)
+    )))
+    /// 警告色的前景版本：浅色 #B35C00（4.61:1）/ 深色 #FFB340（8.93:1）
+    public static let warningText = Color(dynamic("WarningText", Pair(
+        light: NSColor(srgbHex: 0xB35C00),
+        dark: NSColor(srgbHex: 0xFFB340)
+    )))
+    /// 信息色的前景版本：浅色 #0057B8（6.7:1）/ 深色 #64B5F6（7.19:1）
+    public static let infoText = Color(dynamic("InfoText", Pair(
+        light: NSColor(srgbHex: 0x0057B8),
+        dark: NSColor(srgbHex: 0x64B5F6)
+    )))
+
     /// 提醒 / 高亮（当前无调用点，保留以覆盖 PRD §9.2.1 的语义集合）
     public static let attention = Color(nsColor: .systemYellow)
-    /// 信息
+    /// 信息（填充用；前景请用 infoText）
     public static let info = Color(nsColor: .systemBlue)
 
     /// 结果类型色板（PRD §9.2.9 定义了 7 色，供「同色前景 + 15% 同色底」的

@@ -21,8 +21,8 @@ public struct JadeToast: View {
 
         var tint: Color {
             switch self {
-            case .info: return JadeColor.info
-            case .success: return JadeColor.success
+            case .info: return JadeColor.infoText
+            case .success: return JadeColor.successText
             case .error: return JadeColor.danger
             }
         }

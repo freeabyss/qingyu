@@ -65,9 +65,9 @@ private struct StatCardGallery: View {
             StatCard(icon: Image(systemName: "doc.on.clipboard"),
                      title: "剪贴板条目", value: "1,284")
             StatCard(icon: Image(systemName: "camera.viewfinder"),
-                     title: "截图", value: "37", tint: JadeColor.info)
+                     title: "截图", value: "37", tint: JadeColor.infoText)
             StatCard(icon: Image(systemName: "magnifyingglass"),
-                     title: "搜索次数", value: "512", tint: JadeColor.success)
+                     title: "搜索次数", value: "512", tint: JadeColor.successText)
         }
         .jadePadding(.x6)
         .frame(width: 460)

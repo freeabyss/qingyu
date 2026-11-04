@@ -177,7 +177,7 @@ struct OnboardingView: View {
                 if viewModel.screenRecordingAuthorized {
                     Label(L10n.localized("onboarding.screenRecording.granted"), systemImage: "checkmark.circle.fill")
                         .font(JadeFont.callout)
-                        .foregroundStyle(JadeColor.success)
+                        .foregroundStyle(JadeColor.successText)
                 } else {
                     Button(L10n.localized("onboarding.screenRecording.grant")) {
                         viewModel.requestScreenRecording()

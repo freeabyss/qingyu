@@ -206,6 +206,25 @@ final class JadeDesignTokenTests: XCTestCase {
         XCTAssertLessThan(contrast(0xFFFFFF, 0xFF3B30), 4.5)
     }
 
+
+    /// 系统语义色当文字/图标前景时不够看，successText / warningText / infoText 修好。
+    ///
+    /// systemGreen 2.17:1、systemOrange 2.14:1（浅色底）——低于图标 3:1、文字 4.5:1。
+    func testSemanticForegroundContrast() {
+        let lightSurface: UInt32 = 0xFCFCFD
+        let darkSurface: UInt32 = 0x202226
+        // 文字门槛
+        XCTAssertGreaterThanOrEqual(contrast(0x1B7F3B, lightSurface), 4.5, "successText 浅色")
+        XCTAssertGreaterThanOrEqual(contrast(0xB35C00, lightSurface), 4.5, "warningText 浅色")
+        XCTAssertGreaterThanOrEqual(contrast(0x0057B8, lightSurface), 4.5, "infoText 浅色")
+        XCTAssertGreaterThanOrEqual(contrast(0x4ADE80, darkSurface), 4.5, "successText 深色")
+        XCTAssertGreaterThanOrEqual(contrast(0xFFB340, darkSurface), 4.5, "warningText 深色")
+        XCTAssertGreaterThanOrEqual(contrast(0x64B5F6, darkSurface), 4.5, "infoText 深色")
+        // 记录旧缺陷：系统色当前景不达标
+        XCTAssertLessThan(contrast(0x34C759, lightSurface), 3.0)
+        XCTAssertLessThan(contrast(0xFF9500, lightSurface), 3.0)
+    }
+
     func testAppKitOverlayFontsMirrorJadeScale() {
         // AppKit 叠层字号必须与 SwiftUI Jade 字阶一致，且不得低于 caption 下限 10pt：
         // 旧代码里工具条标签是 9pt，放大镜已是 10pt，两者曾不一致。

@@ -336,7 +336,7 @@ private struct GeneralPage: View {
         return HStack(alignment: .top, spacing: JadeSpace.x3.value) {
             Image(systemName: status.isAuthorized ? "checkmark.seal.fill" : "exclamationmark.triangle.fill")
                 .font(JadeFont.body)
-                .foregroundStyle(status.isAuthorized ? JadeColor.textSecondary : JadeColor.warning)
+                .foregroundStyle(status.isAuthorized ? JadeColor.textSecondary : JadeColor.warningText)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: JadeSpace.x1.value) {
                 Text(viewModel.permissionTitle(kind))

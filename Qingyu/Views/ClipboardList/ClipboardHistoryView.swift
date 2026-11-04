@@ -193,7 +193,7 @@ struct ClipboardHistoryView: View {
             HStack(spacing: JadeSpace.x2.value) {
                 Image(systemName: "pause.circle.fill")
                     .font(JadeFont.caption)
-                    .foregroundStyle(JadeColor.warning)
+                    .foregroundStyle(JadeColor.warningText)
                     .accessibilityHidden(true)
                 Text(L10n.localized("clipboard.recording.pausedHint"))
                     .font(JadeFont.caption)

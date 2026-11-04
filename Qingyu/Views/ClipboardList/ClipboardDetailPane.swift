@@ -279,7 +279,7 @@ struct ClipboardDetailPane: View {
         VStack(spacing: JadeSpace.x2.value) {
             Image(systemName: "photo.badge.exclamationmark")
                 .font(JadeFont.detailMissingImageIcon)
-                .foregroundStyle(JadeColor.warning)
+                .foregroundStyle(JadeColor.warningText)
                 .accessibilityHidden(true)
             Text(L10n.localized("preview.imageNotAvailable"))
                 .font(JadeFont.callout)

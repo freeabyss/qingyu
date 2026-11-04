@@ -110,7 +110,7 @@ struct QuickLaunchPluginSettingsPage: View {
             if !conflictWarnings.isEmpty {
                 Text(conflictWarnings.joined(separator: "\n"))
                     .font(JadeFont.caption)
-                    .foregroundStyle(JadeColor.warning)
+                    .foregroundStyle(JadeColor.warningText)
             }
         }
     }

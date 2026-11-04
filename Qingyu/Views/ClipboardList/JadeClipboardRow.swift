@@ -94,7 +94,7 @@ struct JadeClipboardRow: View {
                         if item.failureReason != nil {
                             Image(systemName: "exclamationmark.triangle.fill")
                                 .font(JadeFont.caption)
-                                .foregroundStyle(JadeColor.warning)
+                                .foregroundStyle(JadeColor.warningText)
                                 .accessibilityHidden(true)
                         }
                     }
@@ -173,7 +173,7 @@ struct JadeClipboardRow: View {
             } else if item.contentType == .image && item.failureReason != nil {
                 Image(systemName: "photo.badge.exclamationmark")
                     .font(JadeFont.body)
-                    .foregroundStyle(JadeColor.warning)
+                    .foregroundStyle(JadeColor.warningText)
             } else {
                 Image(systemName: iconName)
                     .font(JadeFont.body)
