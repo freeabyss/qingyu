@@ -98,6 +98,15 @@ public enum JadeColor {
         light: NSColor(srgbHex: 0x737373),
         dark: NSColor.secondaryLabelColor
     )))
+    /// 主色填充上的前景色。
+    ///
+    /// 浅色模式的 primary 是深蓝，配白字；深色模式的 primary 是浅蓝 #B2C4DF，
+    /// 白字在上面只有 1.77:1 —— 几乎读不出来。深色下改用近黑的前景色。
+    public static let onPrimary = Color(dynamic("OnPrimary", Pair(
+        light: NSColor.white,
+        dark: NSColor(srgbHex: 0x151C26)
+    )))
+
     /// 元信息 / 占位文字。
     ///
     /// 原本直接绑定 secondaryLabelColor：浅色模式下它约为 #8E8E93，

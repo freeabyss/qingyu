@@ -173,6 +173,20 @@ final class JadeDesignTokenTests: XCTestCase {
         }
     }
 
+
+    /// 主色填充上的前景色必须两种模式都清晰。
+    ///
+    /// 旧实现把选中态文字写死为白色：深色模式的 primary 是浅蓝 #B2C4DF，
+    /// 白字在上面只有 1.77:1，几乎读不出来。onPrimary 令牌按模式取色。
+    func testOnPrimaryContrastInBothSchemes() {
+        // 浅色：白字 on 深蓝 primary
+        XCTAssertGreaterThanOrEqual(contrast(0xFFFFFF, 0x4D6487), 4.5, "onPrimary 浅色")
+        // 深色：近黑字 on 浅蓝 primary
+        XCTAssertGreaterThanOrEqual(contrast(0x151C26, 0xB2C4DF), 4.5, "onPrimary 深色")
+        // 记录旧缺陷：白色在深色 primary 上不达标
+        XCTAssertLessThan(contrast(0xFFFFFF, 0xB2C4DF), 4.5)
+    }
+
     func testAppKitOverlayFontsMirrorJadeScale() {
         // AppKit 叠层字号必须与 SwiftUI Jade 字阶一致，且不得低于 caption 下限 10pt：
         // 旧代码里工具条标签是 9pt，放大镜已是 10pt，两者曾不一致。

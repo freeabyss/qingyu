@@ -129,7 +129,8 @@ private struct ToolPill: View {
                         .fixedSize()
                 }
             }
-            .foregroundColor(selected ? .white : JadeColor.textPrimary)
+            // 深色模式的 primary 是浅蓝，白字仅 1.77:1；用 onPrimary 令牌按模式取色。
+            .foregroundColor(selected ? JadeColor.onPrimary : JadeColor.textPrimary)
             .jadePadding(.horizontal, .x2)
             .jadePadding(.vertical, .x2)
             .background(
@@ -239,7 +240,7 @@ private struct IconTextButton: View {
         Button(action: action) {
             Text(label)
                 .font(JadeFont.subhead)
-                .foregroundColor(prominent ? .white : tint)
+                .foregroundColor(prominent ? JadeColor.onPrimary : tint)
                 .jadePadding(.horizontal, .x3)
                 .frame(height: Self.buttonHeight)
                 .background(
