@@ -891,12 +891,12 @@ private struct AppIconView: View {
 }
 
 private struct SettingsBrandHeader: View {
-    private let about = BundleAboutInfoProvider().info
-
     var body: some View {
         HStack(spacing: JadeSpace.x2.value) {
             AppIconView(size: 24, radius: .sm)
-            Text(about.appName)
+            // 品牌字样与菜单栏、首启引导保持一致（「清羽 Qingyu」）；
+            // 直接用 CFBundleDisplayName 只会得到「Qingyu」，同一产品出现两种写法。
+            Text(L10n.localized("about.brandName"))
                 .font(JadeFont.headline)
                 .foregroundStyle(JadeColor.textPrimary)
             Spacer(minLength: 0)
@@ -911,7 +911,7 @@ private struct AboutBrandHeader: View {
         HStack(spacing: JadeSpace.x3.value) {
             AppIconView(size: 52, radius: .lg)
             VStack(alignment: .leading, spacing: JadeSpace.x1.value) {
-                Text(about.appName)
+                Text(L10n.localized("about.brandName"))
                     .font(JadeFont.title1)
                     .foregroundStyle(JadeColor.textPrimary)
                 Text(L10n.localized("about.version", about.version, about.buildNumber))

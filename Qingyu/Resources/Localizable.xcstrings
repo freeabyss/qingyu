@@ -1,6 +1,42 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "about.brandName" : {
+      "comment" : "Brand lockup shown in the settings sidebar header and the About page. Same in every language, like menubar.appTitle.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清羽 Qingyu"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清羽 Qingyu"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清羽 Qingyu"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清羽 Qingyu"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清羽 Qingyu"
+          }
+        }
+      }
+    },
     "a11y.close" : {
       "comment" : "Accessibility label for a close / dismiss button",
       "extractionState" : "manual",
