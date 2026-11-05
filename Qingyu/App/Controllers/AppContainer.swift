@@ -41,7 +41,12 @@ final class AppContainer: NSObject {
         // 设计评审/UI 测试：插件启停状态不写进真实 UserDefaults，
         // 否则每次截图都会改用户的插件偏好，且不可重复。
         if ProcessInfo.processInfo.arguments.contains("--uitest-isolated-plugins") {
-            return PluginRegistry(enablementStore: InMemoryPluginEnablementStore())
+            var disabled: [String] = []
+            let args = ProcessInfo.processInfo.arguments
+            for (index, arg) in args.enumerated() where arg == "--uitest-disable-plugin" {
+                if args.indices.contains(index + 1) { disabled.append(args[index + 1]) }
+            }
+            return PluginRegistry(enablementStore: InMemoryPluginEnablementStore(disabledPluginIDs: disabled))
         }
         #endif
         return PluginRegistry()
@@ -567,6 +572,14 @@ final class AppContainer: NSObject {
 /// 仅供 UI 测试使用的插件启停存储：不落 UserDefaults，进程结束即丢弃。
 final class InMemoryPluginEnablementStore: PluginEnablementStore {
     private var overrides: [PluginID: Bool] = [:]
+
+    /// 预置为「停用」的插件。必须在**注册之前**生效——
+    /// 否则命令栏可能先取到源快照，出现「插件已停用却有结果」的假象。
+    init(disabledPluginIDs: [String] = []) {
+        for raw in disabledPluginIDs {
+            overrides[PluginID(rawValue: raw)] = false
+        }
+    }
 
     func isEnabled(_ id: PluginID, default defaultValue: Bool) -> Bool {
         overrides[id] ?? defaultValue

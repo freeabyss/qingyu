@@ -371,6 +371,11 @@ final class SearchService: SearchServiceProtocol {
         self.actionExecutor = actionExecutor
     }
 
+    /// 是否还有可用的搜索源。全部关闭时，「未找到匹配项」会误导用户去改关键词。
+    var hasEnabledSources: Bool {
+        sources.contains { $0.isEnabledInSearch }
+    }
+
     /// 替换搜索源集合（插件启停后调用）。
     func updateSources(_ newSources: [SearchSource]) {
         sources = newSources

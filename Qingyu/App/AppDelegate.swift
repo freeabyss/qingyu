@@ -165,14 +165,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             }
         }
 
-        // --uitest-disable-plugin <id>：启动后停用指定插件（配合 --uitest-isolated-plugins
-        // 不会污染真实偏好），用来验证各界面是否随插件启停同步。
-        if let index = ProcessInfo.processInfo.arguments.firstIndex(of: "--uitest-disable-plugin"),
-           ProcessInfo.processInfo.arguments.indices.contains(index + 1) {
-            let pluginID = PluginID(rawValue: ProcessInfo.processInfo.arguments[index + 1])
-            container.registerBuiltInPlugins()
-            Task { await container.pluginRegistry.setEnabled(false, for: pluginID) }
-        }
 
         // --uitest-dump-menu：把菜单栏菜单项与可用状态写进日志。
         // NSMenu 无法离屏截图，这是验证「菜单是否随插件启停变化」的唯一手段。

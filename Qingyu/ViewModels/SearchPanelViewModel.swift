@@ -103,6 +103,11 @@ final class SearchPanelViewModel: ObservableObject {
         return hasQuery && visibleResults.isEmpty && !isLoading && resultsQuery == trimmedQuery
     }
 
+    /// 是否还有可用搜索源；全部关闭时空状态要换成「去启用插件」的引导。
+    var hasEnabledSources: Bool {
+        (searchService as? SearchService)?.hasEnabledSources ?? true
+    }
+
     /// 插件启停后把最新搜索源推给服务：否则本会话内被停用的插件仍会返回结果。
     func applySearchSources(_ sources: [SearchSource]) {
         (searchService as? SearchService)?.updateSources(sources)

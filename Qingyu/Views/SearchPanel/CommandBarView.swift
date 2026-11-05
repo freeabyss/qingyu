@@ -223,19 +223,33 @@ struct CommandBarView: View {
         .accessibilityIdentifier("commandBar.searching")
     }
 
+    /// 空结果分两种：没有匹配项（改关键词），以及「搜索源全关了」——
+    /// 后者若也提示「检查搜索源设置」，用户会发现那个设置页正好被隐藏着（插件停用）。
     private var noResultsState: some View {
         VStack(spacing: JadeSpace.x2.value) {
-            Image(systemName: "questionmark.circle")
+            Image(systemName: viewModel.hasEnabledSources ? "questionmark.circle" : "power")
                 .font(JadeFont.commandBarNoResultsIcon)
                 .foregroundStyle(JadeColor.textTertiary)
                 .accessibilityHidden(true)
-            Text(L10n.localized("commandBar.noResults.title"))
+            Text(L10n.localized(viewModel.hasEnabledSources
+                                   ? "commandBar.noResults.title"
+                                   : "commandBar.noSources.title"))
                 .font(JadeFont.title3)
                 .foregroundStyle(JadeColor.textPrimary)
-            Text(L10n.localized("commandBar.noResults.subtitle"))
+            Text(L10n.localized(viewModel.hasEnabledSources
+                                   ? "commandBar.noResults.subtitle"
+                                   : "commandBar.noSources.subtitle"))
                 .font(JadeFont.callout)
                 .foregroundStyle(JadeColor.textSecondary)
                 .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+            if !viewModel.hasEnabledSources {
+                Button(L10n.localized("commandBar.noSources.action")) {
+                    viewModel.openSettings()
+                }
+                .buttonStyle(.jadeSecondary)
+                .accessibilityIdentifier("commandBar.noSources.action")
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .jadePadding(.x6)

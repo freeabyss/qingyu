@@ -1,6 +1,114 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "commandBar.noSources.title" : {
+      "comment" : "Command bar empty state when every search source is disabled",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All search sources are off"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜索源已全部关闭"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜尋來源已全部關閉"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "検索ソースがすべて無効です"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toutes les sources sont désactivées"
+          }
+        }
+      }
+    },
+    "commandBar.noSources.subtitle" : {
+      "comment" : "Command bar empty state hint: where to re-enable sources",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable a plugin under Settings → General → Plugins to search again."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在「设置 → 通用 → 插件管理」中启用后即可搜索。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在「設定 → 一般 → 外掛管理」中啟用後即可搜尋。"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「設定 → 一般 → プラグイン」で有効にすると検索できます。"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activez une extension dans Réglages → Général → Extensions pour rechercher."
+          }
+        }
+      }
+    },
+    "commandBar.noSources.action" : {
+      "comment" : "Button in the command bar empty state that opens Settings",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Settings"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开设置"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開啟設定"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "設定を開く"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ouvrir les réglages"
+          }
+        }
+      }
+    },
     "settings.quickLaunch.keyword.enable.help" : {
       "comment" : "Quick launch keyword row: tooltip when the keyword is currently disabled and can be re-enabled",
       "extractionState" : "manual",
