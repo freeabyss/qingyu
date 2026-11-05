@@ -689,6 +689,7 @@ private func recorderRow(_ row: RecorderRow) -> some View {
                     .foregroundStyle(JadeColor.textTertiary)
             }
             Spacer()
+            // PRD 控件表：图标按钮必须提供本地化辅助功能标签和悬停说明。
             Button {
                 Task { await movePreset(from: index, to: index - 1) }
             } label: {
@@ -696,6 +697,8 @@ private func recorderRow(_ row: RecorderRow) -> some View {
             }
             .buttonStyle(.jadeSecondary)
             .disabled(index == 0)
+            .help(L10n.localized("settings.presets.moveUp"))
+            .accessibilityLabel(Text(L10n.localized("settings.presets.moveUp")))
             Button {
                 Task { await movePreset(from: index, to: index + 1) }
             } label: {
@@ -703,12 +706,16 @@ private func recorderRow(_ row: RecorderRow) -> some View {
             }
             .buttonStyle(.jadeSecondary)
             .disabled(index >= presets.count - 1)
+            .help(L10n.localized("settings.presets.moveDown"))
+            .accessibilityLabel(Text(L10n.localized("settings.presets.moveDown")))
             Button {
                 pendingPresetDeletion = preset
             } label: {
                 Image(systemName: "trash")
             }
             .buttonStyle(.jadeSecondary)
+            .help(L10n.localized("settings.presets.delete"))
+            .accessibilityLabel(Text(L10n.localized("settings.presets.delete")))
         }
     }
 

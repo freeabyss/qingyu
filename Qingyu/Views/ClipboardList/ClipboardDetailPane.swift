@@ -109,7 +109,9 @@ struct ClipboardDetailPane: View {
                             .foregroundStyle(JadeColor.textSecondary)
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel(Text("a11y.commandBar.clear"))
+                    // 这是「关闭放大预览」，不是「清空」——此前误用了清空的无障碍标签。
+                    .help(L10n.localized("a11y.close"))
+                    .accessibilityLabel(Text(L10n.localized("a11y.close")))
                 }
                 .jadePadding(.horizontal, .x4)
                 .jadePadding(.vertical, .x3)

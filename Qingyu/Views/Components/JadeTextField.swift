@@ -59,6 +59,7 @@ public struct JadeTextField: View {
                         .foregroundStyle(JadeColor.textTertiary)
                 }
                 .buttonStyle(.plain)
+                .help(L10n.localized("a11y.commandBar.clear"))
                 .accessibilityLabel(Text("a11y.commandBar.clear"))
             }
         }

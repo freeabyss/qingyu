@@ -123,6 +123,8 @@ public struct JadeListRow<Content: View>: View {
                                 .jadeRadius(.sm)
                         }
                         .buttonStyle(.plain)
+                        // PRD 控件表：图标按钮要同时有本地化辅助功能标签与悬停说明。
+                        .help(Text(action.label))
                         .accessibilityLabel(Text(action.label))
                     }
                 }

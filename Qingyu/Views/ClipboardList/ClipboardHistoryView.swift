@@ -125,6 +125,8 @@ struct ClipboardHistoryView: View {
                         .foregroundStyle(JadeColor.textTertiary)
                 }
                 .buttonStyle(.plain)
+                // PRD 控件表：图标按钮要同时有本地化辅助功能标签与悬停说明。
+                .help(L10n.localized("a11y.commandBar.clear"))
                 .accessibilityLabel(Text("a11y.commandBar.clear"))
             }
         }
