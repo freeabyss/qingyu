@@ -129,12 +129,20 @@ final class HotkeyConflictDetector: ObservableObject, HotkeyConflictDetectorProt
 
         // 1. Internal duplicate across our own shortcuts.
         if let sharing = occupancy[ShortcutKey(shortcut)], sharing.count > 1 {
-            return .conflict(L10n.localized("management.shortcuts.conflict.internal"))
+            // PRD：「行内显示冲突组合」——只说「冲突了」用户无从判断改哪个，
+            // 必须把具体组合（如 ⌃⌘4）带进提示。
+            return .conflict(L10n.localized(
+                "management.shortcuts.conflict.internal",
+                shortcut.description
+            ))
         }
 
         // 2. Enabled macOS symbolic hotkey clash.
         if systemShortcuts.contains(where: { $0.carbonKeyCode == shortcut.carbonKeyCode && $0.carbonModifiers == shortcut.carbonModifiers }) {
-            return .conflict(L10n.localized("management.shortcuts.conflict.system"))
+            return .conflict(L10n.localized(
+                "management.shortcuts.conflict.system",
+                shortcut.description
+            ))
         }
 
         return .registered

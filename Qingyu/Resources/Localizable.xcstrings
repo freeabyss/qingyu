@@ -10516,7 +10516,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此操作可能不可撤销,确定继续?"
+            "value" : "此操作可能不可撤销，确定继续?"
           }
         },
         "zh-Hant" : {
@@ -11303,7 +11303,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法将现有数据移动到新位置,已复制备份到:\n%@\n\n清羽已使用新的空数据库启动,你的旧数据已安全保存在备份目录中。"
+            "value" : "无法将现有数据移动到新位置，已复制备份到：\n%@\n\n清羽已使用新的空数据库启动，你的旧数据已安全保存在备份目录中。"
           }
         },
         "zh-Hant" : {
@@ -16555,7 +16555,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "启用越多源,结果越全;关闭后命令栏不再展示该类结果。"
+            "value" : "启用越多源，结果越全；关闭后命令栏不再展示该类结果。"
           }
         },
         "zh-Hant" : {
@@ -16981,31 +16981,31 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This shortcut is already used by another Qingyu action. Reset to defaults or record a different one."
+            "value" : "%@ is already used by another Qingyu action. Reset to defaults or record a different one."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "该快捷键已被清羽其他功能占用,建议重置为默认或重新录制。"
+            "value" : "「%@」已被清羽其他功能占用，建议重置为默认或重新录制。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此快速鍵已被清羽其他功能使用，建議重置為預設或重新錄製。"
+            "value" : "「%@」已被清羽其他功能使用，建議重置為預設或重新錄製。"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "このキーボードショートカットは Qingyu の別の機能で使用されています。デフォルトに戻すか、別のショートカットを記録してください。"
+            "value" : "%@ は Qingyu の別の機能で使用されています。デフォルトに戻すか、別のショートカットを記録してください。"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ce raccourci est déjà utilisé par une autre action de Qingyu. Réinitialisez les réglages par défaut ou enregistrez-en un autre."
+            "value" : "%@ est déjà utilisé par une autre action de Qingyu. Réinitialisez les réglages par défaut ou enregistrez-en un autre."
           }
         }
       }
@@ -17017,31 +17017,31 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This shortcut conflicts with a system shortcut. Reset to defaults or record a different one."
+            "value" : "%@ conflicts with a system shortcut. Reset to defaults or record a different one."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "该快捷键与系统快捷键冲突,建议重置为默认或重新录制。"
+            "value" : "「%@」与 macOS 系统快捷键冲突，建议重置为默认或重新录制。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此快速鍵與系統快速鍵衝突，建議重置為預設或重新錄製。"
+            "value" : "「%@」與 macOS 系統快速鍵衝突，建議重置為預設或重新錄製。"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "このキーボードショートカットはシステムのショートカットと競合しています。デフォルトに戻すか、別のショートカットを記録してください。"
+            "value" : "%@ はシステムのショートカットと競合しています。デフォルトに戻すか、別のショートカットを記録してください。"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ce raccourci est en conflit avec un raccourci système. Réinitialisez les réglages par défaut ou enregistrez-en un autre."
+            "value" : "%@ est en conflit avec un raccourci système. Réinitialisez les réglages par défaut ou enregistrez-en un autre."
           }
         }
       }
@@ -19783,7 +19783,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请先授予屏幕录制权限,或点击\"暂不开启截图\"以继续使用。"
+            "value" : "请先授予屏幕录制权限，或点击「暂不开启截图」以继续使用。"
           }
         },
         "zh-Hant" : {
@@ -20503,7 +20503,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "屏幕录制权限用于区域/全屏/窗口截图,所有截图均在本地处理。"
+            "value" : "屏幕录制权限用于区域/全屏/窗口截图，所有截图均在本地处理。"
           }
         },
         "zh-Hant" : {
@@ -21255,7 +21255,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此功能需要辅助功能权限,用于受控自动化(如自动粘贴、模拟快捷键)。打开系统设置以授予。"
+            "value" : "此功能需要辅助功能权限，用于受控自动化（如自动粘贴、模拟快捷键）。打开系统设置以授予。"
           }
         },
         "zh-Hant" : {

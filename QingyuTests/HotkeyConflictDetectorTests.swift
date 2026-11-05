@@ -63,7 +63,7 @@ final class HotkeyConflictDetectorTests: XCTestCase {
         XCTAssertNotNil(detector.conflictMessages[.togglePanel])
     }
 
-    func testInternalDuplicateIsFlagged() {
+    func testInternalDuplicateIsFlagged() throws {
         // Two managed names bound to the same combination -> internal conflict.
         let dup = KeyboardShortcuts.Shortcut(.c, modifiers: [.option, .command])
         let detector = HotkeyConflictDetector(
@@ -74,6 +74,9 @@ final class HotkeyConflictDetectorTests: XCTestCase {
         detector.scan()
         XCTAssertTrue(detector.conflictingNames.contains(.openClipboardHistory))
         XCTAssertTrue(detector.conflictingNames.contains(.openSettings))
+        // PRD：「行内显示冲突组合」。提示里必须带上具体组合，否则用户无从判断改哪个。
+        let message = try XCTUnwrap(detector.conflictMessages[.openSettings])
+        XCTAssertTrue(message.contains(dup.description), "冲突提示应含组合 \(dup.description)：\(message)")
     }
 
     func testEvaluateReturnsRegisteredForFreeShortcut() {
