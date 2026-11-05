@@ -11,14 +11,21 @@ public struct JadeRowAction: Identifiable {
     public let action: () -> Void
     /// 是否为危险操作(红色前景)
     public let isDestructive: Bool
+    /// 是否常驻显示。false 表示按需显示（悬停/聚焦时才可见）。
+    ///
+    /// PRD：「复制为主要行内动作；预览和删除按需显示」——删除这类不可逆操作
+    /// 常驻在每一行上既是视觉噪音，也容易被误点。
+    public let showsAlways: Bool
 
     public init(systemImage: String,
                 label: LocalizedStringKey,
                 isDestructive: Bool = false,
+                showsAlways: Bool = true,
                 action: @escaping () -> Void) {
         self.systemImage = systemImage
         self.label = label
         self.isDestructive = isDestructive
+        self.showsAlways = showsAlways
         self.action = action
     }
 }
@@ -101,14 +108,36 @@ public struct JadeListRow<Content: View>: View {
         alwaysShowsActions || isHovering || isFocused
     }
 
+    /// 「按需显示」的动作（删除等）只在悬停或聚焦时露出。
+    /// 不能复用 showsActions——它含 alwaysShowsActions，会让按需条件恒真。
+    private var revealsOnDemand: Bool {
+        #if DEBUG
+        if Self.debugForceRevealsOnDemand { return true }
+        #endif
+        return isHovering || isFocused
+    }
+
+    #if DEBUG
+    /// 设计评审用：强制「按需动作」露出。离屏截图拿不到真实鼠标悬停，
+    /// 没有这条通道就无法证明「删除按钮在悬停时确实会出现」。
+    /// 泛型类型不能有 static 存储属性，用计算属性转存到文件级变量。
+    static var debugForceRevealsOnDemand: Bool {
+        get { jadeListRowDebugForceReveals }
+        set { jadeListRowDebugForceReveals = newValue }
+    }
+    #endif
+
     public var body: some View {
         HStack(spacing: JadeSpace.x2.value) {
             content
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-            if showsActions, !actions.isEmpty {
+            // 常驻动作的行：整组动作**始终参与布局**，只是按需的按钮用透明度隐藏。
+            // 否则悬停时多出几个图标会把标题行横向挤开（行内重排比隐藏更难接受）。
+            if !actions.isEmpty, alwaysShowsActions || revealsOnDemand {
                 HStack(spacing: JadeSpace.x1.value) {
                     ForEach(actions) { action in
+                        let isVisible = action.showsAlways || revealsOnDemand
                         Button {
                             action.action()
                         } label: {
@@ -123,9 +152,12 @@ public struct JadeListRow<Content: View>: View {
                                 .jadeRadius(.sm)
                         }
                         .buttonStyle(.plain)
+                        .opacity(isVisible ? 1 : 0)
+                        .allowsHitTesting(isVisible)
                         // PRD 控件表：图标按钮要同时有本地化辅助功能标签与悬停说明。
                         .help(Text(action.label))
                         .accessibilityLabel(Text(action.label))
+                        .accessibilityHidden(!isVisible)
                     }
                 }
                 .transition(.opacity)
@@ -199,3 +231,8 @@ private struct JadeListRowGallery: View {
     JadeListRowGallery()
         .preferredColorScheme(.dark)
 }
+
+#if DEBUG
+/// `JadeListRow` 是泛型类型，无法持有 static 存储属性；强制露出开关存在这里。
+var jadeListRowDebugForceReveals = false
+#endif

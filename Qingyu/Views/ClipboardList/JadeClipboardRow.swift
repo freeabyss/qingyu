@@ -34,11 +34,13 @@ struct JadeClipboardRow: View {
                           action: onFavorite),
             JadeRowAction(systemImage: "doc.on.doc", label: "clipboard.action.copy", action: onCopy)
         ]
+        // 文件类专用动作按需显示：它们只在少数行有意义，常驻会挤占主要动作的注意力。
         if item.contentType == .file, let onCopyPath, item.filePath != nil {
             items.append(
                 JadeRowAction(
                     systemImage: "link",
                     label: "clipboard.action.copyPath",
+                    showsAlways: false,
                     action: onCopyPath
                 )
             )
@@ -48,12 +50,20 @@ struct JadeClipboardRow: View {
                 JadeRowAction(
                     systemImage: "folder",
                     label: "preview.showInFinder",
+                    showsAlways: false,
                     action: onRevealInFinder
                 )
             )
         }
+        // PRD：「预览和删除按需显示」——删除不可逆，不应在每一行上常驻可点。
         items.append(
-            JadeRowAction(systemImage: "trash", label: "preview.delete", isDestructive: true, action: onDelete)
+            JadeRowAction(
+                systemImage: "trash",
+                label: "preview.delete",
+                isDestructive: true,
+                showsAlways: false,
+                action: onDelete
+            )
         )
         return items
     }

@@ -183,6 +183,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             if ProcessInfo.processInfo.arguments.contains("--uitest-force-row-hover") {
                 CommandBarResultRow.debugForceHover = true
             }
+            // --uitest-force-row-actions：强制剪贴板行的「按需动作」露出（删除等）。
+            // 离屏截图无法制造真实鼠标悬停，没有它就验证不了这条路径。
+            if ProcessInfo.processInfo.arguments.contains("--uitest-force-row-actions") {
+                JadeListRow<EmptyView>.debugForceRevealsOnDemand = true
+            }
             // --uitest-force-empty-reason <noMatch|noSources|allSourcesDisabled>
             // 强制命令栏空状态原因，用来核对三种空状态的文案与 CTA 指向。
             if let index = ProcessInfo.processInfo.arguments.firstIndex(of: "--uitest-force-empty-reason"),
