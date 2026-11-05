@@ -67,7 +67,7 @@ NSMenu 只在菜单真正展开时才应用 `autoenablesItems`，新建项恒为
 | --- | --- |
 | 截图会话与贴图工具条 | 需要真实屏幕录制授权（`screencapture` 报 `could not create image from display`） |
 | 悬停提示 / hover 底色 / 焦点描边 / 穿透虚线 | 需要真实鼠标与键盘焦点，离屏渲染无法呈现 |
-| VoiceOver 实际朗读 | 需要真实辅助功能会话 |
+| VoiceOver 实际朗读与自定义动作 | 需要真实辅助功能会话；`cacheDisplay` 导出的层级文件只含 AppKit 视图树，看不到无障碍动作 |
 | 系统「增强对比度」渲染 | 系统级偏好，`NSWorkspace` 读数在进程内无法伪造 |
 
 这些项目的相关代码已按规范实现并有单元测试兜底，但**没有视觉证据**。

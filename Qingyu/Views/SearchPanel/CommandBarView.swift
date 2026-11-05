@@ -439,6 +439,10 @@ struct CommandBarResultRow: View {
         // 选中/危险状态通过 value/hint 补充（PRD §9.8）。
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(accessibilityLabelText))
+        // 「隐藏此结果」按钮在行内、且只随鼠标悬停出现：
+        // 整行 children: .ignore 之后它对 VoiceOver 完全不可达。
+        // 补一条无障碍自定义动作，读屏用户可用转子调用同一操作。
+        .modifier(HideResultAccessibilityAction(isEnabled: onHide != nil) { onHide?() })
         .accessibilityValue(Text(isSelected
             ? L10n.localized("a11y.state.selected")
             : ""))
@@ -491,4 +495,21 @@ struct CommandBarResultRow: View {
         .frame(height: 420)
         .padding(40)
         .background(LinearGradient(colors: [.teal, .blue], startPoint: .top, endPoint: .bottom))
+}
+
+/// 仅在可用时挂上「隐藏此结果」的无障碍自定义动作。
+private struct HideResultAccessibilityAction: ViewModifier {
+    let isEnabled: Bool
+    let action: () -> Void
+
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if isEnabled {
+            content.accessibilityAction(named: Text(L10n.localized("commandBar.hideResult"))) {
+                action()
+            }
+        } else {
+            content
+        }
+    }
 }
