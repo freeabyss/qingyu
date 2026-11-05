@@ -85,6 +85,9 @@ public struct JadeListRow<Content: View>: View {
     static var actionHitSize: CGFloat { 32 } // 泛型类型不支持 static 存储属性，改用计算属性，API 不变
     @State private var isHovering = false
     @FocusState private var isFocused: Bool
+    /// 全键盘访问（Full Keyboard Access）下，焦点可以直接落到行内的图标按钮上。
+    /// 此时若仍按「按需」隐藏，用户聚焦的是一个看不见的按钮——所以也纳入露出条件。
+    @FocusState private var focusedActionID: UUID?
 
     public init(selected: Bool = false,
                 rowSize: JadeRowSize = .comfortable,
@@ -114,7 +117,7 @@ public struct JadeListRow<Content: View>: View {
         #if DEBUG
         if Self.debugForceRevealsOnDemand { return true }
         #endif
-        return isHovering || isFocused
+        return isHovering || isFocused || focusedActionID != nil
     }
 
     #if DEBUG
@@ -152,12 +155,15 @@ public struct JadeListRow<Content: View>: View {
                                 .jadeRadius(.sm)
                         }
                         .buttonStyle(.plain)
+                        .focused($focusedActionID, equals: action.id)
                         .opacity(isVisible ? 1 : 0)
                         .allowsHitTesting(isVisible)
                         // PRD 控件表：图标按钮要同时有本地化辅助功能标签与悬停说明。
                         .help(Text(action.label))
                         .accessibilityLabel(Text(action.label))
-                        .accessibilityHidden(!isVisible)
+                        // 视觉上按需露出，但**不**从无障碍树里移除：
+                        // 读屏用户不产生鼠标悬停，移除后「删除」就永远不可达。
+                        // 保留在树里，VoiceOver 仍能逐项聚焦到这些操作。
                     }
                 }
                 .transition(.opacity)
