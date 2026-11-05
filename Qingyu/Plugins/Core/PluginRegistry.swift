@@ -90,7 +90,12 @@ final class PluginRegistry {
 
     /// 持久化启停选择，并同步启动或停止对应插件。
     func setEnabled(_ enabled: Bool, for id: PluginID) async {
-        guard entries[id] != nil else { return }
+        guard entries[id] != nil else {
+            // 未知 ID 静默返回会让调用方以为「已生效」（调试时踩过一次：
+            // 传了 "quickLaunch"，真实 ID 是 "quick-launch"）。至少留一条日志。
+            logger.error("Ignore setEnabled for unknown plugin id: \(id.rawValue, privacy: .public)")
+            return
+        }
         enablementStore.setEnabled(enabled, for: id)
         if enabled {
             await startPlugin(id)

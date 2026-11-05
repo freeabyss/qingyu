@@ -138,7 +138,23 @@ final class SettingsViewModel: ObservableObject {
         self.clipboardRepository = clipboardRepository
         self.pluginRegistry = pluginRegistry
         self.relaunch = relaunch
+
+        // 插件启停可能来自别处（例如剪贴板窗口的「开启」会顺带恢复插件、
+        // 命令行重建搜索源）。侧栏页面是据此推导的，不刷新就会与事实不符——
+        // 例如插件已停用，侧栏却还列着它的页面。
+        pluginEnablementObserver = NotificationCenter.default.addObserver(
+            forName: .pluginEnablementDidChange,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated {
+                self?.objectWillChange.send()
+            }
+        }
     }
+
+    /// 插件启停通知的观察者（持有以便必要时移除）。
+    private var pluginEnablementObserver: NSObjectProtocol?
 
     /// Sidebar page order: 通用、当前可见的插件页（按 order 排序）、关于。
     var visiblePageIDs: [SettingsPageID] {
