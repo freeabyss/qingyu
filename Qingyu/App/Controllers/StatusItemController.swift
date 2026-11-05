@@ -6,7 +6,7 @@ import os.log
 /// The menu items forward to the window/command controllers resolved from
 /// `AppContainer`; this controller holds no business logic.
 @MainActor
-final class StatusItemController: NSObject {
+final class StatusItemController: NSObject, NSMenuItemValidation {
     private let logger = Logger.app
     private unowned let container: AppContainer
 
@@ -87,12 +87,35 @@ final class StatusItemController: NSObject {
         return menu
     }
 
+    #if DEBUG
+    /// 设计评审用：把菜单项标题与可用状态写进日志，便于在无法给 NSMenu 截图的
+    /// 环境里核对「插件停用后菜单是否同步」。
+    func debugDumpMenu() {
+        let menu = statusMenu ?? makeMenu()
+        // 直接取校验结果：NSMenu 只在菜单真正展开时才应用 autoenablesItems，
+        // 新建菜单项的 isEnabled 恒为 true，拿它验证不了任何东西。
+        let rows = menu.items.map { item in
+            "\(item.title.isEmpty ? "-" : item.title):\(validateMenuItem(item))"
+        }
+        logger.info("Menu dump => \(rows.joined(separator: " | "), privacy: .public)")
+    }
+    #endif
+
     @objc private func statusItemClicked(_ sender: NSStatusBarButton) {
         logger.info("Status bar menu opened")
         guard let statusItem else { return }
         statusItem.menu = statusMenu
         sender.performClick(nil)
         statusItem.menu = nil
+    }
+
+    /// 菜单项可用性随插件启停实时变化（autoenablesItems 会调用本方法）。
+    /// 截图项在截图插件被停用时必须置灰——否则「停用插件」名不副实。
+    func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
+        if menuItem.action == #selector(startScreenshotFromMenu) {
+            return container.pluginRegistry.isEnabled(.screenshot)
+        }
+        return true
     }
 
     @objc private func openSearchFromMenu() {

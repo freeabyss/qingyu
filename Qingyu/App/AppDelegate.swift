@@ -165,6 +165,23 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             }
         }
 
+        // --uitest-disable-plugin <id>：启动后停用指定插件（配合 --uitest-isolated-plugins
+        // 不会污染真实偏好），用来验证各界面是否随插件启停同步。
+        if let index = ProcessInfo.processInfo.arguments.firstIndex(of: "--uitest-disable-plugin"),
+           ProcessInfo.processInfo.arguments.indices.contains(index + 1) {
+            let pluginID = PluginID(rawValue: ProcessInfo.processInfo.arguments[index + 1])
+            container.registerBuiltInPlugins()
+            Task { await container.pluginRegistry.setEnabled(false, for: pluginID) }
+        }
+
+        // --uitest-dump-menu：把菜单栏菜单项与可用状态写进日志。
+        // NSMenu 无法离屏截图，这是验证「菜单是否随插件启停变化」的唯一手段。
+        if ProcessInfo.processInfo.arguments.contains("--uitest-dump-menu") {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
+                self?.container.statusItemController.debugDumpMenu()
+            }
+        }
+
         if let path = Self.capturePNGPath() {
             // 截图期间抑制命令栏「失焦即关闭」：截图的 activate/makeKey
             // 会夺走命令栏 key 状态、把它关掉，导致「无窗口可截」。

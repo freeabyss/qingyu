@@ -36,7 +36,16 @@ final class AppContainer: NSObject {
 
     /// Task 001: first-party plugin kernel. Built-in features are migrated onto
     /// this registry in Tasks 002/003; until then existing wiring stays intact.
-    let pluginRegistry = PluginRegistry()
+    let pluginRegistry: PluginRegistry = {
+        #if DEBUG
+        // 设计评审/UI 测试：插件启停状态不写进真实 UserDefaults，
+        // 否则每次截图都会改用户的插件偏好，且不可重复。
+        if ProcessInfo.processInfo.arguments.contains("--uitest-isolated-plugins") {
+            return PluginRegistry(enablementStore: InMemoryPluginEnablementStore())
+        }
+        #endif
+        return PluginRegistry()
+    }()
 
     /// Task 002: quick launch plugin owns the app/file/calculator/command/
     /// settings search sources and the whitelisted command actions. AppContainer
@@ -553,3 +562,18 @@ final class AppContainer: NSObject {
         )
     }
 }
+
+#if DEBUG
+/// 仅供 UI 测试使用的插件启停存储：不落 UserDefaults，进程结束即丢弃。
+final class InMemoryPluginEnablementStore: PluginEnablementStore {
+    private var overrides: [PluginID: Bool] = [:]
+
+    func isEnabled(_ id: PluginID, default defaultValue: Bool) -> Bool {
+        overrides[id] ?? defaultValue
+    }
+
+    func setEnabled(_ enabled: Bool, for id: PluginID) {
+        overrides[id] = enabled
+    }
+}
+#endif
