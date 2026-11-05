@@ -291,12 +291,17 @@ final class AppContainer: NSObject {
 
     // MARK: - Runtime services lifecycle
 
-    /// Starts the clipboard plugin (capture + periodic cleanup). Called after
+    /// Starts every **enabled** plugin and wires runtime settings. Called after
     /// onboarding completes or is skipped.
+    ///
+    /// 此前只启动剪贴板插件，导致另外两个插件虽然「已启用」却一直停在 registered，
+    /// 设置页的插件管理于是显示「开关打开 + 未启动」这种自相矛盾的状态。
+    /// 改为启动全部已启用插件：状态与开关从此一致
+    /// （快速启动/截图的 start() 目前是空实现，调用无副作用）。
     func startFullExperienceServices() {
         registerBuiltInPlugins()
         Task {
-            await pluginRegistry.start(.clipboard)
+            await pluginRegistry.startAll()
             await syncRuntimeSettings()
         }
         cleanupService.start()
