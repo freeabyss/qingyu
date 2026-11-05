@@ -120,6 +120,12 @@ final class SearchPanelViewModel: ObservableObject {
     /// 最近一次搜索后判定的空状态原因。
     @Published private(set) var emptyReason: EmptyReason = .noMatch
 
+    #if DEBUG
+    /// 设计评审用：强制空状态原因，好在离屏截图里核对三种空状态各自的文案与 CTA。
+    /// 真实场景里「所有源被关掉」需要改五项设置，截图流程无法可靠地构造。
+    static var debugForceEmptyReason: EmptyReason?
+    #endif
+
     /// 是否还有可用搜索源（指源本身是否存在）。
     var hasEnabledSources: Bool {
         (searchService as? SearchService)?.hasEnabledSources ?? true
@@ -229,6 +235,11 @@ final class SearchPanelViewModel: ObservableObject {
 
     func openSettings() {
         onOpenSettings()
+    }
+
+    /// 打开「快速启动」设置页：空状态里「源被各自开关关掉」时，恢复入口在那里。
+    func openQuickLaunchSettings() {
+        NotificationCenter.default.post(name: .openManagementCenter, object: SettingsRoute.quickLaunch)
     }
 
     /// Clears the input (⌘K); the panel collapses back to the input-only state.
@@ -367,6 +378,9 @@ final class SearchPanelViewModel: ObservableObject {
         } else {
             emptyReason = .noMatch
         }
+        #if DEBUG
+        if let forced = Self.debugForceEmptyReason { emptyReason = forced }
+        #endif
         elapsed = response.elapsed * 1000
         logger.info("CommandBar query returned \(self.results.count) results in \(String(format: "%.1f", self.elapsed))ms")
     }

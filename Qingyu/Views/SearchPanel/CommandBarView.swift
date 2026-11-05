@@ -261,8 +261,13 @@ struct CommandBarView: View {
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
             if isEmptyBecauseNoSource {
+                // CTA 必须跟着副标题指向同一个页面，否则「说得对、点得错」。
                 Button(L10n.localized("commandBar.noSources.action")) {
-                    viewModel.openSettings()
+                    if viewModel.emptyReason == .allSourcesDisabled {
+                        viewModel.openQuickLaunchSettings()
+                    } else {
+                        viewModel.openSettings()
+                    }
                 }
                 .buttonStyle(.jadeSecondary)
                 .accessibilityIdentifier("commandBar.noSources.action")

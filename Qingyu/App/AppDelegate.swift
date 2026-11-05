@@ -183,6 +183,18 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             if ProcessInfo.processInfo.arguments.contains("--uitest-force-row-hover") {
                 CommandBarResultRow.debugForceHover = true
             }
+            // --uitest-force-empty-reason <noMatch|noSources|allSourcesDisabled>
+            // 强制命令栏空状态原因，用来核对三种空状态的文案与 CTA 指向。
+            if let index = ProcessInfo.processInfo.arguments.firstIndex(of: "--uitest-force-empty-reason"),
+               ProcessInfo.processInfo.arguments.indices.contains(index + 1) {
+                let raw = ProcessInfo.processInfo.arguments[index + 1]
+                switch raw {
+                case "noMatch": SearchPanelViewModel.debugForceEmptyReason = .noMatch
+                case "noSources": SearchPanelViewModel.debugForceEmptyReason = .noSources
+                case "allSourcesDisabled": SearchPanelViewModel.debugForceEmptyReason = .allSourcesDisabled
+                default: break
+                }
+            }
             let delay = Self.captureDelay()
             DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
                 self?.captureFrontmostWindow(to: path)

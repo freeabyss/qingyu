@@ -80,6 +80,26 @@ final class SearchPanelViewModelTests: XCTestCase {
 
 
 
+
+    /// 空状态的 CTA 必须跳到文案所说的那个页面。
+    /// 「源被各自关掉」时应去快速启动设置，而不是通用页。
+    func testOpenQuickLaunchSettingsPostsQuickLaunchRoute() {
+        var received: SettingsRoute?
+        let token = NotificationCenter.default.addObserver(
+            forName: .openManagementCenter,
+            object: nil,
+            queue: nil
+        ) { note in
+            received = note.object as? SettingsRoute
+        }
+        defer { NotificationCenter.default.removeObserver(token) }
+
+        let viewModel = SearchPanelViewModel(searchService: StubPanelSearchService(results: []))
+        viewModel.openQuickLaunchSettings()
+
+        XCTAssertEqual(received, .quickLaunch)
+    }
+
     /// 空状态要区分三种原因，各自指向不同的设置入口。
     /// - 没有源（插件停用）→ 去「通用 → 插件管理」
     /// - 有源但全被关掉       → 去「快速启动 → 搜索源」
