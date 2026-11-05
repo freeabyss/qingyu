@@ -79,6 +79,40 @@ final class SearchPanelViewModelTests: XCTestCase {
     }
 
 
+
+    /// 空状态要区分三种原因，各自指向不同的设置入口。
+    /// - 没有源（插件停用）→ 去「通用 → 插件管理」
+    /// - 有源但全被关掉       → 去「快速启动 → 搜索源」
+    /// - 只是没匹配           → 换关键词
+    func testEmptyReasonDistinguishesNoSourcesFromDisabledSources() async {
+        // 1. 一个源都没有
+        let empty = SearchPanelViewModel(
+            searchService: SearchService(sources: []),
+            sourcesEnabledProvider: { true }
+        )
+        empty.query = "hit"
+        await empty.searchNow()
+        XCTAssertEqual(empty.emptyReason, .noSources)
+
+        // 2. 有源，但设置里全关掉了：真实情况下被关掉的源在 search() 里直接返回空
+        let disabled = SearchPanelViewModel(
+            searchService: SearchService(sources: [SilentSource(id: "plugin.a")]),
+            sourcesEnabledProvider: { false }
+        )
+        disabled.query = "hit"
+        await disabled.searchNow()
+        XCTAssertEqual(disabled.emptyReason, .allSourcesDisabled)
+
+        // 3. 有源且启用，只是没匹配
+        let noMatch = SearchPanelViewModel(
+            searchService: SearchService(sources: [SilentSource(id: "plugin.b")]),
+            sourcesEnabledProvider: { true }
+        )
+        noMatch.query = "zzz-nothing"
+        await noMatch.searchNow()
+        XCTAssertEqual(noMatch.emptyReason, .noMatch)
+    }
+
     /// 插件启停后必须能在**本会话内**换掉搜索源。
     ///
     /// 命令栏持有的是启动时的源快照；若停用插件后仍返回其来源的结果，
@@ -485,4 +519,18 @@ private final class StaticSource: SearchSource {
             secondaryActions: []
         )]
     }
+}
+
+/// 永不返回结果的搜索源：模拟「被设置关掉」的源（真实实现同样返回空）。
+private final class SilentSource: SearchSource {
+    let id: SearchSourceID
+    let displayName = "Silent"
+    let isEnabledInSearch = true
+
+    init(id: String) {
+        self.id = SearchSourceID(rawValue: id)
+    }
+
+    func canSearch(query: String) -> Bool { true }
+    func search(query: String) async -> [SearchResult] { [] }
 }

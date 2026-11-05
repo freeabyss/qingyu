@@ -538,7 +538,22 @@ final class AppContainer: NSObject {
             },
             onClose: onClose,
             // 结果行「隐藏此结果」写黑名单用：与设置里的黑名单管理共用同一仓库。
-            searchBlacklist: SearchBlacklistRepository()
+            searchBlacklist: SearchBlacklistRepository(),
+            // 空状态需要区分「没有源」与「源被设置关掉」：后者要去快速启动设置页。
+            sourcesEnabledProvider: {
+                let service = SettingsService(persistence: .shared)
+                let keys: [SettingKey] = [
+                    .appSourceEnabled,
+                    .commandSourceEnabled,
+                    .calculatorSourceEnabled,
+                    .settingsSourceEnabled,
+                    .fileSourceEnabled
+                ]
+                for key in keys {
+                    if (try? await service.value(for: key, as: Bool.self)) ?? true { return true }
+                }
+                return false
+            }
         )
     }
 

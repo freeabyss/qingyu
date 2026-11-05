@@ -225,25 +225,42 @@ struct CommandBarView: View {
 
     /// 空结果分两种：没有匹配项（改关键词），以及「搜索源全关了」——
     /// 后者若也提示「检查搜索源设置」，用户会发现那个设置页正好被隐藏着（插件停用）。
+
+    /// 空状态文案：三种原因分别指向不同的设置入口。
+    private var isEmptyBecauseNoSource: Bool {
+        viewModel.emptyReason == .noSources || viewModel.emptyReason == .allSourcesDisabled
+    }
+
+    private var emptyTitleKey: String {
+        switch viewModel.emptyReason {
+        case .noMatch: return "commandBar.noResults.title"
+        case .noSources, .allSourcesDisabled: return "commandBar.noSources.title"
+        }
+    }
+
+    private var emptySubtitleKey: String {
+        switch viewModel.emptyReason {
+        case .noMatch: return "commandBar.noResults.subtitle"
+        case .noSources: return "commandBar.noSources.subtitle"
+        case .allSourcesDisabled: return "commandBar.noSources.settingsHint"
+        }
+    }
+
     private var noResultsState: some View {
         VStack(spacing: JadeSpace.x2.value) {
-            Image(systemName: viewModel.hasEnabledSources ? "questionmark.circle" : "power")
+            Image(systemName: isEmptyBecauseNoSource ? "power" : "questionmark.circle")
                 .font(JadeFont.commandBarNoResultsIcon)
                 .foregroundStyle(JadeColor.textTertiary)
                 .accessibilityHidden(true)
-            Text(L10n.localized(viewModel.hasEnabledSources
-                                   ? "commandBar.noResults.title"
-                                   : "commandBar.noSources.title"))
+            Text(L10n.localized(emptyTitleKey))
                 .font(JadeFont.title3)
                 .foregroundStyle(JadeColor.textPrimary)
-            Text(L10n.localized(viewModel.hasEnabledSources
-                                   ? "commandBar.noResults.subtitle"
-                                   : "commandBar.noSources.subtitle"))
+            Text(L10n.localized(emptySubtitleKey))
                 .font(JadeFont.callout)
                 .foregroundStyle(JadeColor.textSecondary)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
-            if !viewModel.hasEnabledSources {
+            if isEmptyBecauseNoSource {
                 Button(L10n.localized("commandBar.noSources.action")) {
                     viewModel.openSettings()
                 }

@@ -1,6 +1,42 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "commandBar.noSources.settingsHint" : {
+      "comment" : "Command bar empty state when every individual source toggle is off (plugin still enabled)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn sources back on under Settings → Quick Launch → Search Sources."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在「设置 → 快速启动 → 搜索源」中重新开启后即可搜索。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在「設定 → 快速啟動 → 搜尋來源」中重新開啟後即可搜尋。"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「設定 → クイック起動 → 検索ソース」で有効に戻すと検索できます。"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réactivez des sources dans Réglages → Lancement rapide → Sources de recherche."
+          }
+        }
+      }
+    },
     "commandBar.noSources.title" : {
       "comment" : "Command bar empty state when every search source is disabled",
       "extractionState" : "manual",

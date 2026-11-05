@@ -103,7 +103,24 @@ final class SearchPanelViewModel: ObservableObject {
         return hasQuery && visibleResults.isEmpty && !isLoading && resultsQuery == trimmedQuery
     }
 
-    /// 是否还有可用搜索源；全部关闭时空状态要换成「去启用插件」的引导。
+    /// 空结果的三种原因，决定空状态该给哪种引导。
+    enum EmptyReason: Equatable {
+        /// 有源在搜，只是没匹配；提示换关键词。
+        case noMatch
+        /// 一个源都没有：插件被停用了；提示去「通用 → 插件管理」。
+        case noSources
+        /// 有源但都被各自的开关关掉了；提示去「快速启动 → 搜索源」。
+        case allSourcesDisabled
+    }
+
+    /// 各源是否还有任何一个被启用（由设置决定，与插件是否启用无关）。
+    /// 注入的闭包让视图模型不依赖具体设置服务，也便于测试。
+    private let sourcesEnabledProvider: () async -> Bool
+
+    /// 最近一次搜索后判定的空状态原因。
+    @Published private(set) var emptyReason: EmptyReason = .noMatch
+
+    /// 是否还有可用搜索源（指源本身是否存在）。
     var hasEnabledSources: Bool {
         (searchService as? SearchService)?.hasEnabledSources ?? true
     }
@@ -141,8 +158,10 @@ final class SearchPanelViewModel: ObservableObject {
         dangerCommandIDs: Set<String> = SearchPanelViewModel.defaultDangerCommandIDs,
         onOpenSettings: @escaping () -> Void = {},
         onClose: @escaping () -> Void = {},
-        searchBlacklist: SearchBlacklistRepositoryProtocol? = nil
+        searchBlacklist: SearchBlacklistRepositoryProtocol? = nil,
+        sourcesEnabledProvider: @escaping () async -> Bool = { true }
     ) {
+        self.sourcesEnabledProvider = sourcesEnabledProvider
         self.searchService = searchService
         self.dangerCommandIDs = dangerCommandIDs
         self.onClose = onClose
@@ -337,6 +356,17 @@ final class SearchPanelViewModel: ObservableObject {
         results = Array(response.results.prefix(SearchService.defaultResultLimit))
         resultsQuery = trimmed
         selectedIndex = visibleResults.isEmpty ? -1 : 0
+        // 空结果时判定原因：没有源（插件停用）／有源但全被关掉／只是没匹配。
+        // 三种情况该去的地方完全不同，提示不能混用。
+        if results.isEmpty {
+            if !hasEnabledSources {
+                emptyReason = .noSources
+            } else {
+                emptyReason = await sourcesEnabledProvider() ? .noMatch : .allSourcesDisabled
+            }
+        } else {
+            emptyReason = .noMatch
+        }
         elapsed = response.elapsed * 1000
         logger.info("CommandBar query returned \(self.results.count) results in \(String(format: "%.1f", self.elapsed))ms")
     }
