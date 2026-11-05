@@ -158,7 +158,10 @@ struct ClipboardDetailPane: View {
     private func detail(for item: ClipboardRecordSnapshot) -> some View {
         VStack(spacing: 0) {
             header(for: item)
-                .frame(height: Self.headerHeight)
+                // 用 minHeight 而不是固定高度：52pt 是按正文 13pt 算的，
+                // 系统文字放大到 1.35× 时「复制」主按钮刚好放得下，
+                // 再大就会被裁掉。minHeight 让头部跟着内容长，不设上限。
+                .frame(minHeight: Self.headerHeight)
             Divider().overlay(JadeColor.border)
             // PRD 状态表：「不可用内容」要显示内容**及不可用原因**。
             // 行内的警告图标只有 tooltip，详情区才是能完整读到原因的地方。
