@@ -126,7 +126,9 @@ enum AssistantCommandCatalog {
             en: "Open Applications",
             zhAliases: ["应用程序", "应用目录", "程序目录", "打开应用程序"],
             enAliases: ["applications", "apps folder", "open applications"],
-            icon: "app"
+            // "app" 符号本身就是一个空圆角方块，和开关/占位符太像；
+            // 应用网格图标表意更明确。
+            icon: "square.grid.2x2"
         ),
         command(
             .openDesktop,
