@@ -24,6 +24,8 @@ final class CommandBarController: NSObject {
 
     private var panel: NSPanel?
     private var viewModel: SearchPanelViewModel?
+    /// 插件启停通知的观察者。
+    private var pluginObserver: NSObjectProtocol?
     private var searchStateCancellable: AnyCancellable?
     private var localEventMonitor: Any?
     private var isClosingPanel = false
@@ -40,6 +42,18 @@ final class CommandBarController: NSObject {
     init(container: AppContainer) {
         self.container = container
         super.init()
+        // 插件启停后重建搜索源：视图模型是懒创建的，创建时自然会取到最新源，
+        // 这里只处理「已经创建过」的情况。
+        pluginObserver = NotificationCenter.default.addObserver(
+            forName: .pluginEnablementDidChange,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated {
+                guard let self, let viewModel = self.viewModel else { return }
+                viewModel.applySearchSources(self.container.currentSearchSources())
+            }
+        }
     }
 
     // MARK: - Public API

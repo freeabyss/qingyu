@@ -488,11 +488,16 @@ final class AppContainer: NSObject {
     ///
     /// `onClose` is invoked when the view model wants the hosting panel dismissed
     /// (e.g. after confirming a result).
+    /// 当前应参与命令栏搜索的源。插件启停后由命令栏重新取用。
+    func currentSearchSources() -> [SearchSource] {
+        pluginRegistry.searchSources.filter { $0.id != .clipboard }
+    }
+
     func makeSearchPanelViewModel(onClose: @escaping () -> Void) -> SearchPanelViewModel {
         registerBuiltInPlugins()
         // Quick Launch search: apps / commands / calculator / files / settings only.
         // Clipboard history is a dedicated window (⌥⌘C) and is not mixed into ⌥Space.
-        let sources = pluginRegistry.searchSources.filter { $0.id != .clipboard }
+        let sources = currentSearchSources()
         let usageStore = UsageStatRepository()
         let commandExecutor = SystemCommandExecutor(
             clipboardHistoryService: ClipboardHistoryService(repository: clipboardRepository)

@@ -78,6 +78,27 @@ final class SearchPanelViewModelTests: XCTestCase {
         XCTAssertGreaterThan(searchesAfter, searchesBefore, "隐藏后应重跑查询以移除该结果")
     }
 
+
+    /// 插件启停后必须能在**本会话内**换掉搜索源。
+    ///
+    /// 命令栏持有的是启动时的源快照；若停用插件后仍返回其来源的结果，
+    /// 就会出现「侧栏页面已消失、结果却还在」的矛盾。
+    func testApplySearchSourcesSwapsSourcesForLaterSearches() async {
+        let first = StaticSource(id: "plugin.a", title: "A 结果")
+        let second = StaticSource(id: "plugin.b", title: "B 结果")
+        let service = SearchService(sources: [first])
+        let viewModel = SearchPanelViewModel(searchService: service)
+
+        viewModel.query = "hit"
+        await viewModel.searchNow()
+        XCTAssertTrue(viewModel.visibleResults.contains { $0.title == "A 结果" })
+
+        viewModel.applySearchSources([second])
+        await viewModel.searchNow()
+        XCTAssertFalse(viewModel.visibleResults.contains { $0.title == "A 结果" }, "停用的源不应再返回结果")
+        XCTAssertTrue(viewModel.visibleResults.contains { $0.title == "B 结果" })
+    }
+
     private static func makeResult(index: Int) -> SearchResult {
         SearchResult(
             id: SearchResultID(rawValue: "test:\(index)"),
@@ -432,5 +453,36 @@ private actor RecordingBlacklistRepository: SearchBlacklistRepositoryProtocol {
     func remove(sourceID: SearchSourceID, resultID: SearchResultID) async throws {}
     func contains(sourceID: SearchSourceID, resultID: SearchResultID) async -> Bool {
         hiddenIDs.contains(resultID)
+    }
+}
+
+/// 固定返回一条结果的搜索源，用来验证源集合可以在运行期替换。
+private final class StaticSource: SearchSource {
+    let id: SearchSourceID
+    let displayName = "Static"
+    let isEnabledInSearch = true
+    private let title: String
+
+    init(id: String, title: String) {
+        self.id = SearchSourceID(rawValue: id)
+        self.title = title
+    }
+
+    func canSearch(query: String) -> Bool { true }
+
+    func search(query: String) async -> [SearchResult] {
+        [SearchResult(
+            id: SearchResultID(rawValue: "\(id.rawValue)-\(title)"),
+            sourceID: id,
+            title: title,
+            subtitle: nil,
+            icon: .systemSymbol("doc"),
+            typeLabel: "Type",
+            baseScore: 100,
+            matchScore: 0,
+            usageScore: 0,
+            primaryAction: .copyText(title),
+            secondaryActions: []
+        )]
     }
 }

@@ -346,7 +346,9 @@ final class SettingsBackedSearchSource: SearchSource {
 final class SearchService: SearchServiceProtocol {
     static let defaultResultLimit = 12
 
-    private let sources: [SearchSource]
+    /// 可变：插件被启用/停用时，贡献的搜索源要在本会话内立即生效，
+    /// 否则会出现「侧栏里页面已消失、命令栏却还在返回该插件结果」的矛盾。
+    private var sources: [SearchSource]
     private let resultLimit: Int
     private let scorer: SearchScoringProtocol
     private let usageStore: SearchUsageStoreProtocol
@@ -367,6 +369,11 @@ final class SearchService: SearchServiceProtocol {
         self.usageStore = usageStore
         self.blacklistChecker = blacklistChecker
         self.actionExecutor = actionExecutor
+    }
+
+    /// 替换搜索源集合（插件启停后调用）。
+    func updateSources(_ newSources: [SearchSource]) {
+        sources = newSources
     }
 
     /// 是否有惰性索引源仍在后台建索引。

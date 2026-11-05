@@ -9,6 +9,8 @@ import os.log
 /// can reload their runtime state without waiting for app restart.
 extension Notification.Name {
     static let settingsDidChange = Notification.Name("com.freeabyss.qingyu.settingsDidChange")
+    /// 插件启用状态变化：命令栏据此重建搜索源。
+    static let pluginEnablementDidChange = Notification.Name("com.freeabyss.qingyu.pluginEnablementDidChange")
     static let openManagementCenter = Notification.Name("com.freeabyss.qingyu.openManagementCenter")
 }
 
@@ -185,6 +187,9 @@ final class SettingsViewModel: ObservableObject {
     func setPluginEnabled(_ enabled: Bool, for id: PluginID) async {
         await pluginRegistry?.setEnabled(enabled, for: id)
         objectWillChange.send()
+        // 命令栏持有的是启动时的搜索源快照，必须通知它重建，
+        // 否则「页面已从侧栏消失、结果却还在」。
+        notificationCenter.post(name: .pluginEnablementDidChange, object: id)
     }
 
     /// 重试启动失败插件（PRD：失败时显示原因与重试操作）。
