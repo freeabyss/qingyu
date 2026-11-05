@@ -20,6 +20,10 @@ struct ClipboardHistoryView: View {
 
     /// Fixed detail-pane width (independent of content size).
     private static let detailPaneWidth: CGFloat = 360
+    /// 详情栏在窄窗口下的收窄值（与 ClipboardDetailPane.detailPaneMinWidth 一致）。
+    private static let detailPaneCompactWidth: CGFloat = 280
+    /// 低于该窗口宽度就收窄详情栏：860 是「初始宽度」，以下都算紧凑。
+    private static let detailPaneCollapseWidth: CGFloat = 860
 
     /// 状态栏高度：36pt，仅用于剪贴板历史窗口底部的状态栏；只定高，宽度随窗口而定，不并入 JadeSpace，那是间距档位，不是状态栏高度。
     private static let statusBarHeight: CGFloat = 36
@@ -29,7 +33,8 @@ struct ClipboardHistoryView: View {
     private static let searchInputMinHeight: CGFloat = 40
 
     /// 窗口最小宽度：860pt，等于窗口打开时的默认宽度（见 ClipboardHistoryWindowController 的 contentRect），仅用于剪贴板历史窗口的最小尺寸约束，与最小高度成组出现；不并入 JadeSpace，那是间距档位，不是窗口尺寸。720pt 时文件行 6 个操作占 212pt，标题只剩约 43pt，缩到打开尺寸以下即不可读，故下限定为打开尺寸。
-    private static let windowMinWidth: CGFloat = 860
+    /// PRD 02-ui-spec：最小宽度 720（详情栏固定 360，列表随宽度伸缩）。
+    private static let windowMinWidth: CGFloat = 720
 
     /// 窗口最小高度：420pt，仅用于剪贴板历史窗口的最小尺寸约束，与最小宽度成组出现；不并入 JadeSpace，那是间距档位，不是窗口尺寸。
     private static let windowMinHeight: CGFloat = 420
@@ -239,13 +244,16 @@ struct ClipboardHistoryView: View {
         } else if viewModel.items.isEmpty {
             emptyState
         } else {
-            HStack(spacing: 0) {
-                list
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            // 窄窗口下详情栏收窄到 280：720 最小宽度时列表只剩 360，
+            // 行标题会被截到 6 个字左右。详情栏让出 80pt，列表可读性明显回升。
+            GeometryReader { proxy in
+                HStack(spacing: 0) {
+                    list
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-                Divider().overlay(JadeColor.border)
+                    Divider().overlay(JadeColor.border)
 
-                ClipboardDetailPane(
+                    ClipboardDetailPane(
                     item: viewModel.selectedItem,
                     imageProvider: { await viewModel.originalImageData(for: $0) },
                     richTextProvider: { await viewModel.richTextAttributed(for: $0) },
@@ -258,8 +266,11 @@ struct ClipboardHistoryView: View {
                         }
                     }
                 )
-                .frame(width: Self.detailPaneWidth)
-                .frame(maxHeight: .infinity)
+                    .frame(width: proxy.size.width < Self.detailPaneCollapseWidth
+                           ? Self.detailPaneCompactWidth
+                           : Self.detailPaneWidth)
+                    .frame(maxHeight: .infinity)
+                }
             }
         }
     }

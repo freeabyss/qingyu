@@ -59,7 +59,8 @@ final class ClipboardHistoryWindowController: NSWindowController, NSWindowDelega
             )
             .tint(JadeColor.primary)
             // 与 ClipboardHistoryView.windowMinWidth 同步：下限即打开尺寸，防文件行标题被 6 个操作挤到约 43pt。
-            window.contentMinSize = NSSize(width: 860, height: 420)
+            // PRD 02-ui-spec：最小 720×420（此前误写成 860，小屏用户无法用紧凑宽度）。
+            window.contentMinSize = NSSize(width: 720, height: 420)
             window.center()
             window.contentView = NSHostingView(rootView: view)
             window.isReleasedWhenClosed = false
