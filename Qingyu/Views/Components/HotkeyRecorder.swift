@@ -22,12 +22,18 @@ public struct HotkeyRecorder: View {
     ///   - name: `KeyboardShortcuts.Name` 绑定的快捷键。
     ///   - isConflicting: 是否存在冲突（外部检测后传入）。
     ///   - conflictMessage: 冲突提示文案（外部提供）。
+    /// 是否显示「恢复默认」。首启引导里没有「默认」可言（用户还没改过），
+    /// 显示它只会增加噪音，因此由调用方关掉。
+    private let showsResetToDefault: Bool
+
     public init(for name: KeyboardShortcuts.Name,
                 isConflicting: Binding<Bool> = .constant(false),
-                conflictMessage: Binding<String?> = .constant(nil)) {
+                conflictMessage: Binding<String?> = .constant(nil),
+                showsResetToDefault: Bool = true) {
         self.name = name
         self._isConflicting = isConflicting
         self._conflictMessage = conflictMessage
+        self.showsResetToDefault = showsResetToDefault
     }
 
     private var borderColor: Color {
@@ -69,13 +75,15 @@ public struct HotkeyRecorder: View {
 
             // PRD §02-ui-spec：快捷键录制器要「显示当前组合、录制状态、冲突原因和恢复默认入口」。
             // 恢复默认此前没有入口（全局「重置全部」方法也从未接到 UI 上）。
-            Button(L10n.localized("settings.shortcuts.resetToDefault")) {
-                KeyboardShortcuts.reset(name)
+            if showsResetToDefault {
+                Button(L10n.localized("settings.shortcuts.resetToDefault")) {
+                    KeyboardShortcuts.reset(name)
+                }
+                .buttonStyle(.plain)
+                .font(JadeFont.caption)
+                .foregroundStyle(JadeColor.primary)
+                .accessibilityIdentifier("settings.shortcuts.reset")
             }
-            .buttonStyle(.plain)
-            .font(JadeFont.caption)
-            .foregroundStyle(JadeColor.primary)
-            .accessibilityIdentifier("settings.shortcuts.reset")
         }
     }
 }

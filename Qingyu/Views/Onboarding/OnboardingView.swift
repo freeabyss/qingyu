@@ -118,7 +118,9 @@ struct OnboardingView: View {
                         for: .togglePanel,
                         isConflicting: .constant(viewModel.hotkeyValidation == .conflict),
                         conflictMessage: .constant(viewModel.hotkeyValidation == .conflict
-                            ? L10n.localized("onboarding.hotkey.conflict") : nil)
+                            ? L10n.localized("onboarding.hotkey.conflict") : nil),
+                        // 首启引导里不显示「恢复默认」：用户还没改过，没有「默认」可回退。
+                        showsResetToDefault: false
                     )
                     .onChange(of: KeyboardShortcuts.getShortcut(for: .togglePanel)) { _ in
                         viewModel.validateHotkey()
