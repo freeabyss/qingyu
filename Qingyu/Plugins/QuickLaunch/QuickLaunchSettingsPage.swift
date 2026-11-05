@@ -217,13 +217,24 @@ struct QuickLaunchPluginSettingsPage: View {
                 .frame(width: KeywordColumn.custom)
             }
 
+            // 提示语必须跟随当前状态：已停用时再说「停用后…」既不通，也没告诉用户怎么恢复。
+            // 另外复选框标签是空字符串，VoiceOver 会读成无名控件，需显式补标签。
             Toggle("", isOn: enabledBinding(for: entry))
                 .toggleStyle(.checkbox)
                 .labelsHidden()
                 .frame(width: KeywordColumn.enabled)
-                .help(L10n.localized("settings.quickLaunch.keyword.disabled.help"))
+                .help(keywordToggleHelp(for: entry))
+                .accessibilityLabel(Text(keywordToggleHelp(for: entry)))
         }
         .padding(.vertical, JadeSpace.x1.value)
+    }
+
+
+    /// 关键词行复选框的提示：按当前启用状态给出对应的动作说明。
+    private func keywordToggleHelp(for entry: KeywordLaunchPreset) -> String {
+        isDisabled(entry)
+            ? L10n.localized("settings.quickLaunch.keyword.enable.help")
+            : L10n.localized("settings.quickLaunch.keyword.disabled.help")
     }
 
     // MARK: - 自定义条目

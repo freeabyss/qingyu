@@ -1,6 +1,42 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "settings.quickLaunch.keyword.enable.help" : {
+      "comment" : "Quick launch keyword row: tooltip when the keyword is currently disabled and can be re-enabled",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check to show this keyword in the search panel again."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "勾选后该关键词重新出现在命令栏。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "勾選後該關鍵詞重新出現在命令列。"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "チェックすると、このキーワードが再び検索パネルに表示されます。"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cochez pour réafficher ce mot-clé dans le panneau de recherche."
+          }
+        }
+      }
+    },
     "about.brandName" : {
       "comment" : "Brand lockup shown in the settings sidebar header and the About page. Same in every language, like menubar.appTitle.",
       "extractionState" : "manual",
