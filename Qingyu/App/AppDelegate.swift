@@ -166,6 +166,20 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
 
 
+        // --uitest-open-pin-text：文本贴图（PRD 规定初始 420×280），
+        // 图片贴图之外的另一种载荷，排版与最小尺寸需要单独看。
+        if ProcessInfo.processInfo.arguments.contains("--uitest-open-pin-text") {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { [weak self] in
+                let sample = """
+                第七轮设计评审：文本贴图
+                · 初始尺寸 420×280
+                · 长文本应正常换行，不裁切
+                · 悬停时才出现缩放/透明度工具条
+                """
+                _ = self?.container.pinWindowController.present(payload: .text(sample))
+            }
+        }
+
         // --uitest-dump-menu：把菜单栏菜单项与可用状态写进日志。
         // NSMenu 无法离屏截图，这是验证「菜单是否随插件启停变化」的唯一手段。
         if ProcessInfo.processInfo.arguments.contains("--uitest-dump-menu") {

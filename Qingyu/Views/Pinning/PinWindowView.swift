@@ -65,17 +65,25 @@ struct PinWindowView: View {
                         .jadePadding(.x2)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
+        // 文本类贴图要自带背景面：贴图窗口是全透明的（backgroundColor = .clear），
+        // 裸文本会跟着外观变成白字浮在任意内容上——深色模式下压在浅色文档上完全读不出来。
+        // 加一层 surface 背景 + 明确前景色，两种外观下都能读。
         case .attributedText(let attributed):
             Text(AttributedString(attributed))
                 .textSelection(.enabled)
-                .jadePadding(.x2)
+                .jadePadding(.x3)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .background(JadeColor.surface1)
+                .clipShape(JadeRadius.lg.shape)
         case .text(let text):
             Text(text)
                 .font(JadeFont.body)
+                .foregroundStyle(JadeColor.textPrimary)
                 .textSelection(.enabled)
-                .jadePadding(.x2)
+                .jadePadding(.x3)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .background(JadeColor.surface1)
+                .clipShape(JadeRadius.lg.shape)
         }
     }
 }
