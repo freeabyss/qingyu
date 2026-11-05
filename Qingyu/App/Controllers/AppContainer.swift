@@ -544,7 +544,12 @@ final class AppContainer: NSObject {
             actionExecutor: actionExecutor,
             resourceStore: resourceStore,
             // 临时暂停/恢复：与全局「启用剪贴板」开关共用同一个记录服务。
-            recordingControl: clipboardPlugin.clipboardService
+            recordingControl: clipboardPlugin.clipboardService,
+            // 插件被停用时监控任务已取消，必须连插件一起恢复，「开启」才真的有效。
+            isPluginEnabled: { [weak self] in self?.pluginRegistry.isEnabled(.clipboard) ?? true },
+            enablePlugin: { [weak self] in
+                await self?.pluginRegistry.setEnabled(true, for: .clipboard)
+            }
         )
     }
 }

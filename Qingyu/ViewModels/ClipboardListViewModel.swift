@@ -125,6 +125,11 @@ final class ClipboardListViewModel: ObservableObject {
     /// 记录开关的运行时控制；为 nil 时（测试/预览）不提供暂停能力。
     private let recordingControl: ClipboardServiceProtocol?
 
+    /// 剪贴板**插件**是否启用。插件被停用时监控任务已取消，
+    /// 只把设置改回 true 并不能恢复记录——所以「开启」按钮必须同时恢复插件。
+    private let isPluginEnabled: (@MainActor () -> Bool)?
+    private let enablePlugin: (@MainActor () async -> Void)?
+
     @Published var showToast = false
     @Published var toastMessage = ""
     /// Variant used to render `toastMessage` (info for success/notice, error for failures).
@@ -165,8 +170,12 @@ final class ClipboardListViewModel: ObservableObject {
         actionExecutor: SearchActionExecutorProtocol? = nil,
         resourceStore: FileResourceStoreProtocol? = nil,
         settingsService: SettingsServiceProtocol? = nil,
-        recordingControl: ClipboardServiceProtocol? = nil
+        recordingControl: ClipboardServiceProtocol? = nil,
+        isPluginEnabled: (@MainActor () -> Bool)? = nil,
+        enablePlugin: (@MainActor () async -> Void)? = nil
     ) {
+        self.isPluginEnabled = isPluginEnabled
+        self.enablePlugin = enablePlugin
         self.recordingControl = recordingControl
         let defaultIndex = InMemorySearchIndex()
         let defaultResourceStore = resourceStore ?? FileResourceStore(fileSystem: PersistenceController.shared.fileSystem)
@@ -428,6 +437,10 @@ final class ClipboardListViewModel: ObservableObject {
 
     func enableClipboard() async {
         do {
+            // 插件被停用时先恢复插件，否则设置改回去也不会有任何记录。
+            if isPluginEnabled?() == false {
+                await enablePlugin?()
+            }
             try await settingsService.set(true, for: .clipboardEnabled)
             clipboardEnabled = true
             NotificationCenter.default.post(name: .settingsDidChange, object: nil)
@@ -557,7 +570,9 @@ final class ClipboardListViewModel: ObservableObject {
             return
         }
         #endif
-        clipboardEnabled = (try? await settingsService.value(for: .clipboardEnabled, as: Bool.self)) ?? true
+        let settingEnabled = (try? await settingsService.value(for: .clipboardEnabled, as: Bool.self)) ?? true
+        // 插件被停用等价于「功能关闭」：窗口应显示关闭态，而不是空列表。
+        clipboardEnabled = settingEnabled && (isPluginEnabled?() ?? true)
         let retentionRaw = (try? await settingsService.stringValue(for: .clipboardRetention)) ?? "30d"
         retentionDays = ClipboardRetention(rawValue: retentionRaw)?.days
     }

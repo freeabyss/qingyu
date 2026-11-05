@@ -265,6 +265,42 @@ final class ClipboardListViewModelTests: XCTestCase {
         XCTAssertFalse(viewModel.isRecordingPaused)
     }
 
+
+    /// 插件被停用时，「剪贴板已关闭」态必须出现，且「开启」要能真的恢复。
+    ///
+    /// 陷阱：插件停用会取消监控任务，只把设置改回 true 不会恢复记录。
+    /// 因此 enableClipboard() 必须先恢复插件，否则用户点了「开启」什么都不会发生。
+    func testEnableClipboardRestoresDisabledPlugin() async throws {
+        final class Flag {
+            var pluginEnabled = false
+            var enableCalls = 0
+        }
+        let flag = Flag()
+        let settings = MockSettingsService()
+        try await settings.set(true, for: .clipboardEnabled)
+        let repository = MockClipboardRepository()
+        let viewModel = ClipboardListViewModel(
+            queryService: MockClipboardIndexQueryService(items: [], snapshots: [:]),
+            repository: repository,
+            historyService: MockClipboardHistoryService(repository: repository),
+            actionExecutor: MockClipboardActionExecutor(),
+            resourceStore: MockFileResourceStore(),
+            settingsService: settings,
+            isPluginEnabled: { flag.pluginEnabled },
+            enablePlugin: {
+                flag.enableCalls += 1
+                flag.pluginEnabled = true
+            }
+        )
+
+        await viewModel.load()
+        XCTAssertFalse(viewModel.clipboardEnabled, "插件停用时应显示关闭态")
+
+        await viewModel.enableClipboard()
+        XCTAssertEqual(flag.enableCalls, 1, "必须先恢复插件")
+        XCTAssertTrue(viewModel.clipboardEnabled)
+    }
+
 }
 
 private final class ClipboardHistoryFixtures {
