@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-Hans"><head><meta charset="utf-8"><title>清羽 · 设置 · 方向一 白</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--paper:#F7F5F1;--ink:#1B1A18;--ink2:#5C5A54;--ink3:#8E8A81;--hair:#DBD6CB;--hair2:#E7E3DA;--tint:#F1EDE4;--zhu:#9E2A1D}
+body{width:920px;height:640px;background:var(--paper);color:var(--ink);overflow:hidden;
+  font-family:-apple-system,"SF Pro Text","PingFang SC",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.win{width:920px;height:640px;display:flex}
+/* 侧栏 */
+.side{width:200px;border-right:1px solid var(--hair);padding:26px 0;display:flex;flex-direction:column}
+.side .brand{padding:0 20px 22px;font-size:11px;letter-spacing:.3em;color:var(--ink3)}
+.it{padding:8px 20px;font-size:13px;color:var(--ink2);letter-spacing:.02em}
+.it.on{color:var(--ink);border-left:2px solid var(--zhu);padding-left:18px;font-weight:500}
+.grp{font-size:9.5px;letter-spacing:.26em;color:var(--ink3);padding:18px 20px 6px}
+/* 主区 */
+.main{flex:1;padding:34px 44px;overflow:hidden}
+h1{font-size:26px;font-weight:300;letter-spacing:.04em}
+.sub{font-size:12px;color:var(--ink3);margin-top:7px;letter-spacing:.02em}
+.sec{margin-top:26px}
+.sec-h{font-size:9.5px;letter-spacing:.26em;color:var(--ink3);padding-bottom:8px;border-bottom:1px solid var(--hair)}
+.row{display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--hair2);font-size:13px}
+.row .meta{font-size:11px;color:var(--ink3);letter-spacing:.04em}
+.row .fill{flex:1}
+.row .reason{font-size:11px;color:var(--zhu)}
+.sw{width:34px;height:18px;border:1px solid var(--ink3);border-radius:10px;position:relative;flex:none}
+.sw i{position:absolute;left:2px;top:2px;width:12px;height:12px;border-radius:50%;background:var(--ink3)}
+.sw.on{background:var(--ink);border-color:var(--ink)}
+.sw.on i{left:auto;right:2px;background:var(--paper)}
+.seg{display:flex;border:1px solid var(--hair)}
+.seg span{padding:5px 13px;font-size:11.5px;color:var(--ink2);border-right:1px solid var(--hair)}
+.seg span:last-child{border-right:none}
+.seg span.on{background:var(--tint);color:var(--ink);font-weight:500}
+.btn-quiet{border:1px solid var(--ink);padding:5px 12px;font-size:11.5px;letter-spacing:.06em;background:transparent;color:var(--ink)}
+.stat{font-size:11px;color:var(--ink3);letter-spacing:.06em}
+.stat.run{color:#1B6B36}
+</style></head>
+<body><div class="win">
+  <div class="side">
+    <div class="brand">QINGYU</div>
+    <div class="it on">通用</div>
+    <div class="grp">功能列表</div>
+    <div class="it">快速启动</div>
+    <div class="it">剪贴板</div>
+    <div class="it">截图</div>
+    <div class="grp">&nbsp;</div>
+    <div class="it">关于</div>
+  </div>
+  <div class="main">
+    <h1>通用</h1>
+    <div class="sub">插件管理、外观、语言、数据与权限</div>
+
+    <div class="sec">
+      <div class="sec-h">插件管理</div>
+      <div class="row"><span>快速启动</span><span class="meta">1.0.0</span><span class="fill"></span><span class="stat run">运行中</span><span class="sw on"><i></i></span></div>
+      <div class="row"><span>剪贴板</span><span class="meta">1.0.0</span><span class="fill"></span><span class="stat run">运行中</span><span class="sw on"><i></i></span></div>
+      <div class="row"><span>截图</span><span class="meta">1.0.0</span><span class="fill"></span><span class="reason">权限未授予</span><button class="btn-quiet">重试</button><span class="sw"><i></i></span></div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-h">外观</div>
+      <div class="row"><span>主题</span><span class="fill"></span>
+        <div class="seg"><span class="on">跟随系统</span><span>浅色</span><span>深色</span></div></div>
+      <div class="row"><span>语言</span><span class="fill"></span>
+        <div class="seg"><span class="on">跟随系统</span><span>简体中文</span><span>English</span></div></div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-h">数据</div>
+      <div class="row"><span>本地数据</span><span class="fill"></span><span class="meta">128.4 MB</span><button class="btn-quiet">打开数据目录</button></div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-h">权限</div>
+      <div class="row"><span>屏幕录制</span><span class="fill"></span><span class="stat">已授权</span></div>
+      <div class="row"><span>辅助功能</span><span class="fill"></span><span class="stat">已授权</span></div>
+    </div>
+  </div>
+</div></body></html>

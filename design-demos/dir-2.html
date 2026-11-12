@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-Hans"><head><meta charset="utf-8"><title>清羽 · 方向二 · 结构</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--ink:#0A0A0A;--paper:#FFFFFF;--grey:#8A8A8A;--line:#0A0A0A;--hair:#D8D8D8;--wash:#F2F2F2;--accent:#1F3BFF}
+body{width:1440px;height:900px;background:var(--paper);color:var(--ink);overflow:hidden;position:relative;
+  font-family:-apple-system,"SF Pro Text","Helvetica Neue","PingFang SC",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.board{position:absolute;inset:0;padding:26px 30px}
+.head{display:flex;align-items:flex-end;gap:16px;border-bottom:4px solid var(--line);padding-bottom:10px}
+.mk{font-size:11px;letter-spacing:.3em;text-transform:uppercase}
+.hn{font-size:34px;font-weight:800;letter-spacing:-.03em;line-height:1}
+.hnote{font-size:11px;color:#4a4a4a;margin-left:auto;max-width:520px;text-align:right;line-height:1.7;letter-spacing:.02em}
+.mono{font-family:"SF Mono",ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
+
+.win{position:absolute;background:var(--paper);border:2px solid var(--line)}
+/* 命令栏 */
+.cmd{left:30px;top:104px;width:623px;height:459px;display:flex;flex-direction:column;overflow:hidden}
+.band{background:var(--ink);color:#fff;padding:16px 20px 14px}
+.band .cap{font-size:9.5px;letter-spacing:.34em;text-transform:uppercase;opacity:.6}
+.band .q{font-size:29px;font-weight:800;letter-spacing:-.02em;margin-top:3px}
+.band .meta{display:flex;justify-content:space-between;margin-top:9px;font-size:10px;letter-spacing:.16em;opacity:.72}
+.tbl{flex:1;overflow:hidden;position:relative}
+.tr{display:grid;grid-template-columns:34px 1fr 74px 26px;align-items:center;border-bottom:1px solid var(--line);padding:0 14px;height:47px}
+.tr.sel{background:var(--wash);box-shadow:inset 4px 0 0 var(--accent)}
+.tr .n{font-size:10px;letter-spacing:.08em;color:var(--grey)}
+.tr.sel .n{color:var(--accent);font-weight:700}
+.tr .t{font-size:14px;font-weight:600;letter-spacing:-.01em}
+.tr .s{font-size:10px;color:var(--grey);margin-top:2px;letter-spacing:.02em}
+.tr .tag{font-size:9px;letter-spacing:.16em;text-transform:uppercase;text-align:right;border-left:1px solid var(--hair);padding-left:8px;color:#333}
+.tr .en{font-size:11px;text-align:right;color:var(--accent);font-weight:700}
+.cfoot{border-top:4px solid var(--line);padding:9px 16px;display:flex;gap:20px;font-size:10px;letter-spacing:.14em;text-transform:uppercase}
+.cfoot .k{border:1.5px solid var(--ink);padding:1px 5px;font-size:9px;font-weight:700}
+
+/* 剪贴板 */
+.clip{left:700px;top:84px;width:705px;height:426px;display:flex;flex-direction:column;overflow:hidden}
+.cbar{border-bottom:2px solid var(--line);padding:12px 16px;display:flex;align-items:center;gap:14px}
+.cbar .q{font-size:13px;color:var(--grey);letter-spacing:.04em}
+.cbar .cnt{margin-left:auto;font-size:10px;letter-spacing:.16em;text-transform:uppercase}
+.tabs{display:flex;border-bottom:2px solid var(--line)}
+.tab{flex:1;padding:9px 0;text-align:center;font-size:10px;letter-spacing:.18em;text-transform:uppercase;border-right:1px solid var(--line)}
+.tab:last-child{border-right:none}
+.tab.on{background:var(--ink);color:#fff}
+.cbody{flex:1;display:flex;min-height:0}
+.clist{width:268px;border-right:2px solid var(--line);overflow:hidden}
+.ci{padding:10px 12px;border-bottom:1px solid var(--hair);display:grid;grid-template-columns:20px 1fr;gap:8px}
+.ci.sel{background:var(--wash);box-shadow:inset 3px 0 0 var(--accent)}
+.ci .ix{font-size:9px;color:var(--grey);padding-top:2px}
+.ci .ct{font-size:12px;font-weight:600;line-height:1.35}
+.ci .cs{font-size:9.5px;color:var(--grey);margin-top:3px;letter-spacing:.04em}
+.det{flex:1;display:flex;flex-direction:column;min-width:0}
+.dh{display:flex;align-items:center;border-bottom:1px solid var(--line);padding:0 14px;height:42px;gap:12px}
+.dh .dt{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase}
+.dh .when{font-size:9.5px;color:var(--grey)}
+.dcopy{margin-left:auto;background:var(--ink);color:#fff;border:none;padding:6px 12px;font-size:10px;letter-spacing:.14em;text-transform:uppercase;font-weight:700}
+.dbody{padding:16px 16px;font-size:13px;line-height:1.8;flex:1}
+.dbody .lead{font-weight:700}
+.dfoot{border-top:1px solid var(--line);display:flex;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase}
+.dfoot div{padding:7px 12px;border-right:1px solid var(--hair)}
+
+/* 设置 */
+.set{left:700px;top:534px;width:534px;height:340px;display:flex;overflow:hidden;border-width:2px}
+.ss{width:124px;border-right:2px solid var(--line)}
+.ss .cap{font-size:8.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--grey);padding:10px 12px 5px}
+.ss .it{padding:6px 12px;font-size:11px;border-bottom:1px solid var(--hair)}
+.ss .it.on{background:var(--ink);color:#fff;font-weight:700}
+.sm{flex:1;padding:14px 16px;overflow:hidden}
+.sm h2{font-size:20px;font-weight:800;letter-spacing:-.02em}
+.sm .sub{font-size:10px;color:var(--grey);margin-top:3px;letter-spacing:.04em}
+.grp{margin-top:12px;border-top:2px solid var(--line)}
+.grp .gh{font-size:8.5px;letter-spacing:.22em;text-transform:uppercase;padding:6px 0 4px}
+.gr{display:grid;grid-template-columns:1fr 66px 34px;align-items:center;padding:6px 0;border-bottom:1px solid var(--hair);font-size:11px}
+.gr .st{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--grey)}
+.gr .st.run{color:#0a7a33}
+.sw{width:30px;height:15px;border:2px solid var(--ink);border-radius:2px;position:relative}
+.sw.on{background:var(--ink)}
+.sw::after{content:"";position:absolute;top:1px;left:1px;width:9px;height:9px;background:var(--paper);border:1px solid var(--ink)}
+.sw.on::after{left:auto;right:1px;background:var(--paper)}
+.note{position:absolute;left:30px;top:594px;width:610px;font-size:10.5px;line-height:1.9;color:#4a4a4a}
+.note b{color:var(--ink)}
+.giant{position:absolute;right:34px;bottom:-6px;font-size:120px;font-weight:800;letter-spacing:-.06em;line-height:.8;color:#0A0A0A;opacity:.07}
+</style></head>
+<body><div class="board">
+  <div class="head">
+    <div>
+      <div class="mk">方向二 · 结构</div>
+      <div class="hn" style="margin-top:6px">清羽 Qingyu</div>
+    </div>
+    <div class="hnote">借的是瑞士网格与粗规则线：栏线分区、大写紧字距、一处超大字号做锚点。<br>form 来自内容：结果要横向比较（类型／来源／动作），骨架天然是表格。</div>
+  </div>
+
+  <div class="win cmd">
+    <div class="band">
+      <div class="cap">Command</div>
+      <div class="q">设置</div>
+      <div class="meta"><span>7 RESULTS</span><span>12 MS</span><span>ESC CLOSE</span></div>
+    </div>
+    <div class="tbl">
+      <div class="tr sel"><div class="n">01</div><div><div class="t">系统设置</div><div class="s">/System/Applications/System Settings.app</div></div><div class="tag">应用</div><div class="en">⏎</div></div>
+      <div class="tr"><div class="n">02</div><div><div class="t">打开本应用设置</div><div class="s">Open App Settings</div></div><div class="tag">命令</div><div></div></div>
+      <div class="tr"><div class="n">03</div><div><div class="t">剪贴板</div><div class="s">Clipboard Settings</div></div><div class="tag">设置</div><div></div></div>
+      <div class="tr"><div class="n">04</div><div><div class="t">截图</div><div class="s">Screenshot Settings</div></div><div class="tag">设置</div><div></div></div>
+      <div class="tr"><div class="n">05</div><div><div class="t">快速启动</div><div class="s">Quick Launch Settings</div></div><div class="tag">设置</div><div></div></div>
+      <div class="tr"><div class="n">06</div><div><div class="t">通用</div><div class="s">General Settings</div></div><div class="tag">设置</div><div></div></div>
+    </div>
+    <div class="cfoot"><span><span class="k">↑↓</span> 选择</span><span><span class="k">⏎</span> 打开</span><span><span class="k">⌘C</span> 复制</span><span style="margin-left:auto">清羽 · 命令栏</span></div>
+  </div>
+
+  <div class="win clip">
+    <div class="cbar"><span class="q">搜索剪贴板历史…</span><span class="cnt">1 / 4 · 保留 30 天</span></div>
+    <div class="tabs"><div class="tab on">全部</div><div class="tab">文本</div><div class="tab">图片</div><div class="tab">文件</div></div>
+    <div class="cbody">
+      <div class="clist">
+        <div class="ci sel"><div class="ix mono">01</div><div><div class="ct">Q4 路线图评审纪要：下周同步排期与负责人</div><div class="cs">Chrome · 文本 · 刚刚</div></div></div>
+        <div class="ci"><div class="ix mono">02</div><div><div class="ct">截图 2026-11-05 10.26.12</div><div class="cs">清羽 · 图片 · 12 分钟前</div></div></div>
+        <div class="ci"><div class="ix mono">03</div><div><div class="ct">/Users/abyss/workspace/qingyu/docs</div><div class="cs">Finder · 文件 · 1 小时前</div></div></div>
+        <div class="ci"><div class="ix mono">04</div><div><div class="ct">#4A6CB0</div><div class="cs">清羽 · 颜色 · 昨天</div></div></div>
+      </div>
+      <div class="det">
+        <div class="dh"><span class="dt">文本</span><span class="when">刚刚</span><button class="dcopy">复制到剪贴板</button></div>
+        <div class="dbody"><span class="lead">Q4 路线图评审纪要：下周同步排期与负责人</span><br><br>· 排期同步：周三前确认<br>· 负责人：各组自填<br>· 风险项：依赖外部接口</div>
+        <div class="dfoot"><div>2.4 KB</div><div>文本</div><div>Chrome</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="win set">
+    <div class="ss">
+      <div class="cap">设置</div>
+      <div class="it on">通用</div>
+      <div class="it">快速启动</div>
+      <div class="it">剪贴板</div>
+      <div class="it">截图</div>
+      <div class="it">关于</div>
+    </div>
+    <div class="sm">
+      <h2>通用</h2>
+      <div class="sub">开机启动、外观、语言、权限与数据</div>
+      <div class="grp"><div class="gh">插件管理</div>
+        <div class="gr"><span>快速启动</span><span class="st run">运行中</span><span class="sw on"></span></div>
+        <div class="gr"><span>剪贴板</span><span class="st run">运行中</span><span class="sw on"></span></div>
+        <div class="gr"><span>截图</span><span class="st">已停止</span><span class="sw"></span></div>
+      </div>
+      <div class="grp"><div class="gh">外观</div>
+        <div class="gr"><span>跟随系统</span><span class="st">浅 / 深</span><span class="sw on"></span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note"><b>胆量</b>：输入区整条纯黑反白，其余全白——只用一个反转块建立主次。<br><b>可读性</b>：正文 13px／标签 9–10px 全大写宽字距，正文对比度 ≥ 12:1。</div>
+  <div class="giant">QY</div>
+</div></body></html>

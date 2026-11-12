@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-Hans"><head><meta charset="utf-8"><title>清羽 · 方向一 · 白</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --paper:#F7F5F1; --ink:#1B1A18; --ink2:#5C5A54; --ink3:#8E8A81;
+  --hair:#DBD6CB; --hair2:#E7E3DA; --tint:#F1EDE4; --zhu:#9E2A1D;
+}
+body{width:1440px;height:900px;background:var(--paper);color:var(--ink);
+  font-family:-apple-system,"SF Pro Text","PingFang SC","Helvetica Neue",system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;overflow:hidden;position:relative}
+.sheet{position:absolute;inset:0;padding:34px 44px}
+.titlebar{display:flex;align-items:baseline;gap:18px;margin-bottom:22px}
+.dname{font-size:12px;letter-spacing:.34em;color:var(--ink3)}
+.dnote{font-size:12px;color:var(--ink3);letter-spacing:.04em}
+.dnote b{color:var(--ink);font-weight:500}
+.zhu-dot{width:5px;height:5px;background:var(--zhu);border-radius:50%;margin-left:auto;transform:translateY(-2px)}
+
+/* 窗口通用：无阴影、只有发丝线 */
+.win{position:absolute;background:var(--paper);border:1px solid var(--hair)}
+
+/* ── 命令栏 760×560 ×0.82 ── */
+.cmd{left:44px;top:72px;width:623px;height:459px;display:flex;flex-direction:column;overflow:hidden}
+.cmd-input{padding:18px 26px 10px;border-bottom:1px solid var(--hair)}
+.cmd-input .q{font-size:26px;font-weight:300;letter-spacing:.06em}
+.cmd-input .ph{font-size:26px;font-weight:300;color:var(--ink3)}
+.cmd-hint{display:flex;justify-content:space-between;margin-top:12px;font-size:11px;letter-spacing:.18em;color:var(--ink3)}
+.rows{flex:1;padding:0 26px;overflow:hidden;mask-image:linear-gradient(to bottom,#000 88%,transparent 100%)}
+.row{display:flex;align-items:center;gap:13px;padding:7px 0;border-bottom:1px solid var(--hair2)}
+.row.sel{background:var(--tint);border-left:2px solid var(--zhu);padding-left:12px;margin-left:-14px}
+.row .glyph{width:22px;height:22px;border:1px solid var(--hair);display:grid;place-items:center;font-size:11px;color:var(--ink2)}
+.row .body{flex:1;min-width:0}
+.row .t{font-size:14px;font-weight:400}
+.row .s{font-size:10.5px;color:var(--ink3);margin-top:2px;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .type{font-size:10px;letter-spacing:.2em;color:var(--ink3)}
+.row .enter{font-size:11px;color:var(--zhu);letter-spacing:.06em}
+.cmd-foot{border-top:1px solid var(--hair);padding:10px 26px;display:flex;gap:22px;font-size:11px;color:var(--ink3);letter-spacing:.1em}
+.k{font-size:10px;border:1px solid var(--hair);padding:1px 5px;color:var(--ink2)}
+
+/* ── 剪贴板 860×520 ×0.82 ── */
+.clip{left:700px;top:52px;width:705px;height:426px;display:flex;flex-direction:column;overflow:hidden}
+.clip-top{padding:16px 20px 12px;border-bottom:1px solid var(--hair)}
+.clip-field{font-size:14px;color:var(--ink3);letter-spacing:.06em}
+.tabs{display:flex;gap:24px;padding:12px 20px 0;border-bottom:1px solid var(--hair);font-size:12px;letter-spacing:.1em;color:var(--ink3)}
+.tab{padding-bottom:10px}
+.tab.on{color:var(--ink);border-bottom:1.5px solid var(--zhu)}
+.clip-body{flex:1;display:flex;min-height:0}
+.clist{width:290px;border-right:1px solid var(--hair);overflow:hidden}
+.ci{padding:12px 14px;border-bottom:1px solid var(--hair2);display:flex;gap:10px}
+.ci.sel{background:var(--tint);border-left:2px solid var(--zhu);padding-left:12px}
+.ci .th{width:26px;height:26px;border:1px solid var(--hair);flex:none;display:grid;place-items:center;font-size:9px;color:var(--ink3)}
+.ci .ct{font-size:12.5px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ci .cs{font-size:10px;color:var(--ink3);margin-top:4px;letter-spacing:.04em}
+.detail{flex:1;display:flex;flex-direction:column;min-width:0}
+.dhead{display:flex;align-items:center;gap:10px;padding:12px 18px;border-bottom:1px solid var(--hair)}
+.dhead .dt{font-size:11px;letter-spacing:.2em;color:var(--ink3)}
+.dhead .when{margin-left:auto;font-size:11px;color:var(--ink3)}
+.btn-quiet{border:1px solid var(--ink);padding:5px 11px;font-size:11.5px;letter-spacing:.06em;color:var(--ink);background:transparent}
+.dcontent{padding:18px 18px;font-size:13px;line-height:1.85;color:var(--ink);flex:1}
+.dmeta{border-top:1px solid var(--hair);padding:9px 16px;font-size:10.5px;color:var(--ink3);letter-spacing:.08em;display:flex;gap:18px}
+
+/* ── 设置 920×640 ×0.58 ── */
+.set{left:700px;top:512px;width:534px;height:371px;display:flex;overflow:hidden}
+.sside{width:132px;border-right:1px solid var(--hair);padding:16px 0}
+.side-item{padding:7px 16px;font-size:11.5px;color:var(--ink2);letter-spacing:.04em}
+.side-item.on{color:var(--ink);border-left:2px solid var(--zhu);padding-left:14px}
+.side-cap{padding:12px 16px 6px;font-size:9.5px;letter-spacing:.24em;color:var(--ink3)}
+.smain{flex:1;padding:18px 22px;overflow:hidden}
+.stitle{font-size:19px;font-weight:300;letter-spacing:.05em}
+.ssub{font-size:11px;color:var(--ink3);margin-top:4px}
+.ssec{margin-top:16px}
+.ssec-h{font-size:9.5px;letter-spacing:.24em;color:var(--ink3);padding-bottom:7px;border-bottom:1px solid var(--hair)}
+.srow{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--hair2);font-size:11.5px}
+.srow .meta{font-size:10px;color:var(--ink3)}
+.switch{margin-left:auto;width:30px;height:16px;border:1px solid var(--ink3);border-radius:9px;position:relative}
+.switch.on{background:var(--ink);border-color:var(--ink)}
+.switch.on::after{content:"";position:absolute;right:2px;top:2px;width:10px;height:10px;background:var(--paper);border-radius:50%}
+.switch::after{content:"";position:absolute;left:2px;top:2px;width:10px;height:10px;background:var(--ink3);border-radius:50%}
+.legend{position:absolute;left:44px;top:566px;width:600px;font-size:11px;color:var(--ink3);letter-spacing:.04em;line-height:2}
+.legend b{color:var(--ink);font-weight:500}
+</style></head>
+<body><div class="sheet">
+  <div class="titlebar">
+    <span class="dname">方向一 · 白</span>
+    <span class="dnote">form 来自内容：命令栏是「扫一眼就走」的清单，所以它是一张安静的文字表，不是一排卡片</span>
+    <span class="zhu-dot"></span>
+  </div>
+
+  <!-- 命令栏 -->
+  <div class="win cmd">
+    <div class="cmd-input">
+      <div class="q">设置</div>
+      <div class="cmd-hint"><span>7 条结果 · 12 ms</span><span>ESC 关闭</span></div>
+    </div>
+    <div class="rows">
+      <div class="row sel">
+        <div class="glyph">⚙</div>
+        <div class="body"><div class="t">系统设置</div><div class="s">/System/Applications/System Settings.app</div></div>
+        <div class="type">应用</div><div class="enter">⏎</div>
+      </div>
+      <div class="row">
+        <div class="glyph">⌘</div>
+        <div class="body"><div class="t">打开本应用设置</div><div class="s">Open App Settings</div></div>
+        <div class="type">命令</div>
+      </div>
+      <div class="row">
+        <div class="glyph">▤</div>
+        <div class="body"><div class="t">剪贴板</div><div class="s">Clipboard Settings</div></div>
+        <div class="type">设置</div>
+      </div>
+      <div class="row">
+        <div class="glyph">◫</div>
+        <div class="body"><div class="t">截图</div><div class="s">Screenshot Settings</div></div>
+        <div class="type">设置</div>
+      </div>
+      <div class="row">
+        <div class="glyph">◈</div>
+        <div class="body"><div class="t">快速启动</div><div class="s">Quick Launch Settings</div></div>
+        <div class="type">设置</div>
+      </div>
+    </div>
+    <div class="cmd-foot"><span><span class="k">↑↓</span> 选择</span><span><span class="k">⏎</span> 打开</span><span><span class="k">⌘C</span> 复制</span></div>
+  </div>
+
+  <!-- 剪贴板 -->
+  <div class="win clip">
+    <div class="clip-top"><div class="clip-field">搜索剪贴板历史…</div></div>
+    <div class="tabs"><span class="tab on">全部</span><span class="tab">文本</span><span class="tab">图片</span><span class="tab">文件</span></div>
+    <div class="clip-body">
+      <div class="clist">
+        <div class="ci sel"><div class="th">T</div><div><div class="ct">Q4 路线图评审纪要：下周同步排期与负责人</div><div class="cs">Chrome · 文本 · 刚刚</div></div></div>
+        <div class="ci"><div class="th">▣</div><div><div class="ct">截图 2026-11-05 10.26.12</div><div class="cs">清羽 · 图片 · 12 分钟前</div></div></div>
+        <div class="ci"><div class="th">⌂</div><div><div class="ct">/Users/abyss/workspace/qingyu/docs</div><div class="cs">Finder · 文件 · 1 小时前</div></div></div>
+        <div class="ci"><div class="th">◐</div><div><div class="ct">#4A6CB0</div><div class="cs">清羽 · 颜色 · 昨天</div></div></div>
+      </div>
+      <div class="detail">
+        <div class="dhead"><span class="dt">文本</span><span class="when">刚刚</span><span class="btn-quiet" style="margin-left:auto">复制到剪贴板</span></div>
+        <div class="dcontent">Q4 路线图评审纪要：下周同步排期与负责人<br><br>· 排期同步：周三前确认<br>· 负责人：各组自填<br>· 风险项：依赖外部接口</div>
+        <div class="dmeta"><span>2.4 KB</span><span>保留 30 天</span><span>来源 Chrome</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 设置 -->
+  <div class="win set">
+    <div class="sside">
+      <div class="side-item on">通用</div>
+      <div class="side-cap">功能</div>
+      <div class="side-item">快速启动</div>
+      <div class="side-item">剪贴板</div>
+      <div class="side-item">截图</div>
+      <div class="side-item">关于</div>
+    </div>
+    <div class="smain">
+      <div class="stitle">通用</div>
+      <div class="ssub">开机启动、外观、语言、权限与数据</div>
+      <div class="ssec">
+        <div class="ssec-h">插件管理</div>
+        <div class="srow"><span>快速启动</span><span class="meta">运行中</span><span class="switch on"></span></div>
+        <div class="srow"><span>剪贴板</span><span class="meta">运行中</span><span class="switch on"></span></div>
+        <div class="srow"><span>截图</span><span class="meta">已停止</span><span class="switch"></span></div>
+      </div>
+      <div class="ssec">
+        <div class="ssec-h">外观</div>
+        <div class="srow"><span>跟随系统</span><span class="meta">浅色 · 深色</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="legend"><b>借的是什么</b>：把「空」当材料——发丝线代替卡片边框，字号对比 3 级，朱红只出现一次。<br><b>胆量</b>：整块界面几乎不用色，只用一条朱红竖线标记「当前」。</div>
+</div></body></html>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-Hans"><head><meta charset="utf-8"><title>清羽 · 设置 · 方向二 结构</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--ink:#0A0A0A;--paper:#FFF;--grey:#8A8A8A;--hair:#D8D8D8;--wash:#F2F2F2;--accent:#1F3BFF}
+body{width:920px;height:640px;background:var(--paper);color:var(--ink);overflow:hidden;
+  font-family:-apple-system,"SF Pro Text","Helvetica Neue","PingFang SC",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.win{width:920px;height:640px;display:flex}
+.side{width:200px;border-right:2px solid var(--ink);display:flex;flex-direction:column}
+.side .brand{padding:20px 16px 16px;font-size:10px;letter-spacing:.34em;text-transform:uppercase;border-bottom:2px solid var(--ink)}
+.it{padding:9px 16px;font-size:12.5px;border-bottom:1px solid var(--hair)}
+.it.on{background:var(--ink);color:#fff;font-weight:700}
+.grp{font-size:8.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--grey);padding:14px 16px 5px}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.mhead{border-bottom:4px solid var(--ink);padding:20px 26px 14px;display:flex;align-items:flex-end;gap:14px}
+.mhead h1{font-size:30px;font-weight:800;letter-spacing:-.03em;line-height:1}
+.mhead .sub{font-size:10.5px;color:#444;letter-spacing:.03em;padding-bottom:3px}
+.mhead .idx{margin-left:auto;font-size:9px;letter-spacing:.24em;text-transform:uppercase;color:var(--grey)}
+.body{flex:1;padding:0 26px;overflow:hidden}
+.sec{margin-top:14px}
+.sec-h{font-size:8.5px;letter-spacing:.24em;text-transform:uppercase;padding:5px 0;border-bottom:2px solid var(--ink)}
+.row{display:grid;grid-template-columns:1fr auto 92px 40px;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--hair);font-size:12.5px}
+.row.two{grid-template-columns:1fr auto 210px}
+.row .name{font-weight:600}
+.row .ver{font-size:10px;color:var(--grey);letter-spacing:.06em}
+.row .st{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--grey);text-align:right}
+.row .st.run{color:#0a7a33;font-weight:700}
+.row .st.err{color:#B3261E;font-weight:700}
+.sw{width:32px;height:16px;border:2px solid var(--ink);justify-self:end;position:relative}
+.sw i{position:absolute;top:1px;left:1px;width:10px;height:10px;background:var(--ink)}
+.sw.on{background:var(--ink)}.sw.on i{left:auto;right:1px;background:#fff}
+.retry{border:2px solid var(--ink);background:#fff;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:3px 7px;grid-column:3;justify-self:end}
+.seg{display:flex;border:2px solid var(--ink)}
+.seg span{padding:4px 10px;font-size:10px;letter-spacing:.06em;border-right:1px solid var(--ink);flex:1;text-align:center}
+.seg span:last-child{border-right:none}
+.seg span.on{background:var(--ink);color:#fff;font-weight:700}
+.btn{border:2px solid var(--ink);background:#fff;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:5px 10px}
+.big{margin-left:auto}
+</style></head>
+<body><div class="win">
+  <div class="side">
+    <div class="brand">Qingyu</div>
+    <div class="it on">通用</div>
+    <div class="grp">功能列表</div>
+    <div class="it">快速启动</div>
+    <div class="it">剪贴板</div>
+    <div class="it">截图</div>
+    <div class="grp">—</div>
+    <div class="it">关于</div>
+  </div>
+  <div class="main">
+    <div class="mhead"><h1>通用</h1><span class="sub">插件管理、外观、语言、数据与权限</span><span class="idx">SETTINGS / 01</span></div>
+    <div class="body">
+      <div class="sec"><div class="sec-h">插件管理</div>
+        <div class="row"><span class="name">快速启动</span><span class="ver">1.0.0</span><span class="st run">运行中</span><span class="sw on"><i></i></span></div>
+        <div class="row"><span class="name">剪贴板</span><span class="ver">1.0.0</span><span class="st run">运行中</span><span class="sw on"><i></i></span></div>
+        <div class="row"><span class="name">截图</span><span class="ver">1.0.0</span><span class="st err">权限未授予</span><button class="retry">重试</button></div>
+      </div>
+      <div class="sec"><div class="sec-h">外观</div>
+        <div class="row two"><span class="name">主题</span><span></span><div class="seg"><span class="on">跟随系统</span><span>浅色</span><span>深色</span></div></div>
+        <div class="row two"><span class="name">语言</span><span></span><div class="seg"><span class="on">跟随系统</span><span>简体中文</span><span>English</span></div></div>
+      </div>
+      <div class="sec"><div class="sec-h">数据</div>
+        <div class="row two"><span class="name">本地数据</span><span class="ver">128.4 MB</span><div style="text-align:right"><button class="btn">打开数据目录</button></div></div>
+      </div>
+      <div class="sec"><div class="sec-h">权限</div>
+        <div class="row two"><span class="name">屏幕录制</span><span class="st run">已授权</span><span></span></div>
+        <div class="row two"><span class="name">辅助功能</span><span class="st run">已授权</span><span></span></div>
+      </div>
+    </div>
+  </div>
+</div></body></html>

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-Hans"><head><meta charset="utf-8"><title>清羽 UI · 六方向缩略图</title>
+<style>
+  :root{ --ink:#111; --paper:#fff; }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#e8e6e1;font-family:-apple-system,"SF Pro Text","Helvetica Neue","PingFang SC",system-ui,sans-serif;padding:28px;color:#333}
+  .grid{display:grid;grid-template-columns:repeat(3,480px);gap:26px 30px;justify-content:center}
+  .cell{}
+  .cap{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#6b6b6b;margin-bottom:8px}
+  .cap b{color:#111}
+  .tile{width:480px;height:300px;border-radius:8px;overflow:hidden;position:relative;
+        box-shadow:0 1px 2px rgba(0,0,0,.14),0 10px 24px rgba(0,0,0,.10)}
+
+  /* 1 原研哉 · 白 */
+  .hara{background:#F7F5F1;color:#1a1a1a;padding:26px 30px}
+  .hara .t{font-size:13px;letter-spacing:.28em;color:#8a857c;text-transform:uppercase}
+  .hara .input{font-size:26px;font-weight:300;margin-top:16px;letter-spacing:.02em;border-bottom:1px solid #C9C4BA;padding-bottom:12px}
+  .hara .row{display:flex;justify-content:space-between;align-items:baseline;padding:11px 0;border-bottom:1px solid #E2DED6;font-size:15px}
+  .hara .row.sel{border-left:2px solid #9E2A1D;padding-left:10px;margin-left:-12px}
+  .hara .meta{font-size:11px;letter-spacing:.16em;color:#9a948a}
+  .hara .dot{position:absolute;right:30px;top:26px;width:6px;height:6px;background:#9E2A1D}
+
+  /* 2 Jetset · 结构 */
+  .jet{background:#fff;color:#0A0A0A}
+  .jet .band{background:#0A0A0A;color:#fff;padding:20px 26px 18px}
+  .jet .band .lbl{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:#fff;opacity:.65}
+  .jet .band .q{font-size:30px;font-weight:800;letter-spacing:-.02em;margin-top:6px}
+  .jet .rule{height:4px;background:#0A0A0A}
+  .jet .r{display:grid;grid-template-columns:26px 1fr 96px;align-items:center;border-bottom:1px solid #0A0A0A;padding:9px 26px;font-size:14px}
+  .jet .r.sel{background:#F1F1F1}
+  .jet .n{font-size:11px;font-weight:700;letter-spacing:.1em}
+  .jet .tag{font-size:10px;letter-spacing:.14em;text-transform:uppercase;text-align:right;border-left:1px solid #0A0A0A;padding-left:8px}
+  .jet .big{position:absolute;right:22px;bottom:-18px;font-size:96px;font-weight:800;letter-spacing:-.05em;color:#0A0A0A;opacity:.06}
+
+  /* 3 Raycast 参照 */
+  .ray{background:#1B1B1E;padding:26px}
+  .ray .panel{background:#232327;border:1px solid rgba(255,255,255,.09);border-radius:10px;height:248px;overflow:hidden;
+              box-shadow:0 24px 60px rgba(0,0,0,.45)}
+  .ray .inp{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.07);color:#EDEDF0;font-size:16px}
+  .ray .inp .k{margin-left:auto;font-size:11px;color:#B9B9C2;border:1px solid rgba(255,255,255,.16);border-radius:5px;padding:2px 6px}
+  .ray .rr{display:flex;align-items:center;gap:11px;padding:9px 16px;color:#E6E6EA;font-size:13px}
+  .ray .rr.sel{background:rgba(255,255,255,.09)}
+  .ray .ic{width:22px;height:22px;border-radius:6px;background:#3A3A40;display:grid;place-items:center;font-size:11px;color:#cfcfe0}
+  .ray .sub{font-size:11px;color:#9C9CA6;margin-top:2px}
+  .ray .kb{margin-left:auto;font-size:11px;color:#9C9CA6}
+
+  /* 4 Paste 参照 */
+  .paste{background:#F2F1F5;padding:24px}
+  .paste .cards{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .paste .card{background:#fff;border-radius:14px;padding:12px;height:88px;box-shadow:0 2px 10px rgba(20,18,40,.07);font-size:12px;color:#3b3a45;position:relative;overflow:hidden}
+  .paste .card.img{background:linear-gradient(135deg,#C9D8FF,#FFD3E6 60%,#FFE9C2)}
+  .paste .card .src{font-size:10px;color:#8d8b99;margin-top:6px}
+  .paste .bar{margin-top:14px;background:#fff;border-radius:999px;display:flex;padding:6px;gap:4px;box-shadow:0 2px 10px rgba(20,18,40,.08)}
+  .paste .pill{flex:1;text-align:center;font-size:11px;padding:6px 0;border-radius:999px;color:#5b5967}
+  .paste .pill.on{background:#1F1B2E;color:#fff}
+
+  /* 5 Liquid Glass */
+  .glass{background:linear-gradient(135deg,#FF7A5C 0%,#E0559A 38%,#7B5BD6 72%,#3B6FE0 100%);padding:24px}
+  .glass .gp{background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.55);border-radius:22px;
+             backdrop-filter:blur(18px) saturate(180%);-webkit-backdrop-filter:blur(18px) saturate(180%);
+             box-shadow:inset 0 1px 0 rgba(255,255,255,.75),0 18px 40px rgba(30,10,60,.28);color:#fff;height:252px;padding:18px}
+  .glass .q{font-size:20px;font-weight:600;letter-spacing:-.01em}
+  .glass .r{display:flex;gap:10px;align-items:center;padding:9px 10px;border-radius:12px;font-size:13px}
+  .glass .r.sel{background:rgba(255,255,255,.30);box-shadow:inset 0 1px 0 rgba(255,255,255,.6)}
+  .glass .ic{width:20px;height:20px;border-radius:6px;background:rgba(255,255,255,.5);display:grid;place-items:center;font-size:10px;color:#33285c}
+  .glass .cap2{margin-left:auto;font-size:11px;opacity:.85}
+
+  /* 6 宋刻本 */
+  .song{background:#EDE0BC;padding:20px}
+  .song .leaf{position:absolute;inset:20px;border:3px double #2b241a;padding:12px 10px;color:#2b241a}
+  .song .cols{display:flex;flex-direction:row-reverse;gap:0;height:100%}
+  .song .col{writing-mode:vertical-rl;border-left:1px solid #6b5b3e;padding:0 9px;font-size:15px;line-height:1.5;font-family:"Songti SC","Noto Serif SC",serif}
+  .song .col:first-child{border-left:none}
+  .song .col.title{font-size:20px;font-weight:700}
+  .song .fish{position:absolute;top:-3px;left:50%;transform:translateX(-50%);width:0;height:0;
+              border-left:7px solid transparent;border-right:7px solid transparent;border-top:11px solid #2b241a}
+  .song .zhu{color:#9E2A1D;font-size:11px;letter-spacing:.1em;position:absolute;right:10px;top:8px;writing-mode:vertical-rl}
+</style></head>
+<body>
+<div class="grid">
+
+  <div class="cell"><div class="cap"><b>01</b> 原研哉 · 白（最佳设计师）</div>
+    <div class="tile hara">
+      <div class="dot"></div>
+      <div class="t">Qingyu · Command Bar</div>
+      <div class="input">设置</div>
+      <div class="row sel"><span>系统设置</span><span class="meta">应用</span></div>
+      <div class="row"><span>打开本应用设置</span><span class="meta">命令</span></div>
+      <div class="row"><span>剪贴板</span><span class="meta">设置</span></div>
+    </div></div>
+
+  <div class="cell"><div class="cap"><b>02</b> Experimental Jetset · 结构（最佳设计师）</div>
+    <div class="tile jet">
+      <div class="band"><div class="lbl">Command</div><div class="q">设置</div></div>
+      <div class="rule"></div>
+      <div class="r sel"><span class="n">01</span><span>系统设置</span><span class="tag">应用</span></div>
+      <div class="r"><span class="n">02</span><span>打开本应用设置</span><span class="tag">命令</span></div>
+      <div class="r"><span class="n">03</span><span>剪贴板</span><span class="tag">设置</span></div>
+      <div class="r"><span class="n">04</span><span>快速启动</span><span class="tag">设置</span></div>
+      <div class="big">4</div>
+    </div></div>
+
+  <div class="cell"><div class="cap"><b>03</b> Raycast 参照（现实参照）</div>
+    <div class="tile ray"><div class="panel">
+      <div class="inp"><span>设置</span><span class="k">⌘K</span></div>
+      <div class="rr sel"><div class="ic">⚙</div><div><div>系统设置</div><div class="sub">/Applications/System Settings.app</div></div><span class="kb">⏎</span></div>
+      <div class="rr"><div class="ic">⌘</div><div><div>打开本应用设置</div><div class="sub">Open App Settings</div></div></div>
+      <div class="rr"><div class="ic">▤</div><div><div>剪贴板</div><div class="sub">Clipboard Settings</div></div></div>
+      <div class="rr"><div class="ic">◫</div><div><div>截图</div><div class="sub">Screenshot Settings</div></div></div>
+    </div></div></div>
+
+  <div class="cell"><div class="cap"><b>04</b> Paste 参照（现实参照）</div>
+    <div class="tile paste">
+      <div class="cards">
+        <div class="card">Q4 路线图评审纪要：下周同步排期<div class="src">Chrome · 文本</div></div>
+        <div class="card img"><div class="src" style="position:absolute;bottom:10px;left:12px">Screenshot · 图片</div></div>
+        <div class="card">/Users/abyss/workspace/qingyu/docs<div class="src">Finder · 文件</div></div>
+        <div class="card">#4A6CB0<div class="src">Color · 颜色</div></div>
+      </div>
+      <div class="bar"><div class="pill on">全部</div><div class="pill">文本</div><div class="pill">图片</div><div class="pill">文件</div></div>
+    </div></div>
+
+  <div class="cell"><div class="cap"><b>05</b> 液态玻璃 Liquid Glass（轮盘 App#2）</div>
+    <div class="tile glass"><div class="gp">
+      <div class="q">设置</div>
+      <div class="r sel"><div class="ic">⚙</div><span>系统设置</span><span class="cap2">应用</span></div>
+      <div class="r"><div class="ic">⌘</div><span>打开本应用设置</span><span class="cap2">命令</span></div>
+      <div class="r"><div class="ic">▤</div><span>剪贴板</span><span class="cap2">设置</span></div>
+      <div class="r"><div class="ic">◫</div><span>截图</span><span class="cap2">设置</span></div>
+    </div></div></div>
+
+  <div class="cell"><div class="cap"><b>06</b> 宋刻本版式（轮盘 东亚#2）</div>
+    <div class="tile song"><div class="leaf"><div class="fish"></div><div class="zhu">朱批</div>
+      <div class="cols">
+        <div class="col title">清羽检索</div>
+        <div class="col">系统设置　应用</div>
+        <div class="col">打开本应用设置　命令</div>
+        <div class="col">剪贴板　设置</div>
+      </div>
+    </div></div></div>
+
+</div>
+</body></html>
