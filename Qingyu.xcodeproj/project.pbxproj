@@ -187,6 +187,7 @@
 		F00400000000000000000104 /* Qingyu/Views/Design/JadeFont.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00400000000000000000004 /* Qingyu/Views/Design/JadeFont.swift */; };
 		F00400000000000000000105 /* Qingyu/Views/Design/JadeShadow.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00400000000000000000005 /* Qingyu/Views/Design/JadeShadow.swift */; };
 		F00400000000000000000106 /* Qingyu/Views/Design/JadeMaterial.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00400000000000000000006 /* Qingyu/Views/Design/JadeMaterial.swift */; };
+		F00400000000000000000130 /* Qingyu/Views/Design/JadeGlass.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00400000000000000000030 /* Qingyu/Views/Design/JadeGlass.swift */; };
 		F00400000000000000000107 /* Qingyu/Views/Design/JadeAccessibility.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00400000000000000000007 /* Qingyu/Views/Design/JadeAccessibility.swift */; };
 		F00500000000000000000101 /* Qingyu/Database/DataDirectoryMigrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00500000000000000000001 /* Qingyu/Database/DataDirectoryMigrator.swift */; };
 		F00500000000000000000102 /* Qingyu/Services/DataManagement/DataManagementService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00500000000000000000002 /* Qingyu/Services/DataManagement/DataManagementService.swift */; };
@@ -412,6 +413,7 @@
 		F00400000000000000000004 /* Qingyu/Views/Design/JadeFont.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingyu/Views/Design/JadeFont.swift; sourceTree = SOURCE_ROOT; };
 		F00400000000000000000005 /* Qingyu/Views/Design/JadeShadow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingyu/Views/Design/JadeShadow.swift; sourceTree = SOURCE_ROOT; };
 		F00400000000000000000006 /* Qingyu/Views/Design/JadeMaterial.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingyu/Views/Design/JadeMaterial.swift; sourceTree = SOURCE_ROOT; };
+		F00400000000000000000030 /* Qingyu/Views/Design/JadeGlass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingyu/Views/Design/JadeGlass.swift; sourceTree = SOURCE_ROOT; };
 		F00400000000000000000007 /* Qingyu/Views/Design/JadeAccessibility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingyu/Views/Design/JadeAccessibility.swift; sourceTree = SOURCE_ROOT; };
 		F00500000000000000000001 /* Qingyu/Database/DataDirectoryMigrator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingyu/Database/DataDirectoryMigrator.swift; sourceTree = SOURCE_ROOT; };
 		F00500000000000000000002 /* Qingyu/Services/DataManagement/DataManagementService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qingyu/Services/DataManagement/DataManagementService.swift; sourceTree = SOURCE_ROOT; };
@@ -909,6 +911,7 @@
 				F00400000000000000000004 /* Qingyu/Views/Design/JadeFont.swift */,
 				F00400000000000000000005 /* Qingyu/Views/Design/JadeShadow.swift */,
 				F00400000000000000000006 /* Qingyu/Views/Design/JadeMaterial.swift */,
+				F00400000000000000000030 /* Qingyu/Views/Design/JadeGlass.swift */,
 				F00400000000000000000007 /* Qingyu/Views/Design/JadeAccessibility.swift */,
 			);
 			path = Design;
@@ -1158,6 +1161,7 @@
 				F00400000000000000000104 /* Qingyu/Views/Design/JadeFont.swift in Sources */,
 				F00400000000000000000105 /* Qingyu/Views/Design/JadeShadow.swift in Sources */,
 				F00400000000000000000106 /* Qingyu/Views/Design/JadeMaterial.swift in Sources */,
+				F00400000000000000000130 /* Qingyu/Views/Design/JadeGlass.swift in Sources */,
 				F00400000000000000000107 /* Qingyu/Views/Design/JadeAccessibility.swift in Sources */,
 				A10001000000000000000001 /* QingyuApp.swift in Sources */,
 				A10001000000000000000002 /* AppDelegate.swift in Sources */,
@@ -1503,7 +1507,7 @@
 				CODE_SIGN_ENTITLEMENTS = Qingyu/Qingyu.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 607;
+				CURRENT_PROJECT_VERSION = 608;
 				DEVELOPMENT_TEAM = 454XB348PX;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -1512,7 +1516,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.4.207;
+				MARKETING_VERSION = 0.4.208;
 				PRODUCT_BUNDLE_IDENTIFIER = com.freeabyss.qingyu;
 				PRODUCT_MODULE_NAME = Qingyu;
 				PRODUCT_NAME = Qingyu;
@@ -1528,7 +1532,7 @@
 				CODE_SIGN_ENTITLEMENTS = Qingyu/Qingyu.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 607;
+				CURRENT_PROJECT_VERSION = 608;
 				DEVELOPMENT_TEAM = 454XB348PX;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -1537,7 +1541,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.4.207;
+				MARKETING_VERSION = 0.4.208;
 				PRODUCT_BUNDLE_IDENTIFIER = com.freeabyss.qingyu;
 				PRODUCT_MODULE_NAME = Qingyu;
 				PRODUCT_NAME = Qingyu;

@@ -180,6 +180,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             }
         }
 
+        // --uitest-open-pin-color：颜色贴图（色值标签 + 半透明底垫）。
+        if ProcessInfo.processInfo.arguments.contains("--uitest-open-pin-color") {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { [weak self] in
+                _ = self?.container.pinWindowController.present(
+                    payload: .color(red: 74, green: 108, blue: 176)
+                )
+            }
+        }
+
         // --uitest-dump-menu：把菜单栏菜单项与可用状态写进日志。
         // NSMenu 无法离屏截图，这是验证「菜单是否随插件启停变化」的唯一手段。
         if ProcessInfo.processInfo.arguments.contains("--uitest-dump-menu") {

@@ -40,7 +40,7 @@ public enum JadeRowActionStyle {
     ///
     /// 常驻底色会把列表画成工具栏：一行 4–6 个方块的总面积盖过标题。
     public static func tileBackground(isHovering: Bool) -> Color {
-        isHovering ? JadeColor.surface3 : .clear
+        isHovering ? JadeGlass.controlHover : .clear
     }
 
     /// 图标颜色：危险操作静止态也用普通文字色，hover 整行时才转红。
@@ -102,8 +102,8 @@ public struct JadeListRow<Content: View>: View {
     }
 
     private var backgroundColor: Color {
-        if selected { return JadeColor.primaryFill }
-        if isHovering { return JadeColor.surface2 }
+        if selected { return JadeGlass.rowSelected }
+        if isHovering { return JadeGlass.rowHover }
         return .clear
     }
 

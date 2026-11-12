@@ -50,8 +50,8 @@ final class JadeDesignTokenTests: XCTestCase {
     /// hover 时才浮现磁贴底色、危险操作才转红——可点性与破坏性提示不因此丢失。
     func testRowActionStyleRevealsOnHover() {
         XCTAssertEqual(
-            JadeRowActionStyle.tileBackground(isHovering: true), JadeColor.surface3,
-            "hover 必须给出可点反馈"
+            JadeRowActionStyle.tileBackground(isHovering: true), JadeGlass.controlHover,
+            "hover 必须给出可点反馈（玻璃面板下用半透明覆盖层，不用不透明表面色）"
         )
         XCTAssertEqual(
             JadeRowActionStyle.iconColor(isDestructive: true, isHovering: true), JadeColor.danger,

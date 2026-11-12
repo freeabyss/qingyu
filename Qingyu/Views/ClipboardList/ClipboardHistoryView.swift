@@ -42,6 +42,9 @@ struct ClipboardHistoryView: View {
     /// 隐藏快捷键按钮尺寸：0pt，仅用于只承载键盘快捷键、不占布局空间的不可见按钮；不是视觉尺寸，不并入 JadeSpace，那是间距档位，不是按钮尺寸。
     private static let hiddenShortcutSize: CGFloat = 0
 
+    /// 底部快捷键提示条高度：只承载 11pt 文字与键位胶囊，不需要更高。
+    private static let shortcutBarHeight: CGFloat = 28
+
     @FocusState private var searchFocused: Bool
 
     /// Primary type filters shown as compact chips (全部 / 文本 / 图片 / 文件).
@@ -59,7 +62,9 @@ struct ClipboardHistoryView: View {
                 .jadePadding(.top, .x3)
                 .jadePadding(.bottom, .x2)
 
-            Divider().overlay(JadeColor.border)
+            Rectangle()
+                .fill(JadeGlass.separator)
+                .frame(height: 1)
 
             // 暂停说明条：紧贴工具栏下方，属于「当前状态」而非内容，不放进列表。
             if viewModel.clipboardEnabled, viewModel.isRecordingPaused {
@@ -71,14 +76,25 @@ struct ClipboardHistoryView: View {
             content
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            Divider().overlay(JadeColor.border)
+            Rectangle()
+                .fill(JadeGlass.separator)
+                .frame(height: 1)
+
+            shortcutHintBar
+                .frame(height: Self.shortcutBarHeight)
+                .jadePadding(.horizontal, .x4)
+
+            Rectangle()
+                .fill(JadeGlass.separator)
+                .frame(height: 1)
 
             statusBar
                 .frame(height: Self.statusBarHeight)
                 .jadePadding(.horizontal, .x4)
         }
         .frame(minWidth: Self.windowMinWidth, minHeight: Self.windowMinHeight)
-        .jadeWindowSurface(radius: .xxl)
+        .jadeGlassSurface(radius: .xxl)
+        .jadeGlassEdge(radius: .xxl)
         .jadeShadow(.xl, radius: .xxl)
         .tint(JadeColor.primary)
         .task {
@@ -98,7 +114,7 @@ struct ClipboardHistoryView: View {
             viewModel.toastMessage,
             isShowing: $viewModel.showToast,
             variant: viewModel.toastVariant,
-            bottomInset: Self.statusBarHeight
+            bottomInset: Self.statusBarHeight + Self.shortcutBarHeight
         )
     }
 
@@ -137,7 +153,7 @@ struct ClipboardHistoryView: View {
         }
         .jadePadding(.horizontal, .x3)
         .frame(maxWidth: .infinity, minHeight: Self.searchInputMinHeight)
-        .background(JadeColor.surface2, in: JadeRadius.lg.shape)
+        .background(JadeGlass.controlHover.opacity(0.9), in: JadeRadius.lg.shape)
         .overlay(
             JadeRadius.lg.shape
                 .strokeBorder(
@@ -204,7 +220,7 @@ struct ClipboardHistoryView: View {
             }
             .jadePadding(.horizontal, .x3)
             .jadePadding(.vertical, .x2)
-            .background(JadeColor.surface2, in: JadeRadius.md.shape)
+            .background(JadeGlass.controlHover, in: JadeRadius.md.shape)
         }
     }
 
@@ -287,7 +303,6 @@ struct ClipboardHistoryView: View {
                 .jadePadding(.horizontal, .x3)
                 .jadePadding(.vertical, .x2)
             }
-            .background(JadeColor.surface1)
             .onChange(of: viewModel.selectedIndex) { _ in
                 guard let selected = viewModel.selectedItem else { return }
                 withAnimation(JadeAccessibility.animation(.easeInOut(duration: 0.12))) {
@@ -354,6 +369,52 @@ struct ClipboardHistoryView: View {
     }
 
     // MARK: - Status bar
+
+    // MARK: - 快捷键提示条
+
+    /// 底部常驻快捷键提示：只列当前选中行可执行的操作（PRD：快捷键提示只显示当前状态可执行项）。
+    /// 文件行另有「复制路径 / 在 Finder 中显示」，用低对比度文字补充，不抢主动作。
+    private var shortcutHintBar: some View {
+        HStack(spacing: JadeSpace.x4.value) {
+            keycap("⏎", "clipboard.shortcut.copy")
+            keycap("⌘P", "clipboard.shortcut.pin")
+            keycap("⌫", "clipboard.shortcut.delete")
+
+            Spacer(minLength: 0)
+
+            if isFileItemSelected {
+                Text(L10n.localized("clipboard.shortcut.fileExtra"))
+                    .font(JadeFont.caption)
+                    .foregroundStyle(JadeColor.textTertiary)
+                    .lineLimit(1)
+                    .fixedSize()
+            }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("clipboard.shortcutHints")
+    }
+
+    /// 键位胶囊 + 动作名：键位用胶囊包住，读起来像键盘上的那颗键。
+    private func keycap(_ key: String, _ labelKey: String) -> some View {
+        HStack(spacing: JadeSpace.x1.value) {
+            Text(key)
+                .font(JadeFont.caption.weight(.semibold))
+                .foregroundStyle(JadeColor.textSecondary)
+                .jadePadding(.horizontal, .x1)
+                .padding(.vertical, 1)
+                .background(JadeGlass.keycapFill, in: JadeRadius.sm.shape)
+                .overlay(JadeRadius.sm.shape.strokeBorder(JadeGlass.keycapBorder, lineWidth: 1))
+
+            Text(L10n.localized(labelKey))
+                .font(JadeFont.caption)
+                .foregroundStyle(JadeColor.textSecondary)
+        }
+        .fixedSize()
+    }
+
+    private var isFileItemSelected: Bool {
+        viewModel.selectedItem?.contentType == .file
+    }
 
     private var statusBar: some View {
         HStack(spacing: JadeSpace.x1.value) {

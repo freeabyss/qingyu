@@ -77,7 +77,6 @@ struct ClipboardDetailPane: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(JadeColor.surface1)
         .frame(minWidth: Self.detailPaneMinWidth)
         .sheet(isPresented: $isMaximized) {
             maximizedPreview(for: item)
@@ -184,7 +183,7 @@ struct ClipboardDetailPane: View {
                 }
                 .jadePadding(.horizontal, .x4)
                 .jadePadding(.vertical, .x2)
-                .background(JadeColor.surface2)
+                .background(JadeGlass.controlHover)
                 .accessibilityIdentifier("clipboard.detail.failureReason")
                 Divider().overlay(JadeColor.border)
             }
@@ -235,19 +234,7 @@ struct ClipboardDetailPane: View {
                 .font(JadeFont.callout)
                 .foregroundStyle(JadeColor.textTertiary)
 
-            // 复制：带文字的主按钮。剪贴板的核心动作就是「把这条再复制一次」，
-            // 只给图标会让它和置顶/收藏/删除混为一档。
-            if let onCopy {
-                Button(L10n.localized("clipboard.action.copy")) {
-                    onCopy(item)
-                }
-                .buttonStyle(.jadePrimary)
-                // PRD：「不可用内容…禁用对应主动作」。资源已经丢了，
-                // 主按钮点了也不会有结果，禁用并说明原因比让用户白点一次好。
-                .disabled(item.failureReason != nil)
-                .help(item.failureReason ?? L10n.localized("clipboard.action.copy"))
-                .accessibilityIdentifier("clipboard.detail.copy")
-            }
+            // 复制不再在详情区提供按钮：选中行 + ⏎ 才是唯一入口，按钮是重复入口。
 
             if allowsMaximize {
                 Button {
@@ -257,7 +244,7 @@ struct ClipboardDetailPane: View {
                         .font(JadeFont.smallIconSemibold)
                         .foregroundStyle(JadeColor.textSecondary)
                         .frame(width: Self.maximizeButtonSize, height: Self.maximizeButtonSize)
-                        .background(JadeColor.surface2)
+                        .background(JadeGlass.controlHover)
                         .jadeRadius(.sm)
                 }
                 .buttonStyle(.plain)
