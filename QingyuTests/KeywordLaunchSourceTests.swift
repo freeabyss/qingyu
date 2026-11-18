@@ -95,7 +95,7 @@ final class KeywordLaunchSourceTests: XCTestCase {
         XCTAssertTrue(title.contains("天气"), "标题应包含查询文字：\(title)")
         XCTAssertTrue(title.contains("Google"), "标题应包含站点名：\(title)")
         XCTAssertFalse(title.contains("search.keywordLaunch"), "标题不应是未本地化的 key：\(title)")
-        XCTAssertEqual(results[0].typeLabel, "Web Search")
+        XCTAssertEqual(results[0].typeLabel, L10n.localized("searchPanel.type.webSearch"))
     }
 
     func testKeywordIsCaseInsensitiveAndAcceptsChineseAlias() async {

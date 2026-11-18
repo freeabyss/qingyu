@@ -431,6 +431,11 @@ final class SearchPanelViewModelTests: XCTestCase {
     }
 
     /// 把命令栏根视图渲染到指定尺寸，返回"输入行内容顶端相对图片顶边的偏移"。
+    ///
+    /// 检测用「行内相对对比度」而不是绝对暗度：玻璃语言的 `jadeGlassEdge` 会在窗口
+    /// 顶部 32% 叠一层白色内高光（浅色外观最浓 α0.60），面板高于输入行时文字被冲淡，
+    /// 绝对亮度阈值在 280/560pt 面板上找不到输入行；而文字与底色的相对反差不受影响，
+    /// 用它定位同样能区分「钉在顶部」与「被垂直居中」。
     private func renderInputRowTopOffset(width: CGFloat, height: CGFloat) -> Int {
         let viewModel = SearchPanelViewModel(searchService: StubPanelSearchService(results: []))
         let host = NSHostingView(rootView: CommandBarView(viewModel: viewModel))
@@ -444,15 +449,19 @@ final class SearchPanelViewModelTests: XCTestCase {
         let scale = Double(w) / Double(width)
         let x0 = Int(Double(w) * 0.2), x1 = Int(Double(w) * 0.8)
         for y in 0..<h {
-            var dark = 0
+            // 每行取采样亮度的中位数当「该行底色」，显著更暗的采样视为文字像素。
+            var lumas: [Double] = []
             var x = x0
             while x < x1 {
                 if let c = rep.colorAt(x: x, y: y), c.alphaComponent >= 0.5 {
-                    let lum = 0.2126 * c.redComponent + 0.7152 * c.greenComponent + 0.0722 * c.blueComponent
-                    if lum < 0.45 { dark += 1 }
+                    lumas.append(0.2126 * c.redComponent + 0.7152 * c.greenComponent + 0.0722 * c.blueComponent)
                 }
                 x += 2
             }
+            guard !lumas.isEmpty else { continue }
+            let sorted = lumas.sorted()
+            let base = sorted[sorted.count / 2]
+            let dark = lumas.filter { base - $0 > 0.25 }.count
             if dark >= 3 { return Int(Double(y) / scale) }
         }
         return -1

@@ -63,7 +63,8 @@ struct CommandBarView: View {
             )
             .allowsHitTesting(false)
         )
-        .jadeWindowSurface(radius: .xxl)
+        .jadeGlassSurface(radius: .xxl)
+        .jadeGlassEdge(radius: .xxl)
         .jadeShadow(.xl, radius: .xxl)
         .onReceive(NotificationCenter.default.publisher(for: .focusSearchField)) { _ in
             isInputFocused = true
@@ -128,11 +129,11 @@ struct CommandBarView: View {
         .jadeAnimation(.easeInOut(duration: 0.12), value: isInputFocused)
     }
 
-    /// 输入区与结果区之间唯一的分隔与焦点反馈：静止 1pt 描边，聚焦加厚为 2pt 强调色。
+    /// 输入区与结果区之间唯一的分隔与焦点反馈：静止 1pt 玻璃分隔线，聚焦加厚为 2pt 强调色。
     /// 空查询没有结果区，也就不绘制这条线。
     private var inputHairline: some View {
         Rectangle()
-            .fill(isInputFocused ? JadeColor.focusBorder : JadeColor.border)
+            .fill(isInputFocused ? JadeColor.focusBorder : JadeGlass.separator)
             .frame(height: isInputFocused ? 2 : 1)
     }
 
@@ -373,8 +374,8 @@ struct CommandBarResultRow: View {
                         // 图标比类型标签略大：它是可点操作，不是标注，
                         // 用 caption 会小得像装饰、点不到的感觉。
                         .font(JadeFont.subhead)
-                        // 需压在选中行的 primaryFill 浅蓝底上仍清晰；
-                        // textSecondary 在该底色上只有 4.07:1，用 typeLabel 令牌（4.64:1）。
+                        // 需压在选中行的 rowSelected 底上仍清晰；
+                        // textSecondary 在选中底上对比不足，用 typeLabel 令牌。
                         .foregroundStyle(JadeColor.typeLabel)
                         .frame(width: 24, height: 24)
                         .contentShape(Rectangle())
@@ -391,8 +392,8 @@ struct CommandBarResultRow: View {
             // 比路径末尾几个字符更有用。
             Text(result.typeLabel)
                 .font(JadeFont.caption)
-                // 专用令牌：需压在选中行的 primaryFill 浅蓝底上仍 >= 4.5:1，
-                // 用 textTertiary 会掉到 4.07:1。
+                // 专用令牌：需压在选中行的 rowSelected 底上仍 >= 4.5:1，
+                // 用 textTertiary 对比不足。
                 .foregroundStyle(JadeColor.typeLabel)
                 .lineLimit(1)
                 .layoutPriority(-1)
@@ -414,9 +415,9 @@ struct CommandBarResultRow: View {
                     .jadePadding(.horizontal, .x1)
                     // 纵向 1pt 是徽标内边距、不是间距档位（x1=4 会让它显得臃肿）。
                     .padding(.vertical, 1)
-                    .background(JadeColor.surface1.opacity(0.9), in: JadeRadius.sm.shape)
+                    .background(JadeGlass.keycapFill, in: JadeRadius.sm.shape)
                     .overlay(
-                        JadeRadius.sm.shape.strokeBorder(JadeColor.border, lineWidth: 1)
+                        JadeRadius.sm.shape.strokeBorder(JadeGlass.keycapBorder, lineWidth: 1)
                     )
                     .accessibilityHidden(true)
             }
@@ -425,12 +426,12 @@ struct CommandBarResultRow: View {
         .jadePadding(.horizontal, .x3)
         .frame(height: Self.rowHeight)
         .background(
-            isSelected ? JadeColor.primaryFill : (effectiveHovering ? JadeColor.surface2 : Color.clear),
+            isSelected ? JadeGlass.rowSelected : (effectiveHovering ? JadeGlass.rowHover : Color.clear),
             in: JadeRadius.lg.shape
         )
         .overlay(
             JadeRadius.lg.shape
-                .strokeBorder(isSelected ? JadeColor.resultSelectionBorder : Color.clear, lineWidth: 1)
+                .strokeBorder(isSelected ? JadeGlass.edge : Color.clear, lineWidth: 1)
         )
         .contentShape(Rectangle())
         .onHover { isHovering = $0 }
@@ -481,7 +482,7 @@ struct CommandBarResultRow: View {
     private func symbolTile(_ name: String) -> some View {
         ZStack {
             JadeRadius.md.shape
-                .fill(isSelected ? JadeColor.primaryFill : JadeColor.surface2)
+                .fill(isSelected ? JadeGlass.controlActive : JadeGlass.controlHover)
             Image(systemName: name)
                 .font(JadeFont.resultTileIcon)
                 .foregroundStyle(isSelected ? JadeColor.primary : JadeColor.textSecondary)

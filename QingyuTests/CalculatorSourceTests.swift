@@ -11,7 +11,9 @@ final class CalculatorSourceTests: XCTestCase {
         XCTAssertEqual(results.count, 1)
         XCTAssertEqual(results[0].sourceID, .calculator)
         XCTAssertEqual(results[0].title, "= 710.4")
-        XCTAssertEqual(results[0].typeLabel, "Calculator")
+        // typeLabel 走 L10n，按宿主语言解析成品文案；断言不能写死英文，
+        // 否则在中文系统上误报（标题断言同理由，见 KeywordLaunchSourceTests）。
+        XCTAssertEqual(results[0].typeLabel, L10n.localized("searchPanel.type.calculator"))
         if case .copyText(let value) = results[0].primaryAction {
             XCTAssertEqual(value, "710.4")
         } else {
@@ -81,7 +83,7 @@ final class CalculatorSourceTests: XCTestCase {
         let results = await source.search(query: "10 cm to inch")
 
         XCTAssertEqual(results.count, 1)
-        XCTAssertEqual(results[0].typeLabel, "Convert")
+        XCTAssertEqual(results[0].typeLabel, L10n.localized("searchPanel.type.convert"))
         XCTAssertEqual(results[0].title, "3.937008 in")
         if case .copyText(let value) = results[0].primaryAction {
             XCTAssertEqual(value, "3.937008 in")
