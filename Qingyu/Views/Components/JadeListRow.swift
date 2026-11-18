@@ -224,7 +224,7 @@ private struct JadeListRowGallery: View {
         }
         .jadePadding(.x3)
         .frame(width: 340)
-        .background(JadeColor.surface1)
+        .background(JadeGlass.tint)
     }
 }
 

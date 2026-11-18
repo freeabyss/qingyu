@@ -107,5 +107,5 @@ private struct BorderIfNeeded: ViewModifier {
     }
     .padding(48)
     .frame(width: 300, height: 460)
-    .background(JadeColor.surface2)
+    .background(JadeGlass.tint)
 }

@@ -55,6 +55,9 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
             window.titleVisibility = .hidden
             window.titlebarAppearsTransparent = true
             window.isMovableByWindowBackground = true
+            // 玻璃面板：窗口底透明，材质从整个窗口透出，圆角外不残留不透明底色。
+            window.isOpaque = false
+            window.backgroundColor = .clear
             window.contentMinSize = NSSize(width: 920, height: 640)
             window.center()
             window.contentView = NSHostingView(rootView: view)

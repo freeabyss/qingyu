@@ -71,7 +71,7 @@ private struct StatCardGallery: View {
         }
         .jadePadding(.x6)
         .frame(width: 460)
-        .background(JadeColor.surface1)
+        .background(JadeGlass.tint)
     }
 }
 

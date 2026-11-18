@@ -65,7 +65,7 @@ public struct JadeTextField: View {
         }
         .jadePadding(.horizontal, .x3)
         .padding(.vertical, Self.verticalPadding)
-        .background(JadeColor.surface2)
+        .background(JadeGlass.keycapFill)
         .jadeRadius(.md)
         .overlay(
             JadeRadius.md.shape
@@ -96,7 +96,7 @@ private struct JadeTextFieldGallery: View {
         }
         .jadePadding(.x6)
         .frame(width: 320)
-        .background(JadeColor.surface2)
+        .background(JadeGlass.tint)
     }
 }
 

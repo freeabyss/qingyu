@@ -87,9 +87,16 @@ private struct JadeButtonBody: View {
             // 白字压在 systemRed 上只有 3.55:1；改用达标的深一档填充色。
             (pressed ? JadeColor.dangerFillPressed : JadeColor.dangerFill)
         case .secondary:
-            (isHovering || pressed ? JadeColor.surface3 : JadeColor.settingsCard)
+            // 玻璃语言：静止态是半透明键帽底，hover/pressed 再叠一层悬停底（两层半透明相加，
+            // 深色 α0.20→0.33、浅色 α0.06→0.12），反馈可见且不产生实心色块。
+            JadeGlass.keycapFill
+                .overlay {
+                    if isHovering || pressed {
+                        JadeGlass.controlHover
+                    }
+                }
         case .ghost:
-            (isHovering || pressed ? JadeColor.surface2 : Color.clear)
+            (isHovering || pressed ? JadeGlass.controlHover : Color.clear)
         }
     }
 
@@ -99,7 +106,7 @@ private struct JadeButtonBody: View {
         case .primary, .destructive:
             JadeRadius.md.shape.strokeBorder(JadeColor.filledButtonBorder, lineWidth: 1)
         case .secondary:
-            JadeRadius.md.shape.strokeBorder(JadeColor.border, lineWidth: 1)
+            JadeRadius.md.shape.strokeBorder(JadeGlass.keycapBorder, lineWidth: 1)
                 .overlay {
                     JadeRadius.md.shape.inset(by: 1)
                         .strokeBorder(JadeColor.edgeHighlight, lineWidth: 0.5)
@@ -135,7 +142,7 @@ private struct JadeButtonGallery: View {
         }
         .jadePadding(.x6)
         .frame(width: 340)
-        .background(JadeColor.surface1)
+        .background(JadeGlass.tint)
     }
 
     private func row(_ title: String, style: JadeButtonStyle) -> some View {

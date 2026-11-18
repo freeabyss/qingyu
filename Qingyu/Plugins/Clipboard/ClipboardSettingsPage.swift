@@ -44,13 +44,10 @@ struct ClipboardPluginSettingsPage: View {
                 VStack(alignment: .leading, spacing: JadeSpace.x2.value) {
                     Text(L10n.localized("management.clipboard.retention"))
                         .font(JadeFont.body)
-                    Picker("", selection: retentionBinding) {
-                        ForEach(SettingsViewModel.retentionOptions, id: \.self) { retention in
-                            Text(viewModel.retentionTitle(retention)).tag(retention)
-                        }
-                    }
-                    .labelsHidden()
-                    .pickerStyle(.segmented)
+                    JadeSegmentedPicker(
+                        options: SettingsViewModel.retentionOptions.map { ($0, viewModel.retentionTitle($0)) },
+                        selection: retentionBinding
+                    )
                 }
 
                 JadeSettingsDivider()

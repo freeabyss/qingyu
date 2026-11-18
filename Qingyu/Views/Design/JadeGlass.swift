@@ -31,6 +31,14 @@ public enum JadeGlass {
     ))
     public static let tint = Color(tintNS)
 
+    /// 长时阅读窗口（设置、引导）的叠加底：与 `tint` 同色相但更不透明，
+    /// 桌面内容只透出层次、不干扰正文（交接文档第四节第 1 点）。
+    public static let tintOpaque = Color(dynamic("TintOpaque", Pair(
+        light: NSColor(srgbRed: 0.969, green: 0.961, blue: 0.945, alpha: 0.86),
+        dark: NSColor(srgbRed: 0.051, green: 0.027, blue: 0.110, alpha: 0.90)
+    )))
+
+
     /// 1pt 外描边。
     public static let edge = Color(dynamic("Edge", Pair(
         light: NSColor(white: 0, alpha: 0.10),
@@ -44,6 +52,14 @@ public enum JadeGlass {
     )))
 
     // MARK: - 分区与行
+
+    /// 设置卡片底：叠在玻璃之上的一层半透明浮层，比窗口 `tint` 亮/深一档，
+    /// 表达「这是从面板上抬起来的内容组」。替换旧的不透明 `settingsCard`。
+    public static let cardFill = Color(dynamic("CardFill", Pair(
+        light: NSColor(white: 1, alpha: 0.55),
+        dark: NSColor(white: 1, alpha: 0.08)
+    )))
+
 
     /// 分隔线。
     public static let separator = Color(dynamic("Separator", Pair(
@@ -101,8 +117,9 @@ public enum JadeGlass {
 extension View {
 
     /// 铺玻璃面板：系统材质 + 叠加底色 + 可选圆角裁剪。
-    public func jadeGlassSurface(radius: JadeRadius? = nil) -> some View {
-        modifier(JadeGlassSurfaceModifier(radius: radius))
+    /// 长时阅读窗口传 `tint: JadeGlass.tintOpaque` 提高叠加层不透明度。
+    public func jadeGlassSurface(radius: JadeRadius? = nil, tint: Color = JadeGlass.tint) -> some View {
+        modifier(JadeGlassSurfaceModifier(radius: radius, tint: tint))
     }
 
     /// 玻璃面板描边：1pt 外描边 + 顶部内高光。
@@ -113,12 +130,13 @@ extension View {
 
 private struct JadeGlassSurfaceModifier: ViewModifier {
     let radius: JadeRadius?
+    let tint: Color
 
     func body(content: Content) -> some View {
         content.background {
             ZStack {
                 VisualEffectView(material: .hudWindow, blendingMode: .behindWindow)
-                JadeGlass.tint
+                tint
             }
             .modifier(JadeGlassClip(radius: radius))
         }

@@ -134,7 +134,7 @@ private struct JadePillGallery: View {
         }
         .jadePadding(.x6)
         .frame(width: 340)
-        .background(JadeColor.surface1)
+        .background(JadeGlass.tint)
     }
 }
 

@@ -56,7 +56,7 @@ public struct PermissionGate: View {
         }
         .jadePadding(.x8)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(JadeColor.surface1)
+        .background(JadeGlass.tint)
     }
 }
 

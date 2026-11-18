@@ -39,13 +39,21 @@ struct ManagementCenterView: View {
             sidebar
                 .frame(width: Self.sidebarWidth)
 
+            // 侧栏与详情共处同一块玻璃，中间只有一条细线（系统设置同款语汇）。
+            Rectangle()
+                .fill(JadeGlass.separator)
+                .frame(width: 1)
+
             detail
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(JadeColor.surface2)
+                .jadePadding(.top, .x3)
         }
         .tint(JadeColor.primary)
         .preferredColorScheme(viewModel.preferredColorScheme)
-        .background(JadeColor.surface1.ignoresSafeArea())
+        // 设置是长时阅读窗口：叠加底用更不透明的变体，桌面只透层次不干扰正文。
+        .jadeGlassSurface(radius: .xxl, tint: JadeGlass.tintOpaque)
+        .jadeGlassEdge(radius: .xxl)
+        .jadeShadow(.xl, radius: .xxl)
         .background(keyboardShortcuts)
         .environmentObject(viewModel)
         .task { await viewModel.load() }
@@ -74,35 +82,97 @@ struct ManagementCenterView: View {
 
     // MARK: Sidebar
 
-    /// macOS 12 only offers the optional-selection `List(selection:)` overload;
-    /// the non-optional one was added in macOS 13. Bridge the model's non-optional
-    /// page value so the sidebar keeps working on both.
-    private var sidebarSelection: Binding<SettingsPageID?> {
-        Binding(
-            get: { viewModel.selectedPage },
-            set: { if let newValue = $0 { viewModel.selectedPage = newValue } }
-        )
+    /// 侧栏导航行：玻璃语言里选中态是一枚 `controlActive` 胶囊，
+    /// 而非系统 `List(.sidebar)` 自带的材质底（会在窗口玻璃上再叠一层材质）。
+    private struct SettingsSidebarRow: View {
+        let title: String
+        let icon: String
+        let isSelected: Bool
+        let action: () -> Void
+
+        @State private var isHovering = false
+
+        var body: some View {
+            Button(action: action) {
+                HStack(spacing: JadeSpace.x2.value) {
+                    SettingsSidebarIcon(systemImage: icon, isActive: isSelected)
+                    Text(title)
+                        .font(JadeFont.body)
+                        .foregroundStyle(isSelected ? JadeColor.primary : JadeColor.textPrimary)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .jadePadding(.horizontal, .x3)
+                .jadePadding(.vertical, .x2)
+                .background(
+                    isSelected ? JadeGlass.controlActive : (isHovering ? JadeGlass.rowHover : Color.clear),
+                    in: JadeRadius.md.shape
+                )
+                .contentShape(JadeRadius.md.shape)
+            }
+            .buttonStyle(.plain)
+            .onHover { isHovering = $0 }
+            .jadeAnimation(.easeInOut(duration: 0.12), value: isHovering)
+            .accessibilityAddTraits(isSelected ? [.isSelected] : [])
+        }
     }
 
     private var sidebar: some View {
         VStack(spacing: 0) {
+            // 顶部留出红绿灯区：fullSizeContentView 下标题栏透明，内容直接顶到窗口边。
             SettingsBrandHeader()
                 .jadePadding(.horizontal, .x4)
-                .jadePadding(.vertical, .x3)
-            Divider()
-                .overlay(JadeColor.border)
-            List(selection: sidebarSelection) {
-                generalRow
-                if !pluginPageIDs.isEmpty {
-                    Section(L10n.localized("settings.section.features")) {
-                        pluginRows
+                .jadePadding(.top, .x6)
+                .jadePadding(.bottom, .x3)
+            Rectangle()
+                .fill(JadeGlass.separator)
+                .frame(height: 1)
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .leading, spacing: JadeSpace.x1.value) {
+                    SettingsSidebarRow(
+                        title: L10n.localized("settings.page.general"),
+                        icon: "gearshape",
+                        isSelected: viewModel.selectedPage == .general
+                    ) {
+                        viewModel.selectedPage = .general
                     }
+                    .accessibilityIdentifier("settings.general")
+
+                    if !pluginPageIDs.isEmpty {
+                        Text(L10n.localized("settings.section.features"))
+                            .font(JadeFont.caption)
+                            .foregroundStyle(JadeColor.textTertiary)
+                            .jadePadding(.horizontal, .x3)
+                            .jadePadding(.top, .x2)
+                    }
+
+                    ForEach(viewModel.visiblePageIDs, id: \.self) { pageID in
+                        if case .plugin(let pluginID) = pageID,
+                           let descriptor = viewModel.pluginSettingsPage(for: pluginID) {
+                            SettingsSidebarRow(
+                                title: L10n.localized(descriptor.titleKey),
+                                icon: descriptor.systemImageName,
+                                isSelected: viewModel.selectedPage == pageID
+                            ) {
+                                viewModel.selectedPage = pageID
+                            }
+                            .accessibilityIdentifier("settings.\(pluginID.rawValue)")
+                        }
+                    }
+
+                    SettingsSidebarRow(
+                        title: L10n.localized("settings.page.about"),
+                        icon: "info.circle",
+                        isSelected: viewModel.selectedPage == .about
+                    ) {
+                        viewModel.selectedPage = .about
+                    }
+                    .accessibilityIdentifier("settings.about")
                 }
-                aboutRow
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .jadePadding(.horizontal, .x2)
+                .jadePadding(.vertical, .x2)
             }
-            .listStyle(.sidebar)
         }
-        .background(JadeColor.surface1)
         .accessibilityIdentifier("settings.sidebar")
     }
 
@@ -110,40 +180,6 @@ struct ManagementCenterView: View {
         viewModel.visiblePageIDs.compactMap { pageID in
             if case .plugin(let pluginID) = pageID { return pluginID }
             return nil
-        }
-    }
-
-    @ViewBuilder
-    private var generalRow: some View {
-        HStack(spacing: JadeSpace.x2.value) {
-            SettingsSidebarIcon(systemImage: "gearshape")
-            Text(L10n.localized("settings.page.general"))
-        }
-        .tag(SettingsPageID.general)
-        .accessibilityIdentifier("settings.general")
-    }
-
-    @ViewBuilder
-    private var aboutRow: some View {
-        HStack(spacing: JadeSpace.x2.value) {
-            SettingsSidebarIcon(systemImage: "info.circle")
-            Text(L10n.localized("settings.page.about"))
-        }
-        .tag(SettingsPageID.about)
-        .accessibilityIdentifier("settings.about")
-    }
-
-    @ViewBuilder
-    private var pluginRows: some View {
-        ForEach(viewModel.visiblePageIDs, id: \.self) { pageID in
-            if case .plugin(let pluginID) = pageID, let descriptor = viewModel.pluginSettingsPage(for: pluginID) {
-                HStack(spacing: JadeSpace.x2.value) {
-                    SettingsSidebarIcon(systemImage: descriptor.systemImageName)
-                    Text(L10n.localized(descriptor.titleKey))
-                }
-                .tag(pageID)
-                .accessibilityIdentifier("settings.\(pluginID.rawValue)")
-            }
         }
     }
 
@@ -216,13 +252,10 @@ private struct GeneralPage: View {
             }
 
             SettingsSection("management.page.appearance") {
-                Picker("", selection: appearanceBinding) {
-                    ForEach(AppearanceMode.allCases, id: \.self) { mode in
-                        Text(appearanceTitle(mode)).tag(mode)
-                    }
-                }
-                .labelsHidden()
-                .pickerStyle(.segmented)
+                JadeSegmentedPicker(
+                    options: AppearanceMode.allCases.map { ($0, appearanceTitle($0)) },
+                    selection: appearanceBinding
+                )
 
                 JadeSettingsDivider()
                 JadeSwitchRow(L10n.localized("management.appearance.reduceMotion"), isOn: $reduceMotion)
@@ -527,11 +560,10 @@ private struct FeedbackSection: View {
             // 分段控件按内容宽度排布：撑满整行会让三个选项各占 1/3 行宽，
             // 看起来像一排被拉长的按钮，而不是「选一个」的控件。
             HStack {
-                Picker("", selection: $category) {
-                    ForEach(FeedbackCategory.allCases) { c in Text(c.title).tag(c) }
-                }
-                .labelsHidden()
-                .pickerStyle(.segmented)
+                JadeSegmentedPicker(
+                    options: FeedbackCategory.allCases.map { ($0, $0.title) },
+                    selection: $category
+                )
                 .fixedSize()
                 Spacer()
             }
@@ -542,7 +574,8 @@ private struct FeedbackSection: View {
                     .font(JadeFont.body)
                     .frame(minHeight: Self.feedbackDetailsMinHeight)
                     .jadePadding(.x1)
-                    .background(JadeColor.surface1)
+                    // 输入井：半透明键帽底压在玻璃卡片上，形成「凹进去」的层次。
+                    .background(JadeGlass.keycapFill)
                     .jadeRadius(.md)
                     .jadeRadiusBorder(.md)
 
@@ -727,7 +760,9 @@ struct PrivacyPolicySheet: View {
         }
         .jadePadding(.x6)
         .frame(width: Self.privacySheetWidth, height: Self.privacySheetHeight)
-        .background(JadeColor.surface1)
+        // macOS 12 没有 presentationBackground，sheet 自带不透明底；
+        // 半透明 cardFill 叠在其上表达「玻璃语言的内容面」。
+        .background(JadeGlass.cardFill)
     }
 
     private func privacySection(_ titleKey: String, bodyKey: String) -> some View {

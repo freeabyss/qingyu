@@ -37,16 +37,6 @@ extension View {
                              radius: JadeRadius? = nil) -> some View {
         modifier(JadeMaterialModifier(material: material, radius: radius))
     }
-
-    /// Window chrome: the solid `surface1` panel surface.
-    @ViewBuilder
-    func jadeWindowSurface(radius: JadeRadius? = nil) -> some View {
-        if let radius {
-            background(JadeColor.surface1, in: radius.shape)
-        } else {
-            background(JadeColor.surface1)
-        }
-    }
 }
 
 private struct JadeMaterialModifier: ViewModifier {

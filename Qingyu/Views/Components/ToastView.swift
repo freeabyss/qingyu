@@ -65,7 +65,9 @@ public struct JadeToast: View {
         }
         .jadePadding(.horizontal, .x4)
         .jadePadding(.vertical, .x3)
-        .background(JadeColor.surface1, in: JadeRadius.lg.shape)
+        // 浮层压在已模糊的窗口玻璃上：叠一层面板 tint 保证可读性，配 1pt 玻璃描边。
+        .background(JadeGlass.tint, in: JadeRadius.lg.shape)
+        .overlay(JadeRadius.lg.shape.strokeBorder(JadeGlass.edge, lineWidth: 1))
         .jadeShadow(.md, radius: .lg)
     }
 }
@@ -154,7 +156,7 @@ private struct JadeToastGallery: View {
         }
         .jadePadding(.x6)
         .frame(width: 320, height: 260)
-        .background(JadeColor.surface2)
+        .background(JadeGlass.tint)
     }
 }
 

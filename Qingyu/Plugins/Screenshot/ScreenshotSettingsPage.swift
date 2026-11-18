@@ -106,7 +106,8 @@ struct ScreenshotPluginSettingsPage: View {
                         //（比 x2=8 多 1pt，让单行等宽路径与 12pt 横向内边距视觉等重）。
                         .jadePadding(.horizontal, .x3)
                         .padding(.vertical, Self.pathFieldVerticalPadding)
-                        .background(JadeColor.surface1)
+                        // 路径展示井：玻璃语言的键帽底，材质继续从周围透出。
+                        .background(JadeGlass.keycapFill)
                         .jadeRadius(.md)
                         .jadeRadiusBorder(.md)
                     Button(L10n.localized("management.screenshot.choose")) {
@@ -117,13 +118,10 @@ struct ScreenshotPluginSettingsPage: View {
             }
 
             SettingsSection("management.screenshot.format") {
-                Picker("", selection: imageFormat) {
-                    ForEach(ScreenshotImageFormat.allCases, id: \.self) { format in
-                        Text(L10n.localized(format.localizationKey)).tag(format)
-                    }
-                }
-                .labelsHidden()
-                .pickerStyle(.segmented)
+                JadeSegmentedPicker(
+                    options: ScreenshotImageFormat.allCases.map { ($0, L10n.localized($0.localizationKey)) },
+                    selection: imageFormat
+                )
                 Text(L10n.localized("management.screenshot.format.note"))
                     .font(JadeFont.caption)
                     .foregroundStyle(JadeColor.textTertiary)
@@ -191,13 +189,10 @@ struct ScreenshotPluginSettingsPage: View {
                 VStack(alignment: .leading, spacing: JadeSpace.x2.value) {
                     Text(L10n.localized("settings.magnifier.zoom"))
                         .font(JadeFont.body)
-                    Picker("", selection: $magnifierZoom) {
-                        ForEach(MagnifierConfiguration.availableZooms, id: \.self) { zoom in
-                            Text("\(zoom)×").tag(zoom)
-                        }
-                    }
-                    .labelsHidden()
-                    .pickerStyle(.segmented)
+                    JadeSegmentedPicker(
+                        options: MagnifierConfiguration.availableZooms.map { ($0, "\($0)×") },
+                        selection: $magnifierZoom
+                    )
                     .onChange(of: magnifierZoom) { newValue in
                         Task { try? await viewModel.set(newValue, for: .magnifierZoom) }
                     }
@@ -328,14 +323,14 @@ struct ScreenshotPluginSettingsPage: View {
                         .font(JadeFont.body)
                         .foregroundStyle(JadeColor.textPrimary)
                     Spacer()
-                    Picker("", selection: colorValueSpaceBinding) {
-                        Text("RGB").tag(ColorValueSpace.rgb)
-                        Text("HSV").tag(ColorValueSpace.hsv)
-                        Text("HSL").tag(ColorValueSpace.hsl)
-                    }
-                    .labelsHidden()
-                    .pickerStyle(.segmented)
-                    .frame(maxWidth: 240)
+                    JadeSegmentedPicker(
+                        options: [
+                            (ColorValueSpace.rgb, "RGB"),
+                            (ColorValueSpace.hsv, "HSV"),
+                            (ColorValueSpace.hsl, "HSL")
+                        ],
+                        selection: colorValueSpaceBinding
+                    )
                 }
                 JadeSettingsDivider()
                 JadeSwitchRow(

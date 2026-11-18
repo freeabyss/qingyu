@@ -48,7 +48,8 @@ public struct HotkeyRecorder: View {
             }
             .jadePadding(.horizontal, .x2)
             .jadePadding(.vertical, .x1)
-            .background(JadeColor.surface1)
+            // 键位胶囊：玻璃语言的键帽底，窗口材质继续从周围透出。
+            .background(JadeGlass.keycapFill)
             .jadeRadius(.md)
             .overlay(
                 JadeRadius.md.shape
@@ -113,7 +114,7 @@ private struct HotkeyRecorderGallery: View {
         }
         .jadePadding(.x6)
         .frame(width: 320)
-        .background(JadeColor.surface1)
+        .background(JadeGlass.tint)
     }
 }
 

@@ -115,7 +115,7 @@ struct ClipboardDetailPane: View {
                 .jadePadding(.horizontal, .x4)
                 .jadePadding(.vertical, .x3)
 
-                Divider().overlay(JadeColor.border)
+                Divider().overlay(JadeGlass.separator)
 
                 // Large scrolling body — same content rendering as the side pane.
                 ScrollView {
@@ -125,7 +125,10 @@ struct ClipboardDetailPane: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             .frame(minWidth: Self.maximizedPreviewMinWidth, minHeight: Self.maximizedPreviewMinHeight)
-            .background(JadeColor.surface1)
+            // 放大预览是长时阅读面：不透明 surface1 会把窗口玻璃整个盖死，
+            // 换成更不透明变体的玻璃叠加层，桌面只透层次不干扰正文。
+            .jadeGlassSurface(radius: .lg, tint: JadeGlass.tintOpaque)
+            .jadeGlassEdge(radius: .lg)
             .overlay(
                 Button(action: { isMaximized = false }) { EmptyView() }
                     .keyboardShortcut(.cancelAction)
@@ -292,7 +295,7 @@ struct ClipboardDetailPane: View {
             .textSelection(.enabled)
             .frame(maxWidth: .infinity, alignment: .leading)
             .jadePadding(.x3)
-            .background(JadeColor.surface2)
+            .background(JadeGlass.cardFill)
             .jadeRadius(.md)
     }
 
@@ -309,7 +312,7 @@ struct ClipboardDetailPane: View {
         }
         .frame(maxWidth: .infinity, minHeight: Self.previewContentMinHeight)
         .jadePadding(.x4)
-        .background(JadeColor.surface2)
+        .background(JadeGlass.cardFill)
         .jadeRadius(.md)
     }
 
@@ -370,7 +373,7 @@ struct ClipboardDetailPane: View {
         }
         .jadePadding(.x3)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(JadeColor.surface2)
+        .background(JadeGlass.cardFill)
         .overlay(JadeRadius.md.shape.strokeBorder(JadeColor.border, lineWidth: Self.fileCardBorderLineWidth))
         .jadeRadius(.md)
     }

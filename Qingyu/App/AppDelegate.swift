@@ -334,6 +334,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         // 允许用户在较大字号或较窄屏幕下扩大窗口，不让 footer 被内容挤压。
         window.contentMinSize = NSSize(width: 720, height: 520)
         window.title = L10n.localized("onboarding.welcome.title")
+        // 玻璃面板：窗口底透明，材质从整个窗口透出，圆角外不残留不透明底色。
+        window.titlebarAppearsTransparent = true
+        window.isOpaque = false
+        window.backgroundColor = .clear
         window.center()
         window.contentView = NSHostingView(rootView: view)
         window.isReleasedWhenClosed = false

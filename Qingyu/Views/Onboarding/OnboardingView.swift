@@ -54,8 +54,9 @@ struct OnboardingView: View {
         .jadePadding(.x8)
         .frame(minWidth: Self.windowWidth, idealWidth: Self.windowWidth, maxWidth: .infinity,
                minHeight: Self.windowMinHeight, idealHeight: Self.windowIdealHeight, maxHeight: .infinity)
-        .background(JadeColor.surface1)
-        .jadeRadius(.xl)
+        // 引导是长时阅读窗口：叠加底用更不透明的变体保证正文对比度。
+        .jadeGlassSurface(radius: .xl, tint: JadeGlass.tintOpaque)
+        .jadeGlassEdge(radius: .xl)
         .jadeShadow(.xl, radius: .xl)
         .onAppear { viewModel.onAppear() }
         // 授权通常在系统设置完成；回到应用后立即更新状态，而不是要求用户重启或再次点按钮。
@@ -84,7 +85,7 @@ struct OnboardingView: View {
                 .font(JadeFont.onboardingLogoIcon)
                 .foregroundStyle(JadeColor.textPrimary)
                 .frame(width: Self.logoTileSize, height: Self.logoTileSize)
-                .background(JadeColor.settingsCard, in: JadeRadius.xl.shape)
+                .background(JadeGlass.cardFill, in: JadeRadius.xl.shape)
                 .jadeRadiusBorder(.xl)
                 .jadeShadow(.sm, radius: .xl)
                 .accessibilityHidden(true)
@@ -157,7 +158,7 @@ struct OnboardingView: View {
                 .accessibilityIdentifier("onboarding.launchAtLoginToggle")
             }
         }
-        .background(JadeColor.settingsCard, in: JadeRadius.lg.shape)
+        .background(JadeGlass.cardFill, in: JadeRadius.lg.shape)
         .jadeRadiusBorder(.lg)
     }
 

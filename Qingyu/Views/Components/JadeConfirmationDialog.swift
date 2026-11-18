@@ -64,7 +64,7 @@ private struct JadeConfirmationDialogGallery: View {
         }
         .jadePadding(.x8)
         .frame(width: 320, height: 220)
-        .background(JadeColor.surface1)
+        .background(JadeGlass.tint)
         .jadeConfirmationDialog(
             "确认删除全部历史记录？",
             isPresented: $showDialog,

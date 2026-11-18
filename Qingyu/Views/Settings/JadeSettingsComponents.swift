@@ -5,6 +5,8 @@ import SwiftUI
 /// 侧栏使用单色、轻量的图标，让选中状态而非装饰性色块承担导航层级。
 struct SettingsSidebarIcon: View {
     let systemImage: String
+    /// 选中时转主色，与所在行的胶囊底一起构成导航层级。
+    var isActive: Bool = false
 
     /// 侧栏图标边长：18pt 正方形，仅用于设置侧栏图标；不并入 JadeSpace，那是间距档位，不是图标尺寸。
     private static let iconSize: CGFloat = 18
@@ -12,7 +14,7 @@ struct SettingsSidebarIcon: View {
     var body: some View {
         Image(systemName: systemImage)
             .font(JadeFont.settingsSidebarIcon)
-            .foregroundStyle(JadeColor.textSecondary)
+            .foregroundStyle(isActive ? JadeColor.primary : JadeColor.textSecondary)
             .frame(width: Self.iconSize, height: Self.iconSize)
             .accessibilityHidden(true)
     }
@@ -39,7 +41,8 @@ struct SettingsHeaderIcon: View {
 /// 设置内容组：安静的单层表面、细边界与统一的行间距。
 ///
 /// 行间分隔用 `JadeSettingsDivider`（自标签文字左缘 inset）；小节标题由
-/// `SettingsSection` 放在卡片外。
+/// `SettingsSection` 放在卡片外。玻璃语言下卡片是半透明浮层，
+/// 让窗口材质继续从内容组之间透出。
 struct JadeSettingsCard<Content: View>: View {
     @ViewBuilder let content: Content
 
@@ -49,7 +52,7 @@ struct JadeSettingsCard<Content: View>: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .jadePadding(.x4)
-        .background(JadeColor.settingsCard)
+        .background(JadeGlass.cardFill)
         .jadeRadius(.lg)
         .jadeRadiusBorder(.lg)
     }
@@ -59,7 +62,45 @@ struct JadeSettingsCard<Content: View>: View {
 struct JadeSettingsDivider: View {
     var body: some View {
         Divider()
-            .overlay(JadeColor.border)
+            .overlay(JadeGlass.separator)
+    }
+}
+
+// MARK: - Segmented picker
+
+/// 胶囊形分段选择器（玻璃语言版 `.segmented`）。
+///
+/// 系统 `pickerStyle(.segmented)` 自带一块不透明材质，会把玻璃盖死；
+/// 这里用键帽底做轨道、选中段实心（深色外观白 / 浅色外观深），
+/// 对应交接文档第四节第 4 点。选项内容与选中态走无障碍语义（`.isSelected`）。
+struct JadeSegmentedPicker<Option: Hashable>: View {
+    let options: [(option: Option, label: String)]
+    @Binding var selection: Option
+
+    var body: some View {
+        HStack(spacing: JadeSpace.x1.value) {
+            ForEach(options.indices, id: \.self) { index in
+                let option = options[index]
+                let isSelected = option.option == selection
+                Button {
+                    selection = option.option
+                } label: {
+                    Text(option.label)
+                        .font(JadeFont.subhead)
+                        .foregroundStyle(isSelected ? JadeColor.onPrimary : JadeColor.textPrimary)
+                        .jadePadding(.horizontal, .x3)
+                        .jadePadding(.vertical, .x1)
+                        // Capsule 是形状语义（完全圆的两端），JadeRadius 是圆角档位，不互相换算。
+                        .background(isSelected ? JadeGlass.selectionMark : Color.clear, in: Capsule())
+                        .contentShape(Capsule())
+                }
+                .buttonStyle(.plain)
+                .accessibilityAddTraits(isSelected ? [.isSelected] : [])
+            }
+        }
+        .padding(JadeSpace.x1.value)
+        .background(JadeGlass.keycapFill, in: Capsule())
+        .overlay(Capsule().strokeBorder(JadeGlass.keycapBorder, lineWidth: 1))
     }
 }
 
@@ -143,5 +184,5 @@ private var settingsComponentsGallery: some View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
     .frame(width: 460, height: 320)
-    .background(JadeColor.surface1)
+    .background(JadeGlass.tint)
 }

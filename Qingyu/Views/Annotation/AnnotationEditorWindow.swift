@@ -314,8 +314,9 @@ private struct AnnotationEditorRootView: View {
                         .foregroundStyle(JadeColor.textPrimary)
                         .jadePadding(.horizontal, .x3)
                         .jadePadding(.vertical, .x2)
-                        .background(JadeColor.surface1)
-                        .jadeRadius(.md)
+                        // 玻璃浮层：与 JadeToast 同语汇，材质 + tint 叠加保证压在画布上也清晰。
+                        .jadeGlassSurface(radius: .md)
+                        .jadeGlassEdge(radius: .md)
                         .padding(.bottom, 96)
                 }
                 .allowsHitTesting(false)
