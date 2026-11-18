@@ -436,9 +436,17 @@ final class SearchPanelViewModelTests: XCTestCase {
     /// 顶部 32% 叠一层白色内高光（浅色外观最浓 α0.60），面板高于输入行时文字被冲淡，
     /// 绝对亮度阈值在 280/560pt 面板上找不到输入行；而文字与底色的相对反差不受影响，
     /// 用它定位同样能区分「钉在顶部」与「被垂直居中」。
+    ///
+    /// macOS 26+ 真·玻璃路径（NSGlassEffectView）在离屏渲染里不画底——没有桌面
+    /// 可折射，行内采样会整行透明而定位失败。这里垫一层不透明白底并固定浅色外观，
+    /// 让「输入行位置」断言与玻璃的具体实现解耦：玻璃负责观感，本测试只管布局。
     private func renderInputRowTopOffset(width: CGFloat, height: CGFloat) -> Int {
         let viewModel = SearchPanelViewModel(searchService: StubPanelSearchService(results: []))
-        let host = NSHostingView(rootView: CommandBarView(viewModel: viewModel))
+        let host = NSHostingView(
+            rootView: CommandBarView(viewModel: viewModel)
+                .background(Color.white)
+                .environment(\.colorScheme, .light)
+        )
         host.frame = NSRect(x: 0, y: 0, width: width, height: height)
         host.layoutSubtreeIfNeeded()
 

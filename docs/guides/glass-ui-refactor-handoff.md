@@ -1,7 +1,41 @@
 # 玻璃 UI 重构 · 交接文档
 
 > 交接时间：2026-11-18 ｜ 基线提交 `c3a85c2` ｜ **2026-11-18 全部完成**（命令栏 `60a17b4`、设置+引导+收尾 `fe4b5f1`，版本 0.4.210 / 610）
-> 上游设计稿：`design-demos/`（`dir-3.html` 主界面板、`clipboard-3.html` 剪贴板；注：`settings-3.html` 实际不存在，设置页按第四节文字实现）
+> **2026-11-18 第二轮（0.4.211 / 611）：玻璃被 tint 盖死的根因修复**，见下方「零、0.4.211 玻璃根因修复」。
+> 上游设计稿：`design-demos/`（`dir-3.html` 主界面板、`clipboard-3.html` 剪贴板；`settings-3.html` 已存在，设置页实现时曾缺失）
+
+## 零、0.4.211 玻璃根因修复（必读）
+
+**问题**：用户反馈「界面很奇怪，没有完全玻璃化」。根因是四个界面的玻璃都被自己的
+叠加层盖死——`tint` α0.78~0.90，桌面最多透 14%~26%，观感是实心深色面板
+（设置/引导用 `tintOpaque` α0.90，几乎完全不透明）。而设计稿意图是 25%~45% 的
+梅紫纱、背景色明显透出。
+
+**为什么上一轮没发现**：验证用的 `--uitest-capture-png` 走 `cacheDisplay` 离屏自绘，
+**渲染不出 behind-window 玻璃与材质**，每轮「双外观验证」全绿但看到的从来不是真实效果。
+
+**修复（`JadeGlass.swift` 双路径渲染，调用方无感知）**：
+- **macOS 26+**：`NSGlassEffectView`（系统 Liquid Glass）。折射、明暗自适应、边缘高光、
+  文字可读性全部由系统处理；`liquidTint*` 令牌只负责品牌色相（α ≤ 0.20 / 阅读档 0.38）。
+  `jadeGlassEdge` 在 26+ 为 no-op（系统玻璃自带边缘，再画就是双描边）。
+- **macOS 12–25 回退**：材质 + tint 叠加层不变，但 α 全面下调
+  （tint 0.62/0.60、tintOpaque 0.74/0.78），玻璃能真正透出来。
+- 调用侧：`jadeGlassSurface(radius:tint:)` 的 `tint` 参数从 `Color` 改为
+  `JadeGlassTintKind`（`.standard` / `.reading`），三个原 `tintOpaque` 调用点已同步。
+
+**测试锁**（`JadeDesignTokenTests`）：
+- `testGlassSurfaceBackendMatchesOS`：26+ 必须走 `.liquidGlass`，旧系统必须走 `.materialFallback`。
+- `testGlassTintsNeverCoverTheMaterial`：各档 tint 的 α 上限（回退 0.70/0.85、真玻璃 0.25/0.45），
+  防止再次把玻璃盖死。
+
+**新的真像素验证工具**：`--uitest-capture-live-png <path>`（DEBUG）。
+用 `CGWindowListCreateImage` 截**真实合成像素**（玻璃的模糊/折射/边缘高光都在），
+截自己进程的窗口不需要屏幕录制权限。注意：`screencapture` CLI 会按调用方过 TCC，
+Debug 构建无授权会被拒（实测 exit 1），所以走进程内 API。
+用法与 `--uitest-capture-png` 相同（可与 `--uitest-trigger` / `--uitest-dark-appearance` 组合）。
+
+**仍然有效的约束**：后台启动的 app（含 agent 触发的 `open`）会被 macOS 的后台应用管理
+推迟显示窗口——窗口创建了但没有合成表面。live 截图若只拍到壁纸，先让 app 获得真实用户激活。
 
 ## 一、任务目标
 

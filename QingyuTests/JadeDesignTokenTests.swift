@@ -269,6 +269,44 @@ final class JadeDesignTokenTests: XCTestCase {
         XCTAssertLessThan(contrast(0xECF0F6, 0xFCFCFD), 3.0, "仅浅底不足以辨识选中：此断言记录旧缺陷")
     }
 
+    /// macOS 26+ 必须走系统 Liquid Glass 渲染路径。
+    ///
+    /// 0.4.211 之前的教训：唯一渲染路径是「材质 + 高不透明度 tint」，
+    /// 四个界面全部呈现实心深色面板，玻璃化名存实亡。这条锁死运行时后端
+    /// 与系统版本的对应关系，防止后续改动悄悄退回材质叠加层路径。
+    func testGlassSurfaceBackendMatchesOS() {
+        if #available(macOS 26.0, *) {
+            XCTAssertEqual(JadeGlassSurfaceBackend.current, .liquidGlass, "macOS 26+ 必须使用 NSGlassEffectView 真玻璃")
+        } else {
+            XCTAssertEqual(JadeGlassSurfaceBackend.current, .materialFallback, "macOS < 26 应回退到材质叠加层")
+        }
+    }
+
+    /// 玻璃染色与回退叠加层的透明度天花板：任何一档叠太高都会把玻璃盖死。
+    ///
+    /// 曾经 tint 叠到 α0.78~0.90，桌面最多透 14%~22%，观感是实心面板。
+    /// 这里按档位锁死上限，调色可以微调数值，但不得突破天花板。
+    func testGlassTintsNeverCoverTheMaterial() {
+        XCTAssertLessThan(resolvedAlpha(JadeGlass.tintNS, appearance: .darkAqua), 0.70, "回退 tint 深色 α 上限")
+        XCTAssertLessThan(resolvedAlpha(JadeGlass.tintNS, appearance: .aqua), 0.70, "回退 tint 浅色 α 上限")
+        XCTAssertLessThan(resolvedAlpha(JadeGlass.tintOpaqueNS, appearance: .darkAqua), 0.85, "回退阅读档 深色 α 上限")
+        XCTAssertLessThan(resolvedAlpha(JadeGlass.tintOpaqueNS, appearance: .aqua), 0.85, "回退阅读档 浅色 α 上限")
+        XCTAssertLessThan(resolvedAlpha(JadeGlass.liquidTintNS, appearance: .darkAqua), 0.25, "真玻璃染色 深色 α 上限")
+        XCTAssertLessThan(resolvedAlpha(JadeGlass.liquidTintNS, appearance: .aqua), 0.25, "真玻璃染色 浅色 α 上限")
+        XCTAssertLessThan(resolvedAlpha(JadeGlass.liquidReadingTintNS, appearance: .darkAqua), 0.45, "真玻璃阅读档 深色 α 上限")
+        XCTAssertLessThan(resolvedAlpha(JadeGlass.liquidReadingTintNS, appearance: .aqua), 0.45, "真玻璃阅读档 浅色 α 上限")
+    }
+
+    /// 在指定外观下解析动态 NSColor 的 alpha 分量。
+    private func resolvedAlpha(_ color: NSColor, appearance name: NSAppearance.Name) -> CGFloat {
+        guard let appearance = NSAppearance(named: name) else { return 1 }
+        var alpha: CGFloat = 1
+        appearance.performAsCurrentDrawingAppearance {
+            alpha = color.usingColorSpace(.sRGB)?.alphaComponent ?? 1
+        }
+        return alpha
+    }
+
     private func rgb(_ hex: UInt32) -> (Double, Double, Double) {
         (Double((hex >> 16) & 0xFF) / 255, Double((hex >> 8) & 0xFF) / 255, Double(hex & 0xFF) / 255)
     }

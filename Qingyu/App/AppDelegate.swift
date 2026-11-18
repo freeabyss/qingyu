@@ -228,6 +228,18 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 self?.captureFrontmostWindow(to: path)
             }
         }
+
+        // --uitest-capture-live-png <path>：用 screencapture 截**真实合成像素**后退出。
+        // cacheDisplay（--uitest-capture-png）渲染不出 behind-window 玻璃与材质，
+        // 「玻璃化」验证曾经因此一路全绿、实际却是实心面板。截自己进程的窗口
+        // 不需要屏幕录制权限，窗口级截图会把系统合成的玻璃（模糊/折射/边缘高光）一并截下。
+        if let livePath = Self.captureLivePNGPath() {
+            CommandBarController.debugSuppressResignClose = true
+            let delay = Self.captureDelay()
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+                self?.captureLiveWindow(to: livePath)
+            }
+        }
         #endif
 
         logger.info("Qingyu launched successfully")
@@ -384,6 +396,77 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
               index + 1 < args.count,
               !args[index + 1].hasPrefix("--") else { return nil }
         return args[index + 1]
+    }
+
+    /// --uitest-capture-live-png <path>：取其后一个参数作为输出路径（真实合成像素）。
+    private static func captureLivePNGPath() -> String? {
+        let args = ProcessInfo.processInfo.arguments
+        guard let index = args.firstIndex(of: "--uitest-capture-live-png"),
+              index + 1 < args.count,
+              !args[index + 1].hasPrefix("--") else { return nil }
+        return args[index + 1]
+    }
+
+    /// 用 `CGWindowListCreateImage` 截当前最大可见窗口的真实合成像素后退出。
+    ///
+    /// 与 `captureFrontmostWindow`（cacheDisplay 自绘）互补：玻璃/材质的模糊、折射、
+    /// 边缘高光都由 WindowServer 合成，只有这条路截得到。截自己进程的窗口
+    /// 不需要屏幕录制权限（`screencapture` CLI 会按调用方进程过 TCC，
+    /// Debug 构建没有授权，实测被拒，所以走进程内 API）。
+    @MainActor
+    private func captureLiveWindow(to path: String, attempt: Int = 0) {
+        let candidates = NSApp.windows.filter { window in
+            guard window.isVisible, let view = window.contentView else { return false }
+            return view.bounds.width >= 200 && view.bounds.height >= 40
+        }
+        guard let window = candidates.max(by: {
+            $0.frame.width * $0.frame.height < $1.frame.width * $1.frame.height
+        }) else {
+            guard attempt < 12 else {
+                logger.error("UITest live capture: no visible window to capture")
+                NSApp.terminate(nil)
+                return
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                self?.captureLiveWindow(to: path, attempt: attempt + 1)
+            }
+            return
+        }
+
+        // 先激活并置前：非活动窗口会被系统画成灰态，玻璃也会按失焦降级。
+        NSApp.activate(ignoringOtherApps: true)
+        window.makeKeyAndOrderFront(nil)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in
+            guard let self else { return }
+            // screenBounds 传 .null = 以目标窗口自身 bounds 为准；
+            // imageOption 带 .bestResolution 保证 Retina 下不糊。
+            guard let image = CGWindowListCreateImage(
+                .null,
+                [.optionOnScreenOnly],
+                CGWindowID(window.windowNumber),
+                [.bestResolution]
+            ) else {
+                logger.error("UITest live capture: CGWindowListCreateImage returned nil")
+                NSApp.terminate(nil)
+                return
+            }
+            do {
+                try FileManager.default.createDirectory(
+                    at: URL(fileURLWithPath: path).deletingLastPathComponent(),
+                    withIntermediateDirectories: true
+                )
+                let rep = NSBitmapImageRep(cgImage: image)
+                guard let data = rep.representation(using: .png, properties: [:]) else {
+                    logger.error("UITest live capture: PNG encoding failed")
+                    NSApp.terminate(nil)
+                    return
+                }
+                try data.write(to: URL(fileURLWithPath: path))
+            } catch {
+                logger.error("UITest live capture: \(error.localizedDescription)")
+            }
+            NSApp.terminate(nil)
+        }
     }
 
     /// 把每个滚动文档单独画成 PNG（<base>-scrollN.png）。

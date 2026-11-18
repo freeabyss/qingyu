@@ -126,8 +126,8 @@ struct ClipboardDetailPane: View {
             }
             .frame(minWidth: Self.maximizedPreviewMinWidth, minHeight: Self.maximizedPreviewMinHeight)
             // 放大预览是长时阅读面：不透明 surface1 会把窗口玻璃整个盖死，
-            // 换成更不透明变体的玻璃叠加层，桌面只透层次不干扰正文。
-            .jadeGlassSurface(radius: .lg, tint: JadeGlass.tintOpaque)
+            // 用 reading 档玻璃染色，桌面只透层次不干扰正文。
+            .jadeGlassSurface(radius: .lg, tint: .reading)
             .jadeGlassEdge(radius: .lg)
             .overlay(
                 Button(action: { isMaximized = false }) { EmptyView() }

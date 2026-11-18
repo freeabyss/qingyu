@@ -50,8 +50,8 @@ struct ManagementCenterView: View {
         }
         .tint(JadeColor.primary)
         .preferredColorScheme(viewModel.preferredColorScheme)
-        // 设置是长时阅读窗口：叠加底用更不透明的变体，桌面只透层次不干扰正文。
-        .jadeGlassSurface(radius: .xxl, tint: JadeGlass.tintOpaque)
+        // 设置是长时阅读窗口：玻璃染色略深一档，桌面只透层次不干扰正文。
+        .jadeGlassSurface(radius: .xxl, tint: .reading)
         .jadeGlassEdge(radius: .xxl)
         .jadeShadow(.xl, radius: .xxl)
         .background(keyboardShortcuts)

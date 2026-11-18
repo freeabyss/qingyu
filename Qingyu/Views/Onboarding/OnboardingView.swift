@@ -54,8 +54,8 @@ struct OnboardingView: View {
         .jadePadding(.x8)
         .frame(minWidth: Self.windowWidth, idealWidth: Self.windowWidth, maxWidth: .infinity,
                minHeight: Self.windowMinHeight, idealHeight: Self.windowIdealHeight, maxHeight: .infinity)
-        // 引导是长时阅读窗口：叠加底用更不透明的变体保证正文对比度。
-        .jadeGlassSurface(radius: .xl, tint: JadeGlass.tintOpaque)
+        // 引导是长时阅读窗口：玻璃染色略深一档保证正文对比度。
+        .jadeGlassSurface(radius: .xl, tint: .reading)
         .jadeGlassEdge(radius: .xl)
         .jadeShadow(.xl, radius: .xl)
         .onAppear { viewModel.onAppear() }
