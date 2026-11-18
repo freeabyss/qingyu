@@ -1,7 +1,7 @@
 # 玻璃 UI 重构 · 交接文档
 
-> 交接时间：2026-11-18 ｜ 基线提交 `c3a85c2`（已推送 origin/main）｜ 版本 0.4.208 / 608
-> 上游设计稿：`design-demos/`（`dir-3.html` 主界面板、`clipboard-3.html` 剪贴板、`settings-3.html` 设置）
+> 交接时间：2026-11-18 ｜ 基线提交 `c3a85c2` ｜ **2026-11-18 全部完成**（命令栏 `60a17b4`、设置+引导+收尾 `fe4b5f1`，版本 0.4.210 / 610）
+> 上游设计稿：`design-demos/`（`dir-3.html` 主界面板、`clipboard-3.html` 剪贴板；注：`settings-3.html` 实际不存在，设置页按第四节文字实现）
 
 ## 一、任务目标
 
@@ -11,10 +11,19 @@
 
 | 界面 | 状态 |
 |---|---|
-| 剪贴板历史窗口 `ClipboardHistoryView` | ✅ 已完成（本基线） |
-| 命令栏 `CommandBarView` | ⬜ 未开始 |
-| 设置窗口 `SettingsView`（含五个子页） | ⬜ 未开始 |
-| 首启引导 `OnboardingView` | ⬜ 未评估是否纳入（建议纳入，保持语言统一） |
+| 剪贴板历史窗口 `ClipboardHistoryView` | ✅ 已完成（`c3a85c2`） |
+| 命令栏 `CommandBarView` | ✅ 已完成（`60a17b4`） |
+| 设置窗口 `SettingsView`（含五个子页） | ✅ 已完成（`fe4b5f1`） |
+| 首启引导 `OnboardingView` | ✅ 已完成（`fe4b5f1`，纳入并完成） |
+
+## 补充：第三阶段新增的令牌与组件（`fe4b5f1`）
+
+- `JadeGlass.tintOpaque`：长时阅读窗口叠加底（深 α0.90 / 浅 α0.86），设置与引导的根使用
+- `JadeGlass.cardFill`：卡片浮层（深白 α0.08 / 浅白 α0.55），`JadeSettingsCard`、引导卡片、详情卡片
+- `jadeGlassSurface(radius:tint:)`：叠加底可自定义
+- `JadeSegmentedPicker`（`JadeSettingsComponents.swift`）：胶囊轨道 + 实心选中段，
+  替换会盖死玻璃的系统 `.segmented`；全仓 6 处已统一（注释工具栏在画布窗口，保留系统样式）
+- 设置/引导窗口宿主已 `backgroundColor = .clear + isOpaque = false`；`jadeWindowSurface` 已删除
 
 ## 二、已完成部分（剪贴板窗口）
 
