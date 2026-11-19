@@ -559,6 +559,10 @@ final class AppContainer: NSObject {
 
     /// Builds a clipboard-history list view model backed by the shared repository/index.
     func makeClipboardListViewModel() -> ClipboardListViewModel {
+        // 工厂级保证（与 makeSearchPanelViewModel 同款）：任何入口构造剪贴板
+        // 视图模型前插件必须已注册，否则 isPluginEnabled 恒为 false，
+        // 窗口呈现禁用页且「开启」按钮无效（见 ClipboardHistoryWindowController.show）。
+        registerBuiltInPlugins()
         let queryService = ClipboardIndexQueryService(index: clipboardSearchIndex, repository: clipboardRepository)
         let actionExecutor = SearchPanelActionExecutor(
             appExecutor: NoopSearchActionExecutor(),

@@ -9,6 +9,17 @@ All notable changes to Qingyu (清羽) are documented here. The format is based 
 
 ### Fixed
 
+- **Clipboard window "disabled by default" with a dead enable button.** When the
+  clipboard-history window was opened before the built-in plugins were
+  registered (e.g. via hotkey during first-run onboarding), the window fell
+  into the disabled page and the「开启」button did nothing:
+  `isPluginEnabled` reports `false` for plugins that were never registered
+  (not their default), and `enablePlugin` is a silent no-op against an
+  unregistered id — so the button could never recover, while recording kept
+  running and the usage figure kept climbing. The window's `show()` (and the
+  view-model factory) now call `registerBuiltInPlugins()` first, matching the
+  settings window and the command-bar factory.
+
 - **App relaunch after permission grant / language change.** Clicking
   「重新启动清羽」(or changing the interface language) quit the app but the new
   instance sometimes never appeared — the old implementation terminated the

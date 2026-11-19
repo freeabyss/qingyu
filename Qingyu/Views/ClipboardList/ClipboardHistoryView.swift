@@ -491,6 +491,7 @@ struct ClipboardHistoryView: View {
                 Task { await viewModel.enableClipboard() }
             }
             .buttonStyle(.jadePrimary)
+            .accessibilityIdentifier("clipboard.enableButton")
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }

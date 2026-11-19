@@ -301,6 +301,26 @@ final class ClipboardListViewModelTests: XCTestCase {
         XCTAssertTrue(viewModel.clipboardEnabled)
     }
 
+    /// 0.4.213 回归：构造剪贴板视图模型前必须注册内置插件。
+    ///
+    /// 用户报告「剪贴板默认关闭，点开启没反应，容量却一直涨」：引导未完成时
+    /// 打开剪贴板窗口，`startFullExperienceServices` 尚未执行、插件未注册——
+    /// `isPluginEnabled` 对未注册插件恒为 false（`entries[id]` 缺失返回 false
+    /// 而非默认值），窗口落入禁用页；「开启」按钮的 `enablePlugin` 闭包对
+    /// 未注册插件又是静默 no-op，按钮永远无效。设置窗口与命令栏工厂都有
+    /// `registerBuiltInPlugins()` 前置调用，剪贴板窗口必须同样保证
+    /// （入口在 `ClipboardHistoryWindowController.show()`，工厂级兜底在
+    /// `AppContainer.makeClipboardListViewModel()`，本测试锁死工厂级那条）。
+    @MainActor
+    func testMakeClipboardListViewModelRegistersBuiltInPlugins() {
+        let container = AppContainer()
+        _ = container.makeClipboardListViewModel()
+        XCTAssertNotNil(
+            container.pluginRegistry.state(of: .clipboard),
+            "构造剪贴板视图模型前必须注册内置插件：未注册时 isPluginEnabled 恒为 false，"
+                + "窗口呈现禁用页且「开启」按钮无效"
+        )
+    }
 }
 
 private final class ClipboardHistoryFixtures {

@@ -150,6 +150,38 @@ final class ClipboardWindowUITests: XCTestCase {
         )
     }
 
+    // MARK: - TC-UI-024　引导期打开的禁用页，「开启」按钮必须真的开启
+
+    /// 回归（0.4.213）：用户报告「剪贴板默认关闭，点开启没反应，容量一直涨」。
+    ///
+    /// 序列：引导未完成时用热键打开剪贴板窗口。此时 `startFullExperienceServices`
+    /// 尚未执行、插件未注册，窗口落入禁用页；旧实现里 `enableClipboard` 的
+    /// `enablePlugin` 闭包对未注册插件是静默 no-op，`isPluginEnabled` 恒为
+    /// false（`entries[id]` 缺失时返回 false 而非默认值），按钮永远无效。
+    /// 剪贴板窗口 `show()` 必须像设置窗口 / 命令栏一样先 `registerBuiltInPlugins()`。
+    func testTCUI024EnableButtonWorksWhenOpenedDuringOnboarding() throws {
+        let tmpDir = makeTmpDir(for: "TC-UI-024")
+        app.launchArguments = baseArgs(tmpDir: tmpDir)
+            + ["--uitest-reset-onboarding", "--uitest-trigger", "openClipboard"]
+        app.launch()
+        app.activate()
+
+        let enableButton = app.descendants(matching: .any)
+            .matching(identifier: "clipboard.enableButton").firstMatch
+        XCTAssertTrue(
+            enableButton.waitForExistence(timeout: 10),
+            "TC-UI-024: 引导期打开剪贴板窗口应呈现禁用页（开启按钮可见）"
+        )
+
+        enableButton.click()
+
+        let searchField = app.textFields["clipboard.searchField"]
+        XCTAssertTrue(
+            searchField.waitForExistence(timeout: 5),
+            "TC-UI-024: 点「开启」后应进入启用态（搜索框出现），而不是停留在禁用页"
+        )
+    }
+
     // MARK: - TC-UI-023　Esc 关闭剪贴板历史窗口
 
     /// 覆盖：PRD §9.4 P-02「Esc 关闭窗口且保留应用运行」；CLIP-013

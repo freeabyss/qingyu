@@ -43,6 +43,13 @@ final class ClipboardHistoryWindowController: NSWindowController, NSWindowDelega
         // Mutual exclusion with the command bar — never stack both floating UIs.
         container.commandBarController.hide(animate: false)
 
+        // 与设置窗口 / 命令栏工厂保持同一前提：先注册内置插件再构造视图模型。
+        // 引导未完成时热键打开本窗口，startFullExperienceServices 尚未执行、
+        // 插件未注册：isPluginEnabled 对未注册插件恒为 false，窗口会落入禁用页，
+        // 且「开启」按钮的 enablePlugin 对未注册插件是静默 no-op——按钮永远无效
+        // （用户报告「剪贴板默认关闭，点开启没反应，容量却一直涨」的根因）。
+        container.registerBuiltInPlugins()
+
         if window == nil {
             let viewModel = container.makeClipboardListViewModel()
             self.viewModel = viewModel
