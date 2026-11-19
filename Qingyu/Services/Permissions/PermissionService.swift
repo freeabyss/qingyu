@@ -301,23 +301,6 @@ final class PermissionService: PermissionServiceProtocol {
         return .unknown
     }
 
-    /// 重启本应用。
-    ///
-    /// 屏幕录制授权在进程内被缓存，重启是让新状态生效的可靠手段。先请求系统启动
-    /// 新实例（`createsNewApplicationInstance` 允许与当前实例并存），再退出当前
-    /// 实例，避免出现「旧实例已退出但新实例没起来」的空窗。
-    @MainActor
-    static func relaunch() {
-        let url = Bundle.main.bundleURL
-        let configuration = NSWorkspace.OpenConfiguration()
-        configuration.createsNewApplicationInstance = true
-        NSWorkspace.shared.openApplication(at: url, configuration: configuration) { _, _ in
-            Task { @MainActor in
-                NSApp.terminate(nil)
-            }
-        }
-    }
-
     private func systemSettingsURL(for permission: PermissionKind) -> URL? {
         let anchor: String
         switch permission {

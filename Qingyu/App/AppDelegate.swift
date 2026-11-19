@@ -826,28 +826,50 @@ enum InstallerCleanup {
     }
 }
 
-/// 语言切换后的自动重启入口。
+/// 语言切换与权限生效共用的应用重启入口。
 ///
-/// `AppleLanguages` 只在进程启动时被 `Bundle` 读一次，改语言无法热生效，因此
-/// 直接把当前 App 重新拉起来、再退出自己，用户不需要手动退出重开。
+/// `AppleLanguages` 只在进程启动时被 `Bundle` 读一次，改语言无法热生效；屏幕录制
+/// 授权在进程内被缓存，都要靠「拉起新实例 → 退出旧实例」完成。
 ///
-/// 关键在于 `createsNewApplicationInstance = true`：没有它，系统只会把已有的
-/// 旧进程激活到前台，语言覆盖永远不生效。重启失败时仍然退出——宁可让用户
-/// 手动再打开一次，也不能留下两个并存进程。
+/// **为什么用 `open(1)` 而不是 `NSWorkspace.openApplication`**（0.4.212 修复）：
+/// 旧实现把 `NSApp.terminate` 挂在 `openApplication` 的 completion handler 里，
+/// 且**忽略错误也无条件退出**。实测（macOS 26，用户报告）会出现「旧实例退出了，
+/// 新实例却没起来」：completion handler 只是系统**接受**启动请求的回调，
+/// 此时新实例还在 LaunchServices 注册流程中，调用方立刻退出可能中断注册；
+/// 一旦 openApplication 返回错误（App 管理/LS 拒绝），旧代码照样 terminate，
+/// 用户看到的就是「关了但再也没启动」。`/usr/bin/open -n` 是独立短命进程，
+/// 把启动请求完全交给 LaunchServices 后即退出，本实例何时退出都不影响新实例；
+/// spawn 失败时保持本实例存活，绝不退出到「什么都没有」的死局。
 @MainActor
 enum AppRelauncher {
+    /// spawn `open` 之后、退出本实例之前的宽限：给 LaunchServices 一点时间
+    /// 处理新实例注册，避免「退出得太快」与注册流程赛跑。
+    static let terminateGraceSeconds: TimeInterval = 0.6
+
+    /// `open` 命令参数。`-n`：即使已有同 Bundle ID 实例在跑也开新实例——
+    /// 没有它，系统只会把旧进程激活到前台，语言覆盖/权限刷新永远不生效。
+    static func openArguments(bundlePath: String) -> [String] {
+        ["-n", bundlePath]
+    }
+
     static func relaunch() {
         let bundleURL = Bundle.main.bundleURL
-        let configuration = NSWorkspace.OpenConfiguration()
-        configuration.createsNewApplicationInstance = true
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/open")
+        process.arguments = openArguments(bundlePath: bundleURL.path)
 
-        NSWorkspace.shared.openApplication(at: bundleURL, configuration: configuration) { _, error in
-            if let error {
-                Logger.app.error("Relaunch failed: \(error.localizedDescription, privacy: .public)")
-            }
-            DispatchQueue.main.async {
-                NSApp.terminate(nil)
-            }
+        do {
+            try process.run()
+            Logger.app.info("Relaunch: open(1) spawned for \(bundleURL.path, privacy: .public)")
+        } catch {
+            // open 都起不来属于系统级异常（/usr/bin/open 缺失等）：
+            // 保持本实例存活，让用户至少还能手动操作，绝不退出到死局。
+            Logger.app.error("Relaunch: failed to spawn open(1): \(error.localizedDescription, privacy: .public)")
+            return
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + terminateGraceSeconds) {
+            NSApp.terminate(nil)
         }
     }
 }

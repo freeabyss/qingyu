@@ -7,6 +7,19 @@ All notable changes to Qingyu (清羽) are documented here. The format is based 
 
 ## [Unreleased]
 
+### Fixed
+
+- **App relaunch after permission grant / language change.** Clicking
+  「重新启动清羽」(or changing the interface language) quit the app but the new
+  instance sometimes never appeared — the old implementation terminated the
+  current process inside `NSWorkspace.openApplication`'s completion handler,
+  interrupting LaunchServices registration of the new instance, and swallowed
+  launch errors (quitting anyway). Relaunch now goes through `open(1)` with
+  `-n` (a fully detached short-lived process hands the launch to
+  LaunchServices and exits), gives registration a grace period before
+  terminating, and keeps the app alive if the relaunch cannot even be
+  initiated.
+
 ### Added
 
 - **Automated release pipeline.** `.github/workflows/release.yml` builds a

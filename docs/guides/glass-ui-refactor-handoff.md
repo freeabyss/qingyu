@@ -2,6 +2,13 @@
 
 > 交接时间：2026-11-18 ｜ 基线提交 `c3a85c2` ｜ **2026-11-18 全部完成**（命令栏 `60a17b4`、设置+引导+收尾 `fe4b5f1`，版本 0.4.210 / 610）
 > **2026-11-18 第二轮（0.4.211 / 611）：玻璃被 tint 盖死的根因修复**，见下方「零、0.4.211 玻璃根因修复」。
+> **2026-11-19 第三轮（0.4.212 / 612）：重启入口修复**——「重新启动清羽」/语言切换曾出现
+> 「旧实例退出了、新实例没起来」。根因：`NSWorkspace.openApplication` 的 completion handler
+> 只是系统**接受**启动请求的回调，此时新实例还在 LaunchServices 注册流程中，调用方立刻
+> terminate 会中断注册；且 handler 忽略错误、无条件退出（openApplication 失败也照样退）→ 死局。
+> 修复：统一走 `AppRelauncher` 的 `open(1)` 方案（`-n` + 0.6s 注册宽限 + spawn 失败保持存活），
+> `PermissionService.relaunch()` 已删除，截图恢复弹窗改调 `AppRelauncher`。
+> 回归：`PermissionServiceProtocolConformanceTests.test_relaunch_usesOpenNWithFullBundlePath`。
 > 上游设计稿：`design-demos/`（`dir-3.html` 主界面板、`clipboard-3.html` 剪贴板；`settings-3.html` 已存在，设置页实现时曾缺失）
 
 ## 零、0.4.211 玻璃根因修复（必读）

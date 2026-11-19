@@ -355,7 +355,7 @@ final class ScreenshotWindowController {
         case .openSystemSettings:
             permissionService.openSystemSettings(for: .screenRecording)
         case .relaunch:
-            PermissionService.relaunch()
+            AppRelauncher.relaunch()
         case .cancel:
             break
         }
