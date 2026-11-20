@@ -7,6 +7,7 @@
 - 每次修改版本号时，必须同步确认“关于”页面、更新页面和反馈邮件读取并显示当前 Bundle 版本与构建号。不得在 UI、文案、测试或文档中硬编码应用版本。
 - 提交前运行 `plutil -lint Qingyu/Info.plist`，并确认 `MARKETING_VERSION` 等于 `CFBundleShortVersionString`。
 - 每次修改完毕后，提交当前修改
+- **发布新版本时，必须同步检查 `~/workspace/my/HomePage` 下的清羽产品说明**（唯一涉及 `app/page.tsx` Products 区的「Qingyu 清羽」卡片文案）；功能面有变化的版本要更新描述。完整发布步骤与 HomePage 修改清单见 `.zcode/skills/qingyu-release/SKILL.md`。
 
 ## 测试门禁
 
