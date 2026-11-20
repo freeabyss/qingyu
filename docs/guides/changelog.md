@@ -7,6 +7,17 @@ All notable changes to Qingyu (清羽) are documented here. The format is based 
 
 ## [Unreleased]
 
+### Added
+
+- **Mouse-adjustable selection after drawing a region.** Once a capture region
+  is selected it can now be fine-tuned with the mouse Snipaste-style: drag
+  inside to move it, drag any edge or corner (8pt hit bands with visible
+  white handles and resize cursors) to resize it — clamped to the display,
+  never below the minimum size — and press outside it to redraw. An
+  accidental outside click (or a too-small redraw) restores the previous
+  region instead of discarding it; arrow-key nudging and Enter confirmation
+  continue to work unchanged.
+
 ### Changed
 
 - **Full Disk Access instead of per-folder permission prompts.** Qingyu no

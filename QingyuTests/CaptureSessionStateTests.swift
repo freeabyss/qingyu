@@ -175,6 +175,157 @@ final class CaptureSessionStateTests: XCTestCase {
         )
     }
 
+    // MARK: - 可微调态鼠标交互（Snipaste 式：拖内移动 / 拖边缩放 / 点外重圈）
+
+    /// 进入可微调态的便捷夹具：在 (100,100)-(300,250) 圈一个 200×150 的选区。
+    private func makeAdjustingState() -> CaptureSessionState {
+        var state = CaptureSessionState()
+        state.mouseDown(at: CGPoint(x: 100, y: 100), display: leftDisplay)
+        state.mouseDragged(to: CGPoint(x: 300, y: 250))
+        state.mouseUp(at: CGPoint(x: 300, y: 250))
+        return state
+    }
+
+    /// 命中判定：角 > 边 > 内部 > 外部，命中带以边线为中心。
+    func testZoneHitTestPrioritizesCornersThenEdgesThenInside() {
+        let rect = CGRect(x: 0, y: 0, width: 200, height: 150)
+        XCTAssertEqual(RegionAdjustment.zone(at: CGPoint(x: 2, y: 2), rect: rect), .bottomLeft)
+        XCTAssertEqual(RegionAdjustment.zone(at: CGPoint(x: 198, y: 148), rect: rect), .topRight)
+        XCTAssertEqual(RegionAdjustment.zone(at: CGPoint(x: 100, y: 4), rect: rect), .bottom)
+        XCTAssertEqual(RegionAdjustment.zone(at: CGPoint(x: 196, y: 75), rect: rect), .right)
+        XCTAssertEqual(RegionAdjustment.zone(at: CGPoint(x: 100, y: 75), rect: rect), .inside)
+        XCTAssertEqual(RegionAdjustment.zone(at: CGPoint(x: -30, y: 75), rect: rect), .outside)
+        // 命中带延伸到选区外 8pt：拖「边缘」不需要精确落在 1pt 边线上。
+        XCTAssertEqual(RegionAdjustment.zone(at: CGPoint(x: 204, y: 75), rect: rect), .right)
+    }
+
+    /// 施加移动：整体平移并钳制在显示器内。
+    func testApplyMoveClampsInsideDisplayBounds() {
+        let rect = CGRect(x: 100, y: 100, width: 200, height: 150)
+        let bounds = CGRect(x: 0, y: 0, width: 500, height: 400)
+        // 正常平移。
+        let moved = RegionAdjustment.apply(zone: .inside, to: rect, from: CGPoint(x: 150, y: 150), to: CGPoint(x: 170, y: 130), bounds: bounds, minimum: 5)
+        XCTAssertEqual(moved, CGRect(x: 120, y: 80, width: 200, height: 150))
+        // 向右下猛拖：贴边不越界。
+        let clamped = RegionAdjustment.apply(zone: .inside, to: rect, from: CGPoint(x: 150, y: 150), to: CGPoint(x: 900, y: -900), bounds: bounds, minimum: 5)
+        XCTAssertEqual(clamped, CGRect(x: 300, y: 0, width: 200, height: 150))
+    }
+
+    /// 施加缩放：对侧边/角固定，拖拽边跟随指针；不小于最小尺寸、不越出屏幕。
+    func testApplyResizeAnchorsOppositeEdgeAndClamps() {
+        let rect = CGRect(x: 100, y: 100, width: 200, height: 150)
+        let bounds = CGRect(x: 0, y: 0, width: 500, height: 400)
+
+        // 拖右上角：左下角 (100,100) 固定。
+        let corner = RegionAdjustment.apply(zone: .topRight, to: rect, from: CGPoint(x: 300, y: 250), to: CGPoint(x: 400, y: 320), bounds: bounds, minimum: 5)
+        XCTAssertEqual(corner, CGRect(x: 100, y: 100, width: 300, height: 220))
+
+        // 拖左边缘越过右边缘：宽度钳到最小值，不翻转。
+        let inverted = RegionAdjustment.apply(zone: .left, to: rect, from: CGPoint(x: 100, y: 175), to: CGPoint(x: 350, y: 175), bounds: bounds, minimum: 5)
+        XCTAssertEqual(inverted, CGRect(x: 295, y: 100, width: 5, height: 150))
+
+        // 拖上边缘越出屏幕顶：钳在屏幕顶（bounds maxY=400 → 高度 300）。
+        let overflow = RegionAdjustment.apply(zone: .top, to: rect, from: CGPoint(x: 200, y: 250), to: CGPoint(x: 200, y: 999), bounds: bounds, minimum: 5)
+        XCTAssertEqual(overflow, CGRect(x: 100, y: 100, width: 200, height: 300))
+    }
+
+    /// 状态机：可微调态按下选区内部并拖拽 → 选区移动；抬起后仍处于可微调态。
+    func testDraggingInsideAdjustingRegionMovesRegion() {
+        var state = makeAdjustingState()
+        state.mouseDown(at: CGPoint(x: 150, y: 150), display: leftDisplay)
+        state.mouseDragged(to: CGPoint(x: 120, y: 170))
+        state.mouseDragged(to: CGPoint(x: 110, y: 180))
+        state.mouseUp(at: CGPoint(x: 110, y: 180))
+
+        XCTAssertEqual(
+            state.phase,
+            .adjustingRegion(display: leftDisplay, globalRect: CGRect(x: 60, y: 130, width: 200, height: 150)),
+            "选区内拖拽应移动选区（位移 -40, +30），停留可微调态"
+        )
+    }
+
+    /// 状态机：拖角缩放，对角固定。
+    func testDraggingCornerInAdjustingRegionResizes() {
+        var state = makeAdjustingState()
+        state.mouseDown(at: CGPoint(x: 300, y: 250), display: leftDisplay)   // 右上角（命中带内）
+        state.mouseDragged(to: CGPoint(x: 350, y: 300))
+        state.mouseUp(at: CGPoint(x: 350, y: 300))
+
+        XCTAssertEqual(
+            state.phase,
+            .adjustingRegion(display: leftDisplay, globalRect: CGRect(x: 100, y: 100, width: 250, height: 200)),
+            "拖右上角应从对角 (100,100) 缩放到 (350,300)"
+        )
+    }
+
+    /// 状态机：选区内按下但没拖就抬起 → 保持原选区，不误触发其它语义。
+    func testPlainClickInsideAdjustingRegionKeepsRegion() {
+        var state = makeAdjustingState()
+        state.mouseDown(at: CGPoint(x: 150, y: 150), display: leftDisplay)
+        state.mouseUp(at: CGPoint(x: 150, y: 150))
+
+        XCTAssertEqual(
+            state.phase,
+            .adjustingRegion(display: leftDisplay, globalRect: CGRect(x: 100, y: 100, width: 200, height: 150))
+        )
+    }
+
+    /// 状态机：选区外按下重新圈选；圈出足够大的新选区则替换。
+    func testOutsideDragReplacesAdjustingRegion() {
+        var state = makeAdjustingState()
+        state.mouseDown(at: CGPoint(x: 400, y: 400), display: leftDisplay)
+        state.mouseDragged(to: CGPoint(x: 550, y: 500))
+        state.mouseUp(at: CGPoint(x: 550, y: 500))
+
+        XCTAssertEqual(
+            state.phase,
+            .adjustingRegion(display: leftDisplay, globalRect: CGRect(x: 400, y: 400, width: 150, height: 100)),
+            "选区外拖拽应重新圈选"
+        )
+    }
+
+    /// 状态机：选区外单击（没拖起来）→ 恢复旧选区，而不是把单击解释成「锁定窗口/整屏」。
+    func testOutsidePlainClickRestoresAdjustingRegion() {
+        var state = makeAdjustingState()
+        state.mouseDown(at: CGPoint(x: 40, y: 40), display: leftDisplay)
+        state.mouseUp(at: CGPoint(x: 40, y: 40))
+
+        XCTAssertEqual(
+            state.phase,
+            .adjustingRegion(display: leftDisplay, globalRect: CGRect(x: 100, y: 100, width: 200, height: 150)),
+            "选区外误点一下不应丢掉已画好的选区，更不应变成整屏截图"
+        )
+    }
+
+    /// 状态机：选区外重圈但拖得太小 → 恢复旧选区。
+    func testOutsideTinyDragRestoresAdjustingRegion() {
+        var state = makeAdjustingState()
+        state.mouseDown(at: CGPoint(x: 40, y: 40), display: leftDisplay)
+        state.mouseDragged(to: CGPoint(x: 43, y: 42))
+        state.mouseUp(at: CGPoint(x: 43, y: 42))
+
+        XCTAssertEqual(
+            state.phase,
+            .adjustingRegion(display: leftDisplay, globalRect: CGRect(x: 100, y: 100, width: 200, height: 150))
+        )
+    }
+
+    /// 可微调交互后仍可 `Enter` 确认 / 方向键微调（与既有键盘流不冲突）。
+    func testAdjustInteractionThenNudgeAndConfirmStillWork() {
+        var state = makeAdjustingState()
+        state.mouseDown(at: CGPoint(x: 300, y: 250), display: leftDisplay)
+        state.mouseDragged(to: CGPoint(x: 350, y: 300))
+        state.mouseUp(at: CGPoint(x: 350, y: 300))
+
+        XCTAssertTrue(state.nudgeRegion(axis: .horizontal, delta: 10, resize: false))
+        state.confirmRegion()
+
+        guard case .locked(.region(_, let rect)) = state.phase else {
+            return XCTFail("调整后 Enter 应锁定区域，实际 \(state.phase)")
+        }
+        XCTAssertEqual(rect, CGRect(x: 110, y: 100, width: 250, height: 200))
+    }
+
     func testPointerMovedDuringDragIsIgnored() {
         var state = CaptureSessionState()
         state.mouseDown(at: CGPoint(x: 10, y: 10), display: leftDisplay)

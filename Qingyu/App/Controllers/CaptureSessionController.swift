@@ -51,6 +51,11 @@ protocol CaptureOverlayWindow: AnyObject {
     /// 控件优先级更高（见 `CandidateHitTest.hit`）。
     func updateElementHighlight(frame: CGRect?)
     func updateRegion(rect: CGRect?)
+    /// 可微调态标记：叠层据此绘制边/角手柄并设置缩放/移动光标。
+    ///
+    /// 必须是**协议要求**：只写在扩展里的方法对存在类型走静态派发，
+    /// 具体实现（真实叠层、测试替身）永远不会被调用。
+    func setRegionAdjustable(_ adjustable: Bool)
     func updateHints(_ hintKeys: [String])
     /// Task 015：预设清单（`items` 为显示标签，`selectedIndex` 为 nil 表示清单未打开）。
     ///
@@ -83,6 +88,7 @@ protocol CaptureOverlayWindow: AnyObject {
 
 extension CaptureOverlayWindow {
     /// 默认空实现：既有替身无需为新增能力逐个补方法。
+    func setRegionAdjustable(_ adjustable: Bool) {}
     func updatePresetPicker(items: [String], selectedIndex: Int?) {}
 
     func updateNotice(_ text: String?) {}
@@ -312,6 +318,11 @@ final class CaptureSessionController {
             probeScheduler.cancel()
             state.mouseDragged(to: snapDragPoint(point))
             syncOverlays()
+            // 可微调态的拖拽（移动/缩放）：工具条必须实时跟着选区走，
+            // 否则缩放后工具条悬在旧位置，盖住或脱离它服务的选区。
+            if case .adjustingRegion = state.phase {
+                notifyRegionAdjustableIfNeeded()
+            }
 
         case .mouseUp(let point):
             state.mouseUp(at: point)
@@ -699,6 +710,7 @@ final class CaptureSessionController {
         for (displayID, window) in overlayWindows {
             let isActive = displayID == activeDisplayID
             window.setActive(isActive)
+            window.setRegionAdjustable(isActive && isPhaseRegionAdjustable)
             window.updateHints(ScreenshotShortcutHints.hints(for: state.phase))
 
             switch state.phase {
@@ -737,6 +749,12 @@ final class CaptureSessionController {
             width: abs(current.x - start.x),
             height: abs(current.y - start.y)
         )
+    }
+
+    /// 当前是否处于「选区可微调」阶段：叠层据此画手柄、设光标。
+    private var isPhaseRegionAdjustable: Bool {
+        if case .adjustingRegion = state.phase { return true }
+        return false
     }
 
     private static func lockedRect(for target: CaptureTarget, displayID: CGDirectDisplayID) -> CGRect? {        switch target {

@@ -93,6 +93,11 @@ final class CaptureOverlayWindowController: CaptureOverlayWindow {
         contentView.needsDisplay = true
     }
 
+    /// 可微调态：叠层画边/角手柄并设置缩放/移动光标。
+    func setRegionAdjustable(_ adjustable: Bool) {
+        contentView.isRegionAdjustable = adjustable
+    }
+
     // MARK: - 原地标注
 
     /// 捕获前让位：只收放大镜（它压在选区里会被拍进位图），叠层本身不动。
@@ -206,9 +211,22 @@ final class CaptureOverlayContentView: NSView, NSTextFieldDelegate {
         didSet {
             if regionFrame != oldValue { needsDisplay = true }
             updateMagnifierMask()
+            // 可微调态选区变了：手柄位置与光标矩形必须跟着换。
+            if isRegionAdjustable {
+                window?.invalidateCursorRects(for: self)
+            }
         }
     }
     var onEvent: ((CaptureInputEvent) -> Void)?
+    /// 可微调态：绘制边/角手柄、启用移动/缩放光标（由会话控制器同步）。
+    /// 鼠标按下时也用它区分「调选区交互」与「重新圈选」——前者不放出放大镜。
+    var isRegionAdjustable = false {
+        didSet {
+            guard isRegionAdjustable != oldValue else { return }
+            needsDisplay = true
+            window?.invalidateCursorRects(for: self)
+        }
+    }
     /// 已进入「原地标注」：选区已锁定，鼠标/键盘归属标注会话，不再上抛截图事件。
     ///
     /// 标注期间叠层的一切外观（压暗、选区边框与尺寸徽标）保持不变 —— 用户点工具
@@ -585,11 +603,29 @@ final class CaptureOverlayContentView: NSView, NSTextFieldDelegate {
     override func resetCursorRects() {
         super.resetCursorRects()
         // 标注期间：选区内用工具光标，选区外保持箭头（「光标只有在截图区域才会变化」）。
-        guard isAnnotating, let session = annotationSession else { return }
-        addCursorRect(
-            session.localRect,
-            cursor: AnnotationToolCursor.cursor(for: session.state.tool, style: session.state.style)
-        )
+        if isAnnotating, let session = annotationSession {
+            addCursorRect(
+                session.localRect,
+                cursor: AnnotationToolCursor.cursor(for: session.state.tool, style: session.state.style)
+            )
+            return
+        }
+        // 可微调态：边/角命中带给出缩放光标、选区内部给移动光标，
+        // 其余区域保持箭头——用户靠光标就能发现「选区还能拖」。
+        guard isRegionAdjustable, let region = regionFrame else { return }
+        let regionLocal = region.offsetBy(dx: -display.frame.minX, dy: -display.frame.minY)
+        let zones: [RegionHandleZone] = [
+            .topLeft, .topRight, .bottomLeft, .bottomRight,   // 角优先注册
+            .left, .right, .top, .bottom,
+            .inside,
+        ]
+        for zone in zones {
+            guard let cursor = zone.cursor else { continue }
+            addCursorRect(
+                RegionAdjustment.hitRect(zone: zone, rect: regionLocal, tolerance: RegionAdjustment.handleTolerance),
+                cursor: cursor
+            )
+        }
     }
 
     /// 光标离开叠层：标注光标不得粘在选区外（`resetCursorRects` 只覆盖选区，
@@ -642,7 +678,15 @@ final class CaptureOverlayContentView: NSView, NSTextFieldDelegate {
             return
         }
         // Task 014/06：每次拖拽重新捕获长宽比。
-        magnifierSuppressed = false
+        // 可微调交互（选区内移动 / 拖边缩放）不放出放大镜：放大镜只服务「圈新选区」，
+        // 压在正被调整的选区边缘上只会挡视线；点到选区外 = 重新圈选，恢复放大镜。
+        if isRegionAdjustable, let region = regionFrame {
+            let regionLocal = region.offsetBy(dx: -display.frame.minX, dy: -display.frame.minY)
+            let zone = RegionAdjustment.zone(at: convert(event.locationInWindow, from: nil), rect: regionLocal)
+            magnifierSuppressed = zone != .outside
+        } else {
+            magnifierSuppressed = false
+        }
         dragStartPoint = global
         lockedAspectRatio = nil
         onEvent?(.mouseDown(global))
@@ -662,7 +706,9 @@ final class CaptureOverlayContentView: NSView, NSTextFieldDelegate {
 
         // Task 014/06：按住 ⇧ 锁定长宽比 —— 首次按下时以"当时的选区比例"为准，
         // 之后沿该比例投影；松开 ⇧ 立即恢复自由拖拽。
-        if event.modifierFlags.contains(.shift), let start = dragStartPoint {
+        // 只在圈新选区时生效（magnifierSuppressed == false 即初始拖拽）：
+        // 可微调态的缩放拖拽走状态机的自由缩放，比例投影会干扰指定边的跟手。
+        if !magnifierSuppressed, event.modifierFlags.contains(.shift), let start = dragStartPoint {
             if lockedAspectRatio == nil {
                 lockedAspectRatio = SelectionAspectLock.ratio(
                     of: Self.regionRect(from: start, to: global)
@@ -933,6 +979,11 @@ final class CaptureOverlayContentView: NSView, NSTextFieldDelegate {
             border.lineWidth = 2
             border.stroke()
 
+            // 可微调态：边/角画手柄，告诉用户「选区还能拖」。
+            if isRegionAdjustable, !isAnnotating {
+                drawAdjustmentHandles(for: local)
+            }
+
             drawDimensions(for: local)
 
             // Task 014/01：`Tab` 按住时显示对齐辅助线（标注期间不画，免得盖住编辑内容）。
@@ -1037,6 +1088,39 @@ final class CaptureOverlayContentView: NSView, NSTextFieldDelegate {
         Self.centerGuideStroke.setStroke()
         centerPath.stroke()
     }
+
+    /// 可微调态的边/角手柄：白色小方块 + 半透明深色描边，任何底色上都可见。
+    /// 捕获前叠层整体隐藏（`hideForCapture`），手柄不会被拍进截图。
+    private func drawAdjustmentHandles(for rect: NSRect) {
+        let side = Self.adjustmentHandleSide
+        let centers = [
+            CGPoint(x: rect.minX, y: rect.minY),
+            CGPoint(x: rect.midX, y: rect.minY),
+            CGPoint(x: rect.maxX, y: rect.minY),
+            CGPoint(x: rect.maxX, y: rect.midY),
+            CGPoint(x: rect.maxX, y: rect.maxY),
+            CGPoint(x: rect.midX, y: rect.maxY),
+            CGPoint(x: rect.minX, y: rect.maxY),
+            CGPoint(x: rect.minX, y: rect.midY),
+        ]
+        for center in centers {
+            let handleRect = NSRect(
+                x: center.x - side / 2,
+                y: center.y - side / 2,
+                width: side,
+                height: side
+            )
+            Self.regionBorder.setFill()
+            NSBezierPath(rect: handleRect).fill()
+            Self.adjustmentHandleBorder.setStroke()
+            let path = NSBezierPath(rect: handleRect)
+            path.lineWidth = 1
+            path.stroke()
+        }
+    }
+
+    private static let adjustmentHandleSide: CGFloat = 7
+    private static let adjustmentHandleBorder = NSColor.black.withAlphaComponent(0.35)
 
     private func drawDimensions(for rect: NSRect) {
         let dimensionText = "\(Int(rect.width)) × \(Int(rect.height))"
@@ -1146,5 +1230,21 @@ enum ScreenshotGeometry {
             ? belowY
             : min(selection.maxY + gap, screenFrame.maxY - toolbarSize.height)
         return NSRect(origin: NSPoint(x: x, y: max(screenFrame.minY, y)), size: toolbarSize)
+    }
+}
+
+// MARK: - 可微调态光标（叠层专用，状态机保持纯 CoreGraphics）
+
+extension RegionHandleZone {
+    /// 该交互区的光标。对角手柄没有公开的系统斜向光标，
+    /// 用十字光标表达「往任意方向拉」。
+    var cursor: NSCursor? {
+        switch self {
+        case .inside: return .openHand
+        case .left, .right: return .resizeLeftRight
+        case .top, .bottom: return .resizeUpDown
+        case .topLeft, .topRight, .bottomLeft, .bottomRight: return .crosshair
+        case .outside: return nil
+        }
     }
 }
