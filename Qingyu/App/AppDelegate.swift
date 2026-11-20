@@ -89,6 +89,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
         if isOnboardingCompleted {
             startFullExperienceServices()
+            presentFullDiskAccessGuidanceIfNeeded()
         } else {
             showOnboardingWindow()
         }
@@ -759,6 +760,57 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             NSApp.activate()
         } else {
             NSApp.activate(ignoringOtherApps: true)
+        }
+    }
+
+    // MARK: - Full Disk Access guidance
+
+    /// 启动时的完全磁盘访问引导：用一次系统级授权替代 桌面/文稿/下载 三张
+    /// 逐文件夹 TCC 弹窗（用户明确要求的模式）。每版本最多问一次，已授权不问。
+    ///
+    /// 与屏幕录制的恢复弹窗（`ScreenshotWindowController.presentScreenRecordingGuidance`）
+    /// 同一套按钮语义：去系统设置 → 授权后「重新启动清羽」让文件索引真正建起来 → 取消。
+    /// 先落 per-version 标记再弹窗：即使用户点了取消，本版本也不再骚扰。
+    @MainActor
+    private func presentFullDiskAccessGuidanceIfNeeded() {
+        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "unknown"
+        let promptedThisVersion = UserDefaults.standard.string(forKey: Self.fullDiskAccessPromptVersionKey) == version
+        guard FullDiskAccessGuidance.shouldPrompt(
+            granted: PermissionService.hasFullDiskAccess(),
+            promptedThisVersion: promptedThisVersion
+        ) else { return }
+        UserDefaults.standard.set(version, forKey: Self.fullDiskAccessPromptVersionKey)
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+            self?.presentFullDiskAccessGuidanceAlert()
+        }
+    }
+
+    private static let fullDiskAccessPromptVersionKey = "fullDiskAccessPrompt.lastVersion"
+
+    @MainActor
+    private func presentFullDiskAccessGuidanceAlert() {
+        let alert = NSAlert()
+        alert.alertStyle = .warning
+        alert.messageText = L10n.localized("permission.fullDiskAccess.alert.title")
+
+        var message = L10n.localized("permission.fullDiskAccess.alert.message")
+        // macOS 15 起完全磁盘访问列表同样不会自动出现清羽，手动添加时需要定位本 App。
+        message += "\n\n" + Bundle.main.bundleURL.path
+        alert.informativeText = message
+
+        alert.addButton(withTitle: L10n.localized("screenshot.permission.openSettings"))
+        alert.addButton(withTitle: L10n.localized("screenshot.permission.relaunch"))
+        alert.addButton(withTitle: L10n.localized("screenshot.permission.cancel"))
+        alert.buttons.last?.keyEquivalent = "\u{1B}"
+
+        switch alert.runModal() {
+        case .alertFirstButtonReturn:
+            container.permissionService.openSystemSettings(for: .fullDiskAccess)
+        case .alertSecondButtonReturn:
+            AppRelauncher.relaunch()
+        default:
+            break
         }
     }
 

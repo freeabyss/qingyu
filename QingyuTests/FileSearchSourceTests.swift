@@ -34,10 +34,13 @@ final class FileSearchSourceTests: XCTestCase {
     }
 
     private func makeSource() -> FileSearchSource {
+        // canAccessProtectedFolders 固定 true：单测只关心索引/匹配逻辑，
+        // 默认探测会读宿主机的真实授权状态，让用例随机器状态漂移。
         FileSearchSource(
             roots: [desktop, documents, downloads],
             homeDirectory: tempRoot,
-            autoBuildIndex: false
+            autoBuildIndex: false,
+            canAccessProtectedFolders: { true }
         )
     }
 
@@ -219,6 +222,38 @@ final class FileSearchSourceTests: XCTestCase {
         let home = URL(fileURLWithPath: "/Users/tester", isDirectory: true)
         let roots = FileSearchSource.defaultRoots(home: home).map { $0.lastPathComponent }
         XCTAssertEqual(roots, ["Desktop", "Documents", "Downloads"])
+    }
+
+    // MARK: - 完全磁盘访问门控（0.4.214：替代逐文件夹 TCC 弹窗）
+
+    /// 未授予完全磁盘访问时必须**跳过扫描**：一扫描系统就会为 桌面/文稿/下载
+    /// 逐个弹授权窗（用户明确不要）。跳过后索引为「就绪但为空」——
+    /// 命令栏显示无结果，而不是永远「索引中」。
+    func testSkipsIndexingWithoutFullDiskAccess() async throws {
+        try write("desktop-report.pdf", in: desktop)
+
+        let source = FileSearchSource(
+            roots: [desktop, documents, downloads],
+            homeDirectory: tempRoot,
+            autoBuildIndex: false,
+            canAccessProtectedFolders: { false }
+        )
+        await source.rebuildIndex()
+
+        let hit = await source.search(query: "desktop-report")
+        XCTAssertTrue(hit.isEmpty, "未授权时不得扫描受保护目录（也就不会有任何结果）")
+        XCTAssertTrue(source.isIndexReady, "跳过也应记为就绪：空结果是诚实状态，不是「还在索引」")
+
+        // 对照：授权后同一目录能被索引。
+        let granted = FileSearchSource(
+            roots: [desktop, documents, downloads],
+            homeDirectory: tempRoot,
+            autoBuildIndex: false,
+            canAccessProtectedFolders: { true }
+        )
+        await granted.rebuildIndex()
+        let grantedHit = await granted.search(query: "desktop-report")
+        XCTAssertEqual(grantedHit.first?.title, "desktop-report.pdf")
     }
 }
 

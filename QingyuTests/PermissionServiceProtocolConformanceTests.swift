@@ -37,8 +37,7 @@ final class PermissionServiceProtocolConformanceTests: XCTestCase {
         XCTAssertTrue(staticService.onDemandAccessibilityCheck())
     }
 
-    /// 「重新启动清羽」必须用 `open -n <bundle 路径>`（0.4.212 回归）。
-    ///
+    /// 「重新启动清羽」必须用 `open -n <bundle 路径>`（0.4.212 回归）。    ///
     /// 用户报告：授权后点了「重新启动清羽」，应用关了但没再启动。旧实现用
     /// NSWorkspace.openApplication + completion handler 里无条件 terminate：
     /// completion handler 只是系统**接受**启动请求的回调，新实例还在
@@ -57,5 +56,45 @@ final class PermissionServiceProtocolConformanceTests: XCTestCase {
     /// 「重新启动清羽」是一等操作（授权在进程内被缓存），不是兜底文案。
     func test_screenRecordingRecovery_ordersRelaunchBeforeCancel() {
         XCTAssertEqual(ScreenRecordingRecovery.actions, [.openSystemSettings, .relaunch, .cancel])
+    }
+
+    // MARK: - 完全磁盘访问（0.4.214：替代逐文件夹 TCC 弹窗）
+
+    /// 探测结果必须如实映射到授权状态：系统没有查询 API，探测是唯一事实来源。
+    func test_fullDiskAccess_statusReflectsProbeResult() {
+        let service = PermissionService()
+        let original = PermissionService.fullDiskAccessProbe
+        defer { PermissionService.fullDiskAccessProbe = original }
+
+        PermissionService.fullDiskAccessProbe = { true }
+        XCTAssertEqual(service.status(for: .fullDiskAccess), .authorized, "探测可读 → 已授权")
+
+        PermissionService.fullDiskAccessProbe = { false }
+        XCTAssertEqual(service.status(for: .fullDiskAccess), .denied, "探测不可读 → 未授权")
+    }
+
+    /// 「打开系统设置」必须落到完全磁盘访问面板（Privacy_AllFiles 锚点），
+    /// 落错面板用户会在隐私设置里找不到对应条目。
+    func test_fullDiskAccess_opensPrivacyAllFilesPane() {
+        let url = PermissionService().systemSettingsURL(for: .fullDiskAccess)
+        XCTAssertEqual(
+            url?.absoluteString,
+            "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles"
+        )
+    }
+
+    /// 权限区必须把完全磁盘访问纳入 allCases（设置页按 allCases 渲染行，
+    /// 漏掉就等于没有入口），且刷新会带回它的状态。
+    func test_fullDiskAccess_includedInPermissionKinds() async {
+        XCTAssertTrue(PermissionKind.allCases.contains(.fullDiskAccess), "设置页权限区需要这一行")
+        let statuses = await PermissionService().refreshStatuses()
+        XCTAssertNotNil(statuses[.fullDiskAccess], "refreshStatuses 必须覆盖完全磁盘访问")
+    }
+
+    /// 启动引导的触发纯逻辑：未授权才问、每版本只问一次。
+    func test_fullDiskAccessGuidance_promptsOnlyWhenNeeded() {
+        XCTAssertFalse(FullDiskAccessGuidance.shouldPrompt(granted: true, promptedThisVersion: false), "已授权不问")
+        XCTAssertFalse(FullDiskAccessGuidance.shouldPrompt(granted: false, promptedThisVersion: true), "本版本已问过不问")
+        XCTAssertTrue(FullDiskAccessGuidance.shouldPrompt(granted: false, promptedThisVersion: false), "未授权且未问过 → 问")
     }
 }

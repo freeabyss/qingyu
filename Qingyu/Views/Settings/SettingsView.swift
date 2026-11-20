@@ -425,11 +425,18 @@ private struct GeneralPage: View {
                     .foregroundStyle(JadeColor.textSecondary)
                 // 屏幕录制未授权：macOS 15 起系统不再自动把本 App 加入列表，
                 // 不点明「+ 手动添加」用户会一直找不到清羽（见 `ScreenRecordingConsentFlow`）。
+                // 完全磁盘访问同理：系统没有申请 API，列表里永远不会有清羽，必须手动 +。
                 // 长段落说明用常规文字色，警告语义交给左侧图标。
                 // systemOrange 在浅色底上对比度约 2.2:1，远低于正文所需的 4.5:1——
                 // 10pt 橙色正文读起来吃力，等于把「重要提示」写成了看不清的字。
                 if !status.isAuthorized, kind == .screenRecording {
                     Text(L10n.localized("management.permission.screenRecording.manualAdd"))
+                        .font(JadeFont.caption)
+                        .foregroundStyle(JadeColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                if !status.isAuthorized, kind == .fullDiskAccess {
+                    Text(L10n.localized("management.permission.fullDiskAccess.manualAdd"))
                         .font(JadeFont.caption)
                         .foregroundStyle(JadeColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)

@@ -71,6 +71,13 @@ final class FileSearchSource: FileSearchSourceProtocol, IndexReadinessReporting 
     private var items: [FileIndexItem] = []
     private var isReady = false
 
+    /// 索引三个 TCC 保护目录（桌面/文稿/下载）的前置探测：完全磁盘访问未授予时
+    /// **不扫描**——一扫描系统就会为每个目录单独弹授权窗（用户明确不要这种弹窗，
+    /// 改为引导一次性授予完全磁盘访问）。默认探测实现见 `PermissionService`，
+    /// 测试注入固定布尔值。探测为 false 时索引置为「就绪但为空」，命令栏对
+    /// 「文件」来源显示无结果，而不是永远「索引中」。
+    private let canAccessProtectedFolders: () -> Bool
+
     // MARK: - Init
 
     init(
@@ -80,7 +87,8 @@ final class FileSearchSource: FileSearchSourceProtocol, IndexReadinessReporting 
         maxIndexedFiles: Int = 100_000,
         maxDepth: Int = 8,
         resultLimit: Int = SearchService.defaultResultLimit,
-        autoBuildIndex: Bool = true
+        autoBuildIndex: Bool = true,
+        canAccessProtectedFolders: @escaping () -> Bool = { PermissionService.hasFullDiskAccess() }
     ) {
         self.indexedRoots = roots.map { $0.standardizedFileURL }
         self.fileManager = fileManager
@@ -88,6 +96,7 @@ final class FileSearchSource: FileSearchSourceProtocol, IndexReadinessReporting 
         self.maxIndexedFiles = maxIndexedFiles
         self.maxDepth = maxDepth
         self.resultLimit = resultLimit
+        self.canAccessProtectedFolders = canAccessProtectedFolders
 
         if autoBuildIndex {
             Task.detached(priority: .utility) { [weak self] in
@@ -153,6 +162,17 @@ final class FileSearchSource: FileSearchSourceProtocol, IndexReadinessReporting 
     // MARK: - Indexing
 
     func rebuildIndex() async {
+        // 完全磁盘访问未授予：跳过扫描（不触发逐文件夹 TCC 弹窗），
+        // 索引记为「就绪但为空」。授权后经「重新启动清羽」或下次启动重建。
+        guard canAccessProtectedFolders() else {
+            lock.withLock {
+                items = []
+                isReady = true
+            }
+            logger.info("FileSearchSource index skipped: full disk access not granted (no per-folder TCC prompts)")
+            return
+        }
+
         let start = CFAbsoluteTimeGetCurrent()
         var indexed: [FileIndexItem] = []
         var seen = Set<String>()

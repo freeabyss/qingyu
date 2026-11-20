@@ -7,6 +7,18 @@ All notable changes to Qingyu (清羽) are documented here. The format is based 
 
 ## [Unreleased]
 
+### Changed
+
+- **Full Disk Access instead of per-folder permission prompts.** Qingyu no
+  longer triggers macOS's separate "access Desktop / Documents / Downloads"
+  dialogs: the file-search index simply does not scan those folders until
+  Full Disk Access is granted (one grant replaces every folder prompt and
+  also silences the screenshot-save-to-Desktop prompt). A one-per-version
+  launch guidance dialog (open System Settings → relaunch, mirroring the
+  screen-recording flow) and a new permissions row in Settings explain and
+  route to the Full Disk Access pane; status is probed via the standard
+  TCC-db readability heuristic since no system query API exists.
+
 ### Fixed
 
 - **Clipboard window "disabled by default" with a dead enable button.** When the

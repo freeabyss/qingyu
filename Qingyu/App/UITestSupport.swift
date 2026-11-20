@@ -119,6 +119,8 @@ final class UITestMockPermissionService: PermissionServiceProtocol {
             return screenRecordingAuthorized ? .authorized : .denied
         case .accessibility:
             return .notDetermined
+        case .fullDiskAccess:
+            return .notDetermined
         }
     }
 
@@ -127,7 +129,7 @@ final class UITestMockPermissionService: PermissionServiceProtocol {
     }
 
     func refreshStatuses() async -> [PermissionKind: PermissionStatus] {
-        [.screenRecording: status(for: .screenRecording), .accessibility: .notDetermined]
+        [.screenRecording: status(for: .screenRecording), .accessibility: .notDetermined, .fullDiskAccess: .notDetermined]
     }
 
     @MainActor

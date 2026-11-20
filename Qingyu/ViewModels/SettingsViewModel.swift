@@ -478,6 +478,7 @@ final class SettingsViewModel: ObservableObject {
         switch kind {
         case .screenRecording: return L10n.localized("management.permission.screenRecording")
         case .accessibility: return L10n.localized("management.permission.accessibility")
+        case .fullDiskAccess: return L10n.localized("management.permission.fullDiskAccess")
         }
     }
 
@@ -485,6 +486,7 @@ final class SettingsViewModel: ObservableObject {
         switch kind {
         case .screenRecording: return L10n.localized("management.permission.screenRecording.description")
         case .accessibility: return L10n.localized("management.permission.accessibility.description")
+        case .fullDiskAccess: return L10n.localized("management.permission.fullDiskAccess.description")
         }
     }
 

@@ -9,6 +9,10 @@ import os.log
 enum PermissionKind: String, Codable, CaseIterable, Hashable {
     case screenRecording
     case accessibility
+    /// 完全磁盘访问。用于替代逐文件夹的 TCC 弹窗（桌面/文稿/下载）：
+    /// 文件搜索要索引这三个目录、截图默认保存到桌面，未授权完全磁盘访问时
+    /// 每个目录都会单独弹系统授权窗；授权一次则全部静默（用户明确要求此模式）。
+    case fullDiskAccess
 }
 
 enum PermissionStatus: String, Codable, Hashable {
@@ -80,6 +84,18 @@ enum PermissionGuidance {
     /// 未授权且为 ad-hoc 构建时，额外展示的说明；正式签名下返回 nil。
     static func developmentSignatureNoteKey(for status: AppSignatureStatus) -> String? {
         status.isAdhoc ? "permission.adhocSignature.note" : nil
+    }
+}
+
+/// 「用完全磁盘访问替代逐文件夹授权」的启动引导纯逻辑。
+///
+/// 用户诉求：不要为 桌面/文稿/下载 弹三张系统文件夹授权窗，像屏幕录制权限那样
+/// 一次性引导授予完全磁盘访问。引导弹窗不能每次启动都骚扰——已授权不弹、
+/// 本版本已问过不弹（与安装包清理同款的 per-version 一次性标记）。
+enum FullDiskAccessGuidance {
+    /// 是否应当弹引导窗。
+    static func shouldPrompt(granted: Bool, promptedThisVersion: Bool) -> Bool {
+        !granted && !promptedThisVersion
     }
 }
 
@@ -200,6 +216,8 @@ final class PermissionService: PermissionServiceProtocol {
             return CGPreflightScreenCaptureAccess() ? .authorized : .denied
         case .accessibility:
             return AXIsProcessTrusted() ? .authorized : .denied
+        case .fullDiskAccess:
+            return Self.hasFullDiskAccess() ? .authorized : .denied
         }
     }
 
@@ -301,14 +319,33 @@ final class PermissionService: PermissionServiceProtocol {
         return .unknown
     }
 
-    private func systemSettingsURL(for permission: PermissionKind) -> URL? {
+    /// 系统设置锚点 URL（internal 供测试断言锚点正确）。
+    func systemSettingsURL(for permission: PermissionKind) -> URL? {
         let anchor: String
         switch permission {
         case .screenRecording:
             anchor = "Privacy_ScreenCapture"
         case .accessibility:
             anchor = "Privacy_Accessibility"
+        case .fullDiskAccess:
+            anchor = "Privacy_AllFiles"
         }
         return URL(string: "x-apple.systempreferences:com.apple.preference.security?\(anchor)")
+    }
+
+    // MARK: - Full Disk Access
+
+    /// 完全磁盘访问的探测实现。系统没有公开的查询/申请 API（连 tccd 预检都没有），
+    /// 社区通行做法：TCC 数据库文件本身受完全磁盘访问保护——未授权时 open 返回
+    /// EPERM、`isReadableFile` 为 false；授权后可读。做成可注入的静态闭包，
+    /// 单测里替换成固定布尔值，不依赖真机授权状态。
+    /// 声明为 `nonisolated(unsafe)` 仅供测试改写；生产路径只读。
+    nonisolated(unsafe) static var fullDiskAccessProbe: () -> Bool = {
+        FileManager.default.isReadableFile(atPath: "/Library/Application Support/com.apple.TCC/TCC.db")
+    }
+
+    /// 当前进程是否拥有完全磁盘访问。
+    static func hasFullDiskAccess() -> Bool {
+        fullDiskAccessProbe()
     }
 }

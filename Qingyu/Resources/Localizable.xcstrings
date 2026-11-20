@@ -7425,88 +7425,288 @@
       "comment" : "Open the system color panel for a custom color",
       "extractionState" : "manual",
       "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Custom color" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "自定义颜色" } },
-        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "自訂顏色" } },
-        "ja" : { "stringUnit" : { "state" : "translated", "value" : "カスタムカラー" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Couleur personnalisée" } }
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Custom color"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自定义颜色"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自訂顏色"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "カスタムカラー"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couleur personnalisée"
+          }
+        }
       }
     },
     "annotation.color.picker" : {
       "comment" : "Screen color picker (eyedropper)",
       "extractionState" : "manual",
       "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Pick a color" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "取色器" } },
-        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "取色器" } },
-        "ja" : { "stringUnit" : { "state" : "translated", "value" : "スポイト" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Pipette" } }
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pick a color"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "取色器"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "取色器"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "スポイト"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pipette"
+          }
+        }
       }
     },
     "annotation.font.system" : {
       "comment" : "System font option",
       "extractionState" : "manual",
       "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "System" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "系统" } },
-        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "系統" } },
-        "ja" : { "stringUnit" : { "state" : "translated", "value" : "システム" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Système" } }
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "System"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "系统"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "系統"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "システム"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Système"
+          }
+        }
       }
     },
     "annotation.font.rounded" : {
       "comment" : "Rounded font option",
       "extractionState" : "manual",
       "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Rounded" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "圆体" } },
-        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "圓體" } },
-        "ja" : { "stringUnit" : { "state" : "translated", "value" : "丸ゴシック" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Arrondie" } }
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rounded"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "圆体"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "圓體"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "丸ゴシック"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arrondie"
+          }
+        }
       }
     },
     "annotation.font.serif" : {
       "comment" : "Serif font option",
       "extractionState" : "manual",
       "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Serif" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "衬线" } },
-        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "襯線" } },
-        "ja" : { "stringUnit" : { "state" : "translated", "value" : "セリフ" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Serif" } }
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serif"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "衬线"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "襯線"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "セリフ"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serif"
+          }
+        }
       }
     },
     "annotation.font.monospaced" : {
       "comment" : "Monospaced font option",
       "extractionState" : "manual",
       "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Mono" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "等宽" } },
-        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "等寬" } },
-        "ja" : { "stringUnit" : { "state" : "translated", "value" : "等幅" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Mono" } }
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mono"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "等宽"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "等寬"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "等幅"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mono"
+          }
+        }
       }
     },
     "annotation.style.font" : {
       "comment" : "Style panel label: font family",
       "extractionState" : "manual",
       "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Font" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "字体" } },
-        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "字型" } },
-        "ja" : { "stringUnit" : { "state" : "translated", "value" : "フォント" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Police" } }
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Font"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "字体"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "字型"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "フォント"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Police"
+          }
+        }
       }
     },
     "annotation.style.textSize" : {
       "comment" : "Style panel label: text size",
       "extractionState" : "manual",
       "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Size" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "字号" } },
-        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "字級" } },
-        "ja" : { "stringUnit" : { "state" : "translated", "value" : "サイズ" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Taille" } }
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Size"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "字号"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "字級"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "サイズ"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Taille"
+          }
+        }
       }
     },
     "annotation.color.clear" : {
@@ -7549,22 +7749,72 @@
       "comment" : "Style row label: text color",
       "extractionState" : "manual",
       "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Text" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "文字" } },
-        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "文字" } },
-        "ja" : { "stringUnit" : { "state" : "translated", "value" : "文字" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Texte" } }
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Text"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文字"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文字"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文字"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Texte"
+          }
+        }
       }
     },
     "annotation.style.backgroundColor" : {
       "comment" : "Style row label: text background color",
       "extractionState" : "manual",
       "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Background" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "背景" } },
-        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "背景" } },
-        "ja" : { "stringUnit" : { "state" : "translated", "value" : "背景" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Fond" } }
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Background"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "背景"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "背景"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "背景"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fond"
+          }
+        }
       }
     },
     "annotation.color.black" : {
@@ -31162,6 +31412,176 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "TSL"
+          }
+        }
+      }
+    },
+    "management.permission.fullDiskAccess" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Full Disk Access"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "完全磁盘访问权限"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "完整磁碟存取權限"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "フルディスクアクセス"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accès complet au disque"
+          }
+        }
+      }
+    },
+    "management.permission.fullDiskAccess.description" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "File search indexes Desktop, Documents and Downloads, and screenshots save to Desktop by default. One grant replaces every per-folder prompt; without it file search stays unavailable."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文件搜索需要索引「桌面」「文稿」「下载」，截图默认保存到桌面。授予后一次替代所有文件夹授权弹窗；未授予时文件搜索不可用。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "檔案搜尋需要索引「桌面」「文件」「下載項目」，截圖預設儲存到桌面。授予後一次取代所有資料夾授權彈出視窗；未授予時檔案搜尋不可用。"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ファイル検索は「デスクトップ」「書類」「ダウンロード」を索引化し、スクリーンショットはデスクトップに保存されます。付与すれば各フォルダーの許可ダイアログをまとめて置き換え、未付与の場合はファイル検索は利用できません。"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La recherche de fichiers indexe Bureau, Documents et Téléchargements, et les captures sont enregistrées sur le Bureau par défaut. Un seul accord remplace toutes les demandes par dossier ; sans lui, la recherche de fichiers reste indisponible."
+          }
+        }
+      }
+    },
+    "management.permission.fullDiskAccess.manualAdd" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qingyu never appears in this list automatically: click \"+\" below the list, add the app path shown underneath, then relaunch Qingyu."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "列表里不会自动出现清羽：请点列表下方的「+」，选择下面的应用路径添加，然后重新启动清羽。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "列表裡不會自動出現清羽：請點列表下方的「+」，選擇下面的應用程式路徑加入，然後重新啟動清羽。"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このリストに清羽が自動で表示されることはありません。リスト下の「+」をクリックし、下記のアプリケーションパスを追加してから、清羽を再起動してください。"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qingyu n'apparaît jamais automatiquement dans cette liste : cliquez sur « + » sous la liste, ajoutez le chemin d'app ci-dessous, puis relancez Qingyu."
+          }
+        }
+      }
+    },
+    "permission.fullDiskAccess.alert.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Full Disk Access Needed"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "需要完全磁盘访问权限"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "需要完整磁碟存取權限"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "フルディスクアクセスが必要です"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accès complet au disque requis"
+          }
+        }
+      }
+    },
+    "permission.fullDiskAccess.alert.message" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "File search indexes Desktop, Documents and Downloads, and macOS would prompt separately for each folder. Granting Full Disk Access replaces all of those prompts at once. Until then Qingyu will not scan these folders (file search stays off). Add Qingyu under System Settings → Privacy & Security → Full Disk Access, then click \"Relaunch Qingyu\"."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文件搜索会索引「桌面」「文稿」「下载」，macOS 会为每个文件夹单独弹出授权窗口。授予「完全磁盘访问权限」可以一次替代全部弹窗。未授予前，清羽不会扫描这些文件夹（文件搜索暂不可用）。请到「系统设置 → 隐私与安全性 → 完全磁盘访问权限」添加清羽，然后点「重新启动清羽」。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "檔案搜尋會索引「桌面」「文件」「下載項目」，macOS 會為每個資料夾分別彈出授權視窗。授予「完整磁碟存取權限」可一次取代全部彈出視窗。未授予前，清羽不會掃描這些資料夾（檔案搜尋暫不可用）。請到「系統設定 → 隱私與安全性 → 完整磁碟存取權限」加入清羽，然後點「重新啟動清羽」。"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ファイル検索は「デスクトップ」「書類」「ダウンロード」を索引化しますが、macOS はフォルダーごとに個別の許可ダイアログを表示します。フルディスクアクセスを付与すれば、それらをすべて一度に置き換えられます。付与まで清羽はこれらのフォルダーを走査しません（ファイル検索は利用不可）。「システム設定 → プライバシーとセキュリティ → フルディスクアクセス」に清羽を追加し、「清羽を再起動」をクリックしてください。"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La recherche de fichiers indexe Bureau, Documents et Téléchargements, et macOS demanderait une autorisation distincte pour chacun. Accorder l'accès complet au disque remplace toutes ces demandes d'un coup. En attendant, Qingyu n'analyse pas ces dossiers (recherche de fichiers indisponible). Ajoutez Qingyu dans Réglages Système → Confidentialité et sécurité → Accès complet au disque, puis cliquez sur « Relancer Qingyu »."
           }
         }
       }
