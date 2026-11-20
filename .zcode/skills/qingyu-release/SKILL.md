@@ -82,7 +82,8 @@ git push origin main --tags
 2. 描述是**英文**，写用户可感知的能力，不写实现细节；长度对齐同区其它卡片（3–4 行）。
 3. 卡片**没有版本号、没有直链 DMG**，GitHub 仓库链接永远有效，不用动。
 4. `public/` 目前没有清羽截图；若将来加了产品图，发布时同步换成新版本截图。
-5. 该仓库常有用户未提交的改动（`app/page.tsx` 可能是脏的）：**只动 Qingyu 卡片那一段**，改完按 HomePage 自己的流程提交（`git -C ~/workspace/my/HomePage commit`，该仓库当前未配置 remote）。
+5. 该仓库常有用户未提交的改动（`app/page.tsx` 可能是脏的）：**只动 Qingyu 卡片那一段**，改完在 HomePage 仓库提交（`git -C ~/workspace/my/HomePage commit`）即可。
+6. **部署不归本流程管**：HomePage 按**它自己的部署方案**自行上线（其仓库/平台自身的流程负责），qingyu 发布侧不代为部署、不代为推送——提交完本步骤即结束。
 
 ## 6. 发布后验证
 
@@ -91,4 +92,4 @@ gh release view vX.Y.Z --repo freeabyss/qingyu    # DMG 已挂上
 ```
 
 - 安装 DMG 后：「关于」页版本 = 新版本；首次启动会把 `~/Downloads`、`~/Desktop` 的 `Qingyu-*.dmg` 移进废纸篓（安装包自清理，按版本执行一次）。
-- 检查 HomePage 站点上的描述已更新（若站点自动部署则等构建完成）。
+- HomePage 上线与验证由其自身部署方案负责，本流程不包含该步骤。
