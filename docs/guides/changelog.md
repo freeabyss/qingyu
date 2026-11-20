@@ -9,6 +9,19 @@ All notable changes to Qingyu (清羽) are documented here. The format is based 
 
 ### Added
 
+- **Content size on every clipboard history entry.** Rows and the detail
+  pane now show a human-readable size for all content types (previously
+  images and files only): text counts UTF-8 bytes, rich text sums its
+  RTF+HTML resources (falling back to the plain-text size when resources
+  are gone), images report the original file size, and files the recorded
+  size — formatted with the system unit style (「12 KB」「1.4 MB」).
+- **Copying an entry bumps it to the top of the history**, exactly like
+  re-copying the content: the record's sort key is refreshed on every copy
+  path (history window ⏎/⌘C, detail pane, command bar), pinned entries
+  still float first, and the original first-copied timestamp is preserved.
+
+### Added (previous)
+
 - **Mouse-adjustable selection after drawing a region.** Once a capture region
   is selected it can now be fine-tuned with the mouse Snipaste-style: drag
   inside to move it, drag any edge or corner (8pt hit bands with visible

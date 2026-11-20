@@ -463,6 +463,7 @@ private final class MockClipboardRepository: ClipboardRepositoryProtocol {
     }
     func cleanupExpired(now: Date) async throws -> Int { 0 }
     func storageUsage() async throws -> StorageUsage { usage }
+    func touch(id: UUID, at date: Date) async throws -> ClipboardRecordSnapshot? { nil }
 
     private static func snapshot(id: UUID, pinned: Bool, favorite: Bool) -> ClipboardRecordSnapshot {
         ClipboardRecordSnapshot(

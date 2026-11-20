@@ -132,6 +132,20 @@ protocol ClipboardRepositoryProtocol {
     func toggleFavorite(id: UUID) async throws -> ClipboardRecordSnapshot
     func cleanupExpired(now: Date) async throws -> Int
     func storageUsage() async throws -> StorageUsage
+    /// 「复制即重新复制」：仅刷新 `updatedAt`（历史排序键），不动 `createdAt`
+    /// 与内容。记录不存在时返回 nil。
+    @discardableResult
+    func touch(id: UUID, at date: Date) async throws -> ClipboardRecordSnapshot?
+}
+
+extension ClipboardRepositoryProtocol {
+    /// 单参便捷入口：必须经**双参调用**转发——协议扩展里带默认参数的方法
+    /// 在省参调用时会被静态绑定到扩展实现（no-op），不会动态派发到具体
+    /// 实现上（0.4.216 用 `touchedIDs == []` 的失败测试实测过这条 Swift 行为）。
+    @discardableResult
+    func touch(id: UUID) async throws -> ClipboardRecordSnapshot? {
+        try await touch(id: id, at: Date())
+    }
 }
 
 struct AssistantClipboardEvent: Hashable {
@@ -264,6 +278,36 @@ struct ClipboardRecordSnapshot: Identifiable, Hashable {
 
     var failureReason: String? {
         resourceStatus.failureReason
+    }
+
+    /// 内容大小（字节）。文本按 UTF-8 字节数；富文本按 RTF+HTML 资源字节和
+    /// （资源缺失时回退纯文本字节，与「内容还在不在」无关的大小口径）；
+    /// 图片取原图字节（缩略图是派生物，不计入）；文件取记录时的文件大小。
+    /// 无可计量内容时返回 nil（行/详情不显示大小，不显示「0 bytes」）。
+    var contentByteCount: Int64? {
+        switch contentType {
+        case .text:
+            guard let text = plainText, !text.isEmpty else { return nil }
+            return Int64(text.utf8.count)
+        case .richText:
+            let resourceBytes = resources
+                .filter { $0.type == .richTextRTF || $0.type == .richTextHTML }
+                .reduce(Int64(0)) { $0 + $1.byteSize }
+            if resourceBytes > 0 { return resourceBytes }
+            guard let text = plainText, !text.isEmpty else { return nil }
+            return Int64(text.utf8.count)
+        case .image:
+            return resources.first(where: { $0.type == .imageOriginal })?.byteSize
+        case .file:
+            guard let size = fileSize, size > 0 else { return nil }
+            return size
+        }
+    }
+
+    /// 人类可读的内容大小（`ByteCountFormatter`，.file 口径 →「12 KB」「1.4 MB」）。
+    var formattedContentSize: String? {
+        guard let bytes = contentByteCount, bytes > 0 else { return nil }
+        return ByteCountFormatter.string(fromByteCount: bytes, countStyle: .file)
     }
 }
 
@@ -557,6 +601,19 @@ final class ClipboardRepository: @unchecked Sendable, ClipboardRepositoryProtoco
                 throw AssistantClipboardRepositoryError.recordNotFound(id)
             }
             record.isFavorite.toggle()
+            try context.saveIfNeeded()
+            return try self.makeSnapshot(from: record)
+        }
+    }
+
+    func touch(id: UUID, at date: Date) async throws -> ClipboardRecordSnapshot? {
+        let context = persistence.viewContext
+        return try await context.perform {
+            guard let record = try self.fetchRecord(id: id, in: context) else {
+                return nil
+            }
+            // 只动排序键：createdAt（「首次复制时间」）与内容一律保持原样。
+            record.updatedAt = date
             try context.saveIfNeeded()
             return try self.makeSnapshot(from: record)
         }

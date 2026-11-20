@@ -32,6 +32,24 @@ final class SearchPanelViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.selectedIndex, 0)
     }
 
+    // MARK: - 复制即重新复制（复制置顶）
+
+    /// 执行器复制剪贴板记录成功后必须 touch 仓库：
+    /// 该条在历史里顶到最前（置顶项仍优先），像重新复制了一样。
+    func testCopyClipboardRecordTouchesRepositoryToBumpOrder() async throws {
+        let repo = TouchRecordingClipboardRepository()
+        let executor = SearchPanelActionExecutor(
+            appExecutor: NoopSearchActionExecutor(),
+            commandExecutor: NoopSearchActionExecutor(),
+            clipboardRepository: repo,
+            resourceStore: StubResourceStore()
+        )
+
+        try await executor.execute(.copyClipboardRecord(repo.recordID))
+
+        XCTAssertEqual(repo.touchedIDs, [repo.recordID], "复制成功后必须 touch 排序键")
+    }
+
     func testConfirmSelectionExecutesAndClosesPanel() async {
         let service = StubPanelSearchService(results: [Self.makeResult(index: 0)])
         var didClose = false
@@ -570,4 +588,61 @@ private final class SilentSource: SearchSource {
 
     func canSearch(query: String) -> Bool { true }
     func search(query: String) async -> [SearchResult] { [] }
+}
+
+/// 「复制置顶」用例的仓库替身：fetch 固定返回一条文本记录，touch 记录调用。
+private final class TouchRecordingClipboardRepository: ClipboardRepositoryProtocol {
+    let recordID = UUID()
+    private(set) var touchedIDs: [UUID] = []
+
+    func upsert(event: AssistantClipboardEvent, resources: [ClipboardResourceDraft]) async throws -> ClipboardRecordSnapshot {
+        throw AssistantClipboardRepositoryError.confirmationRequired
+    }
+
+    func fetch(id: UUID) async throws -> ClipboardRecordSnapshot? {
+        ClipboardRecordSnapshot(
+            id: id,
+            contentType: .text,
+            plainText: "hello",
+            summary: nil,
+            contentHash: "hash",
+            isPinned: false,
+            isFavorite: false,
+            createdAt: Date(timeIntervalSinceNow: -60),
+            updatedAt: Date(timeIntervalSinceNow: -60),
+            filePath: nil,
+            fileDisplayName: nil,
+            fileUTI: nil,
+            fileSize: nil,
+            resources: [],
+            resourceStatus: .available,
+            sourceAppBundleID: nil,
+            sourceAppName: nil
+        )
+    }
+
+    func fetchHistory(filter: ClipboardHistoryFilter) async throws -> [ClipboardRecordSnapshot] { [] }
+    func delete(id: UUID) async throws {}
+    func clearAll() async throws {}
+    func togglePin(id: UUID) async throws -> ClipboardRecordSnapshot { throw AssistantClipboardRepositoryError.recordNotFound(id) }
+    func toggleFavorite(id: UUID) async throws -> ClipboardRecordSnapshot { throw AssistantClipboardRepositoryError.recordNotFound(id) }
+    func cleanupExpired(now: Date) async throws -> Int { 0 }
+    func storageUsage() async throws -> StorageUsage { StorageUsage(coreDataBytes: 0, resourceBytes: 0) }
+
+    func touch(id: UUID, at date: Date) async throws -> ClipboardRecordSnapshot? {
+        touchedIDs.append(id)
+        return try await fetch(id: id)
+    }
+}
+
+/// 资源存储替身：复制文本路径不会读到资源，空实现即可。
+private final class StubResourceStore: FileResourceStoreProtocol {
+    func writeImageOriginal(_ data: Data, id: UUID) async throws -> FileResourceWriteResult { FileResourceWriteResult(id: id, relativePath: "", byteSize: 0, mimeType: nil) }
+    func writeThumbnail(_ data: Data, id: UUID) async throws -> FileResourceWriteResult { FileResourceWriteResult(id: id, relativePath: "", byteSize: 0, mimeType: nil) }
+    func writeRichTextRTF(_ data: Data, id: UUID) async throws -> FileResourceWriteResult { FileResourceWriteResult(id: id, relativePath: "", byteSize: 0, mimeType: nil) }
+    func writeRichTextHTML(_ data: Data, id: UUID) async throws -> FileResourceWriteResult { FileResourceWriteResult(id: id, relativePath: "", byteSize: 0, mimeType: nil) }
+    func read(relativePath: String) async throws -> Data { Data() }
+    func delete(relativePath: String) async {}
+    func exists(relativePath: String) -> Bool { true }
+    func storageUsage() async throws -> Int64 { 0 }
 }

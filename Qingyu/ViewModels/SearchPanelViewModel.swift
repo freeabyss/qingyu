@@ -551,6 +551,10 @@ final class SearchPanelActionExecutor: SearchActionExecutorProtocol {
         if snapshot.contentType == .richText || snapshot.contentType == .image {
             try await writeResources(snapshot)
         }
+
+        // 「复制即重新复制」：写入成功后刷新排序键，该条在历史里顶到最前
+        // （置顶项仍优先）。置顶失败不影响复制本身——顺序只是次级收益。
+        _ = try? await clipboardRepository.touch(id: id)
     }
 
     private func writeResources(_ snapshot: ClipboardRecordSnapshot) async throws {

@@ -96,6 +96,11 @@ struct ClipboardDetailPane: View {
                     Text(typeLabel(for: item.contentType))
                         .font(JadeFont.body.weight(.semibold))
                         .foregroundStyle(JadeColor.textPrimary)
+                    if let size = item.formattedContentSize {
+                        Text("· \(size)")
+                            .font(JadeFont.callout)
+                            .foregroundStyle(JadeColor.textTertiary)
+                    }
                     Spacer()
                     Text(L10n.relativeTime(from: item.updatedAt))
                         .font(JadeFont.callout)
@@ -232,6 +237,11 @@ struct ClipboardDetailPane: View {
             Text(typeLabel(for: item.contentType))
                 .font(JadeFont.callout.weight(.semibold))
                 .foregroundStyle(JadeColor.textPrimary)
+            if let size = item.formattedContentSize {
+                Text("· \(size)")
+                    .font(JadeFont.callout)
+                    .foregroundStyle(JadeColor.textTertiary)
+            }
             Spacer()
             Text(L10n.relativeTime(from: item.updatedAt))
                 .font(JadeFont.callout)

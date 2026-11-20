@@ -241,18 +241,16 @@ struct JadeClipboardRow: View {
     private var sizeText: String? {
         switch item.contentType {
         case .image:
-            if let original = item.resources.first(where: { $0.type == .imageOriginal }) {
-                if let width = original.width, let height = original.height {
-                    return "\(width)×\(height)"
-                }
-                return ByteCountFormatter.string(fromByteCount: original.byteSize, countStyle: .file)
+            // 图片优先显示尺寸（对「这张图多大」更有用），缺尺寸时回退字节数。
+            if let original = item.resources.first(where: { $0.type == .imageOriginal }),
+               let width = original.width, let height = original.height {
+                return "\(width)×\(height)"
             }
-            return nil
-        case .file:
-            guard let size = item.fileSize, size > 0 else { return nil }
-            return ByteCountFormatter.string(fromByteCount: size, countStyle: .file)
-        case .text, .richText:
-            return nil
+            return item.formattedContentSize
+        case .text, .richText, .file:
+            // 文本/富文本/文件统一走内容大小（人类友好格式）：
+            // 文本 = UTF-8 字节数，富文本 = RTF+HTML 资源字节和，文件 = 记录的文件大小。
+            return item.formattedContentSize
         }
     }
 

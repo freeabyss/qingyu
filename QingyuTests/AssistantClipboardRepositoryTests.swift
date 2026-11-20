@@ -277,6 +277,142 @@ final class AssistantClipboardRepositoryTests: XCTestCase {
             try context.save()
         }
     }
+
+    // MARK: - 复制置顶（touch 排序键）
+
+    /// 「复制即重新复制」：touch 只刷新排序键 updatedAt，
+    /// createdAt（首次复制时间）与内容一律不动；记录不存在返回 nil。
+    func testTouchBumpsSortKeyWithoutChangingCreationDate() async throws {
+        let captured = Date(timeIntervalSinceNow: -3600)
+        let snapshot = try await repository.upsert(
+            event: AssistantClipboardEvent(payload: .plainText("hello"), capturedAt: captured),
+            resources: []
+        )
+
+        let bumped = Date()
+        let touched = try await repository.touch(id: snapshot.id, at: bumped)
+        XCTAssertEqual(touched?.updatedAt, bumped, "排序键应刷新为 touch 时间")
+        XCTAssertEqual(touched?.createdAt, captured, "createdAt 是「首次复制时间」，touch 不得改动")
+        XCTAssertEqual(touched?.plainText, "hello", "touch 不得改动内容")
+
+        let missing = try await repository.touch(id: UUID(), at: bumped)
+        XCTAssertNil(missing, "不存在的记录返回 nil，不抛错（顺序是次级收益）")
+    }
+
+    /// 索引包装层必须把 touch 同步进内存索引：否则历史排序仍旧序，
+    /// 「复制置顶」要等重启才可见。
+    func testTouchReordersInMemoryHistoryIndex() async throws {
+        let index = InMemorySearchIndex()
+        let indexing = IndexingClipboardRepository(base: repository, index: index)
+        let older = try await indexing.upsert(
+            event: AssistantClipboardEvent(payload: .plainText("older"), capturedAt: Date(timeIntervalSinceNow: -600)),
+            resources: []
+        )
+        let newer = try await indexing.upsert(
+            event: AssistantClipboardEvent(payload: .plainText("newer"), capturedAt: Date(timeIntervalSinceNow: -60)),
+            resources: []
+        )
+
+        let firstBefore = index.historyClipboard(filter: nil, limit: nil, offset: 0).first?.clipboardRecordID
+        XCTAssertEqual(firstBefore, newer.id, "touch 前更新的记录应在最前")
+
+        _ = try await indexing.touch(id: older.id)
+        let firstAfter = index.historyClipboard(filter: nil, limit: nil, offset: 0).first?.clipboardRecordID
+        XCTAssertEqual(firstAfter, older.id, "touch 后该条应顶到历史最前（像重新复制一样）")
+    }
+
+    // MARK: - 内容大小（人类友好格式）
+
+    /// 行/详情展示的大小口径：文本 = UTF-8 字节，富文本 = RTF+HTML 资源字节和
+    /// （资源缺失回退纯文本），图片 = 原图字节（缩略图不计），文件 = 记录大小；
+    /// 无可计量内容时为 nil（UI 不显示「0 bytes」）。
+    func testContentByteCountsByType() {
+        XCTAssertEqual(Self.snapshot(type: .text, plainText: "hello").contentByteCount, 5)
+        XCTAssertEqual(Self.snapshot(type: .text, plainText: "你好").contentByteCount, 6, "中文按 UTF-8 字节数计")
+        // 富文本：RTF 100 + HTML 50 = 150；缩略图/原图不是富文本资源，不参与。
+        XCTAssertEqual(
+            Self.snapshot(
+                type: .richText,
+                plainText: "fallback",
+                resources: [
+                    Self.resource(type: .richTextRTF, byteSize: 100),
+                    Self.resource(type: .richTextHTML, byteSize: 50),
+                ]
+            ).contentByteCount,
+            150
+        )
+        // 富文本资源全缺失：回退纯文本字节。
+        XCTAssertEqual(Self.snapshot(type: .richText, plainText: "fallback").contentByteCount, 8)
+        // 图片：只取原图。
+        XCTAssertEqual(
+            Self.snapshot(
+                type: .image,
+                resources: [
+                    Self.resource(type: .imageOriginal, byteSize: 2048),
+                    Self.resource(type: .imageThumbnail, byteSize: 30),
+                ]
+            ).contentByteCount,
+            2048
+        )
+        XCTAssertEqual(Self.snapshot(type: .file, fileSize: 1024 * 1024).contentByteCount, 1_048_576)
+        XCTAssertNil(Self.snapshot(type: .text, plainText: nil).contentByteCount)
+        XCTAssertNil(Self.snapshot(type: .file, fileSize: nil).contentByteCount)
+    }
+
+    /// 人类友好格式：ByteCountFormatter(.file) 输出「xx bytes / xx KB / xx MB」量级。
+    func testFormattedContentSizeIsHumanReadable() {
+        // ByteCountFormatter(.file) 随系统语言输出（en「5 bytes」/ zh「5 字节」），
+        // 期望值用同一格式化器构造，锁口径不锁语言。
+        XCTAssertEqual(
+            Self.snapshot(type: .text, plainText: "hello").formattedContentSize,
+            ByteCountFormatter.string(fromByteCount: 5, countStyle: .file)
+        )
+        XCTAssertEqual(
+            Self.snapshot(type: .file, fileSize: 2048).formattedContentSize,
+            ByteCountFormatter.string(fromByteCount: 2048, countStyle: .file)
+        )
+        XCTAssertNil(Self.snapshot(type: .text, plainText: nil).formattedContentSize, "无可计量内容不显示，不给「0 bytes」")
+    }
+
+    private static func snapshot(
+        type: ClipboardContentType,
+        plainText: String? = nil,
+        resources: [ClipboardResourceSnapshot] = [],
+        fileSize: Int64? = nil
+    ) -> ClipboardRecordSnapshot {
+        ClipboardRecordSnapshot(
+            id: UUID(),
+            contentType: type,
+            plainText: plainText,
+            summary: nil,
+            contentHash: "hash-\(UUID().uuidString)",
+            isPinned: false,
+            isFavorite: false,
+            createdAt: Date(timeIntervalSinceNow: -60),
+            updatedAt: Date(timeIntervalSinceNow: -60),
+            filePath: nil,
+            fileDisplayName: nil,
+            fileUTI: nil,
+            fileSize: fileSize,
+            resources: resources,
+            resourceStatus: .available,
+            sourceAppBundleID: nil,
+            sourceAppName: nil
+        )
+    }
+
+    private static func resource(type: ClipboardResourceType, byteSize: Int64) -> ClipboardResourceSnapshot {
+        ClipboardResourceSnapshot(
+            id: UUID(),
+            type: type,
+            relativePath: "rel/\(type.rawValue)",
+            mimeType: nil,
+            byteSize: byteSize,
+            width: nil,
+            height: nil,
+            isMissing: false
+        )
+    }
 }
 
 private func XCTAssertThrowsErrorAsync(

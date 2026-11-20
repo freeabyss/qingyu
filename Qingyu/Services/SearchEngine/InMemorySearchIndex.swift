@@ -352,6 +352,14 @@ final class IndexingClipboardRepository: ClipboardRepositoryProtocol {
         return snapshot
     }
 
+    func touch(id: UUID, at date: Date) async throws -> ClipboardRecordSnapshot? {
+        guard let snapshot = try await base.touch(id: id, at: date) else { return nil }
+        // 索引持有排序键 updatedAt 的副本：必须回写，否则内存排序仍是旧顺序，
+        // 下一次打开历史窗口看不到「复制置顶」的效果（重启才生效就晚了）。
+        index.upsert(SearchIndexItem(clipboard: snapshot))
+        return snapshot
+    }
+
     func fetch(id: UUID) async throws -> ClipboardRecordSnapshot? {
         try await base.fetch(id: id)
     }
