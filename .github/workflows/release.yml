@@ -41,7 +41,11 @@ concurrency:
 
 jobs:
   build-and-release:
-    runs-on: macos-14
+    # macos-14 已从 runner 池下线（v0.4.217 发布时实测：
+    # "The configuration 'macos-14-arm64-us-default' is not supported"，
+    # 此前 v0.4.212/v0.4.213 的 tag 也全部秒级取消）。用 macos-latest 跟随
+    # 官方池演进，避免下次下线时发布再次静默失败。
+    runs-on: macos-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
