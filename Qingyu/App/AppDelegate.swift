@@ -883,40 +883,60 @@ enum InstallerCleanup {
 /// `AppleLanguages` 只在进程启动时被 `Bundle` 读一次，改语言无法热生效；屏幕录制
 /// 授权在进程内被缓存，都要靠「拉起新实例 → 退出旧实例」完成。
 ///
-/// **为什么用 `open(1)` 而不是 `NSWorkspace.openApplication`**（0.4.212 修复）：
-/// 旧实现把 `NSApp.terminate` 挂在 `openApplication` 的 completion handler 里，
-/// 且**忽略错误也无条件退出**。实测（macOS 26，用户报告）会出现「旧实例退出了，
-/// 新实例却没起来」：completion handler 只是系统**接受**启动请求的回调，
-/// 此时新实例还在 LaunchServices 注册流程中，调用方立刻退出可能中断注册；
-/// 一旦 openApplication 返回错误（App 管理/LS 拒绝），旧代码照样 terminate，
-/// 用户看到的就是「关了但再也没启动」。`/usr/bin/open -n` 是独立短命进程，
-/// 把启动请求完全交给 LaunchServices 后即退出，本实例何时退出都不影响新实例；
+/// **演进史（两代失败换来的时序结论）**：
+/// - v1（0.4.212 前）：`NSWorkspace.openApplication` + completion handler 里无条件
+///   `terminate`——注册被退出中断、错误被吞，「关了但没起来」。
+/// - v2（0.4.212）：`/usr/bin/open -n` 直启，本实例 0.6s 后退出。`open` 虽是独立
+///   进程，但它的 LaunchServices 注册仍与本实例的退出**并跑**；0.4.216 用户再次
+///   报告「授权后没有成功重启」（无日志无崩溃报告，无法复盘，但并跑是仅剩的
+///   可疑窗口）。
+/// - v3（本版）：`/bin/sh -c 'sleep N && exec open -n <bundle>'`。shell 完全脱离
+///   本进程（孤儿后由 launchd 收养），**等本实例退干净之后**才触发 open——
+///   启动注册与旧实例退出不再有重叠窗口，时序上无竞态可输。sleep 取
+///   `respawnDelaySeconds`（> 退出宽限），`-n` 保留兜底（万一退出被 Core Data
+///   保存拖长，宁可短暂双开也不要起不来）。
 /// spawn 失败时保持本实例存活，绝不退出到「什么都没有」的死局。
 @MainActor
 enum AppRelauncher {
-    /// spawn `open` 之后、退出本实例之前的宽限：给 LaunchServices 一点时间
-    /// 处理新实例注册，避免「退出得太快」与注册流程赛跑。
+    /// spawn shell 之后、退出本实例之前的宽限。
     static let terminateGraceSeconds: TimeInterval = 0.6
 
-    /// `open` 命令参数。`-n`：即使已有同 Bundle ID 实例在跑也开新实例——
-    /// 没有它，系统只会把旧进程激活到前台，语言覆盖/权限刷新永远不生效。
-    static func openArguments(bundlePath: String) -> [String] {
-        ["-n", bundlePath]
+    /// 新实例的启动延迟：必须**大于** `terminateGraceSeconds`，
+    /// 保证 open 触发时本实例已退出（时序无竞态的核心约束）。
+    static let respawnDelaySeconds: TimeInterval = 1.2
+
+    /// 一次性保险：`relaunch()` 只允许生效一次。设置页的重启入口是普通按钮
+    /// （非模态），退出宽限内连点两次会 spawn 两个 shell、各自 `open -n`，
+    /// 直接双开菜单栏应用——第三次「重启异常」用户报告的形状。进程生命周期
+    /// 内无需复位。
+    static var isRelaunchScheduled = false
+
+    /// 交给 `/bin/sh -c` 的重启命令。单引号包裹 bundle 路径（防空格），
+    /// 引号内的单引号用 `'\''` 转义。
+    static func relaunchShellCommand(bundlePath: String, delaySeconds: Double) -> String {
+        let quoted = "'" + bundlePath.replacingOccurrences(of: "'", with: "'\\''") + "'"
+        return "sleep \(delaySeconds) && exec /usr/bin/open -n \(quoted)"
     }
 
     static func relaunch() {
-        let bundleURL = Bundle.main.bundleURL
+        guard !isRelaunchScheduled else {
+            Logger.app.info("Relaunch: already scheduled, ignoring duplicate request")
+            return
+        }
+        isRelaunchScheduled = true
+
+        let bundlePath = Bundle.main.bundleURL.path
         let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/open")
-        process.arguments = openArguments(bundlePath: bundleURL.path)
+        process.executableURL = URL(fileURLWithPath: "/bin/sh")
+        process.arguments = ["-c", relaunchShellCommand(bundlePath: bundlePath, delaySeconds: respawnDelaySeconds)]
 
         do {
             try process.run()
-            Logger.app.info("Relaunch: open(1) spawned for \(bundleURL.path, privacy: .public)")
+            Logger.app.info("Relaunch: detached shell scheduled open(1) for \(bundlePath, privacy: .public) in \(respawnDelaySeconds, privacy: .public)s")
         } catch {
-            // open 都起不来属于系统级异常（/usr/bin/open 缺失等）：
-            // 保持本实例存活，让用户至少还能手动操作，绝不退出到死局。
-            Logger.app.error("Relaunch: failed to spawn open(1): \(error.localizedDescription, privacy: .public)")
+            // sh 都起不来属于系统级异常：保持本实例存活，让用户至少还能手动操作，
+            // 绝不退出到死局。
+            Logger.app.error("Relaunch: failed to spawn /bin/sh: \(error.localizedDescription, privacy: .public)")
             return
         }
 

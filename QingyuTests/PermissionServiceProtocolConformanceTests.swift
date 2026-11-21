@@ -37,19 +37,35 @@ final class PermissionServiceProtocolConformanceTests: XCTestCase {
         XCTAssertTrue(staticService.onDemandAccessibilityCheck())
     }
 
-    /// 「重新启动清羽」必须用 `open -n <bundle 路径>`（0.4.212 回归）。    ///
-    /// 用户报告：授权后点了「重新启动清羽」，应用关了但没再启动。旧实现用
-    /// NSWorkspace.openApplication + completion handler 里无条件 terminate：
-    /// completion handler 只是系统**接受**启动请求的回调，新实例还在
-    /// LaunchServices 注册流程中就被调用方退出打断；openApplication 报错时
-    /// 错误被吞掉、照样 terminate → 死局。现统一走 `AppRelauncher` 的
-    /// open(1) 方案，这里锁死参数形状与退出宽限，防止回退。
-    func test_relaunch_usesOpenNWithFullBundlePath() {
-        let args = AppRelauncher.openArguments(bundlePath: "/Applications/Qingyu.app")
-        XCTAssertEqual(args.first, "-n", "必须有 -n：允许与旧实例并存，否则系统只会激活旧进程")
-        XCTAssertEqual(args.last, "/Applications/Qingyu.app", "必须传完整 bundle 路径")
-        XCTAssertEqual(args.count, 2, "不得夹带其它参数（--args 透传会让新实例进入 UITest 态）")
-        XCTAssertGreaterThan(AppRelauncher.terminateGraceSeconds, 0, "退出前必须给 LaunchServices 注册宽限")
+    /// 「重新启动清羽」必须是脱离进程的 shell：等本实例退净后再 open（0.4.217 回归）。
+    ///
+    /// 两代失败史：① NSWorkspace.openApplication + completion 里无条件 terminate
+    /// （0.4.212 修，注册被退出中断、错误被吞）；② open(1) 直启、LaunchServices
+    /// 注册与本实例退出并跑（0.4.216 用户再次报告「授权后没有成功重启」，
+    /// 无日志无崩溃报告无法复盘，并跑是仅剩的可疑窗口）。v3 把时序变成硬约束：
+    /// `/bin/sh -c 'sleep N && exec open -n <bundle>'`，N > 退出宽限——
+    /// shell 孤儿进程等本实例退出后才触发启动，两个阶段不再重叠。
+    func test_relaunch_usesDetachedShellWithDelayedOpen() {
+        let command = AppRelauncher.relaunchShellCommand(
+            bundlePath: "/Applications/Qingyu.app",
+            delaySeconds: AppRelauncher.respawnDelaySeconds
+        )
+        XCTAssertTrue(command.hasPrefix("sleep "), "必须先 sleep：等本实例退出")
+        XCTAssertTrue(command.contains("exec /usr/bin/open -n '/Applications/Qingyu.app'"),
+                      "sleep 后必须 exec open -n 完整 bundle 路径（-n 兜底：宁可短暂双开也不要起不来）")
+        XCTAssertGreaterThan(
+            AppRelauncher.respawnDelaySeconds, AppRelauncher.terminateGraceSeconds,
+            "核心约束：新实例的启动延迟必须大于退出宽限，否则启动注册与旧实例退出又并跑了"
+        )
+    }
+
+    /// 带空格的 bundle 路径必须整体加引号，命令不能拼坏。
+    func test_relaunch_shellCommandQuotesPathWithSpaces() {
+        let command = AppRelauncher.relaunchShellCommand(
+            bundlePath: "/Applications/My Apps/Qingyu.app",
+            delaySeconds: 0.1
+        )
+        XCTAssertTrue(command.contains("'/Applications/My Apps/Qingyu.app'"), "路径必须整体加引号")
     }
 
     /// 屏幕录制恢复流程的按钮顺序：先去授权、再让授权生效、最后取消。
