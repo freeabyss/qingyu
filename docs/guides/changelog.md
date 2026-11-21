@@ -7,6 +7,8 @@ All notable changes to Qingyu (清羽) are documented here. The format is based 
 
 ## [Unreleased]
 
+## [0.4.217] - 2026-11-21
+
 ### Added
 
 - **Content size on every clipboard history entry.** Rows and the detail
@@ -19,9 +21,6 @@ All notable changes to Qingyu (清羽) are documented here. The format is based 
   re-copying the content: the record's sort key is refreshed on every copy
   path (history window ⏎/⌘C, detail pane, command bar), pinned entries
   still float first, and the original first-copied timestamp is preserved.
-
-### Added (previous)
-
 - **Mouse-adjustable selection after drawing a region.** Once a capture region
   is selected it can now be fine-tuned with the mouse Snipaste-style: drag
   inside to move it, drag any edge or corner (8pt hit bands with visible
@@ -33,6 +32,14 @@ All notable changes to Qingyu (清羽) are documented here. The format is based 
 
 ### Changed
 
+- **Real Liquid Glass on macOS 26.** Every surface (clipboard history,
+  command bar, settings, onboarding) previously sat under a near-opaque
+  tint that covered the system material entirely (α 0.78–0.90 — the panel
+  read as a flat dark rectangle, not glass). macOS 26+ now uses the system
+  Liquid Glass (`NSGlassEffectView`) with a subtle brand tint, and older
+  systems fall back to a rebalanced translucent material. A new
+  verification tool (`--uitest-capture-live-png`, real composited pixels)
+  closed the blind spot that let the flat look pass review.
 - **Full Disk Access instead of per-folder permission prompts.** Qingyu no
   longer triggers macOS's separate "access Desktop / Documents / Downloads"
   dialogs: the file-search index simply does not scan those folders until
@@ -45,6 +52,17 @@ All notable changes to Qingyu (清羽) are documented here. The format is based 
 
 ### Fixed
 
+- **App relaunch after permission grant / language change.** Clicking
+  「重新启动清羽」(or changing the interface language) quit the app but the
+  new instance sometimes never appeared. Two failure generations were
+  eliminated: terminating inside `NSWorkspace.openApplication`'s completion
+  handler (interrupting LaunchServices registration and swallowing errors),
+  then racing `open(1)` against our own termination. Relaunch now hands the
+  job to a fully detached shell (`sleep > termination grace, then
+  open -n`) — the new instance is only launched after the old one has
+  fully exited, so the two phases can no longer overlap. Spawning the shell
+  itself is the only remaining failure mode, and in that case the app stays
+  alive instead of quitting into nothing.
 - **Clipboard window "disabled by default" with a dead enable button.** When the
   clipboard-history window was opened before the built-in plugins were
   registered (e.g. via hotkey during first-run onboarding), the window fell
@@ -55,17 +73,6 @@ All notable changes to Qingyu (清羽) are documented here. The format is based 
   running and the usage figure kept climbing. The window's `show()` (and the
   view-model factory) now call `registerBuiltInPlugins()` first, matching the
   settings window and the command-bar factory.
-
-- **App relaunch after permission grant / language change.** Clicking
-  「重新启动清羽」(or changing the interface language) quit the app but the new
-  instance sometimes never appeared — the old implementation terminated the
-  current process inside `NSWorkspace.openApplication`'s completion handler,
-  interrupting LaunchServices registration of the new instance, and swallowed
-  launch errors (quitting anyway). Relaunch now goes through `open(1)` with
-  `-n` (a fully detached short-lived process hands the launch to
-  LaunchServices and exits), gives registration a grace period before
-  terminating, and keeps the app alive if the relaunch cannot even be
-  initiated.
 
 ### Added
 
